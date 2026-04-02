@@ -1,0 +1,127 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { PLANS } from '@/lib/plans'
+import type { PlanId } from '@/lib/plans'
+
+async function getServiceClientAndUser(request: NextRequest) {
+  const { createServiceClient } = await import('@/lib/supabase/server')
+  const service = createServiceClient()
+  const token = request.headers.get('authorization')?.replace('Bearer ', '')
+  if (!token) return null
+  const { data: { user } } = await service.auth.getUser(token)
+  if (!user) return null
+  return { service, user }
+}
+
+// POST /api/orgs/invite — send a team invite
+export async function POST(request: NextRequest) {
+  const auth = await getServiceClientAndUser(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { service: supabase, user } = auth
+
+  const { email, role = 'member' } = await request.json()
+  if (!email) return NextResponse.json({ error: 'email is required' }, { status: 400 })
+  if (!['admin', 'member'].includes(role)) {
+    return NextResponse.json({ error: 'role must be admin or member' }, { status: 400 })
+  }
+
+  // Find the org where this user is an admin/owner
+  const { data: membership } = await supabase
+    .from('org_members')
+    .select('org_id, role')
+    .eq('user_id', user.id)
+    .in('role', ['owner', 'admin'])
+    .limit(1)
+    .single()
+
+  if (!membership) {
+    return NextResponse.json({ error: 'You do not have permission to invite members' }, { status: 403 })
+  }
+
+  // Check seat limit against current members + pending invites
+  const { data: orgData } = await supabase
+    .from('orgs')
+    .select('plan')
+    .eq('id', membership.org_id)
+    .single()
+
+  const planId = (orgData?.plan ?? 'free') as PlanId
+  const seatLimit = PLANS[planId].limits.seats
+  if (seatLimit !== -1) {
+    const { count: memberCount } = await supabase
+      .from('org_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('org_id', membership.org_id)
+
+    if ((memberCount ?? 0) >= seatLimit) {
+      return NextResponse.json({
+        error: `Your ${PLANS[planId].name} plan includes ${seatLimit} seat${seatLimit !== 1 ? 's' : ''}. Upgrade to add more team members.`
+      }, { status: 403 })
+    }
+  }
+
+  // Check if user is already a member
+  const { data: existing } = await supabase
+    .from('org_members')
+    .select('user_id')
+    .eq('org_id', membership.org_id)
+    .eq('user_id', (
+      await supabase.from('profiles').select('id').eq('id', email).single()
+    ).data?.id ?? '')
+    .maybeSingle()
+
+  if (existing) {
+    return NextResponse.json({ error: 'User is already a member of this org' }, { status: 409 })
+  }
+
+  // Create or refresh invite (upsert on org_id + email)
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: invite, error } = await supabase
+    .from('org_invites')
+    .insert({
+      org_id: membership.org_id,
+      email,
+      role,
+      invited_by: user.id,
+      expires_at: expiresAt,
+    })
+    .select('id, token, expires_at')
+    .single()
+
+  if (error) {
+    console.error('[POST /api/orgs/invite]', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Build the invite URL for the caller to send via their own email
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/invite/${invite.token}`
+
+  return NextResponse.json({ data: { inviteUrl, expiresAt: invite.expires_at } })
+}
+
+// GET /api/orgs/invite — list pending invites for this org
+export async function GET(request: NextRequest) {
+  const auth = await getServiceClientAndUser(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { service: supabase, user } = auth
+
+  const { data: membership } = await supabase
+    .from('org_members')
+    .select('org_id')
+    .eq('user_id', user.id)
+    .in('role', ['owner', 'admin'])
+    .limit(1)
+    .single()
+
+  if (!membership) return NextResponse.json({ data: [] })
+
+  const { data, error } = await supabase
+    .from('org_invites')
+    .select('id, email, role, expires_at, accepted_at, created_at')
+    .eq('org_id', membership.org_id)
+    .is('accepted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ data: data ?? [] })
+}

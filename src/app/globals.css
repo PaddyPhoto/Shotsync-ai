@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+:root {
+  --bg:       #0a0a0b;
+  --bg2:      #111114;
+  --bg3:      #18181d;
+  --bg4:      #1f1f26;
+  --line:     rgba(255,255,255,0.07);
+  --line2:    rgba(255,255,255,0.12);
+  --text:     #f0eee8;
+  --text2:    #9998a0;
+  --text3:    #5c5b63;
+  --accent:   #e8d97a;
+  --accent2:  #6de0b3;
+  --accent3:  #e87a7a;
+  --accent4:  #7ab4e8;
+  --r:        6px;
+  --r2:       12px;
+  --r3:       20px;
+
+  --font-syne: 'Syne', sans-serif;
+  --font-dm-mono: 'DM Mono', monospace;
+  --font-dm-sans: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-dm-sans);
+  font-weight: 400;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 180px;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--line2); }
+
+/* Selection */
+::selection {
+  background: rgba(232, 217, 122, 0.2);
+  color: var(--text);
+}
+
+button { cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+img { display: block; }
+
+/* Focus rings */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r);
+}
+
+/* Utility classes matching reference design */
+@layer utilities {
+  .font-syne { font-family: var(--font-syne); }
+  .font-mono { font-family: var(--font-dm-mono); }
+  .font-sans { font-family: var(--font-dm-sans); }
+
+  .text-accent  { color: var(--accent); }
+  .text-accent2 { color: var(--accent2); }
+  .text-accent3 { color: var(--accent3); }
+  .text-accent4 { color: var(--accent4); }
+  .text-txt     { color: var(--text); }
+  .text-txt2    { color: var(--text2); }
+  .text-txt3    { color: var(--text3); }
+
+  .bg-app   { background: var(--bg); }
+  .bg-card  { background: var(--bg2); }
+  .bg-panel { background: var(--bg3); }
+  .bg-input { background: var(--bg4); }
+
+  .border-line  { border-color: var(--line); }
+  .border-line2 { border-color: var(--line2); }
+
+  .rounded-sm { border-radius: var(--r); }
+  .rounded-md { border-radius: var(--r2); }
+  .rounded-lg { border-radius: var(--r3); }
+
+  .shimmer {
+    background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@layer components {
+  /* Button base */
+  .btn {
+    @apply inline-flex items-center gap-[7px] px-4 py-2 rounded-sm text-[0.82rem] font-medium transition-all duration-150 cursor-pointer border-0;
+  }
+  .btn-primary {
+    @apply btn bg-[var(--accent)] text-black font-semibold hover:bg-[#f5e88a];
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-[var(--text2)] border border-[var(--line2)] hover:bg-[var(--bg3)] hover:text-[var(--text)];
+  }
+  .btn-danger {
+    @apply btn bg-transparent text-[var(--accent3)] border border-[rgba(232,122,122,0.3)] hover:bg-[rgba(232,122,122,0.08)];
+  }
+  .btn-sm {
+    @apply py-[5px] px-3 text-[0.78rem];
+  }
+
+  /* Card */
+  .card {
+    @apply bg-[var(--bg2)] border border-[var(--line)] rounded-md overflow-hidden;
+  }
+  .card-head {
+    @apply px-[18px] py-[14px] border-b border-[var(--line)] flex items-center justify-between;
+  }
+  .card-title {
+    @apply text-[0.85rem] font-semibold text-[var(--text)];
+  }
+  .card-body {
+    @apply p-[18px];
+  }
+
+  /* Input */
+  .input {
+    @apply w-full bg-[var(--bg3)] border border-[var(--line2)] rounded-sm text-[var(--text)] text-[0.82rem] px-3 py-[7px] focus:outline-none focus:border-[var(--accent)] transition-colors placeholder:text-[var(--text3)];
+  }
+
+  /* Stat card */
+  .stat-card {
+    @apply bg-[var(--bg2)] border border-[var(--line)] rounded-md p-4 px-5;
+  }
+  .stat-label {
+    @apply text-[0.75rem] text-[var(--text3)] uppercase tracking-[0.08em];
+  }
+  .stat-value {
+    @apply font-syne text-[1.8rem] font-bold text-[var(--text)] leading-[1.1] my-[6px];
+  }
+
+  /* Status chips */
+  .chip {
+    @apply px-[10px] py-[3px] rounded-[20px] text-[0.72rem] font-semibold;
+  }
+  .chip-processing { @apply bg-[rgba(232,217,122,0.12)] text-[var(--accent)]; }
+  .chip-review     { @apply bg-[rgba(122,180,232,0.12)] text-[var(--accent4)]; }
+  .chip-ready      { @apply bg-[rgba(109,224,179,0.12)] text-[var(--accent2)]; }
+  .chip-error      { @apply bg-[rgba(232,122,122,0.12)] text-[var(--accent3)]; }
+  .chip-uploading  { @apply bg-[rgba(232,217,122,0.12)] text-[var(--accent)]; }
+
+  /* Shot pills */
+  .shot-pill {
+    @apply text-[0.65rem] px-[7px] py-[2px] rounded-[10px] font-semibold uppercase tracking-[0.05em];
+  }
+  .shot-front       { @apply bg-[rgba(109,224,179,0.15)] text-[var(--accent2)]; }
+  .shot-back        { @apply bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]; }
+  .shot-side        { @apply bg-[rgba(232,217,122,0.15)] text-[var(--accent)]; }
+  .shot-detail      { @apply bg-[rgba(232,122,122,0.15)] text-[var(--accent3)]; }
+  .shot-mood        { @apply bg-[rgba(180,122,232,0.15)] text-[#b47ae8]; }
+  .shot-full-length { @apply bg-[rgba(232,180,122,0.15)] text-[#e8b47a]; }
+  .shot-missing     { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)] border border-dashed border-[var(--text3)]; }
+  .shot-unknown     { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)]; }
+}
