@@ -1,86 +1,97 @@
 /**
- * Step 6: Classify image angles (front/back/side/detail)
- * Uses OpenAI Vision for MVP; falls back to filename heuristics.
+ * Step 6: Classify image angles (front/back/side/detail) and detect garment colour.
+ *
+ * Strategy (in order):
+ *   1. Filename keyword matching — instant, free, works for studios with consistent naming
+ *   2. AI batch detection via GPT-4o-mini — only when NEXT_PUBLIC_AI_DETECTION=true
+ *      and filename detection returns 'unknown' for any image in the cluster.
+ *      Sends all cluster images in ONE API call for context-aware classification.
+ *   3. Sequence fallback — positional assignment (first=front, second=back, etc.)
  */
+
 import type { ViewLabel } from '@/types'
-import { createServiceClient } from '@/lib/supabase/server'
+
+export const AI_DETECTION_ENABLED =
+  typeof process !== 'undefined'
+    ? process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
+    : false
+
+// ── Filename keyword detection ────────────────────────────────────────────────
 
 const VIEW_KEYWORDS: Record<ViewLabel, string[]> = {
-  front: ['front', 'f01', 'f1', '_f_', '-f-', 'main', 'hero', 'a01'],
-  back: ['back', 'b01', 'b1', '_b_', '-b-', 'rear'],
-  side: ['side', 's01', 's1', '_s_', '-s-', 'profile', 'alt'],
-  detail: ['detail', 'd01', 'd1', '_d_', '-d-', 'close', 'zoom', 'flat'],
-  mood: ['mood', 'm01', 'm1', '_m_', '-m-', 'lifestyle', 'editorial', 'styled'],
-  'full-length': ['full', 'fl', 'fulllength', 'full-length', 'full_length', 'fl01', 'standing'],
-  unknown: [],
+  front:        ['front', 'f01', 'f1', 'f02', 'f2', '_f_', '-f-', 'main', 'hero', 'a01'],
+  back:         ['back', 'b01', 'b1', 'b02', 'b2', '_b_', '-b-', 'rear'],
+  side:         ['side', 's01', 's1', 's02', 's2', '_s_', '-s-', 'profile', 'alt'],
+  detail:       ['detail', 'd01', 'd1', 'd02', 'd2', '_d_', '-d-', 'close', 'zoom', 'flat', 'flatlay'],
+  mood:         ['mood', 'm01', 'm1', '_m_', '-m-', 'lifestyle', 'editorial', 'styled'],
+  'full-length':['full', 'fl', 'fl01', 'fl02', 'fulllength', 'full-length', 'full_length', 'standing'],
+  unknown:      [],
 }
 
-export function detectViewFromFilename(filename: string): { label: ViewLabel; confidence: number } {
-  const lower = filename.toLowerCase()
+export function detectViewFromFilename(filename: string): ViewLabel {
+  const lower = filename.toLowerCase().replace(/\.[^.]+$/, '')
+  const tokens = new Set(lower.split(/[-_.\s]+/).filter(Boolean))
   for (const [view, keywords] of Object.entries(VIEW_KEYWORDS) as [ViewLabel, string[]][]) {
     if (view === 'unknown') continue
-    if (keywords.some((kw) => lower.includes(kw))) {
-      return { label: view, confidence: 0.75 }
+    if (keywords.some((kw) => tokens.has(kw) || lower.includes(kw))) {
+      return view
     }
   }
-
-  // Sequence-based heuristic: first image in group = front
-  return { label: 'unknown', confidence: 0 }
+  return 'unknown'
 }
 
-export async function detectViewWithAI(imageUrl: string): Promise<{ label: ViewLabel; confidence: number }> {
-  if (!process.env.OPENAI_API_KEY) {
-    return { label: 'unknown', confidence: 0 }
-  }
+// ── Sequence fallback ─────────────────────────────────────────────────────────
 
-  const OpenAI = (await import('openai')).default
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const SEQUENCE_ORDER: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
 
-  const res = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'image_url', image_url: { url: imageUrl, detail: 'low' } },
-          {
-            type: 'text',
-            text: 'This is a fashion product image. Classify the shot angle as ONE of: front, back, side, detail. Reply with ONLY the single word.',
-          },
-        ],
-      },
-    ],
-    max_tokens: 10,
-  })
-
-  const raw = res.choices[0]?.message?.content?.trim().toLowerCase() ?? ''
-  const label = (['front', 'back', 'side', 'detail'].includes(raw) ? raw : 'unknown') as ViewLabel
-  return { label, confidence: label !== 'unknown' ? 0.85 : 0 }
-}
-
-/**
- * Assign sequence-based labels to images that couldn't be classified.
- * First image in cluster = front, second = back, third = side, rest = detail.
- */
 export function assignSequenceLabels(
   images: { id: string; view_label: ViewLabel; original_filename: string }[]
 ): { id: string; view_label: ViewLabel; confidence: number }[] {
-  const sequence: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
   let seqIdx = 0
-
   return images.map((img) => {
-    // Try filename first
     const fromFilename = detectViewFromFilename(img.original_filename)
-    if (fromFilename.label !== 'unknown') {
-      return { id: img.id, view_label: fromFilename.label, confidence: fromFilename.confidence }
+    if (fromFilename !== 'unknown') {
+      return { id: img.id, view_label: fromFilename, confidence: 0.85 }
     }
-
-    // Fall back to sequence
-    const label = sequence[seqIdx % sequence.length]
+    const label = SEQUENCE_ORDER[seqIdx % SEQUENCE_ORDER.length]
     seqIdx++
     return { id: img.id, view_label: label, confidence: 0.5 }
   })
 }
+
+// ── AI batch detection ────────────────────────────────────────────────────────
+
+export interface AIDetectionResult {
+  angles: Record<string, ViewLabel>  // imageId → ViewLabel
+  colour: string                      // fashion colour name for the cluster
+}
+
+/**
+ * Send all images in a cluster to GPT-4o-mini in one call.
+ * Returns angle label per image + a fashion colour name for the cluster.
+ * Only called when AI_DETECTION_ENABLED=true and filename detection couldn't
+ * classify at least one image.
+ */
+export async function detectClusterWithAI(
+  images: { id: string; filename: string; base64: string }[]
+): Promise<AIDetectionResult | null> {
+  try {
+    const res = await fetch('/api/ai/detect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.result ?? null
+  } catch {
+    return null
+  }
+}
+
+// ── Server-side: label cluster images in Supabase ─────────────────────────────
+
+import { createServiceClient } from '@/lib/supabase/server'
 
 export async function labelClusterImages(clusterId: string): Promise<void> {
   const supabase = createServiceClient()
@@ -96,7 +107,6 @@ export async function labelClusterImages(clusterId: string): Promise<void> {
   const labeled = assignSequenceLabels(images)
   const detectedViews = [...new Set(labeled.map((l) => l.view_label))] as ViewLabel[]
 
-  // Batch update images
   for (const item of labeled) {
     await supabase
       .from('images')
@@ -104,7 +114,6 @@ export async function labelClusterImages(clusterId: string): Promise<void> {
       .eq('id', item.id)
   }
 
-  // Update cluster detected_views
   await supabase
     .from('clusters')
     .update({ detected_views: detectedViews })

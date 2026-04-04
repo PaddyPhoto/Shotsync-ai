@@ -21,7 +21,7 @@ export function UpgradeModal() {
 
     if (!STRIPE_CONFIGURED) {
       // Demo mode: just update local storage
-      localStorage.setItem('framesops:plan', targetPlanId)
+      localStorage.setItem('shotsync:plan', targetPlanId)
       await refreshPlan()
       setLoading(null)
       closeUpgrade()
@@ -52,7 +52,7 @@ export function UpgradeModal() {
           <div>
             <p className="text-[0.72rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-1">Upgrade Required</p>
             <h2 className="text-[1.2rem] font-[700] tracking-[-0.3px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
-              {upgradeReason || 'Unlock more with FramesOps'}
+              {upgradeReason || 'Unlock more with ShotSync'}
             </h2>
             <p className="text-[0.82rem] text-[var(--text3)] mt-1">
               Choose a plan to continue

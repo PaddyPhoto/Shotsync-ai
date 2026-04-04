@@ -434,7 +434,7 @@ function SettingsInner() {
               <div className="flex items-center justify-between py-[14px] border-t border-[var(--line)] mt-2">
                 <div>
                   <p className="text-[0.85rem] font-medium text-[var(--text)]">Account</p>
-                  <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">Sign out of FramesOps</p>
+                  <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">Sign out of ShotSync</p>
                 </div>
                 <button
                   onClick={async () => {

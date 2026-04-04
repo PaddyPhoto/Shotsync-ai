@@ -657,6 +657,8 @@ function ExportPanel({
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
   const [done, setDone] = useState(false)
+  const [shopifyUploading, setShopifyUploading] = useState(false)
+  const [shopifyResults, setShopifyResults] = useState<{ sku: string; status: string; uploaded: number }[] | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const folderRef = useRef<any>(null)
   const [folderName, setFolderName] = useState<string | null>(null)
@@ -673,6 +675,42 @@ function ExportPanel({
       folderRef.current = handle
       setFolderName(handle.name)
     } catch { /* cancelled */ }
+  }
+
+  const handleShopifyUpload = async () => {
+    if (!activeBrand?.id || !confirmedClusters.length) return
+    setShopifyUploading(true)
+    setShopifyResults(null)
+    try {
+      const { data: { session } } = await import('@/lib/supabase/client').then(({ createClient }) => createClient().auth.getSession())
+
+      // Build base64 images for each cluster (use original files, Shopify handles resizing)
+      const clusters = await Promise.all(confirmedClusters.map(async (cluster) => {
+        const images = await Promise.all(cluster.images.map(async (img, i) => {
+          const buf = await img.file.arrayBuffer()
+          const bytes = new Uint8Array(buf)
+          let binary = ''
+          for (let j = 0; j < bytes.byteLength; j++) binary += String.fromCharCode(bytes[j])
+          return { filename: img.filename, base64: btoa(binary), position: i + 1 }
+        }))
+        return { sku: cluster.sku || cluster.label, images }
+      }))
+
+      const res = await fetch('/api/shopify/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ brand_id: activeBrand.id, clusters, replace: true }),
+      })
+      const { data } = await res.json()
+      setShopifyResults(data?.results ?? [])
+    } catch {
+      setShopifyResults([])
+    } finally {
+      setShopifyUploading(false)
+    }
   }
 
   const handleExport = async () => {
@@ -832,7 +870,7 @@ function ExportPanel({
               {selectedMarketplaces.map((id) => {
                 const label: Record<string, string> = { 'the-iconic': 'THE ICONIC', 'myer': 'Myer', 'david-jones': 'David Jones', 'shopify': 'Shopify' }
                 return (
-                  <span key={id} className="px-3 py-[6px] rounded-sm border border-[var(--accent)] bg-[rgba(232,217,122,0.08)] text-[var(--text)] text-[0.78rem] font-medium">
+                  <span key={id} className="px-3 py-[6px] rounded-sm border border-[var(--accent)] bg-[rgba(74,158,255,0.08)] text-[var(--text)] text-[0.78rem] font-medium">
                     {label[id] ?? id}
                   </span>
                 )
@@ -916,6 +954,50 @@ function ExportPanel({
               Export complete!
             </div>
           )}
+
+          {/* Shopify direct upload */}
+          {activeBrand?.shopify_store_url && (
+            <div className="border-t border-[var(--line)] pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[0.75rem] text-[var(--text2)] font-medium">Shopify Direct Upload</p>
+                <span className="text-[0.65rem] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
+              </div>
+              <p className="text-[0.72rem] text-[var(--text3)] mb-3">
+                Upload images directly to matching Shopify product listings by SKU.
+              </p>
+
+              {shopifyResults && (
+                <div className="bg-[var(--bg3)] rounded-sm p-3 mb-3 flex flex-col gap-[4px] max-h-[120px] overflow-y-auto">
+                  {shopifyResults.map((r) => (
+                    <div key={r.sku} className="flex items-center justify-between text-[0.72rem]">
+                      <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-mono)' }}>{r.sku}</span>
+                      <span className={r.status === 'uploaded' ? 'text-[var(--accent2)]' : 'text-[var(--accent3)]'}>
+                        {r.status === 'uploaded' ? `✓ ${r.uploaded} uploaded` : r.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                onClick={handleShopifyUpload}
+                disabled={shopifyUploading || !confirmedClusters.length}
+                className="btn btn-ghost btn-sm w-full justify-center"
+              >
+                {shopifyUploading ? (
+                  <>
+                    <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                    Uploading to Shopify…
+                  </>
+                ) : (
+                  <>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+                    Upload to Shopify
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="px-5 py-4 border-t border-[var(--line)] flex justify-end gap-2">
@@ -964,7 +1046,32 @@ async function processImageOnCanvas(
         sy = (img.height - sh) / 2
       }
 
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height)
+      // Multi-step downscaling for sharper results when reducing by more than 50%
+      // Each step halves the size, final step lands on target dimensions
+      const sourceW = sw
+      const sourceH = sh
+      let currentCanvas = document.createElement('canvas')
+      let currentCtx = currentCanvas.getContext('2d')!
+      currentCanvas.width = sourceW
+      currentCanvas.height = sourceH
+      currentCtx.drawImage(img, sx, sy, sw, sh, 0, 0, sourceW, sourceH)
+
+      let stepW = sourceW
+      let stepH = sourceH
+      while (stepW > width * 2 || stepH > height * 2) {
+        stepW = Math.max(Math.round(stepW / 2), width)
+        stepH = Math.max(Math.round(stepH / 2), height)
+        const stepCanvas = document.createElement('canvas')
+        stepCanvas.width = stepW
+        stepCanvas.height = stepH
+        const stepCtx = stepCanvas.getContext('2d')!
+        stepCtx.drawImage(currentCanvas, 0, 0, stepW, stepH)
+        currentCanvas = stepCanvas
+        currentCtx = stepCtx
+      }
+
+      // Final draw onto the target canvas
+      ctx.drawImage(currentCanvas, 0, 0, width, height)
       URL.revokeObjectURL(url)
 
       const maxBytes = maxFileSizeKb > 0 ? maxFileSizeKb * 1024 : 0

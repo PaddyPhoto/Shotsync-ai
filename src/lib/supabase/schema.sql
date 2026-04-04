@@ -1,4 +1,4 @@
--- FramesOps.ai Database Schema
+-- ShotSync.ai Database Schema
 -- Run this in your Supabase SQL editor
 
 -- Enable UUID extension

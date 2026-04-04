@@ -4,8 +4,8 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { Brand } from '@/lib/brands'
 import { DEMO_BRANDS } from '@/lib/brands'
 
-const STORAGE_KEY = 'framesops:active_brand_id'
-const BRANDS_KEY = 'framesops:brands'
+const STORAGE_KEY = 'shotsync:active_brand_id'
+const BRANDS_KEY = 'shotsync:brands'
 
 function saveBrandsLocally(brands: Brand[]) {
   if (typeof window !== 'undefined') {

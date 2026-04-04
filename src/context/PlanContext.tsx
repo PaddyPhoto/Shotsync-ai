@@ -3,8 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { PLANS, type PlanId, type Plan, type PlanUsage } from '@/lib/plans'
 
-const STORAGE_KEY = 'framesops:plan'
-const USAGE_KEY = 'framesops:usage'
+const STORAGE_KEY = 'shotsync:plan'
+const USAGE_KEY = 'shotsync:usage'
 
 // Only enforce usage limits when Supabase is connected (real billing mode)
 const SUPABASE_CONFIGURED =

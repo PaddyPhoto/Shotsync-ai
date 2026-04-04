@@ -24,7 +24,7 @@ export const BUILT_IN_PRESETS: NamingPreset[] = [
   { id: 'full',       name: 'Full Detail', template: '{BRAND}_{SKU}_{COLOR}_{VIEW}_{INDEX}',  builtIn: true },
 ]
 
-const STORAGE_KEY = 'framesops:naming_rules'
+const STORAGE_KEY = 'shotsync:naming_rules'
 
 const DEFAULT_STATE: NamingState = {
   activePresetId: 'standard',

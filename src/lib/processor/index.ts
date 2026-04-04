@@ -242,24 +242,75 @@ export async function processFiles(
     })
   }
 
-  // Step 4: Auto-detect colour for each cluster
+  // Step 4: Auto-detect colour (and optionally angles) for each cluster
+  const aiEnabled = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
   onProgress({ phase: 'Detecting colours…', done: 0, total: clusters.length })
+
   for (let i = 0; i < clusters.length; i++) {
     const cluster = clusters[i]
-    // Pick the best image for colour analysis: front > detail > full-length > first
+
+    // Check if any images in this cluster have unknown angles (filename detection missed)
+    const hasUnknownAngles = cluster.images.some((img) => img.viewLabel === 'unknown')
+
+    if (aiEnabled && hasUnknownAngles) {
+      // AI path: convert images to base64 and send the whole cluster in one call
+      try {
+        const base64Images = await Promise.all(
+          cluster.images.map(async (img) => {
+            const buf = await img.file.arrayBuffer()
+            const bytes = new Uint8Array(buf)
+            let binary = ''
+            for (let j = 0; j < bytes.byteLength; j++) binary += String.fromCharCode(bytes[j])
+            return {
+              id: img.id,
+              filename: img.filename,
+              base64: btoa(binary),
+            }
+          })
+        )
+
+        const res = await fetch('/api/ai/detect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ images: base64Images }),
+        })
+
+        if (res.ok) {
+          const { result } = await res.json()
+          if (result) {
+            // Apply AI angle labels
+            for (const img of cluster.images) {
+              if (result.angles[img.id]) {
+                img.viewLabel = result.angles[img.id]
+                img.viewConfidence = 0.9
+              }
+            }
+            // Apply AI colour
+            if (result.colour) {
+              cluster.color = result.colour
+              onProgress({ phase: 'Detecting colours…', done: i + 1, total: clusters.length })
+              await new Promise((r) => setTimeout(r, 0))
+              continue
+            }
+          }
+        }
+      } catch { /* fall through to canvas detection */ }
+    }
+
+    // Non-AI path: filename tokens first, then canvas pixel sampling
     const preferOrder: ViewLabel[] = ['front', 'detail', 'full-length']
     const bestImg =
       preferOrder.reduce<SessionImage | null>((found, label) =>
         found ?? cluster.images.find((img) => img.viewLabel === label) ?? null
       , null) ?? cluster.images[0]
 
-    // Try filename tokens first (instant), then canvas pixel sampling
     const fromFilename = detectColourFromFilename(bestImg.filename)
     if (fromFilename) {
       cluster.color = fromFilename
     } else {
       cluster.color = await detectColourFromImage(bestImg.file)
     }
+
     onProgress({ phase: 'Detecting colours…', done: i + 1, total: clusters.length })
     await new Promise((r) => setTimeout(r, 0))
   }
