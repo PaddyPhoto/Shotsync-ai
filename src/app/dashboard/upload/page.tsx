@@ -25,14 +25,6 @@ export default function UploadPage() {
   const setSession = useSession((s) => s.setSession)
   const { isReady: hasActiveSession, jobName: activeJobName, clusters: activeClusters, reset: resetSession } = useSession()
 
-  // If session store has active clusters (same-tab navigation), go back to review
-  useEffect(() => {
-    if (step !== 'config' || files.length > 0) return
-    if (hasActiveSession && activeClusters.length > 0) {
-      router.replace('/dashboard/review')
-    }
-  }, [hasActiveSession, activeClusters.length, step, files.length, router])
-
   const [step, setStep] = useState<Step>('config')
   const [jobName, setJobName] = useState('')
   const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(['the-iconic'])
@@ -42,6 +34,14 @@ export default function UploadPage() {
     if (activeBrand?.images_per_look) setImagesPerLook(activeBrand.images_per_look)
   }, [activeBrand?.id])
   const [files, setFiles] = useState<File[]>([])
+
+  // If session store has active clusters (same-tab navigation), go back to review
+  useEffect(() => {
+    if (step !== 'config' || files.length > 0) return
+    if (hasActiveSession && activeClusters.length > 0) {
+      router.replace('/dashboard/review')
+    }
+  }, [hasActiveSession, activeClusters.length, step, files.length, router])
   const [progress, setProgress] = useState<ProcessProgress>({ phase: '', done: 0, total: 0 })
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
