@@ -64,7 +64,11 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   // Load plan from local storage (demo) or API (Supabase)
   const refreshPlan = useCallback(async () => {
     try {
-      const res = await fetch('/api/billing/plan')
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/billing/plan', {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
       if (res.ok) {
         const { data } = await res.json()
         if (data?.plan) {

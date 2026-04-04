@@ -5,15 +5,17 @@ const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!SUPABASE_CONFIGURED) {
     return NextResponse.json({ data: null }) // client falls back to localStorage
   }
 
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { createServiceClient } = await import('@/lib/supabase/server')
+    const supabase = createServiceClient()
+    const token = req.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) return NextResponse.json({ data: null })
+    const { data: { user } } = await supabase.auth.getUser(token)
     if (!user) return NextResponse.json({ data: null })
 
     // Read plan from the org the user belongs to (org-level billing)
