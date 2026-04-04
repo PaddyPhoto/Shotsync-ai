@@ -10,6 +10,7 @@ import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
+import { useNamingRules, previewTemplate, BUILT_IN_PRESETS } from '@/lib/naming/useNamingRules'
 import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
@@ -64,7 +65,12 @@ export default function ReviewPage() {
     })
   }
   const { rules: marketplaceRules } = useMarketplaceRules()
+  const {
+    allPresets, activeTemplate, activePresetId, customTemplate,
+    setActivePreset, setCustomTemplate,
+  } = useNamingRules()
   const [showExportPanel, setShowExportPanel] = useState(false)
+  const [showNamingTokens, setShowNamingTokens] = useState(false)
 
   const getMissingViewsForCluster = (cluster: SessionCluster, marketplace: MarketplaceName) => {
     const rule = marketplaceRules[marketplace]
@@ -349,6 +355,87 @@ export default function ReviewPage() {
               </button>
             </div>
           )}
+
+          {/* Naming Format Bar */}
+          <div className="mb-5 bg-[var(--bg2)] border border-[var(--line)] rounded-md overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-[10px]">
+              <span className="text-[0.75rem] font-semibold text-[var(--text2)] flex-shrink-0">File Naming</span>
+              <div className="flex flex-wrap gap-[6px] flex-1">
+                {BUILT_IN_PRESETS.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setActivePreset(p.id)}
+                    className={`px-[10px] py-[4px] rounded-sm border text-[0.75rem] transition-all ${
+                      activePresetId === p.id && activePresetId !== 'custom'
+                        ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.08)] text-[var(--accent)]'
+                        : 'border-[var(--line2)] text-[var(--text3)] hover:border-[var(--line)] hover:text-[var(--text2)] bg-[var(--bg3)]'
+                    }`}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+                <button
+                  onClick={() => { setActivePreset('custom'); setShowNamingTokens(true) }}
+                  className={`px-[10px] py-[4px] rounded-sm border text-[0.75rem] transition-all ${
+                    activePresetId === 'custom'
+                      ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.08)] text-[var(--accent)]'
+                      : 'border-[var(--line2)] text-[var(--text3)] hover:border-[var(--line)] hover:text-[var(--text2)] bg-[var(--bg3)]'
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
+              <span
+                className="text-[0.72rem] text-[var(--text3)] flex-shrink-0 truncate max-w-[240px] cursor-pointer hover:text-[var(--text2)]"
+                style={{ fontFamily: 'var(--font-dm-mono)' }}
+                title={previewTemplate(activeTemplate)}
+                onClick={() => setShowNamingTokens((v) => !v)}
+              >
+                {previewTemplate(activeTemplate)}
+              </span>
+            </div>
+
+            {/* Custom template editor — shown when Custom is active or tokens are expanded */}
+            {(activePresetId === 'custom' || showNamingTokens) && (
+              <div className="px-4 pb-3 border-t border-[var(--line)] pt-3 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    className="input text-[0.8rem] flex-1"
+                    style={{ fontFamily: 'var(--font-dm-mono)' }}
+                    value={activePresetId === 'custom' ? customTemplate : activeTemplate}
+                    onChange={(e) => setCustomTemplate(e.target.value)}
+                    onFocus={() => { if (activePresetId !== 'custom') setActivePreset('custom') }}
+                    placeholder="{BRAND}_{SKU}_{COLOR}_{VIEW}"
+                  />
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[0.7rem] text-[var(--text3)]">Insert token:</span>
+                  {[
+                    { token: '{SKU}', desc: 'e.g. TOP-BLK-001' },
+                    { token: '{BRAND}', desc: 'Brand code e.g. SL' },
+                    { token: '{COLOR}', desc: 'Colour e.g. BLACK' },
+                    { token: '{VIEW}', desc: 'Angle e.g. FRONT' },
+                    { token: '{INDEX}', desc: 'Image # in look e.g. 01' },
+                    { token: '{SEQ}', desc: 'Look # in job e.g. 001' },
+                  ].map(({ token, desc }) => (
+                    <button
+                      key={token}
+                      title={desc}
+                      onClick={() => {
+                        const current = activePresetId === 'custom' ? customTemplate : activeTemplate
+                        setCustomTemplate(current + token)
+                        setActivePreset('custom')
+                      }}
+                      className="px-2 py-[2px] rounded-sm border border-[var(--line2)] bg-[var(--bg3)] text-[0.7rem] text-[var(--text2)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all"
+                      style={{ fontFamily: 'var(--font-dm-mono)' }}
+                    >
+                      {token}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Cluster cards */}
           <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
@@ -635,6 +722,7 @@ export default function ReviewPage() {
           activeBrand={activeBrand}
           marketplaces={sessionMarketplaces as MarketplaceName[]}
           marketplaceRules={marketplaceRules}
+          namingTemplate={activeTemplate}
           onClose={() => setShowExportPanel(false)}
         />
       )}
@@ -650,6 +738,7 @@ function ExportPanel({
   activeBrand,
   marketplaces,
   marketplaceRules,
+  namingTemplate,
   onClose,
 }: {
   jobName: string
@@ -657,6 +746,7 @@ function ExportPanel({
   activeBrand: Brand | null
   marketplaces: MarketplaceName[]
   marketplaceRules: EditableRules
+  namingTemplate: string
   onClose: () => void
 }) {
   const selectedMarketplaces = marketplaces
@@ -741,9 +831,9 @@ function ExportPanel({
       const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
       const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
 
-      // Marketplace template takes precedence; fall back to brand template
+      // Marketplace template takes precedence; then user-selected naming template; then brand default
       const brandCode = activeBrand?.brand_code ?? 'BRAND'
-      const template = rule.naming_template || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
+      const template = rule.naming_template || namingTemplate || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
 
       for (let clusterIdx = 0; clusterIdx < confirmedClusters.length; clusterIdx++) {
         const cluster = confirmedClusters[clusterIdx]
