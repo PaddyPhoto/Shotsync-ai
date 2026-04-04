@@ -14,14 +14,16 @@ interface ClusterCardProps {
 }
 
 function ShotPill({ view, missing = false }: { view: ViewLabel; missing?: boolean }) {
-  const cls = {
-    front:         'shot-front',
-    back:          'shot-back',
-    side:          'shot-side',
-    detail:        'shot-detail',
-    mood:          'shot-mood',
-    'full-length': 'shot-full-length',
-    unknown:       'shot-unknown',
+  const cls: Record<ViewLabel, string> = {
+    front:             'shot-front',
+    back:              'shot-back',
+    side:              'shot-side',
+    detail:            'shot-detail',
+    mood:              'shot-mood',
+    'full-length':     'shot-full-length',
+    'ghost-mannequin': 'shot-gm',
+    'flat-lay':        'shot-flat',
+    unknown:           'shot-unknown',
   }
   return (
     <span className={cn('shot-pill', missing ? 'shot-missing' : cls[view])}>

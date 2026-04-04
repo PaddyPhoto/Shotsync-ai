@@ -10,6 +10,7 @@ export interface Brand {
   logo_color: string
   images_per_look: number
   naming_template: string
+  gm_position: 'first' | 'last' | null
   created_at: string
 }
 
@@ -94,6 +95,7 @@ export const DEMO_BRANDS: Brand[] = [
     logo_color: '#e8d97a',
     images_per_look: 4,
     naming_template: DEFAULT_NAMING_TEMPLATE,
+    gm_position: 'last',
     created_at: new Date().toISOString(),
   },
   {
@@ -106,6 +108,7 @@ export const DEMO_BRANDS: Brand[] = [
     logo_color: '#6de0b3',
     images_per_look: 4,
     naming_template: DEFAULT_NAMING_TEMPLATE,
+    gm_position: 'last',
     created_at: new Date().toISOString(),
   },
   {
@@ -118,6 +121,7 @@ export const DEMO_BRANDS: Brand[] = [
     logo_color: '#7ab4e8',
     images_per_look: 4,
     naming_template: DEFAULT_NAMING_TEMPLATE,
+    gm_position: 'last',
     created_at: new Date().toISOString(),
   },
 ]

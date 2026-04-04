@@ -15,7 +15,7 @@ import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
 
-const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
+const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'ghost-mannequin', 'flat-lay']
 
 const VIEW_CLS: Record<ViewLabel, string> = {
   front: 'shot-front',
@@ -24,6 +24,8 @@ const VIEW_CLS: Record<ViewLabel, string> = {
   detail: 'shot-detail',
   mood: 'shot-mood',
   'full-length': 'shot-full-length',
+  'ghost-mannequin': 'shot-gm',
+  'flat-lay': 'shot-flat',
   unknown: 'shot-unknown',
 }
 
@@ -55,7 +57,7 @@ function ReviewPage() {
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
-  const VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back']
+  const VIEW_SEQUENCE: ViewLabel[] = ['ghost-mannequin', 'full-length', 'front', 'side', 'mood', 'detail', 'back', 'flat-lay']
 
   const getActiveAngles = (clusterId: string): ViewLabel[] =>
     VIEW_SEQUENCE.filter((a) => !disabledAngles[clusterId]?.has(a))
@@ -942,8 +944,17 @@ function ExportPanel({
           template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, ''),
           { brand: brandCode, seq, sku: cluster.sku, color: cluster.color, view: '', index: 0 }
         ).replace(/_+$/, '') || `${brandCode}_${String(seq).padStart(3, '0')}`
-        for (let imgIdx = 0; imgIdx < cluster.images.length; imgIdx++) {
-          tasks.push({ cluster, seq, img: cluster.images[imgIdx], imgIdx, folderName })
+        // Sort images: GM goes first or last based on brand preference
+        const gmPosition = activeBrand?.gm_position ?? 'last'
+        const sortedImages = [...cluster.images].sort((a, b) => {
+          const aIsGM = a.viewLabel === 'ghost-mannequin'
+          const bIsGM = b.viewLabel === 'ghost-mannequin'
+          if (aIsGM && !bIsGM) return gmPosition === 'first' ? -1 : 1
+          if (!aIsGM && bIsGM) return gmPosition === 'first' ? 1 : -1
+          return 0
+        })
+        for (let imgIdx = 0; imgIdx < sortedImages.length; imgIdx++) {
+          tasks.push({ cluster, seq, img: sortedImages[imgIdx], imgIdx, folderName })
         }
       }
 

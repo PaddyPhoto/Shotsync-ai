@@ -19,13 +19,15 @@ export const AI_DETECTION_ENABLED =
 // ── Filename keyword detection ────────────────────────────────────────────────
 
 const VIEW_KEYWORDS: Record<ViewLabel, string[]> = {
-  front:        ['front', 'f01', 'f1', 'f02', 'f2', '_f_', '-f-', 'main', 'hero', 'a01'],
-  back:         ['back', 'b01', 'b1', 'b02', 'b2', '_b_', '-b-', 'rear'],
-  side:         ['side', 's01', 's1', 's02', 's2', '_s_', '-s-', 'profile', 'alt'],
-  detail:       ['detail', 'd01', 'd1', 'd02', 'd2', '_d_', '-d-', 'close', 'zoom', 'flat', 'flatlay'],
-  mood:         ['mood', 'm01', 'm1', '_m_', '-m-', 'lifestyle', 'editorial', 'styled'],
-  'full-length':['full', 'fl', 'fl01', 'fl02', 'fulllength', 'full-length', 'full_length', 'standing'],
-  unknown:      [],
+  front:             ['front', 'f01', 'f1', 'f02', 'f2', '_f_', '-f-', 'main', 'hero', 'a01'],
+  back:              ['back', 'b01', 'b1', 'b02', 'b2', '_b_', '-b-', 'rear'],
+  side:              ['side', 's01', 's1', 's02', 's2', '_s_', '-s-', 'profile', 'alt'],
+  detail:            ['detail', 'd01', 'd1', 'd02', 'd2', '_d_', '-d-', 'close', 'zoom'],
+  mood:              ['mood', 'm01', 'm1', '_m_', '-m-', 'lifestyle', 'editorial', 'styled'],
+  'full-length':     ['full', 'fl', 'fl01', 'fl02', 'fulllength', 'full-length', 'full_length', 'standing'],
+  'ghost-mannequin': ['ghost', 'gm', 'gm01', 'gm1', 'mannequin', 'ghostmannequin', 'ghost-mannequin', 'ghost_mannequin'],
+  'flat-lay':        ['flat', 'flatlay', 'flat-lay', 'flat_lay', 'overhead', 'lay'],
+  unknown:           [],
 }
 
 export function detectViewFromFilename(filename: string): ViewLabel {
@@ -42,7 +44,7 @@ export function detectViewFromFilename(filename: string): ViewLabel {
 
 // ── Sequence fallback ─────────────────────────────────────────────────────────
 
-const SEQUENCE_ORDER: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
+const SEQUENCE_ORDER: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'ghost-mannequin', 'flat-lay']
 
 export function assignSequenceLabels(
   images: { id: string; view_label: ViewLabel; original_filename: string }[]

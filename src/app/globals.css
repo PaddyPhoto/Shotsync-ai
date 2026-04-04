@@ -204,9 +204,11 @@ img { display: block; }
   .shot-side        { @apply bg-[rgba(240,164,41,0.15)] text-[var(--accent4)]; }
   .shot-detail      { @apply bg-[rgba(232,84,84,0.15)] text-[var(--accent3)]; }
   .shot-mood        { @apply bg-[rgba(180,122,232,0.15)] text-[#b47ae8]; }
-  .shot-full-length { @apply bg-[rgba(232,180,122,0.15)] text-[#e8b47a]; }
-  .shot-missing     { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)] border border-dashed border-[var(--text3)]; }
-  .shot-unknown     { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)]; }
+  .shot-full-length    { @apply bg-[rgba(232,180,122,0.15)] text-[#e8b47a]; }
+  .shot-gm             { @apply bg-[rgba(110,180,255,0.15)] text-[#6eb4ff]; }
+  .shot-flat           { @apply bg-[rgba(122,232,200,0.15)] text-[#7ae8c8]; }
+  .shot-missing        { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)] border border-dashed border-[var(--text3)]; }
+  .shot-unknown        { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)]; }
 }
 
 @keyframes shimmer {

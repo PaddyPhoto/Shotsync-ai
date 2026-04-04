@@ -20,13 +20,15 @@ type Tab = 'general' | 'shopify' | 'marketplaces' | 'brands' | 'billing' | 'team
 const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
 
 const VIEW_PILL_CLS: Record<ViewLabel, string> = {
-  front:        'shot-front',
-  back:         'shot-back',
-  side:         'shot-side',
-  detail:       'shot-detail',
-  mood:         'shot-mood',
-  'full-length':'shot-full-length',
-  unknown:      'shot-unknown',
+  front:             'shot-front',
+  back:              'shot-back',
+  side:              'shot-side',
+  detail:            'shot-detail',
+  mood:              'shot-mood',
+  'full-length':     'shot-full-length',
+  'ghost-mannequin': 'shot-gm',
+  'flat-lay':        'shot-flat',
+  unknown:           'shot-unknown',
 }
 
 // Toggle a token in a naming template string (add if absent, remove if present)
@@ -191,13 +193,14 @@ function SettingsInner() {
     logo_color: '#e8d97a',
     images_per_look: 4,
     naming_template: '{BRAND}_{SEQ}_{VIEW}',
+    gm_position: 'last' as 'first' | 'last',
   })
   const [brandSaving, setBrandSaving] = useState(false)
   const [brandError, setBrandError] = useState('')
   const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null)
 
   const openAddBrand = () => {
-    setBrandForm({ name: '', brand_code: '', shopify_store_url: '', shopify_access_token: '', logo_color: '#e8d97a', images_per_look: 4, naming_template: '{BRAND}_{SEQ}_{VIEW}' })
+    setBrandForm({ name: '', brand_code: '', shopify_store_url: '', shopify_access_token: '', logo_color: '#e8d97a', images_per_look: 4, naming_template: '{BRAND}_{SEQ}_{VIEW}', gm_position: 'last' })
     setBrandError('')
     setEditingBrand(null)
     setBrandModal('add')
@@ -212,6 +215,7 @@ function SettingsInner() {
       logo_color: b.logo_color,
       images_per_look: b.images_per_look ?? 4,
       naming_template: b.naming_template ?? '{BRAND}_{SEQ}_{VIEW}',
+      gm_position: (b.gm_position ?? 'last') as 'first' | 'last',
     })
     setBrandError('')
     setEditingBrand(b)
@@ -1306,6 +1310,28 @@ function SettingsInner() {
                   {['Full Length', 'Front', 'Side', 'Mood', 'Detail', 'Back'].slice(0, brandForm.images_per_look).join(' · ')}
                   {brandForm.images_per_look > 6 ? ' · …' : ''}
                 </p>
+              </div>
+
+              {/* Ghost mannequin position */}
+              <div className="border-t border-[var(--line)] pt-3">
+                <p className="text-[0.75rem] font-medium text-[var(--text2)] mb-1">Ghost Mannequin Position</p>
+                <p className="text-[0.7rem] text-[var(--text3)] mb-2">Where the GM shot appears in the exported image sequence</p>
+                <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
+                  {(['first', 'last'] as const).map((pos) => (
+                    <button
+                      key={pos}
+                      type="button"
+                      onClick={() => setBrandForm((f) => ({ ...f, gm_position: pos }))}
+                      className={`px-4 py-[5px] rounded-sm text-[0.78rem] font-medium transition-all ${
+                        brandForm.gm_position === pos
+                          ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm'
+                          : 'text-[var(--text3)] hover:text-[var(--text2)]'
+                      }`}
+                    >
+                      {pos === 'first' ? 'Image 1 (Hero)' : 'Last Image'}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Naming template */}

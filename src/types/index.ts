@@ -1,6 +1,6 @@
 // ─── Core Domain Types ────────────────────────────────────────────────────────
 
-export type ViewLabel = 'front' | 'back' | 'side' | 'detail' | 'mood' | 'full-length' | 'unknown'
+export type ViewLabel = 'front' | 'back' | 'side' | 'detail' | 'mood' | 'full-length' | 'ghost-mannequin' | 'flat-lay' | 'unknown'
 export type JobStatus =
   | 'uploading'
   | 'processing'
