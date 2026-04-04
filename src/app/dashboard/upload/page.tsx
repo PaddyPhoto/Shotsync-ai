@@ -6,7 +6,7 @@ import { Topbar } from '@/components/layout/Topbar'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
-import { useSession, type SessionCluster, type SessionImage } from '@/store/session'
+import { useSession } from '@/store/session'
 import { processFiles } from '@/lib/processor'
 import type { MarketplaceName } from '@/types'
 
@@ -23,7 +23,6 @@ export default function UploadPage() {
   const { activeBrand } = useBrand()
   const { canProcessImages, plan, openUpgrade } = usePlan()
   const setSession = useSession((s) => s.setSession)
-  const { isReady: hasActiveSession, jobName: activeJobName, clusters: activeClusters, reset: resetSession } = useSession()
 
   const [step, setStep] = useState<Step>('config')
   const [jobName, setJobName] = useState('')
@@ -35,13 +34,6 @@ export default function UploadPage() {
   }, [activeBrand?.id])
   const [files, setFiles] = useState<File[]>([])
 
-  // If session store has active clusters (same-tab navigation), go back to review
-  useEffect(() => {
-    if (step !== 'config' || files.length > 0) return
-    if (hasActiveSession && activeClusters.length > 0) {
-      router.replace('/dashboard/review')
-    }
-  }, [hasActiveSession, activeClusters.length, step, files.length, router])
   const [progress, setProgress] = useState<ProcessProgress>({ phase: '', done: 0, total: 0 })
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -100,33 +92,6 @@ export default function UploadPage() {
 
       <div className="p-7">
 
-        {/* Active session banner */}
-        {hasActiveSession && activeClusters.length > 0 && (
-          <div className="flex items-center justify-between bg-[var(--bg2)] border border-[rgba(74,158,255,0.3)] rounded-md px-4 py-3 mb-6">
-            <div>
-              <p className="text-[0.85rem] font-medium text-[var(--text)]">
-                Active job: <span style={{ color: 'var(--accent)' }}>{activeJobName || 'Untitled'}</span>
-              </p>
-              <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">
-                {activeClusters.length} clusters in progress
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => router.push('/dashboard/review')}
-                className="btn btn-primary btn-sm"
-              >
-                Continue →
-              </button>
-              <button
-                onClick={resetSession}
-                className="btn btn-ghost btn-sm"
-              >
-                New Job
-              </button>
-            </div>
-          </div>
-        )}
 
         <div className="mb-7">
           <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
