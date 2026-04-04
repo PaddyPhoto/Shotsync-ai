@@ -359,7 +359,24 @@ export default function ReviewPage() {
           {/* Naming Format Bar */}
           <div className="mb-5 bg-[var(--bg2)] border border-[var(--line)] rounded-md overflow-hidden">
             <div className="flex items-center gap-3 px-4 py-[10px]">
-              <span className="text-[0.75rem] font-semibold text-[var(--text2)] flex-shrink-0">File Naming</span>
+              <div className="flex-shrink-0">
+                <span className="text-[0.75rem] font-semibold text-[var(--text2)] block">File Naming</span>
+                {(() => {
+                  const locked = sessionMarketplaces.filter((mp) => (MARKETPLACE_RULES[mp as MarketplaceName] ?? marketplaceRules[mp as MarketplaceName])?.naming_locked)
+                  const free = sessionMarketplaces.filter((mp) => !(MARKETPLACE_RULES[mp as MarketplaceName] ?? marketplaceRules[mp as MarketplaceName])?.naming_locked)
+                  const freeNames: Record<string, string> = { shopify: 'Shopify' }
+                  const lockedNames: Record<string, string> = { 'the-iconic': 'THE ICONIC', myer: 'Myer', 'david-jones': 'David Jones' }
+                  if (free.length === 0 && locked.length > 0) {
+                    return <span className="text-[0.68rem] text-[var(--accent3)]">All selected marketplaces use fixed formats</span>
+                  }
+                  return (
+                    <span className="text-[0.68rem] text-[var(--text3)]">
+                      Applies to: {free.map((mp) => freeNames[mp] ?? mp).join(', ')}
+                      {locked.length > 0 && <span className="ml-1 text-[var(--text3)]">· {locked.map((mp) => lockedNames[mp] ?? mp).join(', ')} use fixed formats</span>}
+                    </span>
+                  )
+                })()}
+              </div>
               <div className="flex flex-wrap gap-[6px] flex-1">
                 {BUILT_IN_PRESETS.map((p) => (
                   <button
@@ -833,9 +850,12 @@ function ExportPanel({
       const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
       const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
 
-      // Marketplace template takes precedence; then user-selected naming template; then brand default
+      // Locked marketplaces (THE ICONIC, Myer, DJ) use their mandated format.
+      // Non-locked marketplaces (Shopify, custom) use the user's chosen naming template.
       const brandCode = activeBrand?.brand_code ?? 'BRAND'
-      const template = rule.naming_template || namingTemplate || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
+      const template = rule.naming_locked
+        ? rule.naming_template
+        : namingTemplate || activeBrand?.naming_template || rule.naming_template || '{BRAND}_{SEQ}_{VIEW}'
 
       // Flatten all tasks for this marketplace so we can batch-process them in parallel
       type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }

@@ -91,6 +91,7 @@ export interface MarketplaceRule {
   max_file_size_kb: number
   background_color: string
   naming_template: string
+  naming_locked?: boolean   // true = retailer-mandated format, cannot be overridden by user
 }
 
 // ─── Export ───────────────────────────────────────────────────────────────────
