@@ -6,12 +6,14 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { BrandSwitcher } from './BrandSwitcher'
 import { usePlan } from '@/context/PlanContext'
+import { useSession } from '@/store/session'
 
 interface NavItem {
   label: string
   href: string
   icon: React.ReactNode
   badge?: { text: string; variant: 'blue' | 'green' | 'red' | 'amber' }
+  disabled?: boolean
 }
 
 const NAV_WORKSPACE: NavItem[] = [
@@ -93,18 +95,18 @@ function NavLink({ item }: { item: NavItem }) {
     ? pathname === '/dashboard'
     : pathname.startsWith(item.href.split('?')[0])
 
-  return (
-    <Link
-      href={item.href}
-      className={cn(
-        'flex items-center gap-[9px] px-[8px] py-[7px] rounded-sm text-[0.8rem] font-normal transition-all duration-150 w-full',
-        isActive
-          ? 'text-[var(--accent)] border border-[rgba(74,158,255,0.15)]'
-          : 'text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] border border-transparent'
-      )}
-      style={isActive ? { background: 'var(--accent-glow)' } : {}}
-    >
-      <span className={cn('w-[14px] h-[14px] flex-shrink-0', isActive ? 'opacity-100' : 'opacity-70')}>
+  const baseClass = cn(
+    'flex items-center gap-[9px] px-[8px] py-[7px] rounded-sm text-[0.8rem] font-normal transition-all duration-150 w-full',
+    item.disabled
+      ? 'opacity-35 cursor-not-allowed border border-transparent text-[var(--text3)]'
+      : isActive
+      ? 'text-[var(--accent)] border border-[rgba(74,158,255,0.15)]'
+      : 'text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] border border-transparent'
+  )
+
+  const inner = (
+    <>
+      <span className={cn('w-[14px] h-[14px] flex-shrink-0', isActive && !item.disabled ? 'opacity-100' : 'opacity-70')}>
         {item.icon}
       </span>
       <span className="flex-1">{item.label}</span>
@@ -119,6 +121,16 @@ function NavLink({ item }: { item: NavItem }) {
           {item.badge.text}
         </span>
       )}
+    </>
+  )
+
+  if (item.disabled) {
+    return <span className={baseClass} title="No session active">{inner}</span>
+  }
+
+  return (
+    <Link href={item.href} className={baseClass} style={isActive ? { background: 'var(--accent-glow)' } : {}}>
+      {inner}
     </Link>
   )
 }
@@ -127,6 +139,8 @@ const PLAN_LABEL: Record<string, string> = { free: 'Free', pro: 'Pro', business:
 
 export function Sidebar() {
   const { planId, plan, usage } = usePlan()
+  const { isReady, clusters } = useSession((s) => ({ isReady: s.isReady, clusters: s.clusters }))
+  const hasSession = isReady && clusters.length > 0
   const exportsLimit = plan.limits.exportsPerMonth
   const exportsUsed = usage.exportsThisMonth
   const [orgName, setOrgName] = useState<string | null>(null)
@@ -191,9 +205,21 @@ export function Sidebar() {
           Workflow
         </p>
         <nav className="flex flex-col gap-[1px]">
-          {NAV_WORKFLOW.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
+          {NAV_WORKFLOW.map((item) => {
+            if (item.label === 'Export') {
+              return (
+                <NavLink
+                  key="export"
+                  item={{
+                    ...item,
+                    href: '/dashboard/review?export=1',
+                    disabled: !hasSession,
+                  }}
+                />
+              )
+            }
+            return <NavLink key={item.href} item={item} />
+          })}
         </nav>
       </div>
 

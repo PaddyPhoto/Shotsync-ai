@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useSession } from '@/store/session'
 import { usePlan } from '@/context/PlanContext'
@@ -29,6 +29,7 @@ const VIEW_CLS: Record<ViewLabel, string> = {
 
 export default function ReviewPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { activeBrand } = useBrand()
   const {
     jobName, clusters, marketplaces: sessionMarketplaces, isReady,
@@ -86,6 +87,12 @@ export default function ReviewPage() {
   useEffect(() => {
     if (!isReady) router.replace('/dashboard/upload')
   }, [isReady, router])
+
+  useEffect(() => {
+    if (isReady && searchParams.get('export') === '1') {
+      setShowExportPanel(true)
+    }
+  }, [isReady, searchParams])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
