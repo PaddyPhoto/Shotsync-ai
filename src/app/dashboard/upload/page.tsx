@@ -25,32 +25,13 @@ export default function UploadPage() {
   const setSession = useSession((s) => s.setSession)
   const { isReady: hasActiveSession, jobName: activeJobName, clusters: activeClusters, reset: resetSession } = useSession()
 
-  // Restore session from sessionStorage if store was wiped by back-navigation
+  // If session store has active clusters (same-tab navigation), go back to review
   useEffect(() => {
     if (step !== 'config' || files.length > 0) return
-    // Store already has a session — go to review
     if (hasActiveSession && activeClusters.length > 0) {
       router.replace('/dashboard/review')
-      return
     }
-    // Try to restore from sessionStorage
-    try {
-      const saved = sessionStorage.getItem('shotsync:session')
-      if (!saved) return
-      const parsed = JSON.parse(saved)
-      if (!parsed?.clusters?.length) return
-      // Restore clusters — File objects are gone but previewUrl blobs still work in same tab
-      const restoredClusters = parsed.clusters.map((c: SessionCluster) => ({
-        ...c,
-        images: c.images.map((img: SessionImage) => ({
-          ...img,
-          file: new File([], img.filename, { type: 'image/jpeg' }), // placeholder — export won't work but review will
-        })),
-      }))
-      setSession(parsed.jobName, restoredClusters, parsed.marketplaces)
-      router.replace('/dashboard/review')
-    } catch { /* ignore */ }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hasActiveSession, activeClusters.length, step, files.length, router])
 
   const [step, setStep] = useState<Step>('config')
   const [jobName, setJobName] = useState('')

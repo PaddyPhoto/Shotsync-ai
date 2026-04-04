@@ -32,7 +32,7 @@ export default function ReviewPage() {
   const {
     jobName, clusters, marketplaces: sessionMarketplaces, isReady,
     moveImage, mergeCluster, splitImages, reorderImages, relabelCluster,
-    updateClusterSku, updateClusterColor, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages,
+    updateClusterSku, updateClusterColor, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
   } = useSession()
 
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
@@ -245,6 +245,12 @@ export default function ReviewPage() {
                   Unconfirm all
                 </>
               )}
+            </button>
+            <button
+              onClick={() => { reset(); router.push('/dashboard/upload') }}
+              className="btn btn-ghost btn-sm"
+            >
+              New Job
             </button>
             <button
               onClick={() => setShowExportPanel(true)}
