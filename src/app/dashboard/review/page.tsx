@@ -32,7 +32,7 @@ export default function ReviewPage() {
   const searchParams = useSearchParams()
   const { activeBrand } = useBrand()
   const {
-    jobName, clusters, marketplaces: sessionMarketplaces, isReady,
+    jobName, clusters, marketplaces: sessionMarketplaces, styleList, isReady,
     moveImage, mergeCluster, splitImages, reorderImages, relabelCluster,
     updateClusterSku, updateClusterColor, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
   } = useSession()
@@ -47,6 +47,8 @@ export default function ReviewPage() {
   const [skuInput, setSkuInput] = useState<Record<string, string>>({})
   const [colorInput, setColorInput] = useState<Record<string, string>>({})
   const [editingColor, setEditingColor] = useState<string | null>(null)
+  const [skuSearchOpen, setSkuSearchOpen] = useState<string | null>(null)
+  const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
   const VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back']
@@ -93,6 +95,22 @@ export default function ReviewPage() {
       setShowExportPanel(true)
     }
   }, [isReady, searchParams])
+
+  // Auto-match clusters to style list by filename — if any image filename contains the style code
+  useEffect(() => {
+    if (!isReady || !styleList.length) return
+    clusters.forEach((cluster) => {
+      if (cluster.sku) return // already has a SKU, don't overwrite
+      const filenames = cluster.images.map((img) => img.filename.toUpperCase())
+      const match = styleList.find((entry) =>
+        filenames.some((fn) => fn.includes(entry.sku))
+      )
+      if (match) {
+        updateClusterSku(cluster.id, match.sku, match.productName)
+        if (match.colour && !cluster.color) updateClusterColor(cluster.id, match.colour.toUpperCase())
+      }
+    })
+  }, [isReady, styleList])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -596,19 +614,65 @@ export default function ReviewPage() {
 
                   {/* SKU input + actions */}
                   <div className="px-3 pt-[10px] pb-[6px] border-t border-[var(--line)] flex items-center gap-2">
-                    <div className="flex-1">
-                      <input
-                        className="input text-[0.8rem] py-[5px]"
-                        placeholder="Enter SKU"
-                        value={currentSku}
-                        onChange={(e) => setSkuInput((s) => ({ ...s, [cluster.id]: e.target.value }))}
-                        onKeyDown={(e) => handleSkuKeyDown(cluster.id, e)}
-                        onBlur={() => {
-                          const val = (skuInput[cluster.id] ?? '').trim().toUpperCase()
-                          if (val) updateClusterSku(cluster.id, val)
-                        }}
-                        style={{ fontFamily: 'var(--font-dm-mono)' }}
-                      />
+                    <div className="flex-1 relative">
+                      {styleList.length > 0 ? (
+                        <>
+                          <input
+                            className="input text-[0.8rem] py-[5px]"
+                            placeholder="Search style list…"
+                            value={skuSearchOpen === cluster.id ? (skuSearchQuery[cluster.id] ?? currentSku) : currentSku}
+                            onFocus={() => { setSkuSearchOpen(cluster.id); setSkuSearchQuery((q) => ({ ...q, [cluster.id]: currentSku })) }}
+                            onChange={(e) => setSkuSearchQuery((q) => ({ ...q, [cluster.id]: e.target.value }))}
+                            onBlur={() => setTimeout(() => setSkuSearchOpen(null), 150)}
+                            style={{ fontFamily: 'var(--font-dm-mono)' }}
+                          />
+                          {skuSearchOpen === cluster.id && (
+                            <div className="absolute top-full left-0 right-0 mt-[2px] bg-[var(--bg)] border border-[var(--line2)] rounded-sm shadow-xl z-30 max-h-[200px] overflow-y-auto">
+                              {styleList
+                                .filter((e) => {
+                                  const q = (skuSearchQuery[cluster.id] ?? '').toLowerCase()
+                                  return !q || e.sku.toLowerCase().includes(q) || e.productName.toLowerCase().includes(q) || e.colour.toLowerCase().includes(q)
+                                })
+                                .slice(0, 20)
+                                .map((entry, i) => (
+                                  <button
+                                    key={i}
+                                    className="w-full text-left px-3 py-[7px] hover:bg-[var(--bg3)] transition-colors flex items-center gap-2"
+                                    onMouseDown={() => {
+                                      updateClusterSku(cluster.id, entry.sku, entry.productName)
+                                      if (entry.colour) updateClusterColor(cluster.id, entry.colour.toUpperCase())
+                                      setSkuInput((s) => ({ ...s, [cluster.id]: entry.sku }))
+                                      setSkuSearchOpen(null)
+                                    }}
+                                  >
+                                    <span className="text-[0.78rem] text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{entry.sku}</span>
+                                    <span className="text-[0.72rem] text-[var(--text3)] truncate flex-1">{entry.productName}</span>
+                                    {entry.colour && <span className="text-[0.68rem] text-[var(--text3)] flex-shrink-0">{entry.colour}</span>}
+                                  </button>
+                                ))}
+                              {styleList.filter((e) => {
+                                const q = (skuSearchQuery[cluster.id] ?? '').toLowerCase()
+                                return !q || e.sku.toLowerCase().includes(q) || e.productName.toLowerCase().includes(q) || e.colour.toLowerCase().includes(q)
+                              }).length === 0 && (
+                                <p className="px-3 py-2 text-[0.75rem] text-[var(--text3)]">No matches</p>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <input
+                          className="input text-[0.8rem] py-[5px]"
+                          placeholder="Enter SKU"
+                          value={currentSku}
+                          onChange={(e) => setSkuInput((s) => ({ ...s, [cluster.id]: e.target.value }))}
+                          onKeyDown={(e) => handleSkuKeyDown(cluster.id, e)}
+                          onBlur={() => {
+                            const val = (skuInput[cluster.id] ?? '').trim().toUpperCase()
+                            if (val) updateClusterSku(cluster.id, val)
+                          }}
+                          style={{ fontFamily: 'var(--font-dm-mono)' }}
+                        />
+                      )}
                     </div>
                     {cluster.confirmed ? (
                       <span className="text-[0.72rem] font-semibold text-[var(--accent2)] flex items-center gap-1 flex-shrink-0">

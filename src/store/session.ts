@@ -21,12 +21,20 @@ export interface SessionCluster {
   confirmed: boolean
 }
 
+export interface StyleListEntry {
+  sku: string
+  productName: string
+  colour: string
+}
+
 interface SessionState {
   jobName: string
   clusters: SessionCluster[]
   marketplaces: string[]
+  styleList: StyleListEntry[]
   isReady: boolean
   setSession: (jobName: string, clusters: SessionCluster[], marketplaces?: string[]) => void
+  setStyleList: (entries: StyleListEntry[]) => void
   moveImage: (imageId: string, toClusterId: string) => void
   mergeCluster: (fromId: string, toId: string) => void
   splitImages: (fromClusterId: string, imageIds: string[]) => void
@@ -48,7 +56,10 @@ export const useSession = create<SessionState>((set, get) => ({
   jobName: '',
   clusters: [],
   marketplaces: ['the-iconic'],
+  styleList: [],
   isReady: false,
+
+  setStyleList: (entries) => set({ styleList: entries }),
 
   setSession: (jobName, clusters, marketplaces) => {
     _nextClusterNum = clusters.length + 1
@@ -206,6 +217,6 @@ export const useSession = create<SessionState>((set, get) => ({
 
   reset: () => {
     try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
-    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], isReady: false })
+    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], isReady: false })
   },
 }))

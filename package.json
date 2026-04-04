@@ -28,6 +28,7 @@
     "stripe": "^21.0.1",
     "tailwind-merge": "^2.4.0",
     "uuid": "^10.0.0",
+    "xlsx": "^0.18.5",
     "zustand": "^4.5.4"
   },
   "devDependencies": {
