@@ -64,7 +64,7 @@ const NAV_WORKFLOW: NavItem[] = [
   },
   {
     label: 'Export',
-    href: '/dashboard/export',
+    href: '/dashboard/review',
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M8 11V4M5 8l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
