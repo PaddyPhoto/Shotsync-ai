@@ -1158,6 +1158,8 @@ async function processImageOnCanvas(
       canvas.width = width
       canvas.height = height
       const ctx = canvas.getContext('2d')!
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
 
       // Fill background
       ctx.fillStyle = bgColor || '#ffffff'
@@ -1181,6 +1183,8 @@ async function processImageOnCanvas(
       const sourceH = sh
       let currentCanvas = document.createElement('canvas')
       let currentCtx = currentCanvas.getContext('2d')!
+      currentCtx.imageSmoothingEnabled = true
+      currentCtx.imageSmoothingQuality = 'high'
       currentCanvas.width = sourceW
       currentCanvas.height = sourceH
       currentCtx.drawImage(img, sx, sy, sw, sh, 0, 0, sourceW, sourceH)
@@ -1194,6 +1198,8 @@ async function processImageOnCanvas(
         stepCanvas.width = stepW
         stepCanvas.height = stepH
         const stepCtx = stepCanvas.getContext('2d')!
+        stepCtx.imageSmoothingEnabled = true
+        stepCtx.imageSmoothingQuality = 'high'
         stepCtx.drawImage(currentCanvas, 0, 0, stepW, stepH)
         currentCanvas = stepCanvas
         currentCtx = stepCtx
