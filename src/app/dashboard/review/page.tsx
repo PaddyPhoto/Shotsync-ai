@@ -826,6 +826,8 @@ function ExportPanel({
 
     let doneCount = 0
 
+    const CONCURRENCY = 6
+
     for (const marketplace of selectedMarketplaces) {
       // Use the user-edited rule (from localStorage), not the static default
       const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
@@ -835,20 +837,25 @@ function ExportPanel({
       const brandCode = activeBrand?.brand_code ?? 'BRAND'
       const template = rule.naming_template || namingTemplate || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
 
+      // Flatten all tasks for this marketplace so we can batch-process them in parallel
+      type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }
+      const tasks: ExportTask[] = []
       for (let clusterIdx = 0; clusterIdx < confirmedClusters.length; clusterIdx++) {
         const cluster = confirmedClusters[clusterIdx]
         const seq = clusterIdx + 1
-
-        // Folder name: strip {VIEW} and {INDEX} tokens, use result as SKU folder
         const folderName = applyNamingTemplate(
           template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, ''),
           { brand: brandCode, seq, sku: cluster.sku, color: cluster.color, view: '', index: 0 }
         ).replace(/_+$/, '') || `${brandCode}_${String(seq).padStart(3, '0')}`
-
         for (let imgIdx = 0; imgIdx < cluster.images.length; imgIdx++) {
-          const img = cluster.images[imgIdx]
-          setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${folderName} · ${imgIdx + 1}/${cluster.images.length}` })
+          tasks.push({ cluster, seq, img: cluster.images[imgIdx], imgIdx, folderName })
+        }
+      }
 
+      // Process in parallel batches of CONCURRENCY
+      for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+        const batch = tasks.slice(i, i + CONCURRENCY)
+        await Promise.all(batch.map(async ({ cluster, seq, img, imgIdx, folderName }) => {
           try {
             const buffer = await processImageOnCanvas(
               img.file,
@@ -870,10 +877,9 @@ function ExportPanel({
           } catch (err) {
             console.warn(`Export skipped: ${img.filename}`, err)
           }
-
           doneCount++
-          await new Promise((r) => setTimeout(r, 0))
-        }
+          setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
+        }))
       }
     }
 
@@ -899,7 +905,7 @@ function ExportPanel({
         setProgress({ done: written, total: entries.length, phase: 'Writing files…' })
       }
     } else {
-      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
