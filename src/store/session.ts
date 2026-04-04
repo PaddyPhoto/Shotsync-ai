@@ -52,7 +52,33 @@ export const useSession = create<SessionState>((set, get) => ({
 
   setSession: (jobName, clusters, marketplaces) => {
     _nextClusterNum = clusters.length + 1
-    set({ jobName, clusters, marketplaces: marketplaces ?? ['the-iconic'], isReady: true })
+    const mps = marketplaces ?? ['the-iconic']
+    set({ jobName, clusters, marketplaces: mps, isReady: true })
+    // Persist to sessionStorage so back-navigation can restore it
+    // File objects can't be serialised — we store metadata + previewUrl only
+    try {
+      const serialisable = {
+        jobName,
+        marketplaces: mps,
+        clusters: clusters.map((c) => ({
+          id: c.id,
+          sku: c.sku,
+          productName: c.productName,
+          color: c.color,
+          label: c.label,
+          confirmed: c.confirmed,
+          images: c.images.map((img) => ({
+            id: img.id,
+            filename: img.filename,
+            previewUrl: img.previewUrl,
+            seqIndex: img.seqIndex,
+            viewLabel: img.viewLabel,
+            viewConfidence: img.viewConfidence,
+          })),
+        })),
+      }
+      sessionStorage.setItem('shotsync:session', JSON.stringify(serialisable))
+    } catch { /* ignore serialisation errors */ }
   },
 
   moveImage: (imageId, toClusterId) => set((state) => {
@@ -178,5 +204,8 @@ export const useSession = create<SessionState>((set, get) => ({
     }),
   })),
 
-  reset: () => set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], isReady: false }),
+  reset: () => {
+    try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
+    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], isReady: false })
+  },
 }))
