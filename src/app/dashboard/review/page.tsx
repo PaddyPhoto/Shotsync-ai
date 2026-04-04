@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useSession } from '@/store/session'
@@ -27,7 +27,11 @@ const VIEW_CLS: Record<ViewLabel, string> = {
   unknown: 'shot-unknown',
 }
 
-export default function ReviewPage() {
+export default function ReviewPageWrapper() {
+  return <Suspense><ReviewPage /></Suspense>
+}
+
+function ReviewPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { activeBrand } = useBrand()
