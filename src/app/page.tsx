@@ -103,6 +103,111 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Pricing */}
+      <div className="px-8 py-24 flex flex-col items-center border-t border-[var(--line)]">
+        <p className="text-[0.75rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-3">Pricing</p>
+        <h2
+          className="text-[2.2rem] font-[800] tracking-[-1px] text-[var(--text)] mb-4 text-center"
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
+          Simple, transparent pricing
+        </h2>
+        <p className="text-[0.9rem] text-[var(--text3)] mb-14 text-center">
+          Start free. Upgrade when you need more.
+        </p>
+
+        <div className="grid grid-cols-3 gap-5 max-w-[900px] w-full">
+          {/* Free */}
+          <div className="bg-[var(--bg2)] border border-[var(--line)] rounded-md p-6 flex flex-col">
+            <p className="text-[0.7rem] uppercase tracking-[0.1em] text-[var(--text3)] font-semibold mb-3">Free</p>
+            <div className="flex items-end gap-1 mb-1">
+              <span className="text-[2.4rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>$0</span>
+            </div>
+            <p className="text-[0.75rem] text-[var(--text3)] mb-6">Forever free</p>
+            <ul className="flex flex-col gap-[10px] mb-8 flex-1">
+              {[
+                'Up to 50 images per job',
+                '1 marketplace per export',
+                '3 exports per month',
+                '1 brand',
+                '2 seats',
+                'ZIP download',
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2 text-[0.78rem] text-[var(--text2)]">
+                  <svg className="flex-shrink-0 mt-[2px]" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/signup" className="btn btn-ghost w-full justify-center">
+              Get Started Free
+            </Link>
+          </div>
+
+          {/* Pro */}
+          <div className="bg-[var(--bg2)] border border-[var(--accent)] rounded-md p-6 flex flex-col relative" style={{ boxShadow: '0 0 0 1px rgba(232,217,122,0.2), 0 8px 32px rgba(0,0,0,0.3)' }}>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--accent)] text-[var(--bg)] text-[0.65rem] font-bold uppercase tracking-[0.08em] px-3 py-[3px] rounded-full">
+              Most Popular
+            </div>
+            <p className="text-[0.7rem] uppercase tracking-[0.1em] text-[var(--accent)] font-semibold mb-3">Pro</p>
+            <div className="flex items-end gap-1 mb-1">
+              <span className="text-[2.4rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>$29</span>
+              <span className="text-[0.85rem] text-[var(--text3)] mb-2">/mo</span>
+            </div>
+            <p className="text-[0.75rem] text-[var(--text3)] mb-6">Per workspace, billed monthly</p>
+            <ul className="flex flex-col gap-[10px] mb-8 flex-1">
+              {[
+                'Up to 500 images per job',
+                'All 4 marketplaces',
+                'Unlimited exports',
+                '5 brands',
+                '5 seats',
+                'Shopify integration',
+                'Save to folder',
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2 text-[0.78rem] text-[var(--text2)]">
+                  <svg className="flex-shrink-0 mt-[2px]" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--accent)" strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/signup" className="btn btn-primary w-full justify-center">
+              Start with Pro
+            </Link>
+          </div>
+
+          {/* Business */}
+          <div className="bg-[var(--bg2)] border border-[var(--line)] rounded-md p-6 flex flex-col">
+            <p className="text-[0.7rem] uppercase tracking-[0.1em] text-[var(--accent4)] font-semibold mb-3">Business</p>
+            <div className="flex items-end gap-1 mb-1">
+              <span className="text-[2.4rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>$99</span>
+              <span className="text-[0.85rem] text-[var(--text3)] mb-2">/mo</span>
+            </div>
+            <p className="text-[0.75rem] text-[var(--text3)] mb-6">Per workspace, billed monthly</p>
+            <ul className="flex flex-col gap-[10px] mb-8 flex-1">
+              {[
+                'Unlimited images',
+                'All 4 marketplaces',
+                'Unlimited exports',
+                'Unlimited brands',
+                'Unlimited seats',
+                'Shopify integration',
+                'Priority processing',
+                'Custom naming presets',
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2 text-[0.78rem] text-[var(--text2)]">
+                  <svg className="flex-shrink-0 mt-[2px]" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--accent4)" strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/signup" className="btn btn-ghost w-full justify-center">
+              Start with Business
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
       <footer className="border-t border-[var(--line)] px-8 py-5 flex items-center justify-between text-[0.75rem] text-[var(--text3)]">
         <span>© 2026 ShotSync.ai</span>
