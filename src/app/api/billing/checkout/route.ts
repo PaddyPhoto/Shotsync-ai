@@ -13,7 +13,8 @@ const SUPABASE_CONFIGURED =
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
 export async function POST(req: NextRequest) {
-  const { planId } = (await req.json()) as { planId: PlanId }
+  const body = await req.json() as { planId: PlanId }
+  const { planId } = body
 
   if (!planId || planId === 'free') {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
@@ -30,16 +31,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { createServiceClient } = await import('@/lib/supabase/server')
+    const service = createServiceClient()
+    const token = req.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { data: { user } } = await service.auth.getUser(token)
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const Stripe = (await import('stripe')).default
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
 
     // Look up the org this user belongs to
-    const { data: membership } = await supabase
+    const { data: membership } = await service
       .from('org_members')
       .select('org_id, orgs(id, stripe_customer_id, name)')
       .eq('user_id', user.id)
@@ -64,7 +67,7 @@ export async function POST(req: NextRequest) {
       customerId = customer.id
 
       if (SUPABASE_CONFIGURED) {
-        await supabase
+        await service
           .from('orgs')
           .update({ stripe_customer_id: customerId })
           .eq('id', orgId)

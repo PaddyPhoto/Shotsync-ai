@@ -37,10 +37,7 @@ export async function POST(req: NextRequest) {
 
     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET)
 
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = await createClient()
-
-    // Use service role so webhook can write regardless of RLS
+    // Use service role — webhook has no user session, verified by Stripe signature instead
     const { createServiceClient } = await import('@/lib/supabase/server')
     const service = createServiceClient()
 

@@ -1,9 +1,91 @@
 -- ShotSync.ai Database Schema
 -- Run this in your Supabase SQL editor
+-- Last updated: April 2026
 
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 create extension if not exists vector;
+
+-- ─── Organisations ────────────────────────────────────────────────────────────
+create table if not exists orgs (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  plan text not null default 'free' check (plan in ('free', 'pro', 'business')),
+  stripe_customer_id text,
+  stripe_subscription_status text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists org_members (
+  id uuid primary key default uuid_generate_v4(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  role text not null default 'member'
+    check (role in ('owner', 'admin', 'member')),
+  created_at timestamptz not null default now(),
+  unique(org_id, user_id)
+);
+
+create table if not exists org_invites (
+  id uuid primary key default uuid_generate_v4(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  email text not null,
+  role text not null default 'member',
+  token text not null unique,
+  accepted boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table orgs enable row level security;
+alter table org_members enable row level security;
+alter table org_invites enable row level security;
+
+create policy "Org members can view their org"
+  on orgs for select using (
+    exists (select 1 from org_members where org_id = orgs.id and user_id = auth.uid())
+  );
+
+create policy "Org owners can update their org"
+  on orgs for update using (
+    exists (select 1 from org_members where org_id = orgs.id and user_id = auth.uid() and role = 'owner')
+  );
+
+create policy "Members can view org membership"
+  on org_members for select using (
+    exists (select 1 from org_members om2 where om2.org_id = org_members.org_id and om2.user_id = auth.uid())
+  );
+
+create policy "Owners can manage org members"
+  on org_members for all using (
+    exists (select 1 from org_members om2 where om2.org_id = org_members.org_id and om2.user_id = auth.uid() and om2.role = 'owner')
+  );
+
+create policy "Invites visible to org members"
+  on org_invites for select using (
+    exists (select 1 from org_members where org_id = org_invites.org_id and user_id = auth.uid())
+  );
+
+-- ─── Brands ───────────────────────────────────────────────────────────────────
+create table if not exists brands (
+  id uuid primary key default uuid_generate_v4(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  name text not null,
+  brand_code text not null,
+  shopify_store_url text,
+  shopify_access_token text,
+  logo_color text not null default '#e8d97a',
+  images_per_look int not null default 4,
+  naming_template text not null default '{BRAND}_{SEQ}_{VIEW}',
+  gm_position text check (gm_position in ('first', 'last')),
+  created_at timestamptz not null default now()
+);
+
+alter table brands enable row level security;
+
+create policy "Org members can manage brands"
+  on brands for all using (
+    exists (select 1 from org_members where org_id = brands.org_id and user_id = auth.uid())
+  );
 
 -- ─── Jobs ────────────────────────────────────────────────────────────────────
 create table if not exists jobs (
