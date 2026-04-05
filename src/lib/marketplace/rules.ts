@@ -4,7 +4,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   'the-iconic': {
     id: 'the-iconic',
     name: 'THE ICONIC',
-    required_views: ['front', 'back'],
+    required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     image_dimensions: { width: 1600, height: 2000 },
     file_format: 'jpg',
     quality: 100,
@@ -16,7 +16,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   myer: {
     id: 'myer',
     name: 'Myer',
-    required_views: ['front', 'back', 'detail'],
+    required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     image_dimensions: { width: 1551, height: 2000 },
     file_format: 'jpg',
     quality: 100,
@@ -28,7 +28,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   'david-jones': {
     id: 'david-jones',
     name: 'David Jones',
-    required_views: ['front', 'back', 'side'],
+    required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     image_dimensions: { width: 1600, height: 2000 },
     file_format: 'jpg',
     quality: 100,
@@ -40,7 +40,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   shopify: {
     id: 'shopify',
     name: 'Shopify',
-    required_views: ['front'],
+    required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     image_dimensions: { width: 2369, height: 2953 },
     file_format: 'jpg',
     quality: 100,
