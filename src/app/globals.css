@@ -207,6 +207,9 @@ img { display: block; }
   .shot-full-length    { @apply bg-[rgba(232,180,122,0.15)] text-[#e8b47a]; }
   .shot-gm             { @apply bg-[rgba(110,180,255,0.15)] text-[#6eb4ff]; }
   .shot-flat           { @apply bg-[rgba(122,232,200,0.15)] text-[#7ae8c8]; }
+  .shot-topdown        { @apply bg-[rgba(200,180,255,0.15)] text-[#c8b4ff]; }
+  .shot-inside         { @apply bg-[rgba(255,200,122,0.15)] text-[#ffc87a]; }
+  .shot-threequarter   { @apply bg-[rgba(122,220,180,0.15)] text-[#7adcb4]; }
   .shot-missing        { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)] border border-dashed border-[var(--text3)]; }
   .shot-unknown        { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)]; }
 }

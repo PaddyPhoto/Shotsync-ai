@@ -11,6 +11,7 @@ import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { useNamingRules, previewTemplate, BUILT_IN_PRESETS } from '@/lib/naming/useNamingRules'
+import { getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
 import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
@@ -18,15 +19,19 @@ import type { Brand } from '@/lib/brands'
 const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'ghost-mannequin', 'flat-lay']
 
 const VIEW_CLS: Record<ViewLabel, string> = {
-  front: 'shot-front',
-  back: 'shot-back',
-  side: 'shot-side',
-  detail: 'shot-detail',
-  mood: 'shot-mood',
-  'full-length': 'shot-full-length',
+  front:             'shot-front',
+  back:              'shot-back',
+  side:              'shot-side',
+  detail:            'shot-detail',
+  mood:              'shot-mood',
+  'full-length':     'shot-full-length',
   'ghost-mannequin': 'shot-gm',
-  'flat-lay': 'shot-flat',
-  unknown: 'shot-unknown',
+  'flat-lay':        'shot-flat',
+  'top-down':        'shot-topdown',
+  'inside':          'shot-inside',
+  'front-3/4':       'shot-threequarter',
+  'back-3/4':        'shot-threequarter',
+  unknown:           'shot-unknown',
 }
 
 export default function ReviewPageWrapper() {
@@ -38,10 +43,12 @@ function ReviewPage() {
   const searchParams = useSearchParams()
   const { activeBrand } = useBrand()
   const {
-    jobName, clusters, marketplaces: sessionMarketplaces, styleList, isReady,
+    jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, accessoryCategory, isReady,
     moveImage, mergeCluster, splitImages, reorderImages, relabelCluster,
     updateClusterSku, updateClusterColor, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
   } = useSession()
+
+  const activeCategory = getCategoryById(accessoryCategory ?? '')
 
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null)
@@ -57,7 +64,14 @@ function ReviewPage() {
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
-  const VIEW_SEQUENCE: ViewLabel[] = ['ghost-mannequin', 'full-length', 'front', 'side', 'mood', 'detail', 'back', 'flat-lay']
+  const VIEW_SEQUENCE: ViewLabel[] = activeCategory
+    ? (activeCategory.angles as ViewLabel[])
+    : ['ghost-mannequin', 'full-length', 'front', 'side', 'mood', 'detail', 'back', 'flat-lay']
+
+  // All selectable angles in the per-image dropdown
+  const SELECTABLE_VIEWS: ViewLabel[] = activeCategory
+    ? [...new Set([...(activeCategory.angles as ViewLabel[]), 'front' as ViewLabel, 'back' as ViewLabel, 'side' as ViewLabel, 'detail' as ViewLabel, 'top-down' as ViewLabel, 'inside' as ViewLabel, 'front-3/4' as ViewLabel, 'back-3/4' as ViewLabel, 'unknown' as ViewLabel])]
+    : ALL_VIEWS
 
   const getActiveAngles = (clusterId: string): ViewLabel[] =>
     VIEW_SEQUENCE.filter((a) => !disabledAngles[clusterId]?.has(a))
@@ -593,8 +607,8 @@ function ReviewPage() {
                                 className="w-full bg-transparent text-white text-[0.6rem] font-semibold uppercase outline-none cursor-pointer"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {ALL_VIEWS.map((v) => (
-                                  <option key={v} value={v} className="text-black bg-white">{v}</option>
+                                {SELECTABLE_VIEWS.map((v) => (
+                                  <option key={v} value={v} className="text-black bg-white">{getAngleDisplayName(activeCategory, v)}</option>
                                 ))}
                               </select>
                             </div>

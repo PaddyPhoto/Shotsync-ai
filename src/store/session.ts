@@ -27,14 +27,19 @@ export interface StyleListEntry {
   colour: string
 }
 
+export type ShootType = 'on-model' | 'still-life'
+
 interface SessionState {
   jobName: string
   clusters: SessionCluster[]
   marketplaces: string[]
   styleList: StyleListEntry[]
+  shootType: ShootType
+  accessoryCategory: string | null
   isReady: boolean
   setSession: (jobName: string, clusters: SessionCluster[], marketplaces?: string[]) => void
   setStyleList: (entries: StyleListEntry[]) => void
+  setShootConfig: (shootType: ShootType, accessoryCategory: string | null) => void
   moveImage: (imageId: string, toClusterId: string) => void
   mergeCluster: (fromId: string, toId: string) => void
   splitImages: (fromClusterId: string, imageIds: string[]) => void
@@ -57,9 +62,12 @@ export const useSession = create<SessionState>((set, get) => ({
   clusters: [],
   marketplaces: ['the-iconic'],
   styleList: [],
+  shootType: 'on-model',
+  accessoryCategory: null,
   isReady: false,
 
   setStyleList: (entries) => set({ styleList: entries }),
+  setShootConfig: (shootType, accessoryCategory) => set({ shootType, accessoryCategory }),
 
   setSession: (jobName, clusters, marketplaces) => {
     _nextClusterNum = clusters.length + 1
@@ -217,6 +225,6 @@ export const useSession = create<SessionState>((set, get) => ({
 
   reset: () => {
     try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
-    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], isReady: false })
+    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], shootType: 'on-model', accessoryCategory: null, isReady: false })
   },
 }))

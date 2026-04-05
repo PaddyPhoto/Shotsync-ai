@@ -28,6 +28,10 @@ const VIEW_PILL_CLS: Record<ViewLabel, string> = {
   'full-length':     'shot-full-length',
   'ghost-mannequin': 'shot-gm',
   'flat-lay':        'shot-flat',
+  'top-down':        'shot-topdown',
+  'inside':          'shot-inside',
+  'front-3/4':       'shot-threequarter',
+  'back-3/4':        'shot-threequarter',
   unknown:           'shot-unknown',
 }
 

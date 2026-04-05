@@ -26,7 +26,11 @@ const VIEW_KEYWORDS: Record<ViewLabel, string[]> = {
   mood:              ['mood', 'm01', 'm1', '_m_', '-m-', 'lifestyle', 'editorial', 'styled'],
   'full-length':     ['full', 'fl', 'fl01', 'fl02', 'fulllength', 'full-length', 'full_length', 'standing'],
   'ghost-mannequin': ['ghost', 'gm', 'gm01', 'gm1', 'mannequin', 'ghostmannequin', 'ghost-mannequin', 'ghost_mannequin'],
-  'flat-lay':        ['flat', 'flatlay', 'flat-lay', 'flat_lay', 'overhead', 'lay'],
+  'flat-lay':        ['flatlay', 'flat-lay', 'flat_lay', 'lay'],
+  'top-down':        ['topdown', 'top-down', 'top_down', 'overhead', 'aerial', 'flat', 'topa'],
+  'inside':          ['inside', 'interior', 'inner', 'lining', 'open'],
+  'front-3/4':       ['front34', 'front3q', 'f34', 'threequarter', '3q', 'frontquarter'],
+  'back-3/4':        ['back34', 'back3q', 'b34', 'backquarter', 'rearquarter'],
   unknown:           [],
 }
 

@@ -7,8 +7,9 @@ import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
-import type { StyleListEntry } from '@/store/session'
+import type { StyleListEntry, ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
+import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import type { MarketplaceName } from '@/types'
 
 type Step = 'config' | 'files' | 'processing'
@@ -25,6 +26,10 @@ export default function UploadPage() {
   const { canProcessImages, plan, openUpgrade } = usePlan()
   const setSession = useSession((s) => s.setSession)
   const setStyleList = useSession((s) => s.setStyleList)
+  const setShootConfig = useSession((s) => s.setShootConfig)
+
+  const [shootType, setShootType] = useState<ShootType>('on-model')
+  const [accessoryCategory, setAccessoryCategory] = useState<string | null>(null)
 
   const [step, setStep] = useState<Step>('config')
   const [styleList, setStyleListLocal] = useState<StyleListEntry[]>([])
@@ -117,6 +122,7 @@ export default function UploadPage() {
     setProgress({ phase: 'Starting…', done: 0, total: files.length })
 
     const name = jobName || `Shoot – ${new Date().toLocaleDateString()}`
+    setShootConfig(shootType, accessoryCategory)
     const clusters = await processFiles(files, imagesPerLook, setProgress)
 
     setSession(name, clusters, marketplaces)
@@ -219,6 +225,76 @@ export default function UploadPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Shoot Type */}
+            <div className="card mb-6">
+              <div className="card-head"><span className="card-title">Shoot Type</span></div>
+              <div className="card-body flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    { id: 'on-model', label: 'On-Model', desc: 'Clothing worn by a model — front, back, side, full-length, mood', icon: (
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <circle cx="10" cy="5" r="2.5"/>
+                        <path d="M6 20v-6l-2-4h12l-2 4v6" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M8 20v-5M12 20v-5" strokeLinecap="round"/>
+                      </svg>
+                    )},
+                    { id: 'still-life', label: 'Still Life', desc: 'Accessories & products shot without a model', icon: (
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="7" width="14" height="10" rx="1.5"/>
+                        <path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/>
+                        <circle cx="10" cy="12" r="1.5"/>
+                      </svg>
+                    )},
+                  ] as { id: ShootType; label: string; desc: string; icon: React.ReactNode }[]).map(({ id, label, desc, icon }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => { setShootType(id); if (id === 'on-model') setAccessoryCategory(null) }}
+                      className={`flex flex-col items-start gap-2 p-4 rounded-sm border text-left transition-all ${
+                        shootType === id
+                          ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.06)] text-[var(--text)]'
+                          : 'border-[var(--line2)] bg-[var(--bg3)] text-[var(--text2)] hover:border-[var(--line)] hover:text-[var(--text)]'
+                      }`}
+                    >
+                      <span className={shootType === id ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}>{icon}</span>
+                      <span className="text-[0.85rem] font-semibold">{label}</span>
+                      <span className="text-[0.72rem] text-[var(--text3)] leading-snug">{desc}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {shootType === 'still-life' && (
+                  <div className="border-t border-[var(--line)] pt-4">
+                    <label className="text-[0.78rem] text-[var(--text2)] mb-2 block">Product Category</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {ACCESSORY_CATEGORIES.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setAccessoryCategory(cat.id)}
+                          className={`px-3 py-[8px] rounded-sm border text-[0.78rem] text-left transition-all ${
+                            accessoryCategory === cat.id
+                              ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.08)] text-[var(--accent)]'
+                              : 'border-[var(--line2)] bg-[var(--bg3)] text-[var(--text2)] hover:border-[var(--line)] hover:text-[var(--text)]'
+                          }`}
+                        >
+                          <p className="font-medium">{cat.label}</p>
+                          <p className="text-[0.68rem] text-[var(--text3)] mt-[2px]">{cat.defaultCount} shots</p>
+                        </button>
+                      ))}
+                    </div>
+                    {accessoryCategory && (
+                      <div className="mt-3 flex flex-wrap gap-[6px]">
+                        {ACCESSORY_CATEGORIES.find(c => c.id === accessoryCategory)?.angles.map((angle) => (
+                          <span key={angle} className="shot-pill shot-detail" style={{ fontSize: '0.7rem' }}>{angle}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
