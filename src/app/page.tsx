@@ -52,9 +52,6 @@ export default function LandingPage() {
               <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </Link>
-          <Link href="/dashboard/upload" className="btn btn-ghost" style={{ padding: '10px 24px', fontSize: '0.9rem' }}>
-            See a Demo
-          </Link>
         </div>
 
         {/* Feature grid */}
