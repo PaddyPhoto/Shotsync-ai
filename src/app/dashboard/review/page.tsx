@@ -106,6 +106,8 @@ function ReviewPage() {
   const [showNamingTokens, setShowNamingTokens] = useState(false)
 
   const getMissingViewsForCluster = (cluster: SessionCluster, marketplace: MarketplaceName) => {
+    // Still life shoots have different angle requirements per category — don't apply clothing rules
+    if (shootType === 'still-life') return []
     const rule = marketplaceRules[marketplace]
     if (!rule) return []
     const activeViews = new Set(
