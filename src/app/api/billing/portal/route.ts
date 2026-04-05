@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 const STRIPE_CONFIGURED = !!(
   process.env.STRIPE_SECRET_KEY &&
@@ -6,15 +6,18 @@ const STRIPE_CONFIGURED = !!(
 )
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   if (!STRIPE_CONFIGURED) {
-    return NextResponse.json({ url: `${APP_URL}/dashboard/settings?tab=billing` })
+    // Stripe not set up — return to billing tab with a message
+    return NextResponse.json({ url: `${APP_URL}/dashboard/settings?tab=billing`, notice: 'Stripe not configured' })
   }
 
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { createServiceClient } = await import('@/lib/supabase/server')
+    const supabase = createServiceClient()
+    const token = req.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { data: { user } } = await supabase.auth.getUser(token)
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { data: membership } = await supabase

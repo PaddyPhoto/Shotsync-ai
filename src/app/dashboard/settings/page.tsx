@@ -78,9 +78,15 @@ function SettingsInner() {
   const handleBillingPortal = async () => {
     setPortalLoading(true)
     try {
-      const res = await fetch('/api/billing/portal', { method: 'POST' })
-      const { url } = await res.json()
-      if (url) window.location.href = url
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/billing/portal', {
+        method: 'POST',
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
+      const json = await res.json()
+      if (json.url) window.location.href = json.url
+      else if (json.error) console.warn('Billing portal:', json.error)
     } finally {
       setPortalLoading(false)
     }
@@ -1002,7 +1008,7 @@ function SettingsInner() {
           <div className="card">
             <div className="card-head">
               <span className="card-title">Current Plan</span>
-              {planId !== 'free' && (
+              {planId !== 'free' && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY && (
                 <button onClick={handleBillingPortal} disabled={portalLoading} className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
                   {portalLoading ? 'Loading…' : 'Manage subscription →'}
                 </button>
