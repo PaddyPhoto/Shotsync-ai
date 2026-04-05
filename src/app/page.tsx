@@ -21,7 +21,7 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
-          <Link href="/signup" className="btn btn-primary btn-sm">Get Started</Link>
+          <Link href="/signup" className="btn btn-primary btn-sm">Create Free Account</Link>
         </div>
       </nav>
 
@@ -47,7 +47,7 @@ export default function LandingPage() {
 
         <div className="flex items-center gap-4">
           <Link href="/signup" className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '0.9rem' }}>
-            Start Free Trial
+            Get Started Free
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -108,7 +108,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-[var(--line)] px-8 py-5 flex items-center justify-between text-[0.75rem] text-[var(--text3)]">
-        <span>© 2025 ShotSync.ai</span>
+        <span>© 2026 ShotSync.ai</span>
         <span>Built for fashion eCommerce teams</span>
       </footer>
     </div>
