@@ -161,7 +161,7 @@ export default function LandingPage() {
                 'All 4 marketplaces',
                 'Unlimited exports',
                 '5 brands',
-                '5 seats',
+                '2 seats',
                 'Shopify integration',
                 'Save to folder',
               ].map((f) => (

@@ -56,7 +56,7 @@ export const PLANS: Record<PlanId, Plan> = {
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 5,
-      seats: 5,
+      seats: 2,
       shopify: true,
     },
     highlights: [
@@ -64,7 +64,7 @@ export const PLANS: Record<PlanId, Plan> = {
       'All 4 marketplaces',
       'Unlimited exports',
       '5 brands',
-      '5 seats',
+      '2 seats',
       'Shopify integration',
       'Save to folder',
     ],
