@@ -178,7 +178,8 @@ export interface ProcessProgress {
 export async function processFiles(
   files: File[],
   imagesPerLook: number,
-  onProgress: (p: ProcessProgress) => void
+  onProgress: (p: ProcessProgress) => void,
+  shootType: 'on-model' | 'still-life' = 'on-model'
 ): Promise<SessionCluster[]> {
   const total = files.length
 
@@ -237,7 +238,8 @@ export async function processFiles(
       sku: '',
       productName: '',
       color: '',
-      label: `Look ${lookNumber}`,
+      label: shootType === 'still-life' ? `Product ${lookNumber}` : `Look ${lookNumber}`,
+      category: null,
       confirmed: false,
     })
   }
@@ -272,7 +274,7 @@ export async function processFiles(
         const res = await fetch('/api/ai/detect', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ images: base64Images }),
+          body: JSON.stringify({ images: base64Images, shootType }),
         })
 
         if (res.ok) {
@@ -284,6 +286,10 @@ export async function processFiles(
                 img.viewLabel = result.angles[img.id]
                 img.viewConfidence = 0.9
               }
+            }
+            // Apply AI category (still-life only)
+            if (result.category) {
+              cluster.category = result.category
             }
             // Apply AI colour
             if (result.colour) {

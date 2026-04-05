@@ -11,7 +11,7 @@ import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { useNamingRules, previewTemplate, BUILT_IN_PRESETS } from '@/lib/naming/useNamingRules'
-import { getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
+import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
 import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
@@ -43,12 +43,14 @@ function ReviewPage() {
   const searchParams = useSearchParams()
   const { activeBrand } = useBrand()
   const {
-    jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, accessoryCategory, isReady,
+    jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
     moveImage, mergeCluster, splitImages, reorderImages, relabelCluster,
-    updateClusterSku, updateClusterColor, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
+    updateClusterSku, updateClusterColor, setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
   } = useSession()
 
-  const activeCategory = getCategoryById(accessoryCategory ?? '')
+  // Per-cluster category (still-life mode) — derived from cluster.category
+  const getCategoryForCluster = (cluster: SessionCluster) =>
+    shootType === 'still-life' ? getCategoryById(cluster.category ?? '') : undefined
 
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null)
@@ -64,17 +66,23 @@ function ReviewPage() {
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
-  const VIEW_SEQUENCE: ViewLabel[] = activeCategory
-    ? (activeCategory.angles as ViewLabel[])
-    : ['ghost-mannequin', 'full-length', 'front', 'side', 'mood', 'detail', 'back', 'flat-lay']
+  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['ghost-mannequin', 'full-length', 'front', 'side', 'mood', 'detail', 'back', 'flat-lay']
+  const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
 
-  // All selectable angles in the per-image dropdown
-  const SELECTABLE_VIEWS: ViewLabel[] = activeCategory
-    ? [...new Set([...(activeCategory.angles as ViewLabel[]), 'front' as ViewLabel, 'back' as ViewLabel, 'side' as ViewLabel, 'detail' as ViewLabel, 'top-down' as ViewLabel, 'inside' as ViewLabel, 'front-3/4' as ViewLabel, 'back-3/4' as ViewLabel, 'unknown' as ViewLabel])]
-    : ALL_VIEWS
+  const getViewSequence = (cluster: SessionCluster): ViewLabel[] => {
+    const cat = getCategoryForCluster(cluster)
+    return cat ? (cat.angles as ViewLabel[]) : DEFAULT_VIEW_SEQUENCE
+  }
 
-  const getActiveAngles = (clusterId: string): ViewLabel[] =>
-    VIEW_SEQUENCE.filter((a) => !disabledAngles[clusterId]?.has(a))
+  const getSelectableViews = (cluster: SessionCluster): ViewLabel[] => {
+    const cat = getCategoryForCluster(cluster)
+    return cat
+      ? [...new Set([...(cat.angles as ViewLabel[]), ...STILL_LIFE_EXTRA])]
+      : ALL_VIEWS
+  }
+
+  const getActiveAngles = (cluster: SessionCluster): ViewLabel[] =>
+    getViewSequence(cluster).filter((a) => !disabledAngles[cluster.id]?.has(a))
 
   const toggleAngle = (clusterId: string, angle: ViewLabel) => {
     setDisabledAngles((prev) => {
@@ -82,7 +90,9 @@ function ReviewPage() {
       if (current.has(angle)) current.delete(angle)
       else current.add(angle)
       const next = { ...prev, [clusterId]: current }
-      const activeAngles = VIEW_SEQUENCE.filter((a) => !current.has(a))
+      const clusterObj = clusters.find((c) => c.id === clusterId)
+      const seq = clusterObj ? getViewSequence(clusterObj) : DEFAULT_VIEW_SEQUENCE
+      const activeAngles = seq.filter((a) => !current.has(a))
       relabelCluster(clusterId, activeAngles)
       return next
     })
@@ -197,7 +207,7 @@ function ReviewPage() {
       if (cluster) {
         const fromIdx = cluster.images.findIndex((i) => i.id === fromImageId)
         const toIdx = cluster.images.findIndex((i) => i.id === toImageId)
-        if (fromIdx !== -1 && toIdx !== -1) reorderImages(toClusterId, fromIdx, toIdx, getActiveAngles(toClusterId))
+        if (fromIdx !== -1 && toIdx !== -1) reorderImages(toClusterId, fromIdx, toIdx, getActiveAngles(cluster))
       }
     } else {
       moveImage(fromImageId, toClusterId)
@@ -525,11 +535,24 @@ function ReviewPage() {
                     <span className="text-[0.7rem] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                       {cluster.label}
                     </span>
+                    {shootType === 'still-life' && (
+                      <select
+                        value={cluster.category ?? ''}
+                        onChange={(e) => setClusterCategory(cluster.id, e.target.value || null)}
+                        className="text-[0.68rem] px-[6px] py-[2px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer"
+                        title="Product category"
+                      >
+                        <option value="">— category —</option>
+                        {ACCESSORY_CATEGORIES.map((cat) => (
+                          <option key={cat.id} value={cat.id}>{cat.label}</option>
+                        ))}
+                      </select>
+                    )}
                     <div className="flex-1 flex flex-wrap gap-1">
                       {(() => {
                         const activeLabels = new Set(cluster.images.map((i) => i.viewLabel))
                         const clusterDisabled = disabledAngles[cluster.id] ?? new Set()
-                        const pillAngles = VIEW_SEQUENCE.filter(
+                        const pillAngles = getViewSequence(cluster).filter(
                           (a) => activeLabels.has(a) || clusterDisabled.has(a)
                         )
                         return pillAngles.map((v) => {
@@ -607,8 +630,8 @@ function ReviewPage() {
                                 className="w-full bg-transparent text-white text-[0.6rem] font-semibold uppercase outline-none cursor-pointer"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {SELECTABLE_VIEWS.map((v) => (
-                                  <option key={v} value={v} className="text-black bg-white">{getAngleDisplayName(activeCategory, v)}</option>
+                                {getSelectableViews(cluster).map((v) => (
+                                  <option key={v} value={v} className="text-black bg-white">{getAngleDisplayName(getCategoryForCluster(cluster), v)}</option>
                                 ))}
                               </select>
                             </div>

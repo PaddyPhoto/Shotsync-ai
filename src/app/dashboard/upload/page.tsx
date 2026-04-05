@@ -122,8 +122,8 @@ export default function UploadPage() {
     setProgress({ phase: 'Starting…', done: 0, total: files.length })
 
     const name = jobName || `Shoot – ${new Date().toLocaleDateString()}`
-    setShootConfig(shootType, accessoryCategory)
-    const clusters = await processFiles(files, imagesPerLook, setProgress)
+    setShootConfig(shootType, null)
+    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType)
 
     setSession(name, clusters, marketplaces)
     router.push('/dashboard/review')
@@ -267,32 +267,10 @@ export default function UploadPage() {
                 </div>
 
                 {shootType === 'still-life' && (
-                  <div className="border-t border-[var(--line)] pt-4">
-                    <label className="text-[0.78rem] text-[var(--text2)] mb-2 block">Product Category</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {ACCESSORY_CATEGORIES.map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setAccessoryCategory(cat.id)}
-                          className={`px-3 py-[8px] rounded-sm border text-[0.78rem] text-left transition-all ${
-                            accessoryCategory === cat.id
-                              ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.08)] text-[var(--accent)]'
-                              : 'border-[var(--line2)] bg-[var(--bg3)] text-[var(--text2)] hover:border-[var(--line)] hover:text-[var(--text)]'
-                          }`}
-                        >
-                          <p className="font-medium">{cat.label}</p>
-                          <p className="text-[0.68rem] text-[var(--text3)] mt-[2px]">{cat.defaultCount} shots</p>
-                        </button>
-                      ))}
-                    </div>
-                    {accessoryCategory && (
-                      <div className="mt-3 flex flex-wrap gap-[6px]">
-                        {ACCESSORY_CATEGORIES.find(c => c.id === accessoryCategory)?.angles.map((angle) => (
-                          <span key={angle} className="shot-pill shot-detail" style={{ fontSize: '0.7rem' }}>{angle}</span>
-                        ))}
-                      </div>
-                    )}
+                  <div className="border-t border-[var(--line)] pt-3">
+                    <p className="text-[0.75rem] text-[var(--text3)]">
+                      Product category (bags, shoes, jewellery etc.) is detected automatically per cluster by AI when enabled, or can be set manually on the clusters page.
+                    </p>
                   </div>
                 )}
               </div>

@@ -18,6 +18,7 @@ export interface SessionCluster {
   productName: string
   color: string
   label: string
+  category: string | null   // accessory category id e.g. 'bags', 'shoes' — null for on-model
   confirmed: boolean
 }
 
@@ -45,6 +46,7 @@ interface SessionState {
   splitImages: (fromClusterId: string, imageIds: string[]) => void
   updateClusterSku: (clusterId: string, sku: string, productName?: string) => void
   updateClusterColor: (clusterId: string, color: string) => void
+  setClusterCategory: (clusterId: string, category: string | null) => void
   setImageViewLabel: (imageId: string, clusterId: string, label: ViewLabel) => void
   confirmCluster: (clusterId: string) => void
   setAllConfirmed: (confirmed: boolean) => void
@@ -140,6 +142,7 @@ export const useSession = create<SessionState>((set, get) => ({
       productName: '',
       color: '',
       label: `Cluster ${_nextClusterNum++}`,
+      category: from.category,
       confirmed: false,
     }
     const clusters = state.clusters.map((c) =>
@@ -159,6 +162,12 @@ export const useSession = create<SessionState>((set, get) => ({
   updateClusterColor: (clusterId, color) => set((state) => ({
     clusters: state.clusters.map((c) =>
       c.id === clusterId ? { ...c, color } : c
+    ),
+  })),
+
+  setClusterCategory: (clusterId, category) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId ? { ...c, category } : c
     ),
   })),
 
