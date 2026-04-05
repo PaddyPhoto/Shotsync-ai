@@ -810,25 +810,6 @@ function SettingsInner() {
                         </div>
                       </SettingsRow>
 
-                      {/* Crop style */}
-                      <SettingsRow label="Crop Style" sub="How images are cropped to target dimensions">
-                        <div className="inline-flex bg-[var(--bg3)] p-[2px] rounded-sm gap-[2px]">
-                          {(['center', 'smart'] as const).map((style) => (
-                            <button
-                              key={style}
-                              onClick={() => updateRule(id, { crop_style: style })}
-                              className={`px-3 py-[4px] rounded-[4px] text-[0.75rem] font-medium transition-all capitalize ${
-                                rule.crop_style === style
-                                  ? 'bg-[var(--bg)] text-[var(--text)]'
-                                  : 'text-[var(--text3)] hover:text-[var(--text2)]'
-                              }`}
-                            >
-                              {style}
-                            </button>
-                          ))}
-                        </div>
-                      </SettingsRow>
-
                       {/* Naming template */}
                       <div className="col-span-2 py-[12px] border-t border-[var(--line)]">
                         <p className="text-[0.82rem] text-[var(--text2)] mb-2">Naming Template</p>

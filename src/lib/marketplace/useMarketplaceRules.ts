@@ -5,7 +5,7 @@ import { MARKETPLACE_RULES } from './rules'
 import type { MarketplaceRule, MarketplaceName } from '@/types'
 
 const STORAGE_KEY = 'shotsync:marketplace_rules'
-const STORAGE_VERSION = 5 // bump this whenever defaults change to force a reset
+const STORAGE_VERSION = 6 // bump this whenever defaults change to force a reset
 const VERSION_KEY = 'shotsync:marketplace_rules_version'
 
 export type EditableRules = Record<MarketplaceName, MarketplaceRule>

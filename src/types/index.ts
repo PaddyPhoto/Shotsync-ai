@@ -85,7 +85,6 @@ export interface MarketplaceRule {
   name: string
   required_views: ViewLabel[]
   image_dimensions: { width: number; height: number }
-  crop_style: 'center' | 'smart'
   file_format: 'jpg' | 'png'
   quality: number
   max_file_size_kb: number
