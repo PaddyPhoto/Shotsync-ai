@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { PlanId } from '@/lib/plans'
+import { PLANS, type PlanId } from '@/lib/plans'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +11,59 @@ const STRIPE_CONFIGURED = !!(
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
+
+// Send welcome email to customer + alert to admin
+async function sendSubscriptionEmails(orgId: string, planId: PlanId, service: Awaited<ReturnType<typeof import('@/lib/supabase/server')['createServiceClient']>>) {
+  if (!process.env.RESEND_API_KEY) return
+
+  const { data: member } = await service
+    .from('org_members')
+    .select('user_id')
+    .eq('org_id', orgId)
+    .eq('role', 'owner')
+    .limit(1)
+    .single()
+
+  if (!member) return
+
+  const { data: { user } } = await service.auth.admin.getUserById(member.user_id)
+  if (!user?.email) return
+
+  const { Resend } = await import('resend')
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const plan = PLANS[planId]
+
+  // Notify admin
+  await resend.emails.send({
+    from: 'hello@shotsync.ai',
+    to: 'photoworkssydney@gmail.com',
+    subject: `New ${plan.name} subscriber — ${user.email}`,
+    html: `
+      <p>A new subscriber has upgraded to the <strong>${plan.name}</strong> plan ($${plan.priceAud} AUD/month).</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+      ${planId === 'brand' ? '<p><strong>Action required:</strong> This customer is entitled to an onboarding call — reply to their welcome email to schedule it.</p>' : ''}
+    `,
+  })
+
+  // Welcome email to customer
+  const onboardingLine = planId === 'brand'
+    ? `<p>As part of your Brand plan, you're entitled to a 1-on-1 onboarding call with our team. Simply reply to this email and we'll get something in the calendar.</p>`
+    : ''
+
+  await resend.emails.send({
+    from: 'hello@shotsync.ai',
+    to: user.email,
+    replyTo: 'hello@shotsync.ai',
+    subject: `Welcome to ShotSync ${plan.name} — you're all set`,
+    html: `
+      <p>Hi there,</p>
+      <p>Your <strong>ShotSync ${plan.name}</strong> plan is now active. You're ready to start processing shoots.</p>
+      ${onboardingLine}
+      <p>If you have any questions, just reply to this email.</p>
+      <p>— The ShotSync team</p>
+    `,
+  })
+}
 
 // Map Stripe price IDs → plan IDs
 function priceIdToPlan(priceId: string): PlanId | null {
@@ -53,6 +106,7 @@ export async function POST(req: NextRequest) {
             .from('orgs')
             .update({ plan: planId, stripe_subscription_status: 'active' })
             .eq('id', orgId)
+          await sendSubscriptionEmails(orgId, planId, service)
         }
         break
       }
