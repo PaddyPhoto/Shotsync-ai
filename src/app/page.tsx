@@ -112,99 +112,115 @@ export default function LandingPage() {
         >
           Simple, transparent pricing
         </h2>
-        <p className="text-[0.9rem] text-[var(--text3)] mb-14 text-center">
-          Start free. Upgrade when you need more.
+        <p className="text-[0.9rem] text-[var(--text3)] mb-2 text-center">
+          Start free. Upgrade as you grow. All prices in AUD.
+        </p>
+        <p className="text-[0.8rem] text-[var(--accent2)] mb-14 text-center">
+          Save up to 20% with annual billing
         </p>
 
-        <div className="grid grid-cols-3 gap-5 max-w-[900px] w-full">
+        <div className="grid grid-cols-5 gap-4 max-w-[1100px] w-full">
           {/* Free */}
-          <div className="bg-[var(--bg2)] border border-[var(--line)] rounded-md p-6 flex flex-col">
-            <p className="text-[0.7rem] uppercase tracking-[0.1em] text-[var(--text3)] font-semibold mb-3">Free</p>
-            <div className="flex items-end gap-1 mb-1">
-              <span className="text-[2.4rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>$0</span>
+          {([
+            {
+              id: 'free',
+              name: 'Free',
+              price: '$0',
+              annual: null,
+              color: 'var(--text3)',
+              popular: false,
+              features: ['1 job only', 'Up to 50 images', '1 marketplace', 'Watermarked exports', '1 seat'],
+              forNote: 'Try the workflow',
+              cta: 'Get Started Free',
+              ctaStyle: 'btn-ghost',
+            },
+            {
+              id: 'starter',
+              name: 'Starter',
+              price: '$99',
+              annual: '$79',
+              color: 'var(--accent2)',
+              popular: false,
+              features: ['Up to 500 images/upload', '1 brand', '2 ANZ marketplaces', '2 seats', '1 Shopify store', 'Email support'],
+              forNote: 'Small brands',
+              cta: 'Start with Starter',
+              ctaStyle: 'btn-ghost',
+            },
+            {
+              id: 'brand',
+              name: 'Brand',
+              price: '$249',
+              annual: '$199',
+              color: 'var(--accent)',
+              popular: true,
+              features: ['Up to 2,000 images/upload', '3 brands', 'All ANZ marketplaces', '5 seats', '3 Shopify stores', 'Custom naming', 'Onboarding call'],
+              forNote: '100–200 SKUs/month',
+              cta: 'Start with Brand',
+              ctaStyle: 'btn-primary',
+            },
+            {
+              id: 'scale',
+              name: 'Scale',
+              price: '$499',
+              annual: '$399',
+              color: 'var(--accent4)',
+              popular: false,
+              features: ['Up to 5,000 images/upload', '10 brands', 'All ANZ marketplaces', '10 seats', 'Unlimited Shopify', 'Priority processing', 'Dedicated support'],
+              forNote: '300–500 SKUs/month',
+              cta: 'Start with Scale',
+              ctaStyle: 'btn-ghost',
+            },
+            {
+              id: 'enterprise',
+              name: 'Enterprise',
+              price: '$999',
+              annual: '$790',
+              color: 'var(--accent3)',
+              popular: false,
+              features: ['Unlimited images', 'Unlimited brands', 'All marketplaces', 'Unlimited seats', 'API access', 'White-label exports', 'Dedicated support + SLA'],
+              forNote: 'ShowPo, Meshki scale',
+              cta: 'Contact Us',
+              ctaStyle: 'btn-ghost',
+            },
+          ] as const).map((plan) => (
+            <div
+              key={plan.id}
+              className={`bg-[var(--bg2)] rounded-md p-5 flex flex-col relative ${
+                plan.popular
+                  ? 'border border-[var(--accent)]'
+                  : 'border border-[var(--line)]'
+              }`}
+              style={plan.popular ? { boxShadow: '0 0 0 1px rgba(232,217,122,0.15), 0 8px 32px rgba(0,0,0,0.25)' } : {}}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--accent)] text-[var(--bg)] text-[0.6rem] font-bold uppercase tracking-[0.08em] px-3 py-[3px] rounded-full whitespace-nowrap">
+                  Most Popular
+                </div>
+              )}
+              <p className="text-[0.65rem] uppercase tracking-[0.1em] font-semibold mb-2" style={{ color: plan.color }}>{plan.name}</p>
+              <div className="flex items-end gap-[3px] mb-[2px]">
+                <span className="text-[1.9rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>{plan.price}</span>
+                {plan.price !== '$0' && <span className="text-[0.75rem] text-[var(--text3)] mb-1">/mo</span>}
+              </div>
+              {plan.annual ? (
+                <p className="text-[0.68rem] text-[var(--accent2)] mb-4">{plan.annual}/mo annual</p>
+              ) : (
+                <p className="text-[0.68rem] text-[var(--text3)] mb-4">No credit card required</p>
+              )}
+              <ul className="flex flex-col gap-[8px] mb-6 flex-1">
+                {plan.features.map((f) => (
+                  <li key={f} className="flex items-start gap-[6px] text-[0.72rem] text-[var(--text2)]">
+                    <svg className="flex-shrink-0 mt-[2px]" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke={plan.color} strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[0.65rem] text-[var(--text3)] mb-3 italic">For: {plan.forNote}</p>
+              <Link href="/signup" className={`btn ${plan.ctaStyle} w-full justify-center text-[0.75rem]`}>
+                {plan.cta}
+              </Link>
             </div>
-            <p className="text-[0.75rem] text-[var(--text3)] mb-6">Forever free</p>
-            <ul className="flex flex-col gap-[10px] mb-8 flex-1">
-              {[
-                'Up to 50 images per job',
-                '1 marketplace per export',
-                '3 exports per month',
-                '1 brand',
-                '2 seats',
-                'ZIP download',
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-2 text-[0.78rem] text-[var(--text2)]">
-                  <svg className="flex-shrink-0 mt-[2px]" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/signup" className="btn btn-ghost w-full justify-center">
-              Get Started Free
-            </Link>
-          </div>
-
-          {/* Pro */}
-          <div className="bg-[var(--bg2)] border border-[var(--accent)] rounded-md p-6 flex flex-col relative" style={{ boxShadow: '0 0 0 1px rgba(232,217,122,0.2), 0 8px 32px rgba(0,0,0,0.3)' }}>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--accent)] text-[var(--bg)] text-[0.65rem] font-bold uppercase tracking-[0.08em] px-3 py-[3px] rounded-full">
-              Most Popular
-            </div>
-            <p className="text-[0.7rem] uppercase tracking-[0.1em] text-[var(--accent)] font-semibold mb-3">Pro</p>
-            <div className="flex items-end gap-1 mb-1">
-              <span className="text-[2.4rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>$29</span>
-              <span className="text-[0.85rem] text-[var(--text3)] mb-2">/mo</span>
-            </div>
-            <p className="text-[0.75rem] text-[var(--text3)] mb-6">Per workspace, billed monthly</p>
-            <ul className="flex flex-col gap-[10px] mb-8 flex-1">
-              {[
-                'Up to 500 images per job',
-                'All 4 marketplaces',
-                'Unlimited exports',
-                '5 brands',
-                '2 seats',
-                'Shopify integration',
-                'Save to folder',
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-2 text-[0.78rem] text-[var(--text2)]">
-                  <svg className="flex-shrink-0 mt-[2px]" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--accent)" strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/signup" className="btn btn-primary w-full justify-center">
-              Start with Pro
-            </Link>
-          </div>
-
-          {/* Business */}
-          <div className="bg-[var(--bg2)] border border-[var(--line)] rounded-md p-6 flex flex-col">
-            <p className="text-[0.7rem] uppercase tracking-[0.1em] text-[var(--accent4)] font-semibold mb-3">Business</p>
-            <div className="flex items-end gap-1 mb-1">
-              <span className="text-[2.4rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>$99</span>
-              <span className="text-[0.85rem] text-[var(--text3)] mb-2">/mo</span>
-            </div>
-            <p className="text-[0.75rem] text-[var(--text3)] mb-6">Per workspace, billed monthly</p>
-            <ul className="flex flex-col gap-[10px] mb-8 flex-1">
-              {[
-                'Unlimited images',
-                'All 4 marketplaces',
-                'Unlimited exports',
-                'Unlimited brands',
-                'Unlimited seats',
-                'Shopify integration',
-                'Priority processing',
-                'Custom naming presets',
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-2 text-[0.78rem] text-[var(--text2)]">
-                  <svg className="flex-shrink-0 mt-[2px]" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--accent4)" strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/signup" className="btn btn-ghost w-full justify-center">
-              Start with Business
-            </Link>
-          </div>
+          ))}
         </div>
       </div>
 

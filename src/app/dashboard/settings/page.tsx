@@ -999,13 +999,15 @@ function SettingsInner() {
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-3">
                   <div className={`px-3 py-[5px] rounded-sm text-[0.78rem] font-bold uppercase tracking-[0.05em] ${
-                    planId === 'business' ? 'bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]'
-                    : planId === 'pro'     ? 'bg-[rgba(232,217,122,0.15)] text-[var(--accent)]'
+                    planId === 'enterprise' ? 'bg-[rgba(232,122,122,0.15)] text-[var(--accent3)]'
+                    : planId === 'scale'    ? 'bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]'
+                    : planId === 'brand'    ? 'bg-[rgba(232,217,122,0.15)] text-[var(--accent)]'
+                    : planId === 'starter'  ? 'bg-[rgba(62,207,142,0.15)] text-[var(--accent2)]'
                     :                        'bg-[var(--bg3)] text-[var(--text3)]'
                   }`}>{plan.name}</div>
                   <div>
                     <p className="text-[0.88rem] font-semibold text-[var(--text)]">
-                      {plan.price === 0 ? 'Free forever' : `$${plan.price}/month`}
+                      {plan.priceAud === 0 ? 'Free forever' : `$${plan.priceAud} AUD/month`}
                     </p>
                     <p className="text-[0.75rem] text-[var(--text3)]">{plan.description}</p>
                   </div>
@@ -1034,7 +1036,7 @@ function SettingsInner() {
           </div>
 
           {/* Plan comparison */}
-          {planId !== 'business' && (
+          {planId !== 'enterprise' && (
             <div className="card">
               <div className="card-head"><span className="card-title">Available Plans</span></div>
               <div className="overflow-x-auto">
@@ -1042,7 +1044,7 @@ function SettingsInner() {
                   <thead>
                     <tr>
                       <th className="text-left text-[0.72rem] font-medium uppercase tracking-[0.08em] text-[var(--text3)] px-3 py-2 border-b border-[var(--line)]">Feature</th>
-                      {(['free', 'pro', 'business'] as const).map((id) => (
+                      {(['free', 'starter', 'brand', 'scale', 'enterprise'] as const).map((id) => (
                         <th key={id} className={`text-center text-[0.72rem] font-medium uppercase tracking-[0.08em] px-3 py-2 border-b border-[var(--line)] ${id === planId ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}`}>
                           {PLANS[id].name}{id === planId && ' ✓'}
                         </th>
@@ -1051,17 +1053,17 @@ function SettingsInner() {
                   </thead>
                   <tbody>
                     {[
-                      { feature: 'Images per job',    values: ['50', '500', 'Unlimited'] },
-                      { feature: 'Marketplaces',       values: ['1', '4', '4'] },
-                      { feature: 'Exports / month',    values: ['3', 'Unlimited', 'Unlimited'] },
-                      { feature: 'Brands',             values: ['1', '5', 'Unlimited'] },
-                      { feature: 'Shopify sync',       values: ['—', '✓', '✓'] },
-                      { feature: 'Price',              values: ['Free', '$29/mo', '$99/mo'] },
+                      { feature: 'Images per upload', values: ['50', '500', '2,000', '5,000', 'Unlimited'] },
+                      { feature: 'Marketplaces',      values: ['1', '2', '4', '4', '4'] },
+                      { feature: 'Brands',            values: ['1', '1', '3', '10', 'Unlimited'] },
+                      { feature: 'Seats',             values: ['1', '2', '5', '10', 'Unlimited'] },
+                      { feature: 'Shopify sync',      values: ['—', '✓', '✓', '✓', '✓'] },
+                      { feature: 'Price (AUD/mo)',    values: ['Free', '$99', '$249', '$499', '$999'] },
                     ].map((row) => (
                       <tr key={row.feature} className="hover:bg-[var(--bg3)] transition-colors">
                         <td className="px-3 py-[9px] text-[0.82rem] text-[var(--text2)] border-b border-[var(--line)]">{row.feature}</td>
                         {row.values.map((v, i) => {
-                          const id = (['free', 'pro', 'business'] as const)[i]
+                          const id = (['free', 'starter', 'brand', 'scale', 'enterprise'] as const)[i]
                           return (
                             <td key={id} className={`px-3 py-[9px] text-[0.82rem] text-center border-b border-[var(--line)] ${id === planId ? 'font-semibold text-[var(--text)]' : 'text-[var(--text3)]'}`} style={v === '✓' ? { color: 'var(--accent2)' } : {}}>
                               {v}
@@ -1074,8 +1076,8 @@ function SettingsInner() {
                 </table>
               </div>
               <div className="px-3 py-3 border-t border-[var(--line)] flex justify-end">
-                <button onClick={() => openUpgrade(planId === 'pro' ? 'Upgrade to Business for unlimited images' : 'Upgrade to unlock more features')} className="btn btn-primary btn-sm">
-                  {planId === 'pro' ? 'Upgrade to Business' : 'Upgrade now'}
+                <button onClick={() => openUpgrade('Upgrade to unlock more features')} className="btn btn-primary btn-sm">
+                  Upgrade Plan
                 </button>
               </div>
             </div>

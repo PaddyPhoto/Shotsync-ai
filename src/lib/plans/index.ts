@@ -1,6 +1,6 @@
 // ── Plan definitions ──────────────────────────────────────────────────────────
 
-export type PlanId = 'free' | 'pro' | 'business'
+export type PlanId = 'free' | 'starter' | 'brand' | 'scale' | 'enterprise'
 
 export interface PlanLimits {
   imagesPerJob: number       // -1 = unlimited
@@ -14,67 +14,127 @@ export interface PlanLimits {
 export interface Plan {
   id: PlanId
   name: string
-  price: number              // USD/month
+  priceAud: number           // AUD/month (monthly billing)
+  priceAudAnnual: number     // AUD/month (annual billing)
   description: string
   stripePriceId: string | null
   limits: PlanLimits
   highlights: string[]
+  forNote: string            // "For: ..." line
 }
 
 export const PLANS: Record<PlanId, Plan> = {
   free: {
     id: 'free',
     name: 'Free',
-    price: 0,
-    description: 'Try ShotSync with small batches',
+    priceAud: 0,
+    priceAudAnnual: 0,
+    description: 'Let them feel it, not live on it',
     stripePriceId: null,
     limits: {
       imagesPerJob: 50,
       marketplaces: 1,
       exportsPerMonth: 3,
       brands: 1,
-      seats: 2,
+      seats: 1,
       shopify: false,
     },
     highlights: [
-      'Up to 50 images per job',
-      '1 marketplace per export',
-      '3 exports per month',
-      '1 brand',
-      '2 seats',
-      'ZIP download',
+      '1 job only',
+      'Up to 50 images',
+      '1 marketplace',
+      'Watermarked exports',
+      '1 seat',
     ],
+    forNote: 'Try the workflow before you commit',
   },
-  pro: {
-    id: 'pro',
-    name: 'Pro',
-    price: 29,
-    description: 'For growing eCommerce teams',
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ?? null,
+  starter: {
+    id: 'starter',
+    name: 'Starter',
+    priceAud: 99,
+    priceAudAnnual: 79,
+    description: 'For small brands testing the water',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? null,
     limits: {
       imagesPerJob: 500,
-      marketplaces: 4,
+      marketplaces: 2,
       exportsPerMonth: -1,
-      brands: 5,
+      brands: 1,
       seats: 2,
       shopify: true,
     },
     highlights: [
-      'Up to 500 images per job',
-      'All 4 marketplaces',
-      'Unlimited exports',
-      '5 brands',
+      'Up to 500 images per upload',
+      '1 brand',
+      '2 ANZ marketplaces',
       '2 seats',
-      'Shopify integration',
-      'Save to folder',
+      '1 Shopify store',
+      'ZIP download',
+      'Email support',
     ],
+    forNote: 'Small brands, single labels, testing the water',
   },
-  business: {
-    id: 'business',
-    name: 'Business',
-    price: 99,
-    description: 'For studios and large catalogues',
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_BUSINESS_PRICE_ID ?? null,
+  brand: {
+    id: 'brand',
+    name: 'Brand',
+    priceAud: 249,
+    priceAudAnnual: 199,
+    description: 'For mid-tier brands doing 100–200 SKUs/month',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID ?? null,
+    limits: {
+      imagesPerJob: 2000,
+      marketplaces: 4,
+      exportsPerMonth: -1,
+      brands: 3,
+      seats: 5,
+      shopify: true,
+    },
+    highlights: [
+      'Up to 2,000 images per upload',
+      '3 brands',
+      'All ANZ marketplaces',
+      '5 seats',
+      '3 Shopify stores',
+      'Custom naming presets',
+      'Priority processing',
+      'Onboarding call',
+    ],
+    forNote: 'Mid-tier high street brands doing 100–200 SKUs/month',
+  },
+  scale: {
+    id: 'scale',
+    name: 'Scale',
+    priceAud: 499,
+    priceAudAnnual: 399,
+    description: 'For fast-growing brands ramping up volume',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID ?? null,
+    limits: {
+      imagesPerJob: 5000,
+      marketplaces: 4,
+      exportsPerMonth: -1,
+      brands: 10,
+      seats: 10,
+      shopify: true,
+    },
+    highlights: [
+      'Up to 5,000 images per upload',
+      '10 brands',
+      'All ANZ marketplaces',
+      '10 seats',
+      'Unlimited Shopify stores',
+      'Custom naming presets',
+      'Priority processing',
+      'Dedicated support',
+    ],
+    forNote: 'Growing brands doing 300–500 SKUs/month',
+  },
+  enterprise: {
+    id: 'enterprise',
+    name: 'Enterprise',
+    priceAud: 999,
+    priceAudAnnual: 790,
+    description: 'For high-volume fashion brands at scale',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID ?? null,
     limits: {
       imagesPerJob: -1,
       marketplaces: 4,
@@ -85,14 +145,15 @@ export const PLANS: Record<PlanId, Plan> = {
     },
     highlights: [
       'Unlimited images',
-      'All 4 marketplaces',
-      'Unlimited exports',
       'Unlimited brands',
+      'All marketplaces + custom rules',
       'Unlimited seats',
-      'Shopify integration',
-      'Priority processing',
-      'Custom naming presets',
+      'Unlimited Shopify stores',
+      'API access',
+      'White-label exports',
+      'Dedicated support + SLA',
     ],
+    forNote: 'ShowPo, Meshki, high-volume labels with large in-house teams',
   },
 }
 

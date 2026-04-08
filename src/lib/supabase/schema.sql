@@ -10,7 +10,7 @@ create extension if not exists vector;
 create table if not exists orgs (
   id uuid primary key default uuid_generate_v4(),
   name text not null,
-  plan text not null default 'free' check (plan in ('free', 'pro', 'business')),
+  plan text not null default 'free' check (plan in ('free', 'starter', 'brand', 'scale', 'enterprise')),
   stripe_customer_id text,
   stripe_subscription_status text,
   created_at timestamptz not null default now()

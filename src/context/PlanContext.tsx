@@ -82,7 +82,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
 
     // Local/demo mode
     const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
-    if (stored && (stored === 'free' || stored === 'pro' || stored === 'business')) {
+    if (stored && (['free', 'starter', 'brand', 'scale', 'enterprise'] as string[]).includes(stored)) {
       setPlanId(stored as PlanId)
     }
     const storedUsage = typeof window !== 'undefined' ? localStorage.getItem(USAGE_KEY) : null
