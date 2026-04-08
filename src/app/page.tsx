@@ -1,6 +1,10 @@
+'use client'
+
 import Link from 'next/link'
+import { useState } from 'react'
 
 export default function LandingPage() {
+  const [annual, setAnnual] = useState(true)
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       {/* Nav */}
@@ -112,21 +116,39 @@ export default function LandingPage() {
         >
           Simple, transparent pricing
         </h2>
-        <p className="text-[0.9rem] text-[var(--text3)] mb-2 text-center">
+        <p className="text-[0.9rem] text-[var(--text3)] mb-8 text-center">
           Start free. Upgrade as you grow. All prices in AUD.
         </p>
-        <p className="text-[0.8rem] text-[var(--accent2)] mb-14 text-center">
-          Save up to 20% with annual billing
-        </p>
+
+        {/* Billing toggle */}
+        <div className="flex items-center gap-3 mb-12">
+          <span className={`text-[0.85rem] transition-colors ${!annual ? 'text-[var(--text)]' : 'text-[var(--text3)]'}`}>Monthly</span>
+          <button
+            onClick={() => setAnnual((v) => !v)}
+            className="relative w-[48px] h-[26px] rounded-full transition-colors"
+            style={{ background: annual ? 'var(--accent)' : 'var(--bg4)' }}
+          >
+            <span
+              className="absolute top-[3px] w-[20px] h-[20px] rounded-full bg-white shadow transition-all duration-200"
+              style={{ left: annual ? '25px' : '3px' }}
+            />
+          </button>
+          <div className="flex items-center gap-2">
+            <span className={`text-[0.85rem] transition-colors ${annual ? 'text-[var(--text)]' : 'text-[var(--text3)]'}`}>Annual</span>
+            <span className="text-[0.68rem] font-semibold bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] px-2 py-[2px] rounded-full">
+              Save up to 21%
+            </span>
+          </div>
+        </div>
 
         <div className="grid grid-cols-5 gap-4 max-w-[1100px] w-full">
-          {/* Free */}
           {([
             {
               id: 'free',
               name: 'Free',
-              price: '$0',
-              annual: null,
+              monthly: '$0',
+              annualMonthly: '$0',
+              annualTotal: null,
               color: 'var(--text3)',
               popular: false,
               features: ['1 job only', 'Up to 50 images', '1 marketplace', 'Watermarked exports', '1 seat'],
@@ -137,8 +159,9 @@ export default function LandingPage() {
             {
               id: 'starter',
               name: 'Starter',
-              price: '$99',
-              annual: '$79',
+              monthly: '$99',
+              annualMonthly: '$79',
+              annualTotal: '$948',
               color: 'var(--accent2)',
               popular: false,
               features: ['Up to 500 images/upload', '1 brand', '2 ANZ marketplaces', '2 seats', '1 Shopify store', 'Email support'],
@@ -149,8 +172,9 @@ export default function LandingPage() {
             {
               id: 'brand',
               name: 'Brand',
-              price: '$249',
-              annual: '$199',
+              monthly: '$249',
+              annualMonthly: '$199',
+              annualTotal: '$2,388',
               color: 'var(--accent)',
               popular: true,
               features: ['Up to 2,000 images/upload', '3 brands', 'All ANZ marketplaces', '5 seats', '3 Shopify stores', 'Custom naming', 'Onboarding call'],
@@ -161,8 +185,9 @@ export default function LandingPage() {
             {
               id: 'scale',
               name: 'Scale',
-              price: '$499',
-              annual: '$399',
+              monthly: '$499',
+              annualMonthly: '$399',
+              annualTotal: '$4,788',
               color: 'var(--accent4)',
               popular: false,
               features: ['Up to 5,000 images/upload', '10 brands', 'All ANZ marketplaces', '10 seats', 'Unlimited Shopify', 'Priority processing', 'Dedicated support'],
@@ -173,8 +198,9 @@ export default function LandingPage() {
             {
               id: 'enterprise',
               name: 'Enterprise',
-              price: '$999',
-              annual: '$790',
+              monthly: '$999',
+              annualMonthly: '$790',
+              annualTotal: '$9,480',
               color: 'var(--accent3)',
               popular: false,
               features: ['Unlimited images', 'Unlimited brands', 'All marketplaces', 'Unlimited seats', 'API access', 'White-label exports', 'Dedicated support + SLA'],
@@ -182,45 +208,59 @@ export default function LandingPage() {
               cta: 'Contact Us',
               ctaStyle: 'btn-ghost',
             },
-          ] as const).map((plan) => (
-            <div
-              key={plan.id}
-              className={`bg-[var(--bg2)] rounded-md p-5 flex flex-col relative ${
-                plan.popular
-                  ? 'border border-[var(--accent)]'
-                  : 'border border-[var(--line)]'
-              }`}
-              style={plan.popular ? { boxShadow: '0 0 0 1px rgba(232,217,122,0.15), 0 8px 32px rgba(0,0,0,0.25)' } : {}}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--accent)] text-[var(--bg)] text-[0.6rem] font-bold uppercase tracking-[0.08em] px-3 py-[3px] rounded-full whitespace-nowrap">
-                  Most Popular
+          ] as const).map((plan) => {
+            const displayPrice = annual ? plan.annualMonthly : plan.monthly
+            const isFree = plan.monthly === '$0'
+            return (
+              <div
+                key={plan.id}
+                className={`bg-[var(--bg2)] rounded-md p-5 flex flex-col relative ${
+                  plan.popular ? 'border border-[var(--accent)]' : 'border border-[var(--line)]'
+                }`}
+                style={plan.popular ? { boxShadow: '0 0 0 1px rgba(232,217,122,0.15), 0 8px 32px rgba(0,0,0,0.25)' } : {}}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--accent)] text-[var(--bg)] text-[0.6rem] font-bold uppercase tracking-[0.08em] px-3 py-[3px] rounded-full whitespace-nowrap">
+                    Most Popular
+                  </div>
+                )}
+                <p className="text-[0.65rem] uppercase tracking-[0.1em] font-semibold mb-2" style={{ color: plan.color }}>{plan.name}</p>
+
+                {/* Price display */}
+                <div className="flex items-end gap-[3px] mb-[2px]">
+                  <span className="text-[1.9rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
+                    {displayPrice}
+                  </span>
+                  {!isFree && <span className="text-[0.75rem] text-[var(--text3)] mb-1">/mo</span>}
                 </div>
-              )}
-              <p className="text-[0.65rem] uppercase tracking-[0.1em] font-semibold mb-2" style={{ color: plan.color }}>{plan.name}</p>
-              <div className="flex items-end gap-[3px] mb-[2px]">
-                <span className="text-[1.9rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>{plan.price}</span>
-                {plan.price !== '$0' && <span className="text-[0.75rem] text-[var(--text3)] mb-1">/mo</span>}
+
+                {/* Subtext under price */}
+                {isFree ? (
+                  <p className="text-[0.68rem] text-[var(--text3)] mb-4">No credit card required</p>
+                ) : annual && plan.annualTotal ? (
+                  <p className="text-[0.68rem] text-[var(--accent2)] mb-4">
+                    {plan.annualTotal} billed annually
+                    <span className="ml-1 text-[var(--text3)]">· was {plan.monthly}/mo</span>
+                  </p>
+                ) : (
+                  <p className="text-[0.68rem] text-[var(--text3)] mb-4">billed monthly</p>
+                )}
+
+                <ul className="flex flex-col gap-[8px] mb-6 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-[6px] text-[0.72rem] text-[var(--text2)]">
+                      <svg className="flex-shrink-0 mt-[2px]" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke={plan.color} strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[0.65rem] text-[var(--text3)] mb-3 italic">For: {plan.forNote}</p>
+                <Link href="/signup" className={`btn ${plan.ctaStyle} w-full justify-center text-[0.75rem]`}>
+                  {plan.cta}
+                </Link>
               </div>
-              {plan.annual ? (
-                <p className="text-[0.68rem] text-[var(--accent2)] mb-4">{plan.annual}/mo annual</p>
-              ) : (
-                <p className="text-[0.68rem] text-[var(--text3)] mb-4">No credit card required</p>
-              )}
-              <ul className="flex flex-col gap-[8px] mb-6 flex-1">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-[6px] text-[0.72rem] text-[var(--text2)]">
-                    <svg className="flex-shrink-0 mt-[2px]" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke={plan.color} strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-[0.65rem] text-[var(--text3)] mb-3 italic">For: {plan.forNote}</p>
-              <Link href="/signup" className={`btn ${plan.ctaStyle} w-full justify-center text-[0.75rem]`}>
-                {plan.cta}
-              </Link>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
