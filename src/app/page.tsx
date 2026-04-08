@@ -237,12 +237,8 @@ export default function LandingPage() {
                 {/* Subtext under price */}
                 {isFree ? (
                   <p className="text-[0.68rem] text-[var(--text3)] mb-4">No credit card required</p>
-                ) : annual && plan.annualTotal ? (
-                  <p className="text-[0.68rem] text-[var(--accent2)] mb-4">
-                    billed annually · was {plan.monthly}/mo
-                  </p>
                 ) : (
-                  <p className="text-[0.68rem] text-[var(--text3)] mb-4">billed monthly</p>
+                  <p className="text-[0.68rem] text-[var(--text3)] mb-4">{annual ? 'billed annually' : 'billed monthly'}</p>
                 )}
 
                 <ul className="flex flex-col gap-[8px] mb-6 flex-1">
