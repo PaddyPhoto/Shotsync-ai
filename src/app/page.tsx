@@ -239,8 +239,7 @@ export default function LandingPage() {
                   <p className="text-[0.68rem] text-[var(--text3)] mb-4">No credit card required</p>
                 ) : annual && plan.annualTotal ? (
                   <p className="text-[0.68rem] text-[var(--accent2)] mb-4">
-                    {plan.annualTotal} billed annually
-                    <span className="ml-1 text-[var(--text3)]">· was {plan.monthly}/mo</span>
+                    billed annually · was {plan.monthly}/mo
                   </p>
                 ) : (
                   <p className="text-[0.68rem] text-[var(--text3)] mb-4">billed monthly</p>
