@@ -227,7 +227,7 @@ export default function LandingPage() {
           className="text-[2rem] font-[800] tracking-[-1px] text-[var(--text)] mb-14 text-center max-w-[560px]"
           style={{ fontFamily: 'var(--font-display)' }}
         >
-          What a coordinator used to spend 3 days on, done in 25 minutes.
+          Three days of post-production work. Automated in 25 minutes.
         </h2>
         <div className="grid grid-cols-2 gap-5 max-w-[700px] w-full">
           {[
