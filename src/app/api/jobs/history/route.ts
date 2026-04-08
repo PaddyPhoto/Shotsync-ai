@@ -8,8 +8,10 @@ const SUPABASE_CONFIGURED =
 // Plan depth limits: how many past jobs each tier can view
 const HISTORY_DEPTH: Record<PlanId, number> = {
   free: 5,
-  pro: 50,
-  business: -1, // unlimited
+  starter: 50,
+  brand: 200,
+  scale: -1,     // unlimited
+  enterprise: -1, // unlimited
 }
 
 async function getUserFromRequest(req: NextRequest) {
