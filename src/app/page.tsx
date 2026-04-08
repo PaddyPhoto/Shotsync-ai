@@ -220,6 +220,74 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Outcomes */}
+      <div className="px-8 py-20 flex flex-col items-center border-b border-[var(--line)] bg-[var(--bg2)]">
+        <p className="text-[0.72rem] text-[var(--accent)] uppercase tracking-[0.12em] font-semibold mb-3">The outcome</p>
+        <h2
+          className="text-[2rem] font-[800] tracking-[-1px] text-[var(--text)] mb-14 text-center max-w-[560px]"
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
+          What a coordinator used to spend 3 days on, done in 25 minutes.
+        </h2>
+        <div className="grid grid-cols-2 gap-5 max-w-[700px] w-full">
+          {[
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              ),
+              color: 'var(--accent)',
+              heading: "3-day job done in 25 minutes",
+              body: "From folder drop to marketplace-ready ZIPs — no spreadsheets, no manual renaming, no back-and-forth.",
+            },
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              ),
+              color: 'var(--accent2)',
+              heading: "Zero marketplace rejections",
+              body: "Every image exported to exact retailer spec — correct dimensions, naming convention, and required angles confirmed.",
+            },
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+              ),
+              color: 'var(--accent4)',
+              heading: "Products live before the window closes",
+              body: "Stop racing deadlines. Launch-ready assets delivered while the shoot is still fresh.",
+            },
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              ),
+              color: 'var(--accent3)',
+              heading: "No more missed seasons",
+              body: "Post-production no longer the bottleneck. Your range hits the floor on time, every time.",
+            },
+          ].map(({ icon, color, heading, body }) => (
+            <div key={heading} className="flex gap-4 bg-[var(--bg)] border border-[var(--line)] rounded-md p-5">
+              <div
+                className="w-9 h-9 rounded-md flex items-center justify-center shrink-0 mt-[2px]"
+                style={{ background: `color-mix(in srgb, ${color} 12%, transparent)`, color }}
+              >
+                {icon}
+              </div>
+              <div>
+                <p className="text-[0.88rem] font-semibold text-[var(--text)] mb-1">{heading}</p>
+                <p className="text-[0.77rem] text-[var(--text3)] leading-relaxed">{body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Pricing */}
       <div className="px-8 py-24 flex flex-col items-center border-t border-[var(--line)]">
         <p className="text-[0.75rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-3">Pricing</p>
