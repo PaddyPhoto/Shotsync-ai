@@ -34,6 +34,8 @@ const VIEW_CLS: Record<ViewLabel, string> = {
   unknown:           'shot-unknown',
 }
 
+// ReviewPage uses useSearchParams() which requires a Suspense boundary in Next.js App Router.
+// The wrapper is the default export; the actual page logic lives in ReviewPage below.
 export default function ReviewPageWrapper() {
   return <Suspense><ReviewPage /></Suspense>
 }
@@ -48,7 +50,9 @@ function ReviewPage() {
     updateClusterSku, updateClusterColor, setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
   } = useSession()
 
-  // Per-cluster category (still-life mode) — derived from cluster.category
+  // Resolves the AccessoryCategory config for a cluster.
+  // Returns undefined for on-model shoots — category logic only applies to still-life.
+  // This drives angle sequences, selectable views, and display name overrides per cluster.
   const getCategoryForCluster = (cluster: SessionCluster) =>
     shootType === 'still-life' ? getCategoryById(cluster.category ?? '') : undefined
 
@@ -69,11 +73,17 @@ function ReviewPage() {
   const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['ghost-mannequin', 'full-length', 'front', 'side', 'mood', 'detail', 'back', 'flat-lay']
   const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
 
+  // Returns the ordered angle sequence for a cluster.
+  // For still-life with a known category, uses that category's defined angle order.
+  // For on-model (or unknown category), uses the default clothing sequence.
   const getViewSequence = (cluster: SessionCluster): ViewLabel[] => {
     const cat = getCategoryForCluster(cluster)
     return cat ? (cat.angles as ViewLabel[]) : DEFAULT_VIEW_SEQUENCE
   }
 
+  // Returns all angles a user can assign to an image via the per-image dropdown.
+  // For still-life: the category's standard angles + extra still-life options.
+  // For on-model: the standard on-model angle set.
   const getSelectableViews = (cluster: SessionCluster): ViewLabel[] => {
     const cat = getCategoryForCluster(cluster)
     return cat
@@ -81,9 +91,14 @@ function ReviewPage() {
       : ALL_VIEWS
   }
 
+  // Returns the view sequence with any user-disabled angles removed.
+  // Used to determine how many image slots are active in a cluster.
   const getActiveAngles = (cluster: SessionCluster): ViewLabel[] =>
     getViewSequence(cluster).filter((a) => !disabledAngles[cluster.id]?.has(a))
 
+  // Toggles an angle pill on/off for a cluster.
+  // When an angle is disabled, it's removed from the active sequence and images are
+  // relabelled to match — so the angle assignment stays in sync with what's visible.
   const toggleAngle = (clusterId: string, angle: ViewLabel) => {
     setDisabledAngles((prev) => {
       const current = new Set(prev[clusterId] ?? [])
@@ -128,7 +143,10 @@ function ReviewPage() {
     }
   }, [isReady, searchParams])
 
-  // Auto-match clusters to style list by filename — if any image filename contains the style code
+  // Auto-match clusters to the imported style list on first load.
+  // If any image filename in a cluster contains the style code (case-insensitive),
+  // the SKU and product name are assigned automatically. Colour is only set if not
+  // already detected. Clusters that already have a SKU are skipped.
   useEffect(() => {
     if (!isReady || !styleList.length) return
     clusters.forEach((cluster) => {
@@ -962,12 +980,19 @@ function ExportPanel({
     const CONCURRENCY = 6
 
     for (const marketplace of selectedMarketplaces) {
-      // Use the user-edited rule (from localStorage), not the static default
+      // Use the user-edited marketplace rule (potentially customised via Settings),
+      // falling back to the static default if not overridden.
       const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
       const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
 
-      // Locked marketplaces (THE ICONIC, Myer, DJ) use their mandated format.
-      // Non-locked marketplaces (Shopify, custom) use the user's chosen naming template.
+      // Naming template resolution:
+      // - Locked marketplaces (THE ICONIC, Myer, David Jones) have retailer-mandated formats
+      //   that cannot be changed by the user. These are always used as-is.
+      // - Non-locked marketplaces (Shopify) use, in priority order:
+      //   1. The user's custom template from the naming bar
+      //   2. The brand's default naming template (set in Settings)
+      //   3. The marketplace's default template
+      //   4. A hardcoded fallback
       const brandCode = activeBrand?.brand_code ?? 'BRAND'
       const template = rule.naming_locked
         ? rule.naming_template
@@ -983,7 +1008,9 @@ function ExportPanel({
           template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, ''),
           { brand: brandCode, seq, sku: cluster.sku, color: cluster.color, view: '', index: 0 }
         ).replace(/_+$/, '') || `${brandCode}_${String(seq).padStart(3, '0')}`
-        // Sort images: GM goes first or last based on brand preference
+        // Ghost mannequin position: some brands want GM as the hero (first) image,
+        // others want it last. This is set per-brand in Settings → gm_position.
+        // All other images keep their relative order — only GM is repositioned.
         const gmPosition = activeBrand?.gm_position ?? 'last'
         const sortedImages = [...cluster.images].sort((a, b) => {
           const aIsGM = a.viewLabel === 'ghost-mannequin'
@@ -1263,6 +1290,17 @@ function ExportPanel({
 }
 
 // ── Canvas-based image processing ─────────────────────────────────────────────
+// Resizes, crops, and encodes a single image to the target marketplace dimensions.
+// Returns an ArrayBuffer (JPEG bytes) ready to be added to the ZIP.
+//
+// Key behaviours:
+// - Center crop: trims the image to the target aspect ratio before scaling
+// - Multi-step downscaling: halves dimensions iteratively until within 2× of target,
+//   then does a final draw. This prevents the blurry result you get from a single
+//   large-to-small canvas drawImage call.
+// - imageSmoothingQuality = 'high' on all canvas contexts for sharpest output
+// - Optional file size cap: if maxFileSizeKb > 0, binary-searches JPEG quality
+//   downwards (up to 6 iterations) until the output fits within the cap
 
 async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,

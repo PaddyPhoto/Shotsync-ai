@@ -57,6 +57,9 @@ interface SessionState {
   reset: () => void
 }
 
+// Module-level counter for generating unique cluster labels ("Look 3", "Product 5", etc.)
+// when new clusters are created by split operations. Initialised to clusters.length + 1
+// each time setSession() is called so it always continues from the right number.
 let _nextClusterNum = 1
 
 export const useSession = create<SessionState>((set, get) => ({
@@ -75,8 +78,11 @@ export const useSession = create<SessionState>((set, get) => ({
     _nextClusterNum = clusters.length + 1
     const mps = marketplaces ?? ['the-iconic']
     set({ jobName, clusters, marketplaces: mps, isReady: true })
-    // Persist to sessionStorage so back-navigation can restore it
-    // File objects can't be serialised — we store metadata + previewUrl only
+    // Persist a serialisable snapshot to sessionStorage so the review page can detect
+    // whether a session exists when the user navigates back. File objects cannot be
+    // serialised (they're binary + not cloneable via JSON), so only metadata and
+    // previewUrls are stored. The review page uses this to show a "re-upload" prompt
+    // if the user refreshes or navigates away and back.
     try {
       const serialisable = {
         jobName,
@@ -129,6 +135,9 @@ export const useSession = create<SessionState>((set, get) => ({
     return { clusters }
   }),
 
+  // splitImages: moves a subset of images from one cluster into a brand-new cluster.
+  // The new cluster inherits the parent's category (still-life accessory type) so the
+  // user doesn't have to re-select it. SKU and colour start blank — user must confirm.
   splitImages: (fromClusterId, imageIds) => set((state) => {
     const from = state.clusters.find((c) => c.id === fromClusterId)
     if (!from || imageIds.length === 0) return state
@@ -142,7 +151,7 @@ export const useSession = create<SessionState>((set, get) => ({
       productName: '',
       color: '',
       label: `Cluster ${_nextClusterNum++}`,
-      category: from.category,
+      category: from.category, // inherit parent category — avoids re-selecting for accessories
       confirmed: false,
     }
     const clusters = state.clusters.map((c) =>
@@ -201,6 +210,9 @@ export const useSession = create<SessionState>((set, get) => ({
     return { clusters }
   }),
 
+  // reorderImages: moves one image to a new position within a cluster (drag-and-drop).
+  // After reordering, all images are relabelled by position using activeAngles —
+  // so the angle assignment always reflects the image's new slot in the sequence.
   reorderImages: (clusterId, fromIdx, toIdx, activeAngles) => set((state) => ({
     clusters: state.clusters.map((c) => {
       if (c.id !== clusterId) return c
@@ -218,6 +230,9 @@ export const useSession = create<SessionState>((set, get) => ({
     }),
   })),
 
+  // relabelCluster: reassigns view labels to all images in a cluster by position.
+  // Called when an angle is toggled on/off — the active angle list shrinks or grows
+  // and all images are re-mapped to their new positional label.
   relabelCluster: (clusterId, activeAngles) => set((state) => ({
     clusters: state.clusters.map((c) => {
       if (c.id !== clusterId) return c

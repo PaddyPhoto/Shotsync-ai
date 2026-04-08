@@ -137,7 +137,10 @@ async function detectColourFromImage(file: File): Promise<string> {
 }
 
 // ── Shot angle labels in display order ───────────────────────────────────────
-// This is the canonical order images are shot within a look.
+// This is the canonical order images are shot within a look for on-model shoots.
+// When filename detection fails to identify an angle, images are assigned angles
+// positionally — i.e. the 1st image in a chunk → full-length, 2nd → front, etc.
+// Within each cluster, images are also sorted into this display order.
 const VIEW_ORDER: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back']
 
 // ── Angle detection from filename (used to override positional assignment) ───
@@ -190,7 +193,12 @@ export async function processFiles(
     a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
   )
 
-  // Step 2: Create session images with object URLs + detect angles from filenames
+  // Step 2: Create session images with preview URLs and assign angle labels.
+  // Angle detection priority:
+  //   1. Filename keyword match (confidence 0.9) — e.g. "hero_front.jpg" → 'front'
+  //   2. Positional assignment (confidence 0.6) — based on the image's index within
+  //      its chunk (e.g. 2nd image in a 4-shot look → VIEW_ORDER[1] = 'front')
+  // Object URLs are created here and must be revoked when the session is reset.
   const images: SessionImage[] = sorted.map((file, i) => {
     const detected = detectAngleFromFilename(file.name)
     // Positional angle = VIEW_ORDER[position within look]
@@ -244,14 +252,25 @@ export async function processFiles(
     })
   }
 
-  // Step 4: Auto-detect colour (and optionally angles) for each cluster
+  // Step 4: Colour detection (and AI angle correction if enabled).
+  //
+  // AI path (NEXT_PUBLIC_AI_DETECTION=true + OPENAI_API_KEY set):
+  //   - Only called when at least one image in the cluster has an 'unknown' angle.
+  //     If filename detection already resolved all angles, we skip the API call.
+  //   - Sends all images in the cluster to GPT-4o-mini in one batch request.
+  //   - Returns per-image angles, a colour name, and category (still-life only).
+  //
+  // Non-AI fallback (always runs if AI is disabled or the API call fails):
+  //   1. Check filename tokens for colour keywords (fast, no image loading)
+  //   2. Canvas pixel sampling on the best representative image (center 60%)
   const aiEnabled = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
   onProgress({ phase: 'Detecting colours…', done: 0, total: clusters.length })
 
   for (let i = 0; i < clusters.length; i++) {
     const cluster = clusters[i]
 
-    // Check if any images in this cluster have unknown angles (filename detection missed)
+    // AI is only called when filename detection left some angles as 'unknown'.
+    // This avoids unnecessary API calls when the shoot was well-named.
     const hasUnknownAngles = cluster.images.some((img) => img.viewLabel === 'unknown')
 
     if (aiEnabled && hasUnknownAngles) {
