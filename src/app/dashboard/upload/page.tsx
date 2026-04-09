@@ -27,6 +27,16 @@ export default function UploadPage() {
   const setSession = useSession((s) => s.setSession)
   const setStyleList = useSession((s) => s.setStyleList)
   const setShootConfig = useSession((s) => s.setShootConfig)
+  const resetSession = useSession((s) => s.reset)
+  const existingSession = useSession((s) => ({
+    isReady: s.isReady,
+    jobName: s.jobName,
+    clusters: s.clusters,
+    marketplaces: s.marketplaces,
+    shootType: s.shootType,
+    accessoryCategory: s.accessoryCategory,
+    styleList: s.styleList,
+  }))
 
   const [shootType, setShootType] = useState<ShootType>('on-model')
   const [accessoryCategory, setAccessoryCategory] = useState<string | null>(null)
@@ -35,6 +45,9 @@ export default function UploadPage() {
   const [styleList, setStyleListLocal] = useState<StyleListEntry[]>([])
   const [styleListName, setStyleListName] = useState<string | null>(null)
   const styleListRef = useRef<HTMLInputElement>(null)
+  // Whether the user has dismissed the "resume session" banner
+  const [resumeDismissed, setResumeDismissed] = useState(false)
+  const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed
 
   const importStyleList = useCallback(async (file: File) => {
     try {
@@ -92,6 +105,22 @@ export default function UploadPage() {
   useEffect(() => {
     if (activeBrand?.images_per_look) setImagesPerLook(activeBrand.images_per_look)
   }, [activeBrand?.id])
+
+  // Pre-populate form fields and file list from existing session on mount
+  useEffect(() => {
+    if (!existingSession.isReady || !existingSession.clusters.length) return
+    if (existingSession.jobName) setJobName(existingSession.jobName)
+    if (existingSession.shootType) setShootType(existingSession.shootType)
+    if (existingSession.accessoryCategory !== null) setAccessoryCategory(existingSession.accessoryCategory)
+    if (existingSession.marketplaces.length) setMarketplaces(existingSession.marketplaces as MarketplaceName[])
+    if (existingSession.styleList.length) setStyleListLocal(existingSession.styleList)
+    // Reconstruct file list from in-memory cluster images (available as long as page wasn't refreshed)
+    const existingFiles = existingSession.clusters.flatMap((c) => c.images.map((img) => img.file)).filter(Boolean)
+    if (existingFiles.length) {
+      setFiles(existingFiles)
+      setStep('files')
+    }
+  }, []) // only on mount
   const [files, setFiles] = useState<File[]>([])
 
   const [progress, setProgress] = useState<ProcessProgress>({ phase: '', done: 0, total: 0 })
@@ -153,6 +182,36 @@ export default function UploadPage() {
 
       <div className="p-7">
 
+        {/* Resume session banner */}
+        {hasSession && (
+          <div className="mb-6 flex items-center gap-4 px-4 py-3 rounded-md border border-[var(--accent)] bg-[rgba(232,217,122,0.06)]">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+              <circle cx="8" cy="8" r="7"/><path d="M8 5v3l2 2"/>
+            </svg>
+            <div className="flex-1 min-w-0">
+              <p className="text-[0.82rem] font-semibold text-[var(--text)]">
+                Session restored — {existingSession.clusters.length} clusters · {existingSession.clusters.reduce((s, c) => s + c.images.length, 0)} images
+              </p>
+              <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">
+                Your previous upload is still loaded. Change settings or add images, then reprocess — or go straight to review.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => router.push('/dashboard/review')}
+                className="btn btn-primary btn-sm"
+              >
+                Back to Review
+              </button>
+              <button
+                onClick={() => { resetSession(); setResumeDismissed(true); setFiles([]); setStep('config'); setJobName('') }}
+                className="btn btn-ghost btn-sm text-[var(--text3)]"
+              >
+                Start fresh
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="mb-7">
           <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
