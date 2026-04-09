@@ -724,7 +724,12 @@ function ReviewPage() {
                                     className="w-full text-left px-3 py-[7px] hover:bg-[var(--bg3)] transition-colors flex items-center gap-2"
                                     onMouseDown={() => {
                                       updateClusterSku(cluster.id, entry.sku, entry.productName)
-                                      if (entry.colour) updateClusterColor(cluster.id, entry.colour.toUpperCase())
+                                      if (entry.colour) {
+                                        const col = entry.colour.toUpperCase()
+                                        updateClusterColor(cluster.id, col)
+                                        // Clear stale colorInput so onBlur doesn't overwrite the new value
+                                        setColorInput((s) => ({ ...s, [cluster.id]: col }))
+                                      }
                                       if (entry.colourCode) updateClusterColourCode(cluster.id, entry.colourCode)
                                       if (entry.styleNumber) updateClusterStyleNumber(cluster.id, entry.styleNumber)
                                       setSkuInput((s) => ({ ...s, [cluster.id]: entry.sku }))
