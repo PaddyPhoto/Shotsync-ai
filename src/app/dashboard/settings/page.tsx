@@ -1064,12 +1064,12 @@ function SettingsInner() {
                   </thead>
                   <tbody>
                     {[
-                      { feature: 'Images per upload', values: ['50', '500', '2,000', '5,000', 'Unlimited'] },
+                      { feature: 'Images per month',  values: ['20', '500', '2,000', '10,000', 'Unlimited'] },
                       { feature: 'Marketplaces',      values: ['1', '2', '4', '4', '4'] },
-                      { feature: 'Brands',            values: ['1', '1', '3', '10', 'Unlimited'] },
-                      { feature: 'Seats',             values: ['1', '2', '5', '10', 'Unlimited'] },
+                      { feature: 'Brands',            values: ['1', '1', '3', 'Unlimited', 'Unlimited'] },
+                      { feature: 'Seats',             values: ['1', '2', '5', 'Unlimited', 'Unlimited'] },
                       { feature: 'Shopify sync',      values: ['—', '✓', '✓', '✓', '✓'] },
-                      { feature: 'Price (AUD/mo)',    values: ['Free', '$99', '$249', '$499', '$999'] },
+                      { feature: 'Price (AUD/mo)',    values: ['Free', '$79', '$199', '$399', 'Contact us'] },
                     ].map((row) => (
                       <tr key={row.feature} className="hover:bg-[var(--bg3)] transition-colors">
                         <td className="px-3 py-[9px] text-[0.82rem] text-[var(--text2)] border-b border-[var(--line)]">{row.feature}</td>

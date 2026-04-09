@@ -298,28 +298,43 @@ export default function LandingPage() {
           Simple, transparent pricing
         </h2>
         <p className="text-[0.9rem] text-[var(--text3)] mb-8 text-center">
-          Start free. Upgrade as you grow. All prices in AUD.
+          Start free. Upgrade as you grow.
         </p>
 
-        {/* Billing toggle */}
-        <div className="flex items-center gap-3 mb-12">
-          <span className={`text-[0.85rem] transition-colors ${!annual ? 'text-[var(--text)]' : 'text-[var(--text3)]'}`}>Monthly</span>
-          <button
-            onClick={() => setAnnual((v) => !v)}
-            className="relative w-[48px] h-[26px] rounded-full transition-colors"
-            style={{ background: annual ? 'var(--accent)' : 'var(--bg4)' }}
-          >
-            <span
-              className="absolute top-[3px] w-[20px] h-[20px] rounded-full bg-white shadow transition-all duration-200"
-              style={{ left: annual ? '25px' : '3px' }}
-            />
-          </button>
-          <div className="flex items-center gap-2">
-            <span className={`text-[0.85rem] transition-colors ${annual ? 'text-[var(--text)]' : 'text-[var(--text3)]'}`}>Annual</span>
-            <span className="text-[0.68rem] font-semibold bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] px-2 py-[2px] rounded-full">
-              Save up to 21%
-            </span>
+        {/* Early Access banner */}
+        <div className="w-full max-w-[1100px] mb-8 rounded-md px-5 py-4 flex items-start gap-4" style={{ background: 'rgba(232,180,60,0.1)', border: '1px solid rgba(232,180,60,0.3)' }}>
+          <span className="text-[1.1rem] flex-shrink-0 mt-[1px]">🔒</span>
+          <div>
+            <p className="text-[0.82rem] font-semibold text-[#e8b43c] mb-[3px]">Early Access Pricing — Lock in your rate for life.</p>
+            <p className="text-[0.78rem] text-[var(--text2)] leading-relaxed">
+              Direct marketplace integrations with THE ICONIC, Myer, and David Jones are on the roadmap.
+              Founding customers keep their current price when new features ship.
+            </p>
           </div>
+        </div>
+
+        {/* Billing toggle */}
+        <div className="flex flex-col items-center gap-2 mb-10">
+          <div className="flex items-center gap-3">
+            <span className={`text-[0.85rem] transition-colors ${!annual ? 'text-[var(--text)]' : 'text-[var(--text3)]'}`}>Monthly</span>
+            <button
+              onClick={() => setAnnual((v) => !v)}
+              className="relative w-[48px] h-[26px] rounded-full transition-colors"
+              style={{ background: annual ? 'var(--accent)' : 'var(--bg4)' }}
+            >
+              <span
+                className="absolute top-[3px] w-[20px] h-[20px] rounded-full bg-white shadow transition-all duration-200"
+                style={{ left: annual ? '25px' : '3px' }}
+              />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className={`text-[0.85rem] transition-colors ${annual ? 'text-[var(--text)]' : 'text-[var(--text3)]'}`}>Annual</span>
+              <span className="text-[0.68rem] font-semibold bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] px-2 py-[2px] rounded-full">
+                Save up to 20%
+              </span>
+            </div>
+          </div>
+          <p className="text-[0.7rem] text-[var(--text3)]">All prices in AUD and include GST. Annual billing charged upfront.</p>
         </div>
 
         <div className="grid grid-cols-5 gap-4 max-w-[1100px] w-full">
@@ -332,7 +347,8 @@ export default function LandingPage() {
               annualTotal: null,
               color: 'var(--text3)',
               popular: false,
-              features: ['1 job only', 'Up to 50 images', '1 marketplace', 'Watermarked exports', '1 seat'],
+              founding: false,
+              features: ['1 job only', 'Up to 20 images', '1 marketplace export folder', 'Watermarked exports', '1 brand, 1 seat'],
               forNote: 'Try the workflow',
               cta: 'Get Started Free',
               ctaStyle: 'btn-ghost',
@@ -340,12 +356,13 @@ export default function LandingPage() {
             {
               id: 'starter',
               name: 'Starter',
-              monthly: '$99',
-              annualMonthly: '$79',
-              annualTotal: '$948',
+              monthly: '$79',
+              annualMonthly: '$63',
+              annualTotal: '$756',
               color: 'var(--accent2)',
               popular: false,
-              features: ['Up to 500 images/upload', '1 brand', '2 ANZ marketplaces', '2 seats', '1 Shopify store', 'Email support'],
+              founding: true,
+              features: ['Up to 500 images/month', '1 brand', 'Export folders for 2 ANZ marketplaces', '2 seats', '1 Shopify store connection', 'Email support'],
               forNote: 'Small brands',
               cta: 'Start with Starter',
               ctaStyle: 'btn-ghost',
@@ -353,12 +370,13 @@ export default function LandingPage() {
             {
               id: 'brand',
               name: 'Brand',
-              monthly: '$249',
-              annualMonthly: '$199',
-              annualTotal: '$2,388',
+              monthly: '$199',
+              annualMonthly: '$143',
+              annualTotal: '$1,716',
               color: 'var(--accent)',
               popular: true,
-              features: ['Up to 2,000 images/upload', '3 brands', 'All ANZ marketplaces', '5 seats', '3 Shopify stores', 'Custom naming', 'Onboarding call'],
+              founding: true,
+              features: ['Up to 2,000 images/month', '3 brands', 'Export folders for all 4 ANZ marketplaces', '5 seats', '3 Shopify store connections', 'Custom naming convention', 'Priority processing', 'Onboarding call included'],
               forNote: '100–200 SKUs/month',
               cta: 'Start with Brand',
               ctaStyle: 'btn-primary',
@@ -366,12 +384,13 @@ export default function LandingPage() {
             {
               id: 'scale',
               name: 'Scale',
-              monthly: '$499',
-              annualMonthly: '$399',
-              annualTotal: '$4,788',
+              monthly: '$399',
+              annualMonthly: '$359',
+              annualTotal: '$4,308',
               color: 'var(--accent4)',
               popular: false,
-              features: ['Up to 5,000 images/upload', '10 brands', 'All ANZ marketplaces', '10 seats', 'Unlimited Shopify', 'Priority processing', 'Dedicated support'],
+              founding: true,
+              features: ['Up to 10,000 images/month', 'Unlimited brands', 'Export folders for all 4 ANZ marketplaces', 'Unlimited seats', 'Unlimited Shopify stores', 'Custom naming convention', 'API access', 'Dedicated support channel', 'Monthly review call', 'White-label exports'],
               forNote: '300–500 SKUs/month',
               cta: 'Start with Scale',
               ctaStyle: 'btn-ghost',
@@ -379,19 +398,21 @@ export default function LandingPage() {
             {
               id: 'enterprise',
               name: 'Enterprise',
-              monthly: '$999',
-              annualMonthly: '$790',
-              annualTotal: '$9,480',
+              monthly: null,
+              annualMonthly: null,
+              annualTotal: null,
               color: 'var(--accent3)',
               popular: false,
-              features: ['Unlimited images', 'Unlimited brands', 'All marketplaces', 'Unlimited seats', 'API access', 'White-label exports', 'Dedicated support + SLA'],
-              forNote: 'ShowPo, Meshki scale',
+              founding: true,
+              features: ['Unlimited everything', 'Custom marketplace rules', 'SSO + role-based permissions', 'SLA guarantee', 'Invoiced billing', 'Dedicated CSM'],
+              forNote: 'High-volume brands at scale',
               cta: 'Contact Us',
               ctaStyle: 'btn-ghost',
             },
           ] as const).map((plan) => {
             const displayPrice = annual ? plan.annualMonthly : plan.monthly
             const isFree = plan.monthly === '$0'
+            const isEnterprise = plan.monthly === null
             return (
               <div
                 key={plan.id}
@@ -405,19 +426,36 @@ export default function LandingPage() {
                     Most Popular
                   </div>
                 )}
-                <p className="text-[0.65rem] uppercase tracking-[0.1em] font-semibold mb-2" style={{ color: plan.color }}>{plan.name}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[0.65rem] uppercase tracking-[0.1em] font-semibold" style={{ color: plan.color }}>{plan.name}</p>
+                  {plan.founding && (
+                    <span className="text-[0.55rem] font-bold uppercase tracking-[0.06em] px-[6px] py-[2px] rounded-full" style={{ background: 'rgba(232,180,60,0.15)', color: '#e8b43c', border: '1px solid rgba(232,180,60,0.3)' }}>
+                      Founding Rate
+                    </span>
+                  )}
+                </div>
 
                 {/* Price display */}
-                <div className="flex items-end gap-[3px] mb-[2px]">
-                  <span className="text-[1.9rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
-                    {displayPrice}
-                  </span>
-                  {!isFree && <span className="text-[0.75rem] text-[var(--text3)] mb-1">/mo</span>}
-                </div>
+                {isEnterprise ? (
+                  <div className="mb-[2px]">
+                    <span className="text-[1.4rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
+                      Contact us
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-end gap-[3px] mb-[2px]">
+                    <span className="text-[1.9rem] font-[800] tracking-[-1px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
+                      {displayPrice}
+                    </span>
+                    {!isFree && <span className="text-[0.75rem] text-[var(--text3)] mb-1">/mo</span>}
+                  </div>
+                )}
 
                 {/* Subtext under price */}
                 {isFree ? (
                   <p className="text-[0.68rem] text-[var(--text3)] mb-4">No credit card required</p>
+                ) : isEnterprise ? (
+                  <p className="text-[0.68rem] text-[var(--text3)] mb-4">Custom contract &amp; pricing</p>
                 ) : (
                   <p className="text-[0.68rem] text-[var(--text3)] mb-4">{annual ? 'billed annually' : 'billed monthly'}</p>
                 )}
@@ -431,12 +469,55 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <p className="text-[0.65rem] text-[var(--text3)] mb-3 italic">For: {plan.forNote}</p>
-                <Link href="/signup" className={`btn ${plan.ctaStyle} w-full justify-center text-[0.75rem]`}>
+                <Link href={isEnterprise ? 'mailto:hello@shotsync.ai' : '/signup'} className={`btn ${plan.ctaStyle} w-full justify-center text-[0.75rem]`}>
                   {plan.cta}
                 </Link>
               </div>
             )
           })}
+        </div>
+
+        {/* What's coming */}
+        <div className="w-full max-w-[1100px] mt-16">
+          <div className="flex items-center gap-3 mb-2">
+            <p className="text-[0.75rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold">What&apos;s Coming</p>
+            <span className="h-[1px] flex-1 bg-[var(--line)]" />
+          </div>
+          <h3 className="text-[1.4rem] font-[700] tracking-[-0.5px] text-[var(--text)] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+            Direct marketplace integrations — in development
+          </h3>
+          <p className="text-[0.82rem] text-[var(--text3)] mb-6">
+            Included in your plan at no extra cost when launched. Early Access customers lock in their rate now.
+          </p>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              {
+                marketplace: 'THE ICONIC',
+                desc: 'Images pushed directly to your THE ICONIC supplier portal. No manual upload.',
+                color: 'var(--accent2)',
+              },
+              {
+                marketplace: 'Myer',
+                desc: 'Automatic delivery to Myer\'s supplier portal on export.',
+                color: 'var(--accent)',
+              },
+              {
+                marketplace: 'David Jones',
+                desc: 'One-click submission to David Jones with compliance validation.',
+                color: 'var(--accent4)',
+              },
+            ].map(({ marketplace, desc, color }) => (
+              <div key={marketplace} className="bg-[var(--bg2)] border border-[var(--line)] rounded-md p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[0.78rem] font-semibold text-[var(--text)]">Direct {marketplace} sync</p>
+                  <span className="text-[0.6rem] font-bold uppercase tracking-[0.08em] px-2 py-[3px] rounded-full" style={{ background: `color-mix(in srgb, ${color} 15%, transparent)`, color }}>
+                    Coming Soon
+                  </span>
+                </div>
+                <p className="text-[0.75rem] text-[var(--text3)] leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
