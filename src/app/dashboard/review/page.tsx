@@ -10,6 +10,7 @@ import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
+import { detectColourFromFilename } from '@/lib/processor'
 import { useNamingRules, previewTemplate, BUILT_IN_PRESETS } from '@/lib/naming/useNamingRules'
 import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
 import type { ViewLabel, MarketplaceName } from '@/types'
@@ -160,8 +161,17 @@ function ReviewPage() {
       )
       if (match) {
         updateClusterSku(cluster.id, match.sku, match.productName)
-        // XLSX data always wins over AI/filename colour detection — it's the authoritative source
-        if (match.colour) updateClusterColor(cluster.id, match.colour.toUpperCase())
+        // Colour priority: filename keyword > XLSX colour > leave as-is (AI detected)
+        // Filename is per-image and specific (e.g. SKU_BURGUNDY.jpg vs SKU_IVORY.jpg),
+        // so it takes precedence over the XLSX which may have one colour for many clusters.
+        const filenameColour = cluster.images
+          .map((img) => detectColourFromFilename(img.filename))
+          .find((c) => c !== null) ?? null
+        if (filenameColour) {
+          updateClusterColor(cluster.id, filenameColour)
+        } else if (match.colour) {
+          updateClusterColor(cluster.id, match.colour.toUpperCase())
+        }
         if (match.colourCode) updateClusterColourCode(cluster.id, match.colourCode)
         if (match.styleNumber) updateClusterStyleNumber(cluster.id, match.styleNumber)
       }

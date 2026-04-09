@@ -93,7 +93,7 @@ const FILENAME_COLOUR_MAP: [string, string][] = [
   ['check', 'CHECK'], ['floral', 'FLORAL'],
 ]
 
-function detectColourFromFilename(filename: string): string | null {
+export function detectColourFromFilename(filename: string): string | null {
   const tokens = new Set(filenameTokens(filename))
   for (const [kw, colour] of FILENAME_COLOUR_MAP) {
     if (tokens.has(kw)) return colour
