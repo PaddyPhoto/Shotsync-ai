@@ -161,6 +161,8 @@ function ReviewPage() {
       if (match) {
         updateClusterSku(cluster.id, match.sku, match.productName)
         if (match.colour && !cluster.color) updateClusterColor(cluster.id, match.colour.toUpperCase())
+        if (match.colourCode && !cluster.colourCode) updateClusterColourCode(cluster.id, match.colourCode)
+        if (match.styleNumber && !cluster.styleNumber) updateClusterStyleNumber(cluster.id, match.styleNumber)
       }
     })
   }, [isReady, styleList])
@@ -712,6 +714,8 @@ function ReviewPage() {
                                     onMouseDown={() => {
                                       updateClusterSku(cluster.id, entry.sku, entry.productName)
                                       if (entry.colour) updateClusterColor(cluster.id, entry.colour.toUpperCase())
+                                      if (entry.colourCode) updateClusterColourCode(cluster.id, entry.colourCode)
+                                      if (entry.styleNumber) updateClusterStyleNumber(cluster.id, entry.styleNumber)
                                       setSkuInput((s) => ({ ...s, [cluster.id]: entry.sku }))
                                       setSkuSearchOpen(null)
                                     }}

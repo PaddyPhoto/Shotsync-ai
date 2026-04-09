@@ -28,6 +28,8 @@ export interface StyleListEntry {
   sku: string
   productName: string
   colour: string
+  colourCode: string
+  styleNumber: string
 }
 
 export type ShootType = 'on-model' | 'still-life'

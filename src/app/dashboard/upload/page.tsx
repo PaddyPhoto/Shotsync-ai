@@ -46,7 +46,7 @@ export default function UploadPage() {
 
       // Auto-detect header row — find the row containing STYLE CODE or SKU
       let headerIdx = -1
-      let skuCol = -1, nameCol = -1, colourCol = -1
+      let skuCol = -1, nameCol = -1, colourCol = -1, colourCodeCol = -1, styleNumberCol = -1
       for (let i = 0; i < Math.min(rows.length, 10); i++) {
         const row = rows[i].map((c) => String(c).toUpperCase().trim())
         const skuI = row.findIndex((c) => c.includes('STYLE CODE') || c === 'SKU' || c === 'STYLE')
@@ -54,7 +54,9 @@ export default function UploadPage() {
           headerIdx = i
           skuCol = skuI
           nameCol = row.findIndex((c) => c.includes('STYLE NAME') || c.includes('PRODUCT NAME') || c.includes('NAME'))
-          colourCol = row.findIndex((c) => c.includes('COLOUR') || c.includes('COLOR'))
+          colourCol = row.findIndex((c) => (c.includes('COLOUR') || c.includes('COLOR')) && !c.includes('CODE'))
+          colourCodeCol = row.findIndex((c) => c.includes('COLOUR CODE') || c.includes('COLOR CODE'))
+          styleNumberCol = row.findIndex((c) => c.includes('STYLE NUMBER') || c.includes('STYLE NO') || c.includes('STYLE #'))
           break
         }
       }
@@ -71,7 +73,9 @@ export default function UploadPage() {
         if (!sku) continue
         const productName = nameCol !== -1 ? String(row[nameCol] ?? '').trim() : ''
         const colour = colourCol !== -1 ? String(row[colourCol] ?? '').trim() : ''
-        entries.push({ sku, productName, colour })
+        const colourCode = colourCodeCol !== -1 ? String(row[colourCodeCol] ?? '').trim() : ''
+        const styleNumber = styleNumberCol !== -1 ? String(row[styleNumberCol] ?? '').trim() : ''
+        entries.push({ sku, productName, colour, colourCode, styleNumber })
       }
 
       setStyleListLocal(entries)
