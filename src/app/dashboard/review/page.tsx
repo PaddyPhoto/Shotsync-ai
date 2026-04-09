@@ -1057,20 +1057,15 @@ function ExportPanel({
       const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
       const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
 
-      // Naming template resolution:
-      // - Locked marketplaces (THE ICONIC, Myer, David Jones) have retailer-mandated formats
-      //   that cannot be changed by the user. These are always used as-is.
-      // - Non-locked marketplaces (Shopify) use, in priority order:
-      //   1. The user's custom template from the naming bar
+      // Naming template resolution — in priority order:
+      //   1. The user's custom template from the naming bar (always wins)
       //   2. The brand's default naming template (set in Settings)
       //   3. The marketplace's default template
       //   4. A hardcoded fallback
       const brandCode = activeBrand?.brand_code ?? 'BRAND'
       const supplierCode = activeBrand?.supplier_code ?? ''
       const season = activeBrand?.season ?? ''
-      const template = rule.naming_locked
-        ? rule.naming_template
-        : namingTemplate || activeBrand?.naming_template || rule.naming_template || '{BRAND}_{SEQ}_{VIEW}'
+      const template = namingTemplate || activeBrand?.naming_template || rule.naming_template || '{BRAND}_{SEQ}_{VIEW}'
 
       // Flatten all tasks for this marketplace so we can batch-process them in parallel
       type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }
