@@ -40,22 +40,57 @@ function hslToColorName(h: number, s: number, l: number): string {
 
 // Try to detect colour from filename tokens first (fast, no canvas needed)
 const FILENAME_COLOUR_MAP: [string, string][] = [
-  ['black', 'BLACK'], ['blk', 'BLACK'],
-  ['white', 'WHITE'], ['wht', 'WHITE'],
-  ['navy', 'NAVY'], ['nvy', 'NAVY'],
-  ['blue', 'BLUE'], ['blu', 'BLUE'],
-  ['red', 'RED'],
-  ['green', 'GREEN'], ['grn', 'GREEN'],
+  // Blacks
+  ['black', 'BLACK'], ['blk', 'BLACK'], ['onyx', 'BLACK'], ['jet', 'BLACK'],
+  // Whites & off-whites
+  ['white', 'WHITE'], ['wht', 'WHITE'], ['optic', 'WHITE'],
+  ['ivory', 'IVORY'], ['cream', 'CREAM'], ['crm', 'CREAM'], ['ecru', 'ECRU'],
+  ['off-white', 'OFF-WHITE'], ['offwhite', 'OFF-WHITE'],
+  // Greys
   ['grey', 'GREY'], ['gray', 'GREY'], ['gry', 'GREY'],
-  ['beige', 'BEIGE'], ['bei', 'BEIGE'],
-  ['cream', 'CREAM'], ['crm', 'CREAM'], ['ivory', 'CREAM'],
-  ['brown', 'BROWN'], ['brn', 'BROWN'],
-  ['pink', 'PINK'], ['pnk', 'PINK'],
-  ['purple', 'PURPLE'], ['purp', 'PURPLE'], ['plum', 'PURPLE'],
-  ['orange', 'ORANGE'], ['org', 'ORANGE'],
-  ['yellow', 'YELLOW'], ['ylw', 'YELLOW'],
-  ['teal', 'TEAL'], ['khaki', 'GREEN'], ['olive', 'GREEN'],
-  ['charcoal', 'CHARCOAL'], ['char', 'CHARCOAL'],
+  ['charcoal', 'CHARCOAL'], ['char', 'CHARCOAL'], ['slate', 'SLATE'],
+  ['silver', 'SILVER'], ['ash', 'ASH'], ['smoke', 'SMOKE'],
+  // Blues
+  ['navy', 'NAVY'], ['nvy', 'NAVY'], ['indigo', 'INDIGO'],
+  ['blue', 'BLUE'], ['blu', 'BLUE'], ['cobalt', 'COBALT'],
+  ['denim', 'DENIM'], ['sky', 'SKY'], ['powder', 'POWDER'],
+  ['petrol', 'PETROL'], ['midnight', 'MIDNIGHT'],
+  // Greens
+  ['green', 'GREEN'], ['grn', 'GREEN'],
+  ['sage', 'SAGE'], ['olive', 'OLIVE'], ['khaki', 'KHAKI'],
+  ['forest', 'FOREST'], ['moss', 'MOSS'], ['mint', 'MINT'],
+  ['hunter', 'HUNTER'], ['emerald', 'EMERALD'], ['basil', 'BASIL'],
+  ['teal', 'TEAL'], ['jade', 'JADE'], ['eucalyptus', 'EUCALYPTUS'],
+  // Reds & pinks
+  ['red', 'RED'], ['cherry', 'CHERRY'], ['scarlet', 'SCARLET'],
+  ['burgundy', 'BURGUNDY'], ['burg', 'BURGUNDY'], ['wine', 'WINE'],
+  ['merlot', 'MERLOT'], ['maroon', 'MAROON'], ['claret', 'CLARET'],
+  ['rust', 'RUST'], ['terracotta', 'TERRACOTTA'], ['terra', 'TERRACOTTA'],
+  ['brick', 'BRICK'], ['tomato', 'TOMATO'],
+  ['pink', 'PINK'], ['pnk', 'PINK'], ['blush', 'BLUSH'],
+  ['rose', 'ROSE'], ['dusty-pink', 'DUSTY PINK'], ['dustypink', 'DUSTY PINK'],
+  ['hot-pink', 'HOT PINK'], ['hotpink', 'HOT PINK'], ['fuchsia', 'FUCHSIA'],
+  ['magenta', 'MAGENTA'], ['mauve', 'MAUVE'], ['petal', 'PETAL'],
+  // Purples
+  ['purple', 'PURPLE'], ['purp', 'PURPLE'], ['plum', 'PLUM'],
+  ['lavender', 'LAVENDER'], ['lilac', 'LILAC'], ['violet', 'VIOLET'],
+  ['grape', 'GRAPE'], ['aubergine', 'AUBERGINE'],
+  // Yellows & oranges
+  ['yellow', 'YELLOW'], ['ylw', 'YELLOW'], ['lemon', 'LEMON'],
+  ['mustard', 'MUSTARD'], ['butter', 'BUTTER'], ['gold', 'GOLD'],
+  ['orange', 'ORANGE'], ['org', 'ORANGE'], ['amber', 'AMBER'],
+  ['apricot', 'APRICOT'], ['peach', 'PEACH'], ['coral', 'CORAL'],
+  ['tangerine', 'TANGERINE'],
+  // Neutrals & earth tones
+  ['beige', 'BEIGE'], ['bei', 'BEIGE'], ['sand', 'SAND'],
+  ['stone', 'STONE'], ['pebble', 'PEBBLE'], ['taupe', 'TAUPE'],
+  ['camel', 'CAMEL'], ['tan', 'TAN'], ['nude', 'NUDE'],
+  ['latte', 'LATTE'], ['mocha', 'MOCHA'], ['coffee', 'COFFEE'],
+  ['brown', 'BROWN'], ['brn', 'BROWN'], ['chocolate', 'CHOCOLATE'],
+  ['choc', 'CHOCOLATE'], ['toffee', 'TOFFEE'], ['walnut', 'WALNUT'],
+  // Multi
+  ['multi', 'MULTI'], ['print', 'PRINT'], ['stripe', 'STRIPE'],
+  ['check', 'CHECK'], ['floral', 'FLORAL'],
 ]
 
 function detectColourFromFilename(filename: string): string | null {

@@ -160,9 +160,10 @@ function ReviewPage() {
       )
       if (match) {
         updateClusterSku(cluster.id, match.sku, match.productName)
-        if (match.colour && !cluster.color) updateClusterColor(cluster.id, match.colour.toUpperCase())
-        if (match.colourCode && !cluster.colourCode) updateClusterColourCode(cluster.id, match.colourCode)
-        if (match.styleNumber && !cluster.styleNumber) updateClusterStyleNumber(cluster.id, match.styleNumber)
+        // XLSX data always wins over AI/filename colour detection — it's the authoritative source
+        if (match.colour) updateClusterColor(cluster.id, match.colour.toUpperCase())
+        if (match.colourCode) updateClusterColourCode(cluster.id, match.colourCode)
+        if (match.styleNumber) updateClusterStyleNumber(cluster.id, match.styleNumber)
       }
     })
   }, [isReady, styleList])
