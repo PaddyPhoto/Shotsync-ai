@@ -1,9 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#1a4fff"/>
-  <!-- Camera body -->
-  <rect x="2" y="10" width="17" height="12" rx="2" fill="white"/>
-  <!-- Lens hole (blue circle punched into body) -->
-  <circle cx="10.5" cy="16" r="3.5" fill="#1a4fff"/>
-  <!-- Side lens chevron -->
-  <path d="M19 12l10 4-10 4V12z" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect width="24" height="24" rx="5" fill="#1a4fff"/>
+  <!-- Camera body (filled, matches homepage logo rect) -->
+  <rect x="1" y="5" width="15" height="14" rx="2" fill="white"/>
+  <!-- Camera lens chevron (filled, matches homepage logo path exactly) -->
+  <path d="M23 7l-7 5 7 5V7z" fill="white"/>
 </svg>
