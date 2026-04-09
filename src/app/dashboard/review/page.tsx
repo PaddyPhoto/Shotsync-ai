@@ -983,6 +983,7 @@ function ExportPanel({
   const [folderName, setFolderName] = useState<string | null>(null)
   const [fsaSupported] = useState(() => typeof window !== 'undefined' && typeof (window as any).showDirectoryPicker === 'function')
   const [exportMode, setExportMode] = useState<'zip' | 'folder'>('zip')
+  const [flatExport, setFlatExport] = useState(false)
 
   const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
   const confirmedClusters = clusters.filter((c) => c.confirmed)
@@ -1118,7 +1119,7 @@ function ExportPanel({
               styleNumber: cluster.styleNumber,
               colourCode: cluster.colourCode,
             }) + '.jpg'
-            marketplaceFolder.file(`${folderName}/${filename}`, buffer)
+            marketplaceFolder.file(flatExport ? filename : `${folderName}/${filename}`, buffer)
           } catch (err) {
             console.warn(`Export skipped: ${img.filename}`, err)
           }
@@ -1246,6 +1247,21 @@ function ExportPanel({
               ))}
             </div>
 
+            {/* Flat export toggle */}
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <div
+                onClick={() => setFlatExport((v) => !v)}
+                className="relative w-[36px] h-[20px] rounded-full transition-colors cursor-pointer flex-shrink-0"
+                style={{ background: flatExport ? 'var(--accent)' : 'var(--bg4)' }}
+              >
+                <span
+                  className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow transition-all duration-200"
+                  style={{ left: flatExport ? '18px' : '2px' }}
+                />
+              </div>
+              <span className="text-[0.78rem] text-[var(--text2)]">Flat export <span className="text-[var(--text3)]">— all images in one folder per marketplace</span></span>
+            </label>
+
             {exportMode === 'folder' && (
               <div className="flex items-center gap-2">
                 <button onClick={pickFolder} disabled={!fsaSupported} className="btn btn-ghost btn-sm">
@@ -1270,12 +1286,23 @@ function ExportPanel({
                 return (
                   <div key={m} className="mb-1">
                     <span className="text-[var(--accent)]">{folderN}/</span>
-                    {confirmedClusters.slice(0, 2).map((c) => (
-                      <div key={c.id} className="pl-3 text-[var(--text3)]">
-                        └─ {c.sku}/{c.sku}_FRONT_01.jpg …
-                      </div>
-                    ))}
-                    {confirmedClusters.length > 2 && <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more SKUs)</div>}
+                    {flatExport ? (
+                      <>
+                        {confirmedClusters.slice(0, 3).map((c) => (
+                          <div key={c.id} className="pl-3 text-[var(--text3)]">└─ {c.sku || 'SKU'}_FRONT.jpg</div>
+                        ))}
+                        {confirmedClusters.length > 3 && <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 3} more)</div>}
+                      </>
+                    ) : (
+                      <>
+                        {confirmedClusters.slice(0, 2).map((c) => (
+                          <div key={c.id} className="pl-3 text-[var(--text3)]">
+                            └─ {c.sku}/{c.sku}_FRONT_01.jpg …
+                          </div>
+                        ))}
+                        {confirmedClusters.length > 2 && <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more SKUs)</div>}
+                      </>
+                    )}
                   </div>
                 )
               })}
