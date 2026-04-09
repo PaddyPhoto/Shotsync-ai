@@ -11,6 +11,7 @@ export interface Brand {
   shopify_access_token: string | null
   logo_color: string
   images_per_look: number
+  still_life_images_per_look: number
   naming_template: string
   gm_position: 'first' | 'last' | null
   created_at: string
@@ -132,6 +133,7 @@ export const DEMO_BRANDS: Brand[] = [
     shopify_access_token: null,
     logo_color: '#e8d97a',
     images_per_look: 4,
+    still_life_images_per_look: 2,
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),
@@ -147,6 +149,7 @@ export const DEMO_BRANDS: Brand[] = [
     shopify_access_token: null,
     logo_color: '#6de0b3',
     images_per_look: 4,
+    still_life_images_per_look: 2,
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),
@@ -162,6 +165,7 @@ export const DEMO_BRANDS: Brand[] = [
     shopify_access_token: null,
     logo_color: '#7ab4e8',
     images_per_look: 4,
+    still_life_images_per_look: 2,
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),

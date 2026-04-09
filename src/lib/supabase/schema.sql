@@ -75,6 +75,7 @@ create table if not exists brands (
   shopify_access_token text,
   logo_color text not null default '#e8d97a',
   images_per_look int not null default 4,
+  still_life_images_per_look int not null default 2,
   naming_template text not null default '{BRAND}_{SEQ}_{VIEW}',
   gm_position text check (gm_position in ('first', 'last')),
   created_at timestamptz not null default now()

@@ -100,11 +100,18 @@ export default function UploadPage() {
   }, [setStyleList])
   const [jobName, setJobName] = useState('')
   const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(['the-iconic'])
-  const [imagesPerLook, setImagesPerLook] = useState<number>(activeBrand?.images_per_look ?? 4)
-  // Sync when the active brand changes (e.g. user switches brand in sidebar)
+  const defaultImagesPerLook = shootType === 'still-life'
+    ? (activeBrand?.still_life_images_per_look ?? 2)
+    : (activeBrand?.images_per_look ?? 4)
+  const [imagesPerLook, setImagesPerLook] = useState<number>(defaultImagesPerLook)
+  // Sync when the active brand changes or shoot type changes
   useEffect(() => {
-    if (activeBrand?.images_per_look) setImagesPerLook(activeBrand.images_per_look)
-  }, [activeBrand?.id])
+    if (shootType === 'still-life') {
+      setImagesPerLook(activeBrand?.still_life_images_per_look ?? 2)
+    } else {
+      setImagesPerLook(activeBrand?.images_per_look ?? 4)
+    }
+  }, [activeBrand?.id, shootType])
 
   // Pre-populate form fields and file list from existing session on mount
   useEffect(() => {
@@ -262,12 +269,12 @@ export default function UploadPage() {
                         </span>
                       </p>
                     </div>
-                    {activeBrand && activeBrand.images_per_look !== imagesPerLook && (
+                    {activeBrand && defaultImagesPerLook !== imagesPerLook && (
                       <button
-                        onClick={() => setImagesPerLook(activeBrand.images_per_look ?? 4)}
+                        onClick={() => setImagesPerLook(defaultImagesPerLook)}
                         className="text-[0.72rem] text-[var(--accent)] hover:underline flex-shrink-0"
                       >
-                        Reset to brand default ({activeBrand.images_per_look ?? 4})
+                        Reset to brand default ({defaultImagesPerLook})
                       </button>
                     )}
                   </div>
