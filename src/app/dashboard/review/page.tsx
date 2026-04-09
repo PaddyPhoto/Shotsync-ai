@@ -563,7 +563,7 @@ function ReviewPage() {
           </div>
 
           {/* Cluster cards */}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(480px,1fr))] gap-5">
             {clusters.map((cluster) => {
               const isDropTarget = dragOverCluster === cluster.id && draggingFromCluster !== cluster.id
               const currentSku = skuInput[cluster.id] ?? cluster.sku
