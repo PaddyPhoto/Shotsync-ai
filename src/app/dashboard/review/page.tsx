@@ -653,7 +653,7 @@ function ReviewPage() {
                           onDragOver={(e) => onImageDragOver(e, img.id, cluster.id)}
                           onDrop={(e) => onImageDrop(e, img.id, cluster.id)}
                           className={`relative group cursor-grab active:cursor-grabbing transition-all duration-100 ${isDragging ? 'opacity-20 scale-95' : ''}`}
-                          style={{ width: 'calc(25% - 3px)' }}
+                          style={{ width: 'calc(33.333% - 3px)' }}
                           title={img.filename}
                         >
                           {/* Image */}
