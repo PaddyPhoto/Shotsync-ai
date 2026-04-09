@@ -88,9 +88,24 @@ const FILENAME_COLOUR_MAP: [string, string][] = [
   ['latte', 'LATTE'], ['mocha', 'MOCHA'], ['coffee', 'COFFEE'],
   ['brown', 'BROWN'], ['brn', 'BROWN'], ['chocolate', 'CHOCOLATE'],
   ['choc', 'CHOCOLATE'], ['toffee', 'TOFFEE'], ['walnut', 'WALNUT'],
-  // Multi
+  // Multi / prints
   ['multi', 'MULTI'], ['print', 'PRINT'], ['stripe', 'STRIPE'],
-  ['check', 'CHECK'], ['floral', 'FLORAL'],
+  ['check', 'CHECK'], ['floral', 'FLORAL'], ['leopard', 'LEOPARD'],
+  ['animal', 'ANIMAL'], ['camo', 'CAMO'],
+  // Nature-inspired fashion colours
+  ['cactus', 'CACTUS'], ['sage', 'SAGE'], ['moss', 'MOSS'],
+  ['salt', 'SALT'], ['snow', 'SNOW'], ['cloud', 'CLOUD'],
+  ['sand', 'SAND'], ['dune', 'DUNE'], ['desert', 'DESERT'],
+  ['clay', 'CLAY'], ['earth', 'EARTH'], ['bark', 'BARK'],
+  ['mist', 'MIST'], ['fog', 'FOG'], ['storm', 'STORM'],
+  ['ocean', 'OCEAN'], ['sea', 'SEA'], ['lagoon', 'LAGOON'],
+  ['forest', 'FOREST'], ['pine', 'PINE'], ['fern', 'FERN'],
+  ['berry', 'BERRY'], ['fig', 'FIG'], ['grape', 'GRAPE'],
+  ['honey', 'HONEY'], ['ginger', 'GINGER'], ['spice', 'SPICE'],
+  ['shell', 'SHELL'], ['pearl', 'PEARL'], ['bone', 'BONE'],
+  ['chalk', 'CHALK'], ['milk', 'MILK'], ['linen', 'LINEN'],
+  ['dusk', 'DUSK'], ['dawn', 'DAWN'], ['midnight', 'MIDNIGHT'],
+  ['ink', 'INK'], ['coal', 'COAL'], ['graphite', 'GRAPHITE'],
 ]
 
 export function detectColourFromFilename(filename: string): string | null {

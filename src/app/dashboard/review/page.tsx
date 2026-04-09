@@ -156,25 +156,37 @@ function ReviewPage() {
     clusters.forEach((cluster) => {
       if (cluster.sku) return // already has a SKU, don't overwrite
       const filenames = cluster.images.map((img) => img.filename.toUpperCase())
-      const match = styleList.find((entry) =>
+
+      // Find all XLSX entries whose SKU appears in any of this cluster's filenames
+      const candidates = styleList.filter((entry) =>
         filenames.some((fn) => fn.includes(entry.sku))
       )
-      if (match) {
-        updateClusterSku(cluster.id, match.sku, match.productName)
-        // Colour priority: filename keyword > XLSX colour > leave as-is (AI detected)
-        // Filename is per-image and specific (e.g. SKU_BURGUNDY.jpg vs SKU_IVORY.jpg),
-        // so it takes precedence over the XLSX which may have one colour for many clusters.
+      if (!candidates.length) return
+
+      // When multiple entries share the same SKU (colour variants), pick the one
+      // whose colour name appears in the filename — e.g. NS27502_CACTUS.jpg → CACTUS variant
+      const match = candidates.length > 1
+        ? candidates.find((entry) =>
+            entry.colour && filenames.some((fn) => fn.includes(entry.colour.toUpperCase()))
+          ) ?? candidates[0]
+        : candidates[0]
+
+      updateClusterSku(cluster.id, match.sku, match.productName)
+
+      // Colour priority:
+      // 1. Matched XLSX entry colour (already chosen by filename match above)
+      // 2. Filename keyword detection
+      // 3. Leave AI-detected colour as-is
+      if (match.colour) {
+        updateClusterColor(cluster.id, match.colour.toUpperCase())
+      } else {
         const filenameColour = cluster.images
           .map((img) => detectColourFromFilename(img.filename))
           .find((c) => c !== null) ?? null
-        if (filenameColour) {
-          updateClusterColor(cluster.id, filenameColour)
-        } else if (match.colour) {
-          updateClusterColor(cluster.id, match.colour.toUpperCase())
-        }
-        if (match.colourCode) updateClusterColourCode(cluster.id, match.colourCode)
-        if (match.styleNumber) updateClusterStyleNumber(cluster.id, match.styleNumber)
+        if (filenameColour) updateClusterColor(cluster.id, filenameColour)
       }
+      if (match.colourCode) updateClusterColourCode(cluster.id, match.colourCode)
+      if (match.styleNumber) updateClusterStyleNumber(cluster.id, match.styleNumber)
     })
   }, [isReady, styleList])
 
