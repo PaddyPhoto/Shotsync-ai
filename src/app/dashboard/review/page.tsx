@@ -47,7 +47,8 @@ function ReviewPage() {
   const {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
     moveImage, mergeCluster, splitImages, reorderImages, relabelCluster,
-    updateClusterSku, updateClusterColor, setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
+    updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
+    setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
   } = useSession()
 
   // Resolves the AccessoryCategory config for a cluster.
@@ -66,6 +67,8 @@ function ReviewPage() {
   const [skuInput, setSkuInput] = useState<Record<string, string>>({})
   const [colorInput, setColorInput] = useState<Record<string, string>>({})
   const [editingColor, setEditingColor] = useState<string | null>(null)
+  const [colourCodeInput, setColourCodeInput] = useState<Record<string, string>>({})
+  const [styleNumberInput, setStyleNumberInput] = useState<Record<string, string>>({})
   const [skuSearchOpen, setSkuSearchOpen] = useState<string | null>(null)
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
@@ -503,12 +506,17 @@ function ReviewPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[0.7rem] text-[var(--text3)]">Insert token:</span>
                   {[
-                    { token: '{SKU}', desc: 'e.g. TOP-BLK-001' },
-                    { token: '{BRAND}', desc: 'Brand code e.g. SL' },
-                    { token: '{COLOR}', desc: 'Colour e.g. BLACK' },
-                    { token: '{VIEW}', desc: 'Angle e.g. FRONT' },
-                    { token: '{INDEX}', desc: 'Image # in look e.g. 01' },
-                    { token: '{SEQ}', desc: 'Look # in job e.g. 001' },
+                    { token: '{BRAND}',         desc: 'Brand code e.g. FBC' },
+                    { token: '{SUPPLIER_CODE}',  desc: 'Supplier code e.g. PR' },
+                    { token: '{SEASON}',         desc: 'Season e.g. SS25' },
+                    { token: '{SKU}',            desc: 'SKU e.g. SS25-0042' },
+                    { token: '{STYLE_NUMBER}',   desc: 'Style number e.g. 05324' },
+                    { token: '{COLOR}',          desc: 'Colour name e.g. BURGUNDY' },
+                    { token: '{COLOUR_CODE}',    desc: 'Colour code e.g. 062' },
+                    { token: '{VIEW}',           desc: 'Angle e.g. FRONT' },
+                    { token: '{INDEX}',          desc: 'Image # in look e.g. 01' },
+                    { token: '{SEQ}',            desc: 'Look # in job e.g. 001' },
+                    { token: '{CUSTOM_TEXT}',    desc: 'Fixed text string' },
                   ].map(({ token, desc }) => (
                     <button
                       key={token}
@@ -832,6 +840,38 @@ function ReviewPage() {
                     )}
                   </div>
 
+                  {/* Colour code + style number */}
+                  <div className="px-3 pb-[8px] flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[0.68rem] text-[var(--text3)]">Colour code</span>
+                      <input
+                        className="input text-[0.72rem] py-[2px] w-[64px]"
+                        style={{ fontFamily: 'var(--font-dm-mono)' }}
+                        placeholder="062"
+                        value={colourCodeInput[cluster.id] ?? cluster.colourCode}
+                        onChange={(e) => setColourCodeInput((s) => ({ ...s, [cluster.id]: e.target.value.toUpperCase() }))}
+                        onBlur={() => {
+                          const val = (colourCodeInput[cluster.id] ?? cluster.colourCode).trim().toUpperCase()
+                          updateClusterColourCode(cluster.id, val)
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[0.68rem] text-[var(--text3)]">Style #</span>
+                      <input
+                        className="input text-[0.72rem] py-[2px] w-[80px]"
+                        style={{ fontFamily: 'var(--font-dm-mono)' }}
+                        placeholder="05324"
+                        value={styleNumberInput[cluster.id] ?? cluster.styleNumber}
+                        onChange={(e) => setStyleNumberInput((s) => ({ ...s, [cluster.id]: e.target.value.toUpperCase() }))}
+                        onBlur={() => {
+                          const val = (styleNumberInput[cluster.id] ?? cluster.styleNumber).trim().toUpperCase()
+                          updateClusterStyleNumber(cluster.id, val)
+                        }}
+                      />
+                    </div>
+                  </div>
+
                   {/* Merge / split actions */}
                   <div className="px-3 pb-[10px] flex items-center gap-2">
                     <span className="text-[0.7rem] text-[var(--text3)]">{cluster.images.length} images</span>
@@ -994,6 +1034,8 @@ function ExportPanel({
       //   3. The marketplace's default template
       //   4. A hardcoded fallback
       const brandCode = activeBrand?.brand_code ?? 'BRAND'
+      const supplierCode = activeBrand?.supplier_code ?? ''
+      const season = activeBrand?.season ?? ''
       const template = rule.naming_locked
         ? rule.naming_template
         : namingTemplate || activeBrand?.naming_template || rule.naming_template || '{BRAND}_{SEQ}_{VIEW}'
@@ -1005,8 +1047,8 @@ function ExportPanel({
         const cluster = confirmedClusters[clusterIdx]
         const seq = clusterIdx + 1
         const folderName = applyNamingTemplate(
-          template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, ''),
-          { brand: brandCode, seq, sku: cluster.sku, color: cluster.color, view: '', index: 0 }
+          template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, '').replace(/_{ANGLE}/g, '').replace(/_{ANGLE_NUMBER}/g, ''),
+          { brand: brandCode, seq, sku: cluster.sku, color: cluster.color, view: '', index: 0, supplierCode, season, styleNumber: cluster.styleNumber, colourCode: cluster.colourCode }
         ).replace(/_+$/, '') || `${brandCode}_${String(seq).padStart(3, '0')}`
         // Ghost mannequin position: some brands want GM as the hero (first) image,
         // others want it last. This is set per-brand in Settings → gm_position.
@@ -1044,6 +1086,10 @@ function ExportPanel({
               color: cluster.color,
               view: img.viewLabel,
               index: imgIdx + 1,
+              supplierCode,
+              season,
+              styleNumber: cluster.styleNumber,
+              colourCode: cluster.colourCode,
             }) + '.jpg'
             marketplaceFolder.file(`${folderName}/${filename}`, buffer)
           } catch (err) {

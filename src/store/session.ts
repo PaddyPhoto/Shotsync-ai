@@ -17,6 +17,8 @@ export interface SessionCluster {
   sku: string
   productName: string
   color: string
+  colourCode: string    // numeric colour code e.g. "062" — separate from colour name
+  styleNumber: string   // style number e.g. "05324" — may differ from SKU
   label: string
   category: string | null   // accessory category id e.g. 'bags', 'shoes' — null for on-model
   confirmed: boolean
@@ -46,6 +48,8 @@ interface SessionState {
   splitImages: (fromClusterId: string, imageIds: string[]) => void
   updateClusterSku: (clusterId: string, sku: string, productName?: string) => void
   updateClusterColor: (clusterId: string, color: string) => void
+  updateClusterColourCode: (clusterId: string, colourCode: string) => void
+  updateClusterStyleNumber: (clusterId: string, styleNumber: string) => void
   setClusterCategory: (clusterId: string, category: string | null) => void
   setImageViewLabel: (imageId: string, clusterId: string, label: ViewLabel) => void
   confirmCluster: (clusterId: string) => void
@@ -92,6 +96,8 @@ export const useSession = create<SessionState>((set, get) => ({
           sku: c.sku,
           productName: c.productName,
           color: c.color,
+          colourCode: c.colourCode,
+          styleNumber: c.styleNumber,
           label: c.label,
           confirmed: c.confirmed,
           images: c.images.map((img) => ({
@@ -150,6 +156,8 @@ export const useSession = create<SessionState>((set, get) => ({
       sku: '',
       productName: '',
       color: '',
+      colourCode: '',
+      styleNumber: '',
       label: `Cluster ${_nextClusterNum++}`,
       category: from.category, // inherit parent category — avoids re-selecting for accessories
       confirmed: false,
@@ -171,6 +179,18 @@ export const useSession = create<SessionState>((set, get) => ({
   updateClusterColor: (clusterId, color) => set((state) => ({
     clusters: state.clusters.map((c) =>
       c.id === clusterId ? { ...c, color } : c
+    ),
+  })),
+
+  updateClusterColourCode: (clusterId, colourCode) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId ? { ...c, colourCode } : c
+    ),
+  })),
+
+  updateClusterStyleNumber: (clusterId, styleNumber) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId ? { ...c, styleNumber } : c
     ),
   })),
 

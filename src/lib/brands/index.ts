@@ -5,6 +5,8 @@ export interface Brand {
   org_id: string
   name: string
   brand_code: string
+  supplier_code: string | null   // e.g. "PR" — used in {SUPPLIER_CODE} naming token
+  season: string | null          // e.g. "SS25" — used in {SEASON} naming token
   shopify_store_url: string | null
   shopify_access_token: string | null
   logo_color: string
@@ -60,26 +62,60 @@ export const DEFAULT_NAMING_TEMPLATE = '{BRAND}_{SEQ}_{VIEW}'
 
 // ── Apply a naming template to generate a filename ────────────────────────────
 // Available tokens:
-//   {BRAND}  — brand code (e.g. SL)
-//   {SEQ}    — cluster sequence number, zero-padded (e.g. 001)
-//   {SKU}    — manual SKU override if set, otherwise same as {SEQ}
-//   {VIEW}   — angle label (e.g. FRONT, BACK, SIDE)
-//   {COLOR}  — cluster color if set
-//   {INDEX}  — image index within cluster, zero-padded (e.g. 01)
+//   {BRAND}         — brand code (e.g. FBC)
+//   {BRAND_CODE}    — alias for {BRAND}
+//   {SUPPLIER_CODE} — supplier code set on the brand (e.g. PR)
+//   {SEQ}           — cluster sequence number, zero-padded (e.g. 001)
+//   {SKU}           — assigned SKU (e.g. SS25-0042)
+//   {STYLE_NUMBER}  — style number per cluster (e.g. 05324); falls back to SKU
+//   {COLOUR_NAME}   — alias for {COLOR} (e.g. BURGUNDY)
+//   {COLOR}         — cluster colour name (e.g. BLACK)
+//   {COLOUR_CODE}   — numeric colour code per cluster (e.g. 062)
+//   {VIEW}          — angle label (e.g. FRONT, BACK, SIDE)
+//   {ANGLE}         — alias for {VIEW}
+//   {INDEX}         — image index within cluster, zero-padded (e.g. 01)
+//   {ANGLE_NUMBER}  — alias for {INDEX}
+//   {SEASON}        — season code set on the brand (e.g. SS25)
+//   {CUSTOM_TEXT}   — fixed text string stored in the naming preset
 export function applyNamingTemplate(
   template: string,
-  vars: { brand: string; seq: number; sku?: string; color?: string; view: string; index: number }
+  vars: {
+    brand: string
+    seq: number
+    sku?: string
+    color?: string
+    view: string
+    index: number
+    supplierCode?: string
+    styleNumber?: string
+    colourCode?: string
+    season?: string
+    customText?: string
+  }
 ): string {
   const seq = String(vars.seq).padStart(3, '0')
   const sku = (vars.sku?.trim() || seq).toUpperCase()
+  const view = vars.view.toUpperCase().replace(/-/g, '_')
+  const idx = String(vars.index).padStart(2, '0')
+  const brand = vars.brand.toUpperCase()
+  const color = (vars.color || '').toUpperCase()
   return (
     template
-      .replace(/\{BRAND\}/g, vars.brand.toUpperCase())
+      .replace(/\{BRAND_CODE\}/g, brand)
+      .replace(/\{BRAND\}/g, brand)
+      .replace(/\{SUPPLIER_CODE\}/g, (vars.supplierCode || '').toUpperCase())
+      .replace(/\{SEASON\}/g, (vars.season || '').toUpperCase())
       .replace(/\{SEQ\}/g, seq)
       .replace(/\{SKU\}/g, sku)
-      .replace(/\{COLOR\}/g, (vars.color || '').toUpperCase())
-      .replace(/\{VIEW\}/g, vars.view.toUpperCase().replace(/-/g, '_'))
-      .replace(/\{INDEX\}/g, String(vars.index).padStart(2, '0'))
+      .replace(/\{STYLE_NUMBER\}/g, (vars.styleNumber?.trim() || sku).toUpperCase())
+      .replace(/\{COLOUR_NAME\}/g, color)
+      .replace(/\{COLOR\}/g, color)
+      .replace(/\{COLOUR_CODE\}/g, (vars.colourCode || '').toUpperCase())
+      .replace(/\{ANGLE_NUMBER\}/g, idx)
+      .replace(/\{INDEX\}/g, idx)
+      .replace(/\{ANGLE\}/g, view)
+      .replace(/\{VIEW\}/g, view)
+      .replace(/\{CUSTOM_TEXT\}/g, (vars.customText || '').toUpperCase())
   )
 }
 
@@ -90,6 +126,8 @@ export const DEMO_BRANDS: Brand[] = [
     org_id: 'demo-user',
     name: 'Studio Label',
     brand_code: 'SL',
+    supplier_code: null,
+    season: null,
     shopify_store_url: null,
     shopify_access_token: null,
     logo_color: '#e8d97a',
@@ -103,6 +141,8 @@ export const DEMO_BRANDS: Brand[] = [
     org_id: 'demo-user',
     name: 'Active Range',
     brand_code: 'ACT',
+    supplier_code: null,
+    season: null,
     shopify_store_url: null,
     shopify_access_token: null,
     logo_color: '#6de0b3',
@@ -116,6 +156,8 @@ export const DEMO_BRANDS: Brand[] = [
     org_id: 'demo-user',
     name: 'Resort Edit',
     brand_code: 'RES',
+    supplier_code: null,
+    season: null,
     shopify_store_url: null,
     shopify_access_token: null,
     logo_color: '#7ab4e8',

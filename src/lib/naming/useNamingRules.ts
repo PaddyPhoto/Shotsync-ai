@@ -7,6 +7,7 @@ export interface NamingPreset {
   id: string
   name: string
   template: string
+  customText?: string   // value substituted for {CUSTOM_TEXT} token
   builtIn?: boolean
 }
 
@@ -17,11 +18,13 @@ export interface NamingState {
 }
 
 export const BUILT_IN_PRESETS: NamingPreset[] = [
-  { id: 'standard',   name: 'Standard',    template: '{BRAND}_{SKU}_{COLOR}_{VIEW}',         builtIn: true },
-  { id: 'minimal',    name: 'Minimal',     template: '{SKU}_{VIEW}',                          builtIn: true },
-  { id: 'with-index', name: 'With Index',  template: '{SKU}_{COLOR}_{VIEW}_{INDEX}',          builtIn: true },
-  { id: 'no-colour',  name: 'No Colour',   template: '{BRAND}_{SKU}_{VIEW}',                  builtIn: true },
-  { id: 'full',       name: 'Full Detail', template: '{BRAND}_{SKU}_{COLOR}_{VIEW}_{INDEX}',  builtIn: true },
+  { id: 'standard',      name: 'Standard',         template: '{BRAND}_{SKU}_{COLOR}_{VIEW}',                            builtIn: true },
+  { id: 'minimal',       name: 'Minimal',          template: '{SKU}_{VIEW}',                                            builtIn: true },
+  { id: 'with-index',    name: 'With Index',       template: '{SKU}_{COLOR}_{VIEW}_{INDEX}',                            builtIn: true },
+  { id: 'no-colour',     name: 'No Colour',        template: '{BRAND}_{SKU}_{VIEW}',                                    builtIn: true },
+  { id: 'full',          name: 'Full Detail',      template: '{BRAND}_{SKU}_{COLOR}_{VIEW}_{INDEX}',                    builtIn: true },
+  { id: 'supplier',      name: 'Supplier Style',   template: '{SUPPLIER_CODE}_{STYLE_NUMBER}_{COLOUR_CODE}_{VIEW}',     builtIn: true },
+  { id: 'season-brand',  name: 'Season + Brand',   template: '{SEASON}_{BRAND}_{SKU}_{COLOUR_CODE}_{VIEW}',             builtIn: true },
 ]
 
 const STORAGE_KEY = 'shotsync:naming_rules'
@@ -49,11 +52,21 @@ function save(state: NamingState) {
 export function previewTemplate(template: string, ext = 'jpg'): string {
   return (
     template
-      .replace('{BRAND}', 'BRAND')
-      .replace('{SKU}', 'TOP-BLK-001')
-      .replace('{COLOR}', 'BLACK')
-      .replace('{VIEW}', 'FRONT')
-      .replace('{INDEX}', '01')
+      .replace(/\{BRAND_CODE\}/g, 'FBC')
+      .replace(/\{BRAND\}/g, 'FBC')
+      .replace(/\{SUPPLIER_CODE\}/g, 'PR')
+      .replace(/\{SEASON\}/g, 'SS25')
+      .replace(/\{SKU\}/g, 'SS25-0042')
+      .replace(/\{STYLE_NUMBER\}/g, '05324')
+      .replace(/\{COLOUR_NAME\}/g, 'BURGUNDY')
+      .replace(/\{COLOR\}/g, 'BURGUNDY')
+      .replace(/\{COLOUR_CODE\}/g, '062')
+      .replace(/\{ANGLE_NUMBER\}/g, '01')
+      .replace(/\{INDEX\}/g, '01')
+      .replace(/\{ANGLE\}/g, 'FRONT')
+      .replace(/\{VIEW\}/g, 'FRONT')
+      .replace(/\{CUSTOM_TEXT\}/g, 'TEXT')
+      .replace(/\{SEQ\}/g, '001')
       .toUpperCase() + '.' + ext
   )
 }

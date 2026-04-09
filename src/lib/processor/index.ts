@@ -246,6 +246,8 @@ export async function processFiles(
       sku: '',
       productName: '',
       color: '',
+      colourCode: '',
+      styleNumber: '',
       label: shootType === 'still-life' ? `Product ${lookNumber}` : `Look ${lookNumber}`,
       category: null,
       confirmed: false,
