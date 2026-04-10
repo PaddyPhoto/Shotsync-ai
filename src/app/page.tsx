@@ -522,9 +522,88 @@ export default function LandingPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--line)] px-8 py-5 flex items-center justify-between text-[0.75rem] text-[var(--text3)]">
-        <span>© 2026 ShotSync.ai</span>
-        <span>Built for fashion eCommerce teams</span>
+      <footer className="border-t border-[var(--line)] px-8 pt-14 pb-8">
+        <div className="max-w-[1100px] mx-auto">
+          {/* Top row */}
+          <div className="grid grid-cols-4 gap-10 mb-12">
+            {/* Brand */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-[10px]">
+                <div
+                  className="w-7 h-7 rounded-[6px] flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'var(--accent-deep)' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 7l-7 5 7 5V7z"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2"/>
+                  </svg>
+                </div>
+                <span className="text-[1rem] font-bold tracking-[-0.5px]" style={{ fontFamily: 'var(--font-display)' }}>
+                  Shot<span style={{ color: 'var(--accent)' }}>Sync</span><span style={{ color: 'var(--text3)', fontWeight: 300 }}>.ai</span>
+                </span>
+              </div>
+              <p className="text-[0.78rem] text-[var(--text3)] leading-relaxed">
+                Post-production automation for fashion eCommerce. Built for ANZ brands and agencies.
+              </p>
+              <a href="mailto:hello@shotsync.ai" className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
+                hello@shotsync.ai
+              </a>
+            </div>
+
+            {/* Product */}
+            <div>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[var(--text3)] mb-4">Product</p>
+              <ul className="flex flex-col gap-3">
+                {[
+                  { label: 'Features', href: '/#features' },
+                  { label: 'Pricing', href: '/#pricing' },
+                  { label: 'Sign up free', href: '/signup' },
+                  { label: 'Sign in', href: '/login' },
+                ].map(({ label, href }) => (
+                  <li key={label}>
+                    <Link href={href} className="text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Marketplaces */}
+            <div>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[var(--text3)] mb-4">Marketplaces</p>
+              <ul className="flex flex-col gap-3">
+                {['THE ICONIC', 'Myer', 'David Jones', 'Shopify'].map((m) => (
+                  <li key={m} className="text-[0.78rem] text-[var(--text3)]">{m}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[var(--text3)] mb-4">Company</p>
+              <ul className="flex flex-col gap-3">
+                {[
+                  { label: 'Privacy Policy', href: '/privacy' },
+                  { label: 'Terms of Service', href: '/terms' },
+                  { label: 'Contact us', href: 'mailto:hello@shotsync.ai' },
+                ].map(({ label, href }) => (
+                  <li key={label}>
+                    <Link href={href} className="text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom row */}
+          <div className="border-t border-[var(--line)] pt-6 flex items-center justify-between">
+            <p className="text-[0.72rem] text-[var(--text3)]">© 2026 ShotSync.ai — Photoworks Sydney Pty Ltd</p>
+            <p className="text-[0.72rem] text-[var(--text3)]">Built for fashion eCommerce teams in Australia</p>
+          </div>
+        </div>
       </footer>
     </div>
   )
