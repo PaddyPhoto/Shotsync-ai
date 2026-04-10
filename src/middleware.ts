@@ -4,8 +4,25 @@ import { NextResponse, type NextRequest } from 'next/server'
 const DASHBOARD_PREFIX = '/dashboard'
 const AUTH_PATHS = ['/login', '/signup']
 
+// ── Site-wide password gate (Early Access) ────────────────────────────────────
+const SITE_PASSWORD = process.env.SITE_PASSWORD
+const GATE_COOKIE = 'ss_gate'
+const GATE_BYPASS = ['/enter', '/api/enter']
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Site password gate — runs before all other checks
+  if (SITE_PASSWORD) {
+    const isGatePath = GATE_BYPASS.some((p) => pathname.startsWith(p))
+    const hasAccess = request.cookies.get(GATE_COOKIE)?.value === SITE_PASSWORD
+    if (!isGatePath && !hasAccess) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/enter'
+      url.search = ''
+      return NextResponse.redirect(url)
+    }
+  }
 
   // Build a response we can mutate cookies on
   let response = NextResponse.next({ request })
