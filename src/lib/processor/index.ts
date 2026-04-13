@@ -189,7 +189,7 @@ async function detectColourFromImage(file: File): Promise<string> {
 // ── Resize image to base64 JPEG for AI API calls ─────────────────────────────
 // Resizes to maxSize on the longest edge before encoding — keeps payloads small
 // while retaining enough detail for GPT-4o-mini to describe the product.
-async function imageToBase64(file: File, maxSize = 256): Promise<string> {
+async function imageToBase64(file: File, maxSize = 512): Promise<string> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file)
     const img = new window.Image()

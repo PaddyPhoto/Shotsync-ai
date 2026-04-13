@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
   const imageContent = images.map((img) => ({
     type: 'image_url' as const,
-    image_url: { url: `data:image/jpeg;base64,${img.base64}`, detail: 'low' as const },
+    image_url: { url: `data:image/jpeg;base64,${img.base64}`, detail: 'high' as const },
   }))
 
   const indexedFilenames = images.map((img, i) => `${i + 1}. ${img.filename}`).join('\n')
