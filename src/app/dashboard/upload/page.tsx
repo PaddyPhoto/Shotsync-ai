@@ -167,7 +167,8 @@ export default function UploadPage() {
 
     const name = jobName || `Shoot – ${new Date().toLocaleDateString()}`
     setShootConfig(shootType, stillLifeType)
-    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined)
+    const angleSequence = shootType === 'on-model' ? (activeBrand?.on_model_angle_sequence ?? undefined) : undefined
+    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, angleSequence)
 
     setSession(name, clusters, marketplaces)
     router.push('/dashboard/review')

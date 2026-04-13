@@ -210,6 +210,7 @@ function SettingsInner() {
     logo_color: '#e8d97a',
     images_per_look: 4,
     still_life_images_per_look: 2,
+    on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
     naming_template: '{BRAND}_{SEQ}_{VIEW}',
     gm_position: 'last' as 'first' | 'last',
   })
@@ -218,7 +219,7 @@ function SettingsInner() {
   const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null)
 
   const openAddBrand = () => {
-    setBrandForm({ name: '', brand_code: '', supplier_code: '', season: '', shopify_store_url: '', shopify_access_token: '', logo_color: '#e8d97a', images_per_look: 4, still_life_images_per_look: 2, naming_template: '{BRAND}_{SEQ}_{VIEW}', gm_position: 'last' })
+    setBrandForm({ name: '', brand_code: '', supplier_code: '', season: '', shopify_store_url: '', shopify_access_token: '', logo_color: '#e8d97a', images_per_look: 4, still_life_images_per_look: 2, on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'], naming_template: '{BRAND}_{SEQ}_{VIEW}', gm_position: 'last' })
     setBrandError('')
     setEditingBrand(null)
     setBrandModal('add')
@@ -235,6 +236,7 @@ function SettingsInner() {
       logo_color: b.logo_color,
       images_per_look: b.images_per_look ?? 4,
       still_life_images_per_look: b.still_life_images_per_look ?? 2,
+      on_model_angle_sequence: b.on_model_angle_sequence?.length ? b.on_model_angle_sequence : ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
       naming_template: b.naming_template ?? '{BRAND}_{SEQ}_{VIEW}',
       gm_position: (b.gm_position ?? 'last') as 'first' | 'last',
     })
@@ -1321,7 +1323,12 @@ function SettingsInner() {
                     <button
                       key={n}
                       type="button"
-                      onClick={() => setBrandForm((f) => ({ ...f, images_per_look: n }))}
+                      onClick={() => setBrandForm((f) => {
+                        const seq = [...f.on_model_angle_sequence]
+                        const ALL_ON_MODEL = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
+                        while (seq.length < n) seq.push(ALL_ON_MODEL[seq.length] ?? 'front')
+                        return { ...f, images_per_look: n, on_model_angle_sequence: seq.slice(0, n) }
+                      })}
                       className={`w-[38px] h-[38px] rounded-sm border text-[0.82rem] font-medium transition-all ${
                         brandForm.images_per_look === n
                           ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.1)] text-[var(--accent)]'
@@ -1332,10 +1339,49 @@ function SettingsInner() {
                     </button>
                   ))}
                 </div>
-                <p className="text-[0.7rem] text-[var(--text3)] mt-2">
-                  {['Full Length', 'Front', 'Side', 'Mood', 'Detail', 'Back'].slice(0, brandForm.images_per_look).join(' · ')}
-                  {brandForm.images_per_look > 6 ? ' · …' : ''}
-                </p>
+                {/* Angle sequence editor */}
+                <div className="mt-3 space-y-1">
+                  {brandForm.on_model_angle_sequence.slice(0, brandForm.images_per_look).map((angle, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="w-5 text-[0.7rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
+                      <select
+                        value={angle}
+                        onChange={(e) => setBrandForm((f) => {
+                          const seq = [...f.on_model_angle_sequence]
+                          seq[idx] = e.target.value
+                          return { ...f, on_model_angle_sequence: seq }
+                        })}
+                        className="flex-1 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.78rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
+                      >
+                        {['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay'].map((a) => (
+                          <option key={a} value={a}>{a}</option>
+                        ))}
+                      </select>
+                      <div className="flex flex-col gap-[2px]">
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => setBrandForm((f) => {
+                            const seq = [...f.on_model_angle_sequence]
+                            ;[seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]
+                            return { ...f, on_model_angle_sequence: seq }
+                          })}
+                          className="w-5 h-4 flex items-center justify-center text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20"
+                        >▲</button>
+                        <button
+                          type="button"
+                          disabled={idx >= brandForm.images_per_look - 1}
+                          onClick={() => setBrandForm((f) => {
+                            const seq = [...f.on_model_angle_sequence]
+                            ;[seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]
+                            return { ...f, on_model_angle_sequence: seq }
+                          })}
+                          className="w-5 h-4 flex items-center justify-center text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20"
+                        >▼</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="border-t border-[var(--line)] pt-3">

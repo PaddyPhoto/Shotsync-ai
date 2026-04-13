@@ -12,6 +12,7 @@ export interface Brand {
   logo_color: string
   images_per_look: number
   still_life_images_per_look: number
+  on_model_angle_sequence: string[]
   naming_template: string
   gm_position: 'first' | 'last' | null
   created_at: string
@@ -134,6 +135,7 @@ export const DEMO_BRANDS: Brand[] = [
     logo_color: '#e8d97a',
     images_per_look: 4,
     still_life_images_per_look: 2,
+    on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),
@@ -150,6 +152,7 @@ export const DEMO_BRANDS: Brand[] = [
     logo_color: '#6de0b3',
     images_per_look: 4,
     still_life_images_per_look: 2,
+    on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),
@@ -166,6 +169,7 @@ export const DEMO_BRANDS: Brand[] = [
     logo_color: '#7ab4e8',
     images_per_look: 4,
     still_life_images_per_look: 2,
+    on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),

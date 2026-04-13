@@ -265,7 +265,8 @@ export async function processFiles(
   imagesPerLook: number,
   onProgress: (p: ProcessProgress) => void,
   shootType: 'on-model' | 'still-life' = 'on-model',
-  stillLifeCategory?: string
+  stillLifeCategory?: string,
+  angleSequence?: string[]
 ): Promise<SessionCluster[]> {
   const total = files.length
 
@@ -314,18 +315,18 @@ export async function processFiles(
   for (const [, groupImages] of sortedGroups) {
     const lookNumber = clusters.length + 1
 
-    // Assign positional angles to any images that filename detection left as 'unknown'.
-    // Category angles take priority for still-life (ghost-mannequin, accessories, jewellery).
-    // Fall back to shoot-type-specific order so on-model images never get still-life labels.
+    // Assign positional angles based on the configured shoot sequence.
+    // Priority: still-life category angles > brand angleSequence > shoot-type defaults.
     const categoryAngles = stillLifeCategory ? getCategoryById(stillLifeCategory)?.angles : undefined
-    const positionalOrder = categoryAngles ?? (shootType === 'still-life' ? VIEW_ORDER_STILL_LIFE : VIEW_ORDER_ON_MODEL)
-    const unknownCount = { idx: 0 }
-    for (const img of groupImages) {
-      if (img.viewLabel === 'unknown') {
-        img.viewLabel = positionalOrder[unknownCount.idx % positionalOrder.length]
-        unknownCount.idx++
-      }
-    }
+    const positionalOrder: string[] = categoryAngles
+      ?? (shootType === 'on-model' && angleSequence?.length ? angleSequence : null)
+      ?? (shootType === 'still-life' ? VIEW_ORDER_STILL_LIFE : VIEW_ORDER_ON_MODEL)
+
+    // Assign positional angles to ALL images in sequence order (ignore filename detection
+    // for angle — sequential position is more reliable than keyword guessing)
+    groupImages.forEach((img, idx) => {
+      img.viewLabel = (positionalOrder[idx % positionalOrder.length] ?? 'front') as ViewLabel
+    })
 
     // Sort within the look by the full VIEW_ORDER_ALL for consistent display
     const orderedChunk = [...groupImages].sort((a, b) => {
@@ -354,32 +355,24 @@ export async function processFiles(
   // Step 4: Angle correction and colour detection per cluster.
   //
   // AI path (always used when NEXT_PUBLIC_AI_DETECTION=true):
-  //   - Sends all cluster images to GPT-4o via /api/ai/detect
-  //   - Returns corrected per-image angles, colour name, and category
-  //   - stillLifeCategory scopes the prompt to only valid angles for that type
-  //
-  // Non-AI fallback:
-  //   - Filename token matching → canvas pixel sampling
-  onProgress({ phase: 'Detecting angles & colours…', done: 0, total: clusters.length })
+  //   - AI (NEXT_PUBLIC_AI_DETECTION=true): sends front image to GPT-4o for colour name
+  //   - Fallback: pixel colour sampling from the front/detail image
+  onProgress({ phase: 'Detecting colours…', done: 0, total: clusters.length })
 
   for (let i = 0; i < clusters.length; i++) {
     const cluster = clusters[i]
 
+    // AI colour detection — GPT-4o gives precise fashion colour names
     if (aiEnabled) {
       try {
-        const base64Images = await Promise.all(
-          cluster.images.map(async (img) => ({
-            id: img.id,
-            filename: img.filename,
-            base64: await imageToBase64(img.file),
-          }))
-        )
+        const frontImg = cluster.images.find((img) => img.viewLabel === 'front') ?? cluster.images[0]
+        const base64 = await imageToBase64(frontImg.file)
 
         const res = await fetch('/api/ai/detect', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            images: base64Images,
+            images: [{ id: frontImg.id, filename: frontImg.filename, base64 }],
             shootType,
             stillLifeCategory: stillLifeCategory ?? undefined,
           }),
@@ -387,22 +380,12 @@ export async function processFiles(
 
         if (res.ok) {
           const { result } = await res.json()
-          if (result) {
-            // Apply corrected angle labels
-            for (const img of cluster.images) {
-              if (result.angles[img.id]) {
-                img.viewLabel = result.angles[img.id]
-                img.viewConfidence = 0.95
-              }
-            }
-            if (result.category) cluster.category = result.category
-            if (result.colour)   cluster.color = result.colour.toUpperCase()
-          }
+          if (result?.colour) cluster.color = result.colour.toUpperCase()
         }
-      } catch { /* fall through to non-AI colour detection */ }
+      } catch { /* fall through */ }
     }
 
-    // Non-AI colour fallback (or supplement if AI didn't set colour)
+    // Pixel colour fallback if AI didn't set colour
     if (!cluster.color) {
       const preferOrder: ViewLabel[] = ['front', 'detail', 'full-length']
       const bestImg =
@@ -414,7 +397,7 @@ export async function processFiles(
       cluster.color = fromFilename ?? await detectColourFromImage(bestImg.file)
     }
 
-    onProgress({ phase: 'Detecting angles & colours…', done: i + 1, total: clusters.length })
+    onProgress({ phase: 'Detecting colours…', done: i + 1, total: clusters.length })
     await new Promise((r) => setTimeout(r, 0))
   }
 
