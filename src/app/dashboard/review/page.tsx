@@ -395,12 +395,12 @@ function ReviewPage() {
           <div className="p-3 border-t border-[var(--line)]">
             <button
               onClick={() => { reset(); router.push('/dashboard/upload') }}
-              className="w-full flex items-center gap-2 px-2 py-[7px] rounded-sm text-left text-[0.75rem] text-[var(--text3)] hover:text-[var(--accent3)] hover:bg-[var(--bg3)] transition-all"
+              className="w-full flex items-center justify-center gap-2 px-3 py-[8px] rounded-sm border border-[var(--line)] text-[0.78rem] font-medium text-[var(--text2)] hover:text-[var(--text)] hover:border-[var(--line2)] bg-[var(--bg3)] hover:bg-[var(--bg4)] transition-all"
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 1v5M3 3L6 1l3 2"/><path d="M2 7v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7"/>
               </svg>
-              New upload
+              New Upload
             </button>
           </div>
         </div>
