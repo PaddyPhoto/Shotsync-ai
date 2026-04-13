@@ -425,7 +425,6 @@ export default function UploadPage() {
                       {[
                         { id: 'ghost-mannequin', label: 'Ghost Mannequin', desc: 'Front & Back', count: 2 },
                         { id: 'accessories',     label: 'Accessories',     desc: 'Front · Side · Detail · Back · Inside', count: 5 },
-                        { id: 'jewellery',       label: 'Jewellery',       desc: 'Angle 1 · Angle 2 · Angle 3', count: 3 },
                       ].map(({ id, label, desc, count }) => (
                         <button
                           key={id}
