@@ -228,8 +228,12 @@ async function generatePixelEmbedding(file: File): Promise<number[]> {
 }
 
 // ── Shot angle labels in display order ───────────────────────────────────────
-// Matches the comprehensive VIEW_ORDER used in step6-angle-detection.ts
-const VIEW_ORDER: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'ghost-mannequin', 'flat-lay', 'top-down', 'inside', 'front-3/4', 'back-3/4']
+// Separate orders per shoot type so positional fallback never assigns
+// still-life-only angles (ghost-mannequin, flat-lay, etc.) to on-model images.
+const VIEW_ORDER_ON_MODEL: ViewLabel[]  = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
+const VIEW_ORDER_STILL_LIFE: ViewLabel[] = ['front', 'detail', 'flat-lay', 'top-down', 'side', 'inside', 'back', 'ghost-mannequin']
+// Full list used only for within-cluster sort ordering
+const VIEW_ORDER_ALL: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'ghost-mannequin', 'flat-lay', 'top-down', 'inside', 'front-3/4', 'back-3/4']
 
 // ── Angle detection from filename ─────────────────────────────────────────────
 // Keywords aligned with step6-angle-detection.ts VIEW_KEYWORDS.
@@ -345,21 +349,23 @@ export async function processFiles(
   for (const [, groupImages] of sortedGroups) {
     const lookNumber = clusters.length + 1
 
-    // Assign positional angles to any images that filename detection left as 'unknown'
+    // Assign positional angles to any images that filename detection left as 'unknown'.
+    // Use shoot-type-specific order so on-model images never get still-life labels.
+    const positionalOrder = shootType === 'still-life' ? VIEW_ORDER_STILL_LIFE : VIEW_ORDER_ON_MODEL
     const unknownCount = { idx: 0 }
     for (const img of groupImages) {
       if (img.viewLabel === 'unknown') {
-        img.viewLabel = VIEW_ORDER[unknownCount.idx % VIEW_ORDER.length]
+        img.viewLabel = positionalOrder[unknownCount.idx % positionalOrder.length]
         unknownCount.idx++
       }
     }
 
-    // Sort within the look by VIEW_ORDER for consistent display
+    // Sort within the look by the full VIEW_ORDER_ALL for consistent display
     const orderedChunk = [...groupImages].sort((a, b) => {
-      const ai = VIEW_ORDER.indexOf(a.viewLabel as ViewLabel)
-      const bi = VIEW_ORDER.indexOf(b.viewLabel as ViewLabel)
-      const aIdx = ai === -1 ? VIEW_ORDER.length : ai
-      const bIdx = bi === -1 ? VIEW_ORDER.length : bi
+      const ai = VIEW_ORDER_ALL.indexOf(a.viewLabel as ViewLabel)
+      const bi = VIEW_ORDER_ALL.indexOf(b.viewLabel as ViewLabel)
+      const aIdx = ai === -1 ? VIEW_ORDER_ALL.length : ai
+      const bIdx = bi === -1 ? VIEW_ORDER_ALL.length : bi
       if (aIdx !== bIdx) return aIdx - bIdx
       return a.seqIndex - b.seqIndex
     })
