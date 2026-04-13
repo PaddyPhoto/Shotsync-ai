@@ -1209,6 +1209,22 @@ function SettingsInner() {
                         <td className="px-4 py-[10px] text-[0.78rem] text-[var(--text3)]">
                           {new Date(inv.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                         </td>
+                        <td className="px-4 py-[10px] text-right">
+                          <button
+                            onClick={async () => {
+                              const { createClient } = await import('@/lib/supabase/client')
+                              const { data: { session } } = await createClient().auth.getSession()
+                              const res = await fetch(`/api/orgs/invite?id=${inv.id}`, {
+                                method: 'DELETE',
+                                headers: { authorization: `Bearer ${session?.access_token}` },
+                              })
+                              if (res.ok) setPendingInvites((prev) => prev.filter((i) => i.id !== inv.id))
+                            }}
+                            className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
+                          >
+                            Revoke
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

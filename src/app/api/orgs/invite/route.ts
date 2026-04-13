@@ -98,6 +98,35 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ data: { inviteUrl, expiresAt: invite.expires_at } })
 }
 
+// DELETE /api/orgs/invite?id=<invite_id> — revoke a pending invite
+export async function DELETE(request: NextRequest) {
+  const auth = await getServiceClientAndUser(request)
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { service: supabase, user } = auth
+
+  const inviteId = request.nextUrl.searchParams.get('id')
+  if (!inviteId) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const { data: membership } = await supabase
+    .from('org_members')
+    .select('org_id')
+    .eq('user_id', user.id)
+    .in('role', ['owner', 'admin'])
+    .limit(1)
+    .single()
+
+  if (!membership) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+
+  const { error } = await supabase
+    .from('org_invites')
+    .delete()
+    .eq('id', inviteId)
+    .eq('org_id', membership.org_id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}
+
 // GET /api/orgs/invite — list pending invites for this org
 export async function GET(request: NextRequest) {
   const auth = await getServiceClientAndUser(request)
