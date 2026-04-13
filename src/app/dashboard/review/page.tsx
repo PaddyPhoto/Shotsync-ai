@@ -971,11 +971,9 @@ function ExportPanel({
       const brandCode = activeBrand?.brand_code ?? 'BRAND'
       const supplierCode = activeBrand?.supplier_code ?? ''
       const season = activeBrand?.season ?? ''
-      // When the marketplace locks its naming convention, always use it.
-      // Otherwise: user's custom template > brand default > marketplace default > fallback.
-      const template = rule.naming_locked
-        ? rule.naming_template
-        : (namingTemplate || activeBrand?.naming_template || rule.naming_template || '{BRAND}_{SEQ}_{VIEW}')
+      // Per-marketplace template (configured in Settings) takes priority.
+      // Falls back to the brand's default naming template, then a hardcoded fallback.
+      const template = rule.naming_template || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
 
       // Flatten all tasks for this marketplace so we can batch-process them in parallel
       type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }

@@ -11,7 +11,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
     max_file_size_kb: 2000,
     background_color: '#FFFFFF',
     naming_template: '{BRAND}_{SKU}_{COLOR}_{VIEW}',
-    naming_locked: true,
+    naming_locked: false,
   },
   myer: {
     id: 'myer',
@@ -23,7 +23,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
     max_file_size_kb: 2000,
     background_color: '#FFFFFF',
     naming_template: '{SKU}_{VIEW}_{INDEX}',
-    naming_locked: true,
+    naming_locked: false,
   },
   'david-jones': {
     id: 'david-jones',
@@ -35,7 +35,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
     max_file_size_kb: 2000,
     background_color: '#F8F8F8',
     naming_template: '{BRAND}_{SKU}_{VIEW}',
-    naming_locked: true,
+    naming_locked: false,
   },
   shopify: {
     id: 'shopify',
