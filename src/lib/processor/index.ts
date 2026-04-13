@@ -126,6 +126,79 @@ function detectAngleFromFilename(filename: string): ViewLabel | null {
   return null
 }
 
+// ── AI boundary detection for variable-size still-life clusters ───────────────
+
+async function fileToBase64(file: File): Promise<string> {
+  const buf = await file.arrayBuffer()
+  const bytes = new Uint8Array(buf)
+  let binary = ''
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
+  return btoa(binary)
+}
+
+/**
+ * Detects product boundaries in a sorted list of files by comparing consecutive
+ * image pairs via GPT-4o. Returns an array of cluster sizes, e.g. [5, 5, 2, 2, 2].
+ * Falls back to null if the API is unavailable or all calls fail.
+ */
+export async function detectBoundaries(
+  files: File[],
+  onProgress: (p: ProcessProgress) => void
+): Promise<number[] | null> {
+  if (files.length < 2) return null
+
+  onProgress({ phase: 'Detecting product boundaries…', done: 0, total: files.length - 1 })
+
+  const CONCURRENCY = 6
+  const boundaries: boolean[] = new Array(files.length - 1).fill(false)
+  let done = 0
+  let anySuccess = false
+
+  // Process all consecutive pairs in parallel batches
+  for (let i = 0; i < files.length - 1; i += CONCURRENCY) {
+    const batch = Array.from({ length: Math.min(CONCURRENCY, files.length - 1 - i) }, (_, k) => i + k)
+    await Promise.all(batch.map(async (idx) => {
+      try {
+        const [b64A, b64B] = await Promise.all([
+          fileToBase64(files[idx]),
+          fileToBase64(files[idx + 1]),
+        ])
+        const res = await fetch('/api/ai/detect-boundary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageA: { base64: b64A, filename: files[idx].name },
+            imageB: { base64: b64B, filename: files[idx + 1].name },
+          }),
+        })
+        if (res.ok) {
+          const { isBoundary } = await res.json()
+          boundaries[idx] = isBoundary
+          anySuccess = true
+        }
+      } catch { /* skip — boundary stays false */ }
+      done++
+      onProgress({ phase: 'Detecting product boundaries…', done, total: files.length - 1 })
+    }))
+  }
+
+  if (!anySuccess) return null
+
+  // Convert boundary flags into cluster sizes
+  const sizes: number[] = []
+  let current = 1
+  for (let i = 0; i < boundaries.length; i++) {
+    if (boundaries[i]) {
+      sizes.push(current)
+      current = 1
+    } else {
+      current++
+    }
+  }
+  sizes.push(current)
+  return sizes
+}
+
 // ── Main entry point ──────────────────────────────────────────────────────────
 
 export interface ProcessProgress {
@@ -140,7 +213,8 @@ export async function processFiles(
   onProgress: (p: ProcessProgress) => void,
   shootType: 'on-model' | 'still-life' = 'on-model',
   stillLifeCategory?: string,
-  angleSequence?: string[]
+  angleSequence?: string[],
+  clusterSizes?: number[]   // AI-detected variable sizes; falls back to fixed imagesPerLook
 ): Promise<SessionCluster[]> {
   const total = files.length
 
@@ -179,8 +253,23 @@ export async function processFiles(
   await new Promise((r) => setTimeout(r, 0))
 
   const sortedGroups: [number, SessionImage[]][] = []
-  for (let i = 0; i < images.length; i += imagesPerLook) {
-    sortedGroups.push([sortedGroups.length, images.slice(i, i + imagesPerLook)])
+  if (clusterSizes?.length) {
+    // Variable-size clustering from AI boundary detection
+    let offset = 0
+    for (const size of clusterSizes) {
+      if (offset >= images.length) break
+      sortedGroups.push([sortedGroups.length, images.slice(offset, offset + size)])
+      offset += size
+    }
+    // Append any remaining images as a final cluster
+    if (offset < images.length) {
+      sortedGroups.push([sortedGroups.length, images.slice(offset)])
+    }
+  } else {
+    // Fixed-size chunking (default)
+    for (let i = 0; i < images.length; i += imagesPerLook) {
+      sortedGroups.push([sortedGroups.length, images.slice(i, i + imagesPerLook)])
+    }
   }
 
   const clusters: SessionCluster[] = []

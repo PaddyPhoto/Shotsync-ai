@@ -8,7 +8,7 @@ import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
 import type { StyleListEntry, ShootType } from '@/store/session'
-import { processFiles } from '@/lib/processor'
+import { processFiles, detectBoundaries } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import type { MarketplaceName } from '@/types'
 
@@ -190,7 +190,20 @@ export default function UploadPage() {
     const effectiveAngleSeq = shootType === 'on-model'
       ? angleSequence
       : (brandStillLifeSeq?.length ? brandStillLifeSeq : undefined)
-    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
+
+    // For still-life, attempt AI boundary detection to handle variable cluster sizes
+    // (e.g. shoes=5 images, scarves=2 images in the same batch).
+    // Falls back to fixed imagesPerLook if OpenAI is unavailable or detection fails.
+    let clusterSizes: number[] | undefined
+    if (shootType === 'still-life') {
+      const sortedFiles = [...files].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+      )
+      const detected = await detectBoundaries(sortedFiles, setProgress)
+      if (detected) clusterSizes = detected
+    }
+
+    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq, clusterSizes)
 
     setSession(name, clusters, marketplaces)
     router.push('/dashboard/review')
