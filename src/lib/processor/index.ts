@@ -186,28 +186,6 @@ async function detectColourFromImage(file: File): Promise<string> {
   })
 }
 
-// ── Resize image to base64 JPEG for AI API calls ─────────────────────────────
-// Resizes to maxSize on the longest edge before encoding — keeps payloads small
-// while retaining enough detail for GPT-4o-mini to describe the product.
-async function imageToBase64(file: File, maxSize = 512): Promise<string> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file)
-    const img = new window.Image()
-    img.onload = () => {
-      const scale = Math.min(1, maxSize / Math.max(img.width || maxSize, img.height || maxSize))
-      const w = Math.max(1, Math.round(img.width * scale))
-      const h = Math.max(1, Math.round(img.height * scale))
-      const canvas = document.createElement('canvas')
-      canvas.width = w; canvas.height = h
-      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
-      URL.revokeObjectURL(url)
-      resolve(canvas.toDataURL('image/jpeg', 0.75).split(',')[1])
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve('') }
-    img.src = url
-  })
-}
-
 // ── Shot angle labels in display order ───────────────────────────────────────
 // Separate orders per shoot type so positional fallback never assigns
 // still-life-only angles (ghost-mannequin, flat-lay, etc.) to on-model images.
@@ -297,8 +275,6 @@ export async function processFiles(
   onProgress({ phase: 'Loading files…', done: total, total })
   await new Promise((r) => setTimeout(r, 0))
 
-  const aiEnabled = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
-
   // Step 3: Group images into looks by sequential chunking.
   // Photographers shoot all angles of one product, then move to the next —
   // so splitting the sorted file list into consecutive groups of imagesPerLook
@@ -352,50 +328,23 @@ export async function processFiles(
     })
   }
 
-  // Step 4: Angle correction and colour detection per cluster.
-  //
-  // AI path (always used when NEXT_PUBLIC_AI_DETECTION=true):
-  //   - AI (NEXT_PUBLIC_AI_DETECTION=true): sends front image to GPT-4o for colour name
-  //   - Fallback: pixel colour sampling from the front/detail image
+  // Step 4: Colour detection per cluster.
+  // Tries filename keywords first (e.g. "BLACK", "NAVY" in the filename),
+  // then falls back to pixel colour sampling from the front/detail image.
+  // Brand colour names come from the style list match on the review page.
   onProgress({ phase: 'Detecting colours…', done: 0, total: clusters.length })
 
   for (let i = 0; i < clusters.length; i++) {
     const cluster = clusters[i]
 
-    // AI colour detection — GPT-4o gives precise fashion colour names
-    if (aiEnabled) {
-      try {
-        const frontImg = cluster.images.find((img) => img.viewLabel === 'front') ?? cluster.images[0]
-        const base64 = await imageToBase64(frontImg.file)
+    const preferOrder: ViewLabel[] = ['front', 'detail', 'full-length']
+    const bestImg =
+      preferOrder.reduce<SessionImage | null>((found, label) =>
+        found ?? cluster.images.find((img) => img.viewLabel === label) ?? null
+      , null) ?? cluster.images[0]
 
-        const res = await fetch('/api/ai/detect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            images: [{ id: frontImg.id, filename: frontImg.filename, base64 }],
-            shootType,
-            stillLifeCategory: stillLifeCategory ?? undefined,
-          }),
-        })
-
-        if (res.ok) {
-          const { result } = await res.json()
-          if (result?.colour) cluster.color = result.colour.toUpperCase()
-        }
-      } catch { /* fall through */ }
-    }
-
-    // Pixel colour fallback if AI didn't set colour
-    if (!cluster.color) {
-      const preferOrder: ViewLabel[] = ['front', 'detail', 'full-length']
-      const bestImg =
-        preferOrder.reduce<SessionImage | null>((found, label) =>
-          found ?? cluster.images.find((img) => img.viewLabel === label) ?? null
-        , null) ?? cluster.images[0]
-
-      const fromFilename = detectColourFromFilename(bestImg.filename)
-      cluster.color = fromFilename ?? await detectColourFromImage(bestImg.file)
-    }
+    const fromFilename = detectColourFromFilename(bestImg.filename)
+    cluster.color = fromFilename ?? await detectColourFromImage(bestImg.file)
 
     onProgress({ phase: 'Detecting colours…', done: i + 1, total: clusters.length })
     await new Promise((r) => setTimeout(r, 0))
