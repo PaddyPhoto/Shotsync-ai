@@ -101,16 +101,31 @@ export default function UploadPage() {
   }, [setStyleList])
   const [jobName, setJobName] = useState('')
   const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(['the-iconic'])
+  const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
   const defaultImagesPerLook = shootType === 'still-life'
     ? (activeBrand?.still_life_images_per_look ?? 2)
     : (activeBrand?.images_per_look ?? 4)
   const [imagesPerLook, setImagesPerLook] = useState<number>(defaultImagesPerLook)
+  const [angleSequence, setAngleSequence] = useState<string[]>(() => {
+    const base = activeBrand?.on_model_angle_sequence?.length
+      ? activeBrand.on_model_angle_sequence
+      : ALL_ON_MODEL_ANGLES
+    return base.slice(0, defaultImagesPerLook)
+  })
+
   // Sync when the active brand changes or shoot type changes
   useEffect(() => {
     if (shootType === 'still-life') {
       setImagesPerLook(activeBrand?.still_life_images_per_look ?? 2)
     } else {
-      setImagesPerLook(activeBrand?.images_per_look ?? 4)
+      const n = activeBrand?.images_per_look ?? 4
+      setImagesPerLook(n)
+      const base = activeBrand?.on_model_angle_sequence?.length
+        ? activeBrand.on_model_angle_sequence
+        : ALL_ON_MODEL_ANGLES
+      const seq = [...base]
+      while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
+      setAngleSequence(seq.slice(0, n))
     }
   }, [activeBrand?.id, shootType])
 
@@ -169,8 +184,7 @@ export default function UploadPage() {
 
     const name = jobName || `Shoot – ${new Date().toLocaleDateString()}`
     setShootConfig(shootType, stillLifeType)
-    const angleSequence = shootType === 'on-model' ? (activeBrand?.on_model_angle_sequence ?? undefined) : undefined
-    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, angleSequence)
+    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, shootType === 'on-model' ? angleSequence : undefined)
 
     setSession(name, clusters, marketplaces)
     router.push('/dashboard/review')
@@ -263,34 +277,39 @@ export default function UploadPage() {
                   </div>
                 </div>
 
-                {/* Images per look */}
+                {/* Images per look + angle sequence (on-model only) */}
                 <div className="border-t border-[var(--line)] pt-4">
                   <div className="flex items-center justify-between mb-[8px]">
-                    <div>
-                      <label className="text-[0.78rem] text-[var(--text2)] block">Images per Look</label>
-                      <p className="text-[0.72rem] text-[var(--text3)] mt-[3px]">
-                        Every {imagesPerLook} image{imagesPerLook !== 1 ? 's' : ''} = one product look ·{' '}
-                        <span style={{ fontFamily: 'var(--font-dm-mono)' }}>
-                          {['Full Length', 'Front', 'Side', 'Mood', 'Detail', 'Back'].slice(0, imagesPerLook).join(' → ')}
-                          {imagesPerLook > 6 ? ' → …' : ''}
-                        </span>
-                      </p>
-                    </div>
+                    <label className="text-[0.78rem] text-[var(--text2)] block">Images per Look</label>
                     {activeBrand && defaultImagesPerLook !== imagesPerLook && (
                       <button
-                        onClick={() => setImagesPerLook(defaultImagesPerLook)}
+                        onClick={() => {
+                          const n = defaultImagesPerLook
+                          setImagesPerLook(n)
+                          const base = activeBrand?.on_model_angle_sequence?.length ? activeBrand.on_model_angle_sequence : ALL_ON_MODEL_ANGLES
+                          const seq = [...base]
+                          while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
+                          setAngleSequence(seq.slice(0, n))
+                        }}
                         className="text-[0.72rem] text-[var(--accent)] hover:underline flex-shrink-0"
                       >
                         Reset to brand default ({defaultImagesPerLook})
                       </button>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mb-4">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                       <button
                         key={n}
                         type="button"
-                        onClick={() => setImagesPerLook(n)}
+                        onClick={() => {
+                          setImagesPerLook(n)
+                          if (shootType === 'on-model') {
+                            const seq = [...angleSequence]
+                            while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
+                            setAngleSequence(seq.slice(0, n))
+                          }
+                        }}
                         className={`w-[40px] h-[40px] rounded-sm border text-[0.85rem] font-medium transition-all ${
                           imagesPerLook === n
                             ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.1)] text-[var(--accent)]'
@@ -301,6 +320,55 @@ export default function UploadPage() {
                       </button>
                     ))}
                   </div>
+
+                  {/* Angle sequence editor — on-model only */}
+                  {shootType === 'on-model' && (
+                    <div>
+                      <p className="text-[0.72rem] text-[var(--text3)] mb-2">Shoot sequence — set the order your photographer shoots each angle</p>
+                      <div className="flex flex-col gap-[6px]">
+                        {angleSequence.slice(0, imagesPerLook).map((angle, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <span className="w-5 text-[0.7rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
+                            <select
+                              value={angle}
+                              onChange={(e) => {
+                                const seq = [...angleSequence]
+                                seq[idx] = e.target.value
+                                setAngleSequence(seq)
+                              }}
+                              className="flex-1 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-2 py-[5px] text-[0.78rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
+                            >
+                              {ALL_ON_MODEL_ANGLES.map((a) => (
+                                <option key={a} value={a}>{a}</option>
+                              ))}
+                            </select>
+                            <div className="flex flex-col gap-[2px]">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => {
+                                  const seq = [...angleSequence]
+                                  ;[seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]
+                                  setAngleSequence(seq)
+                                }}
+                                className="w-5 h-4 flex items-center justify-center text-[0.6rem] text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20"
+                              >▲</button>
+                              <button
+                                type="button"
+                                disabled={idx >= imagesPerLook - 1}
+                                onClick={() => {
+                                  const seq = [...angleSequence]
+                                  ;[seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]
+                                  setAngleSequence(seq)
+                                }}
+                                className="w-5 h-4 flex items-center justify-center text-[0.6rem] text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20"
+                              >▼</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
