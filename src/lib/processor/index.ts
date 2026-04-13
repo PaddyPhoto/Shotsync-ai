@@ -2,6 +2,7 @@
 
 import type { ViewLabel } from '@/types'
 import type { SessionCluster, SessionImage } from '@/store/session'
+import { clusterEmbeddings } from '@/lib/pipeline/step3-clustering'
 
 // ── Colour detection ──────────────────────────────────────────────────────────
 
@@ -93,18 +94,17 @@ const FILENAME_COLOUR_MAP: [string, string][] = [
   ['check', 'CHECK'], ['floral', 'FLORAL'], ['leopard', 'LEOPARD'],
   ['animal', 'ANIMAL'], ['camo', 'CAMO'],
   // Nature-inspired fashion colours
-  ['cactus', 'CACTUS'], ['sage', 'SAGE'], ['moss', 'MOSS'],
-  ['salt', 'SALT'], ['snow', 'SNOW'], ['cloud', 'CLOUD'],
-  ['sand', 'SAND'], ['dune', 'DUNE'], ['desert', 'DESERT'],
+  ['cactus', 'CACTUS'], ['salt', 'SALT'], ['snow', 'SNOW'], ['cloud', 'CLOUD'],
+  ['dune', 'DUNE'], ['desert', 'DESERT'],
   ['clay', 'CLAY'], ['earth', 'EARTH'], ['bark', 'BARK'],
   ['mist', 'MIST'], ['fog', 'FOG'], ['storm', 'STORM'],
   ['ocean', 'OCEAN'], ['sea', 'SEA'], ['lagoon', 'LAGOON'],
-  ['forest', 'FOREST'], ['pine', 'PINE'], ['fern', 'FERN'],
-  ['berry', 'BERRY'], ['fig', 'FIG'], ['grape', 'GRAPE'],
+  ['pine', 'PINE'], ['fern', 'FERN'],
+  ['berry', 'BERRY'], ['fig', 'FIG'],
   ['honey', 'HONEY'], ['ginger', 'GINGER'], ['spice', 'SPICE'],
   ['shell', 'SHELL'], ['pearl', 'PEARL'], ['bone', 'BONE'],
   ['chalk', 'CHALK'], ['milk', 'MILK'], ['linen', 'LINEN'],
-  ['dusk', 'DUSK'], ['dawn', 'DAWN'], ['midnight', 'MIDNIGHT'],
+  ['dusk', 'DUSK'], ['dawn', 'DAWN'],
   ['ink', 'INK'], ['coal', 'COAL'], ['graphite', 'GRAPHITE'],
 ]
 
@@ -186,22 +186,68 @@ async function detectColourFromImage(file: File): Promise<string> {
   })
 }
 
-// ── Shot angle labels in display order ───────────────────────────────────────
-// This is the canonical order images are shot within a look for on-model shoots.
-// When filename detection fails to identify an angle, images are assigned angles
-// positionally — i.e. the 1st image in a chunk → full-length, 2nd → front, etc.
-// Within each cluster, images are also sorted into this display order.
-const VIEW_ORDER: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back']
+// ── Pixel embedding for K-means clustering ────────────────────────────────────
+// Produces a 44-dim normalized vector: 36 hue buckets + 8 lightness buckets.
+// Images of the same product (same colour, similar tones) will have similar
+// vectors, giving the K-means meaningful signal to group them together.
+async function generatePixelEmbedding(file: File): Promise<number[]> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file)
+    const img = new window.Image()
+    img.onload = () => {
+      try {
+        const SIZE = 48
+        const canvas = document.createElement('canvas')
+        canvas.width = SIZE; canvas.height = SIZE
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, SIZE, SIZE)
+        const data = ctx.getImageData(0, 0, SIZE, SIZE).data
+        const hues = new Array(36).fill(0)
+        const lights = new Array(8).fill(0)
+        let total = 0
+        for (let i = 0; i < data.length; i += 4) {
+          const [h, s, l] = rgbToHsl(data[i], data[i + 1], data[i + 2])
+          if (l > 0.92 && s < 0.08) continue // skip white background
+          hues[Math.floor(h / 10)]++
+          lights[Math.min(7, Math.floor(l * 8))]++
+          total++
+        }
+        URL.revokeObjectURL(url)
+        if (total === 0) { resolve(new Array(44).fill(1 / Math.sqrt(44))); return }
+        const vec = [...hues.map((v) => v / total), ...lights.map((v) => v / total)]
+        const mag = Math.sqrt(vec.reduce((s, v) => s + v * v, 0))
+        resolve(mag > 0 ? vec.map((v) => v / mag) : vec)
+      } catch {
+        URL.revokeObjectURL(url)
+        resolve(new Array(44).fill(1 / Math.sqrt(44)))
+      }
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(new Array(44).fill(1 / Math.sqrt(44))) }
+    img.src = url
+  })
+}
 
-// ── Angle detection from filename (used to override positional assignment) ───
-// Keywords are matched as EXACT tokens (split on [-_. ]) — no substring false-positives.
+// ── Shot angle labels in display order ───────────────────────────────────────
+// Matches the comprehensive VIEW_ORDER used in step6-angle-detection.ts
+const VIEW_ORDER: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'ghost-mannequin', 'flat-lay', 'top-down', 'inside', 'front-3/4', 'back-3/4']
+
+// ── Angle detection from filename ─────────────────────────────────────────────
+// Keywords aligned with step6-angle-detection.ts VIEW_KEYWORDS.
+// step6 cannot be imported here directly because it transitively imports
+// next/headers (via @/lib/supabase/server), which is server-only.
 const VIEW_KEYWORDS: [ViewLabel, string[]][] = [
-  ['full-length', ['full', 'fl', 'fl01', 'fl02', 'fullbody', 'fulllength', 'standing']],
-  ['front',       ['front', 'f', 'f01', 'f02', 'f1', 'f2', 'main', 'hero']],
-  ['side',        ['side', 's', 's01', 's02', 's1', 's2', 'profile']],
-  ['mood',        ['mood', 'lifestyle', 'editorial', 'styled', 'ambient']],
-  ['detail',      ['detail', 'd', 'd01', 'd02', 'd1', 'd2', 'close', 'flatlay', 'flat', 'zoom']],
-  ['back',        ['back', 'b', 'b01', 'b02', 'b1', 'b2', 'rear']],
+  ['full-length',     ['full', 'fl', 'fl01', 'fl02', 'fullbody', 'fulllength', 'full-length', 'full_length', 'standing']],
+  ['front',           ['front', 'f', 'f01', 'f02', 'f1', 'f2', 'main', 'hero', 'a01']],
+  ['side',            ['side', 's', 's01', 's02', 's1', 's2', 'profile', 'alt']],
+  ['mood',            ['mood', 'lifestyle', 'editorial', 'styled', 'ambient', 'm01', 'm1']],
+  ['detail',          ['detail', 'd', 'd01', 'd02', 'd1', 'd2', 'close', 'zoom']],
+  ['back',            ['back', 'b', 'b01', 'b02', 'b1', 'b2', 'rear']],
+  ['ghost-mannequin', ['ghost', 'gm', 'gm01', 'gm1', 'mannequin', 'ghostmannequin', 'ghost-mannequin', 'ghost_mannequin']],
+  ['flat-lay',        ['flatlay', 'flat-lay', 'flat_lay', 'lay']],
+  ['top-down',        ['topdown', 'top-down', 'top_down', 'overhead', 'aerial', 'topa']],
+  ['inside',          ['inside', 'interior', 'inner', 'lining', 'open']],
+  ['front-3/4',       ['front34', 'front3q', 'f34', 'threequarter', '3q', 'frontquarter']],
+  ['back-3/4',        ['back34', 'back3q', 'b34', 'backquarter', 'rearquarter']],
 ]
 
 function filenameTokens(filename: string): string[] {
@@ -213,9 +259,10 @@ function filenameTokens(filename: string): string[] {
 }
 
 function detectAngleFromFilename(filename: string): ViewLabel | null {
+  const lower = filename.toLowerCase().replace(/\.[^.]+$/, '')
   const tokens = new Set(filenameTokens(filename))
   for (const [view, kws] of VIEW_KEYWORDS) {
-    if (kws.some((kw) => tokens.has(kw))) return view
+    if (kws.some((kw) => tokens.has(kw) || lower.includes(kw))) return view
   }
   return null
 }
@@ -243,26 +290,19 @@ export async function processFiles(
     a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
   )
 
-  // Step 2: Create session images with preview URLs and assign angle labels.
+  // Step 2: Create session images with preview URLs and angle labels.
   // Angle detection priority:
-  //   1. Filename keyword match (confidence 0.9) — e.g. "hero_front.jpg" → 'front'
-  //   2. Positional assignment (confidence 0.6) — based on the image's index within
-  //      its chunk (e.g. 2nd image in a 4-shot look → VIEW_ORDER[1] = 'front')
-  // Object URLs are created here and must be revoked when the session is reset.
+  //   1. Filename keyword match (confidence 0.9)
+  //   2. Positional assignment (confidence 0.6) — resolved after clustering
   const images: SessionImage[] = sorted.map((file, i) => {
     const detected = detectAngleFromFilename(file.name)
-    // Positional angle = VIEW_ORDER[position within look]
-    const positionInLook = i % imagesPerLook
-    const positionalAngle: ViewLabel = VIEW_ORDER[positionInLook] ?? 'unknown'
-    // Prefer filename-detected angle, fall back to positional
-    const viewLabel = detected ?? positionalAngle
     return {
       id: `img-${i}-${file.name}`,
       file,
       previewUrl: URL.createObjectURL(file),
       filename: file.name,
       seqIndex: i,
-      viewLabel,
+      viewLabel: detected ?? 'unknown',
       viewConfidence: detected ? 0.9 : 0.6,
     }
   })
@@ -270,18 +310,52 @@ export async function processFiles(
   onProgress({ phase: 'Loading files…', done: total, total })
   await new Promise((r) => setTimeout(r, 0))
 
-  // Step 3: Chunk into looks by fixed count
+  // Step 3: Generate pixel embeddings and cluster via K-means cosine similarity.
+  // Each image is represented as a 44-dim colour histogram vector. Images of the
+  // same product look should share similar colour distributions, giving K-means
+  // meaningful signal to group them correctly.
   onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
   await new Promise((r) => setTimeout(r, 0))
 
+  const embeddings = await Promise.all(
+    images.map(async (img) => ({
+      id: img.id,
+      vector: await generatePixelEmbedding(img.file),
+    }))
+  )
+
+  const kHint = Math.max(1, Math.round(images.length / imagesPerLook))
+  const assignments = clusterEmbeddings(embeddings, kHint)
+  const clusterIdMap = new Map(assignments.map((a) => [a.imageId, a.clusterId]))
+
+  // Group images by K-means cluster ID, ordered by lowest seqIndex for stable display order
+  const groupMap = new Map<number, SessionImage[]>()
+  for (const img of images) {
+    const cid = clusterIdMap.get(img.id) ?? 0
+    if (!groupMap.has(cid)) groupMap.set(cid, [])
+    groupMap.get(cid)!.push(img)
+  }
+
+  // Sort groups by their first image's seqIndex so cluster ordering follows camera roll
+  const sortedGroups = [...groupMap.entries()].sort(
+    ([, a], [, b]) => Math.min(...a.map((i) => i.seqIndex)) - Math.min(...b.map((i) => i.seqIndex))
+  )
+
   const clusters: SessionCluster[] = []
-  for (let i = 0; i < images.length; i += imagesPerLook) {
-    const chunk = images.slice(i, i + imagesPerLook)
+  for (const [, groupImages] of sortedGroups) {
     const lookNumber = clusters.length + 1
 
-    // Sort within the look by the VIEW_ORDER — so display order is always
-    // Full Length → Front → Side → Mood → Detail → Back regardless of how files were named
-    const orderedChunk = [...chunk].sort((a, b) => {
+    // Assign positional angles to any images that filename detection left as 'unknown'
+    const unknownCount = { idx: 0 }
+    for (const img of groupImages) {
+      if (img.viewLabel === 'unknown') {
+        img.viewLabel = VIEW_ORDER[unknownCount.idx % VIEW_ORDER.length]
+        unknownCount.idx++
+      }
+    }
+
+    // Sort within the look by VIEW_ORDER for consistent display
+    const orderedChunk = [...groupImages].sort((a, b) => {
       const ai = VIEW_ORDER.indexOf(a.viewLabel as ViewLabel)
       const bi = VIEW_ORDER.indexOf(b.viewLabel as ViewLabel)
       const aIdx = ai === -1 ? VIEW_ORDER.length : ai
@@ -305,28 +379,15 @@ export async function processFiles(
   }
 
   // Step 4: Colour detection (and AI angle correction if enabled).
-  //
-  // AI path (NEXT_PUBLIC_AI_DETECTION=true + OPENAI_API_KEY set):
-  //   - Only called when at least one image in the cluster has an 'unknown' angle.
-  //     If filename detection already resolved all angles, we skip the API call.
-  //   - Sends all images in the cluster to GPT-4o-mini in one batch request.
-  //   - Returns per-image angles, a colour name, and category (still-life only).
-  //
-  // Non-AI fallback (always runs if AI is disabled or the API call fails):
-  //   1. Check filename tokens for colour keywords (fast, no image loading)
-  //   2. Canvas pixel sampling on the best representative image (center 60%)
   const aiEnabled = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
   onProgress({ phase: 'Detecting colours…', done: 0, total: clusters.length })
 
   for (let i = 0; i < clusters.length; i++) {
     const cluster = clusters[i]
 
-    // AI is only called when filename detection left some angles as 'unknown'.
-    // This avoids unnecessary API calls when the shoot was well-named.
     const hasUnknownAngles = cluster.images.some((img) => img.viewLabel === 'unknown')
 
     if (aiEnabled && hasUnknownAngles) {
-      // AI path: convert images to base64 and send the whole cluster in one call
       try {
         const base64Images = await Promise.all(
           cluster.images.map(async (img) => {
@@ -351,18 +412,15 @@ export async function processFiles(
         if (res.ok) {
           const { result } = await res.json()
           if (result) {
-            // Apply AI angle labels
             for (const img of cluster.images) {
               if (result.angles[img.id]) {
                 img.viewLabel = result.angles[img.id]
                 img.viewConfidence = 0.9
               }
             }
-            // Apply AI category (still-life only)
             if (result.category) {
               cluster.category = result.category
             }
-            // Apply AI colour
             if (result.colour) {
               cluster.color = result.colour
               onProgress({ phase: 'Detecting colours…', done: i + 1, total: clusters.length })
