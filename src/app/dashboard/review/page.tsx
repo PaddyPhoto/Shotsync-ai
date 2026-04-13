@@ -16,7 +16,7 @@ import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
 
-const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'ghost-mannequin', 'flat-lay']
+const ALL_VIEWS: ViewLabel[] = ['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4']
 
 const VIEW_CLS: Record<ViewLabel, string> = {
   front:             'shot-front',
@@ -73,7 +73,7 @@ function ReviewPage() {
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
-  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['ghost-mannequin', 'full-length', 'front', 'side', 'mood', 'detail', 'back', 'flat-lay']
+  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
   const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
 
   // Returns the ordered angle sequence for a cluster.
