@@ -187,7 +187,29 @@ async function detectColourFromImage(file: File): Promise<string> {
   })
 }
 
-// ── Pixel embedding for K-means clustering ────────────────────────────────────
+// ── Resize image to base64 JPEG for AI API calls ─────────────────────────────
+// Resizes to maxSize on the longest edge before encoding — keeps payloads small
+// while retaining enough detail for GPT-4o-mini to describe the product.
+async function imageToBase64(file: File, maxSize = 256): Promise<string> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file)
+    const img = new window.Image()
+    img.onload = () => {
+      const scale = Math.min(1, maxSize / Math.max(img.width || maxSize, img.height || maxSize))
+      const w = Math.max(1, Math.round(img.width * scale))
+      const h = Math.max(1, Math.round(img.height * scale))
+      const canvas = document.createElement('canvas')
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.75).split(',')[1])
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve('') }
+    img.src = url
+  })
+}
+
+// ── Pixel embedding for K-means clustering (non-AI fallback) ─────────────────
 // Produces a 44-dim normalized vector: 36 hue buckets + 8 lightness buckets.
 // Images of the same product (same colour, similar tones) will have similar
 // vectors, giving the K-means meaningful signal to group them together.
@@ -316,19 +338,56 @@ export async function processFiles(
   onProgress({ phase: 'Loading files…', done: total, total })
   await new Promise((r) => setTimeout(r, 0))
 
-  // Step 3: Generate pixel embeddings and cluster via K-means cosine similarity.
-  // Each image is represented as a 44-dim colour histogram vector. Images of the
-  // same product look should share similar colour distributions, giving K-means
-  // meaningful signal to group them correctly.
-  onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
+  const aiEnabled = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
+
+  // Step 3: Generate embeddings and cluster via K-means cosine similarity.
+  //
+  // AI path (NEXT_PUBLIC_AI_DETECTION=true):
+  //   - Resize each image to 256px, base64-encode, send to /api/ai/embed
+  //   - Server describes each image with GPT-4o-mini then embeds with
+  //     text-embedding-3-small — semantic vectors group by product, not colour
+  //
+  // Fallback (AI disabled or embed call fails):
+  //   - 44-dim pixel colour histogram — fast, free, good enough for well-sorted shoots
+  onProgress({ phase: aiEnabled ? 'Analysing with AI…' : 'Grouping into looks…', done: 0, total: aiEnabled ? images.length : 1 })
   await new Promise((r) => setTimeout(r, 0))
 
-  const embeddings = await Promise.all(
-    images.map(async (img) => ({
-      id: img.id,
-      vector: await generatePixelEmbedding(img.file),
-    }))
-  )
+  let embeddings: { id: string; vector: number[] }[] = []
+
+  if (aiEnabled) {
+    try {
+      const base64Images = await Promise.all(
+        images.map(async (img, i) => {
+          const b64 = await imageToBase64(img.file)
+          onProgress({ phase: 'Analysing with AI…', done: i + 1, total: images.length })
+          return { id: img.id, filename: img.filename, base64: b64 }
+        })
+      )
+
+      const res = await fetch('/api/ai/embed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: base64Images }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        embeddings = data.embeddings ?? []
+      }
+    } catch { /* fall through to pixel embeddings */ }
+  }
+
+  // Fall back to pixel embeddings if AI is off or the call failed
+  if (embeddings.length !== images.length) {
+    onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
+    await new Promise((r) => setTimeout(r, 0))
+    embeddings = await Promise.all(
+      images.map(async (img) => ({
+        id: img.id,
+        vector: await generatePixelEmbedding(img.file),
+      }))
+    )
+  }
 
   const kHint = Math.max(1, Math.round(images.length / imagesPerLook))
   const assignments = clusterEmbeddings(embeddings, kHint)
@@ -388,75 +447,70 @@ export async function processFiles(
     })
   }
 
-  // Step 4: Colour detection (and AI angle correction if enabled).
-  const aiEnabled = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
-  onProgress({ phase: 'Detecting colours…', done: 0, total: clusters.length })
+  // Step 4: Angle correction and colour detection per cluster.
+  //
+  // AI path (always used when NEXT_PUBLIC_AI_DETECTION=true):
+  //   - Sends all cluster images to GPT-4o via /api/ai/detect
+  //   - Returns corrected per-image angles, colour name, and category
+  //   - stillLifeCategory scopes the prompt to only valid angles for that type
+  //
+  // Non-AI fallback:
+  //   - Filename token matching → canvas pixel sampling
+  onProgress({ phase: 'Detecting angles & colours…', done: 0, total: clusters.length })
 
   for (let i = 0; i < clusters.length; i++) {
     const cluster = clusters[i]
 
-    const hasUnknownAngles = cluster.images.some((img) => img.viewLabel === 'unknown')
-
-    if (aiEnabled && hasUnknownAngles) {
+    if (aiEnabled) {
       try {
         const base64Images = await Promise.all(
-          cluster.images.map(async (img) => {
-            const buf = await img.file.arrayBuffer()
-            const bytes = new Uint8Array(buf)
-            let binary = ''
-            for (let j = 0; j < bytes.byteLength; j++) binary += String.fromCharCode(bytes[j])
-            return {
-              id: img.id,
-              filename: img.filename,
-              base64: btoa(binary),
-            }
-          })
+          cluster.images.map(async (img) => ({
+            id: img.id,
+            filename: img.filename,
+            base64: await imageToBase64(img.file),
+          }))
         )
 
         const res = await fetch('/api/ai/detect', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ images: base64Images, shootType }),
+          body: JSON.stringify({
+            images: base64Images,
+            shootType,
+            stillLifeCategory: stillLifeCategory ?? undefined,
+          }),
         })
 
         if (res.ok) {
           const { result } = await res.json()
           if (result) {
+            // Apply corrected angle labels
             for (const img of cluster.images) {
               if (result.angles[img.id]) {
                 img.viewLabel = result.angles[img.id]
-                img.viewConfidence = 0.9
+                img.viewConfidence = 0.95
               }
             }
-            if (result.category) {
-              cluster.category = result.category
-            }
-            if (result.colour) {
-              cluster.color = result.colour
-              onProgress({ phase: 'Detecting colours…', done: i + 1, total: clusters.length })
-              await new Promise((r) => setTimeout(r, 0))
-              continue
-            }
+            if (result.category) cluster.category = result.category
+            if (result.colour)   cluster.color = result.colour.toUpperCase()
           }
         }
-      } catch { /* fall through to canvas detection */ }
+      } catch { /* fall through to non-AI colour detection */ }
     }
 
-    // Non-AI path: filename tokens first, then canvas pixel sampling
-    const preferOrder: ViewLabel[] = ['front', 'detail', 'full-length']
-    const bestImg =
-      preferOrder.reduce<SessionImage | null>((found, label) =>
-        found ?? cluster.images.find((img) => img.viewLabel === label) ?? null
-      , null) ?? cluster.images[0]
+    // Non-AI colour fallback (or supplement if AI didn't set colour)
+    if (!cluster.color) {
+      const preferOrder: ViewLabel[] = ['front', 'detail', 'full-length']
+      const bestImg =
+        preferOrder.reduce<SessionImage | null>((found, label) =>
+          found ?? cluster.images.find((img) => img.viewLabel === label) ?? null
+        , null) ?? cluster.images[0]
 
-    const fromFilename = detectColourFromFilename(bestImg.filename)
-    if (fromFilename) {
-      cluster.color = fromFilename
-    } else {
-      cluster.color = await detectColourFromImage(bestImg.file)
+      const fromFilename = detectColourFromFilename(bestImg.filename)
+      cluster.color = fromFilename ?? await detectColourFromImage(bestImg.file)
     }
 
-    onProgress({ phase: 'Detecting colours…', done: i + 1, total: clusters.length })
+    onProgress({ phase: 'Detecting angles & colours…', done: i + 1, total: clusters.length })
     await new Promise((r) => setTimeout(r, 0))
   }
 
