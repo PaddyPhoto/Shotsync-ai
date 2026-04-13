@@ -422,28 +422,29 @@ export default function UploadPage() {
                   <div className="border-t border-[var(--line)] pt-3">
                     <label className="text-[0.75rem] font-medium text-[var(--text2)] mb-2 block">Still Life Type</label>
                     <div className="flex gap-2 flex-wrap">
-                      {[
-                        { id: 'ghost-mannequin', label: 'Ghost Mannequin', desc: 'Front & Back', count: 2 },
-                        { id: 'accessories',     label: 'Accessories',     desc: 'Front · Side · Detail · Back · Inside', count: 5 },
-                        { id: 'jewellery',       label: 'Jewellery',       desc: 'Angle 1 · Angle 2 · Angle 3', count: 3 },
-                      ].map(({ id, label, desc, count }) => (
-                        <button
-                          key={id}
-                          type="button"
-                          onClick={() => {
-                            setStillLifeType(id)
-                            setImagesPerLook(count)
-                          }}
-                          className={`flex flex-col items-start px-3 py-2 rounded-sm border text-left transition-all ${
-                            stillLifeType === id
-                              ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.07)] text-[var(--accent)]'
-                              : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)] bg-[var(--bg3)]'
-                          }`}
-                        >
-                          <span className="text-[0.78rem] font-medium">{label}</span>
-                          <span className="text-[0.68rem] text-[var(--text3)] mt-[1px]">{desc}</span>
-                        </button>
-                      ))}
+                      {ACCESSORY_CATEGORIES.map((cat) => {
+                        const customSeq = activeBrand?.still_life_angle_sequences?.[cat.id]
+                        const seq = customSeq?.length ? customSeq : cat.angles
+                        const count = customSeq?.length ? customSeq.length : cat.defaultCount
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setStillLifeType(cat.id)
+                              setImagesPerLook(count)
+                            }}
+                            className={`flex flex-col items-start px-3 py-2 rounded-sm border text-left transition-all ${
+                              stillLifeType === cat.id
+                                ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.07)] text-[var(--accent)]'
+                                : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)] bg-[var(--bg3)]'
+                            }`}
+                          >
+                            <span className="text-[0.78rem] font-medium">{cat.label}</span>
+                            <span className="text-[0.68rem] text-[var(--text3)] mt-[1px]">{seq.join(' · ')}</span>
+                          </button>
+                        )
+                      })}
                     </div>
                     {!stillLifeType && (
                       <p className="text-[0.68rem] text-[var(--text3)] mt-2">Select a type to set the correct angle sequence. You can still change angles per cluster on the review page.</p>
