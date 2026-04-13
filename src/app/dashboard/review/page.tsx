@@ -367,6 +367,14 @@ function ReviewPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar — cluster list */}
         <div className="w-[220px] flex-shrink-0 border-r border-[var(--line)] flex flex-col bg-[var(--bg2)]">
+          <div className="px-3 pt-3 pb-2 border-b border-[var(--line)]">
+            <button
+              onClick={() => { reset(); router.push('/dashboard/upload') }}
+              className="btn btn-ghost btn-sm w-full justify-center"
+            >
+              New Upload
+            </button>
+          </div>
           <div className="p-3 flex-1 overflow-y-auto">
             <p className="text-[0.7rem] text-[var(--text3)] uppercase tracking-[0.08em] mb-2 px-1">
               {clusters.length} clusters
@@ -391,17 +399,6 @@ function ReviewPage() {
                 </div>
               </button>
             ))}
-          </div>
-          <div className="p-3 border-t border-[var(--line)]">
-            <button
-              onClick={() => { reset(); router.push('/dashboard/upload') }}
-              className="w-full flex items-center justify-center gap-2 px-3 py-[8px] rounded-sm border border-[var(--line)] text-[0.78rem] font-medium text-[var(--text2)] hover:text-[var(--text)] hover:border-[var(--line2)] bg-[var(--bg3)] hover:bg-[var(--bg4)] transition-all"
-            >
-              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 1v5M3 3L6 1l3 2"/><path d="M2 7v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7"/>
-              </svg>
-              New Upload
-            </button>
           </div>
         </div>
 
