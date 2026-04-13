@@ -340,54 +340,20 @@ export async function processFiles(
 
   const aiEnabled = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
 
-  // Step 3: Generate embeddings and cluster via K-means cosine similarity.
-  //
-  // AI path (NEXT_PUBLIC_AI_DETECTION=true):
-  //   - Resize each image to 256px, base64-encode, send to /api/ai/embed
-  //   - Server describes each image with GPT-4o-mini then embeds with
-  //     text-embedding-3-small — semantic vectors group by product, not colour
-  //
-  // Fallback (AI disabled or embed call fails):
-  //   - 44-dim pixel colour histogram — fast, free, good enough for well-sorted shoots
-  onProgress({ phase: aiEnabled ? 'Analysing with AI…' : 'Grouping into looks…', done: 0, total: aiEnabled ? images.length : 1 })
+  // Step 3: Cluster images using pixel colour histogram K-means.
+  // Consecutive shoot images share the same background, model, and lighting —
+  // similar pixel distributions reliably group images from the same look.
+  // Semantic/AI embeddings were tried but cluster by garment appearance rather
+  // than shoot context, causing mixed-product clusters.
+  onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
   await new Promise((r) => setTimeout(r, 0))
 
-  let embeddings: { id: string; vector: number[] }[] = []
-
-  if (aiEnabled) {
-    try {
-      const base64Images = await Promise.all(
-        images.map(async (img, i) => {
-          const b64 = await imageToBase64(img.file)
-          onProgress({ phase: 'Analysing with AI…', done: i + 1, total: images.length })
-          return { id: img.id, filename: img.filename, base64: b64 }
-        })
-      )
-
-      const res = await fetch('/api/ai/embed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images: base64Images }),
-      })
-
-      if (res.ok) {
-        const data = await res.json()
-        embeddings = data.embeddings ?? []
-      }
-    } catch { /* fall through to pixel embeddings */ }
-  }
-
-  // Fall back to pixel embeddings if AI is off or the call failed
-  if (embeddings.length !== images.length) {
-    onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
-    await new Promise((r) => setTimeout(r, 0))
-    embeddings = await Promise.all(
-      images.map(async (img) => ({
-        id: img.id,
-        vector: await generatePixelEmbedding(img.file),
-      }))
-    )
-  }
+  const embeddings = await Promise.all(
+    images.map(async (img) => ({
+      id: img.id,
+      vector: await generatePixelEmbedding(img.file),
+    }))
+  )
 
   const kHint = Math.max(1, Math.round(images.length / imagesPerLook))
   const assignments = clusterEmbeddings(embeddings, kHint)
