@@ -552,16 +552,12 @@ function ReviewPage() {
                         >
                           {/* Image */}
                           <div
-                            className={`aspect-[3/4] rounded-[3px] overflow-hidden relative border-2 transition-all ${
-                              isReorderTarget ? 'border-[var(--accent)] shadow-[0_0_0_3px_rgba(232,217,122,0.25)]'
-                              : isSelected ? 'border-[var(--accent)]'
-                              : 'border-transparent'
+                            className={`aspect-[3/4] rounded-[3px] overflow-hidden relative border-2 transition-all cursor-pointer ${
+                              isReorderTarget ? 'border-[var(--accent)] shadow-[0_0_0_3px_rgba(74,158,255,0.25)]'
+                              : isSelected ? 'border-[var(--accent)] shadow-[0_0_0_3px_rgba(74,158,255,0.25)]'
+                              : 'border-transparent hover:border-white/20'
                             }`}
-                            onClick={(e) => {
-                              if (e.shiftKey || e.metaKey || e.ctrlKey) {
-                                toggleSelect(img.id, cluster.id)
-                              }
-                            }}
+                            onClick={() => toggleSelect(img.id, cluster.id)}
                           >
                             <img
                               src={img.previewUrl}
@@ -582,13 +578,6 @@ function ReviewPage() {
                                 ))}
                               </select>
                             </div>
-                            {/* Select indicator */}
-                            <div
-                              className={`absolute top-1 right-1 w-[14px] h-[14px] rounded-full border-2 transition-all ${
-                                isSelected ? 'bg-[var(--accent)] border-[var(--accent)]' : 'border-white/60 opacity-0 group-hover:opacity-100'
-                              }`}
-                              onClick={(e) => { e.stopPropagation(); toggleSelect(img.id, cluster.id) }}
-                            />
                             {/* Duplicate button */}
                             <button
                               onClick={(e) => { e.stopPropagation(); copyImageToCluster(img.id, cluster.id) }}
