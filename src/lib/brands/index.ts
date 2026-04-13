@@ -118,6 +118,9 @@ export function applyNamingTemplate(
       .replace(/\{ANGLE\}/g, view)
       .replace(/\{VIEW\}/g, view)
       .replace(/\{CUSTOM_TEXT\}/g, (vars.customText || '').toUpperCase())
+      // Clean up empty token slots: collapse consecutive underscores and trim edges
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '')
   )
 }
 
