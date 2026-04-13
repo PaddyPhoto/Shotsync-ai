@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react'
 import { cn } from '@/lib/utils'
 import { BrandSwitcher } from './BrandSwitcher'
 import { usePlan } from '@/context/PlanContext'
@@ -74,6 +74,19 @@ const NAV_WORKFLOW: NavItem[] = [
       </svg>
     ),
   },
+  {
+    label: 'Integrations',
+    href: '/dashboard/settings?tab=integrations',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M6 3H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
+        <path d="M10 3h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3" strokeLinecap="round"/>
+        <path d="M6 10H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
+        <path d="M10 10h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3" strokeLinecap="round"/>
+        <path d="M6 4.5h4M6 11.5h4M8 7v2" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
 ]
 
 const NAV_CONFIG: NavItem[] = [
@@ -91,9 +104,13 @@ const NAV_CONFIG: NavItem[] = [
 
 function NavLink({ item }: { item: NavItem }) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [hrefPath, hrefQuery] = item.href.split('?')
   const isActive = item.href === '/dashboard'
     ? pathname === '/dashboard'
-    : pathname.startsWith(item.href.split('?')[0])
+    : hrefQuery
+      ? pathname === hrefPath && searchParams.get('tab') === new URLSearchParams(hrefQuery).get('tab')
+      : pathname.startsWith(hrefPath)
 
   const baseClass = cn(
     'flex items-center gap-[9px] px-[8px] py-[7px] rounded-sm text-[0.8rem] font-normal transition-all duration-150 w-full',
@@ -187,6 +204,7 @@ export function Sidebar() {
       {/* Brand Switcher */}
       <BrandSwitcher />
 
+      <Suspense fallback={null}>
       {/* Workspace */}
       <div className="px-[10px] pt-[14px] pb-[6px]">
         <p className="text-[9px] font-semibold tracking-[0.1em] uppercase text-[var(--text3)] px-[6px] mb-[5px]">
@@ -234,6 +252,8 @@ export function Sidebar() {
           ))}
         </nav>
       </div>
+
+      </Suspense>
 
       {/* Plan indicator — hidden from members */}
       {canSeeBilling && (

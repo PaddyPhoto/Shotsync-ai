@@ -15,7 +15,7 @@ import { applyNamingTemplate } from '@/lib/brands'
 import type { Brand } from '@/lib/brands'
 import type { MarketplaceName, ViewLabel } from '@/types'
 
-type Tab = 'general' | 'shopify' | 'marketplaces' | 'brands' | 'billing' | 'team'
+type Tab = 'general' | 'shopify' | 'marketplaces' | 'brands' | 'billing' | 'team' | 'integrations'
 
 const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
 
@@ -387,6 +387,7 @@ function SettingsInner() {
     { id: 'brands', label: 'Brands' },
     ...(canSeeBilling ? [{ id: 'billing' as Tab, label: 'Billing' }] : []),
     { id: 'team', label: 'Team' },
+    { id: 'integrations', label: 'Integrations' },
   ]
 
   return (
@@ -1232,6 +1233,41 @@ function SettingsInner() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Integrations ─────────────────────────────────────────────────── */}
+      {tab === 'integrations' && (
+        <div className="p-7 pt-0 flex flex-col gap-4 max-w-[760px]">
+          <div className="card">
+            <div className="card-head">
+              <span className="card-title">Marketplace Integrations</span>
+            </div>
+            <div className="card-body">
+              <p className="text-[0.82rem] text-[var(--text3)] mb-4">
+                Direct API integrations with marketplace partners are coming soon. Once enabled, ShotSync will push approved assets directly to each platform — no manual export required.
+              </p>
+              <div className="flex flex-col gap-3">
+                {[
+                  { name: 'THE ICONIC', desc: 'Auto-deliver approved image sets to THE ICONIC Content Portal.' },
+                  { name: 'Myer', desc: 'Push product imagery directly to the Myer supplier portal.' },
+                  { name: 'David Jones', desc: 'Deliver approved assets to David Jones via their content API.' },
+                  { name: 'Shopify', desc: 'Sync product images to your Shopify store on export.' },
+                ].map((mp) => (
+                  <div
+                    key={mp.name}
+                    className="flex items-center justify-between px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)]"
+                  >
+                    <div>
+                      <p className="text-[0.85rem] font-medium text-[var(--text)]">{mp.name}</p>
+                      <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">{mp.desc}</p>
+                    </div>
+                    <span className="chip chip-uploading text-[0.7rem] ml-4 flex-shrink-0">Coming soon</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
