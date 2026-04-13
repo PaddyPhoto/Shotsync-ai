@@ -46,7 +46,7 @@ function ReviewPage() {
   const { activeBrand } = useBrand()
   const {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
-    moveImage, mergeCluster, splitImages, reorderImages, relabelCluster,
+    moveImage, copyImageToCluster, mergeCluster, splitImages, reorderImages, relabelCluster,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
     setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
   } = useSession()
@@ -59,6 +59,7 @@ function ReviewPage() {
 
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null)
+  const [copyMenuImageId, setCopyMenuImageId] = useState<string | null>(null)
   const [draggingImageId, setDraggingImageId] = useState<string | null>(null)
   const [draggingFromCluster, setDraggingFromCluster] = useState<string | null>(null)
   const [dragOverCluster, setDragOverCluster] = useState<string | null>(null)
@@ -401,7 +402,7 @@ function ReviewPage() {
         </div>
 
         {/* Main workspace */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6" onClick={() => setCopyMenuImageId(null)}>
           {/* Selection toolbar */}
           {/* Missing shots summary banner */}
           {(() => {
@@ -587,6 +588,35 @@ function ReviewPage() {
                               }`}
                               onClick={(e) => { e.stopPropagation(); toggleSelect(img.id, cluster.id) }}
                             />
+                            {/* Copy to cluster button */}
+                            <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="relative">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setCopyMenuImageId(copyMenuImageId === img.id ? null : img.id) }}
+                                  className="w-[20px] h-[20px] rounded-[3px] bg-black/60 hover:bg-black/80 flex items-center justify-center transition-colors"
+                                  title="Copy to another cluster"
+                                >
+                                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="4" y="4" width="7" height="7" rx="1"/>
+                                    <path d="M1 8V2a1 1 0 0 1 1-1h6"/>
+                                  </svg>
+                                </button>
+                                {copyMenuImageId === img.id && (
+                                  <div className="absolute top-6 left-0 z-50 bg-[var(--bg)] border border-[var(--line)] rounded-md shadow-lg min-w-[160px] py-1" onClick={(e) => e.stopPropagation()}>
+                                    <p className="px-3 py-1 text-[0.65rem] text-[var(--text3)] uppercase tracking-wide">Copy to cluster</p>
+                                    {clusters.filter((c) => c.id !== cluster.id).map((c) => (
+                                      <button
+                                        key={c.id}
+                                        onClick={() => { copyImageToCluster(img.id, c.id); setCopyMenuImageId(null) }}
+                                        className="w-full text-left px-3 py-[6px] text-[0.75rem] text-[var(--text)] hover:bg-[var(--bg3)] transition-colors"
+                                      >
+                                        {c.label}{c.sku ? ` · ${c.sku}` : ''}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )

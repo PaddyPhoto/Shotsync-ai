@@ -46,6 +46,7 @@ interface SessionState {
   setStyleList: (entries: StyleListEntry[]) => void
   setShootConfig: (shootType: ShootType, accessoryCategory: string | null) => void
   moveImage: (imageId: string, toClusterId: string) => void
+  copyImageToCluster: (imageId: string, toClusterId: string) => void
   mergeCluster: (fromId: string, toId: string) => void
   splitImages: (fromClusterId: string, imageIds: string[]) => void
   updateClusterSku: (clusterId: string, sku: string, productName?: string) => void
@@ -132,6 +133,20 @@ export const useSession = create<SessionState>((set, get) => ({
     )
     // Remove empty clusters
     return { clusters: withMoved.filter((c) => c.images.length > 0) }
+  }),
+
+  copyImageToCluster: (imageId, toClusterId) => set((state) => {
+    const source = state.clusters.flatMap((c) => c.images).find((img) => img.id === imageId)
+    if (!source) return state
+    const copy: SessionImage = {
+      ...source,
+      id: `${source.id}-copy-${Date.now()}`,
+    }
+    return {
+      clusters: state.clusters.map((c) =>
+        c.id === toClusterId ? { ...c, images: [...c.images, copy] } : c
+      ),
+    }
   }),
 
   mergeCluster: (fromId, toId) => set((state) => {
