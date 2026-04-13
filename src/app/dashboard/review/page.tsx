@@ -73,6 +73,8 @@ function ReviewPage() {
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
+  const [detectingCategories, setDetectingCategories] = useState<Set<string>>(new Set())
+
   const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
   const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
 
@@ -184,6 +186,47 @@ function ReviewPage() {
       if (match.styleNumber) updateClusterStyleNumber(cluster.id, match.styleNumber)
     })
   }, [isReady, styleList])
+
+  // Auto-detect accessory category for uncategorised still-life clusters using GPT-4o vision.
+  // Runs once when the session loads. Only fires for still-life shoots with no category set.
+  useEffect(() => {
+    if (!isReady || shootType !== 'still-life') return
+    const uncategorised = clusters.filter((c) => !c.category)
+    if (!uncategorised.length) return
+
+    uncategorised.forEach(async (cluster) => {
+      const firstImage = cluster.images[0]
+      if (!firstImage?.file) return
+
+      setDetectingCategories((prev) => new Set(prev).add(cluster.id))
+      try {
+        // Convert file to base64
+        const arrayBuffer = await firstImage.file.arrayBuffer()
+        const bytes = new Uint8Array(arrayBuffer)
+        let binary = ''
+        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
+        const base64 = btoa(binary)
+
+        const res = await fetch('/api/ai/classify-accessory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ base64, filename: firstImage.filename }),
+        })
+        if (!res.ok) return
+        const { categoryId } = await res.json()
+        if (!categoryId) return
+
+        const cat = getCategoryById(categoryId)
+        if (!cat) return
+        setClusterCategory(cluster.id, categoryId)
+        relabelCluster(cluster.id, cat.angles as ViewLabel[])
+      } catch {
+        // silently skip on error — user can set manually
+      } finally {
+        setDetectingCategories((prev) => { const s = new Set(prev); s.delete(cluster.id); return s })
+      }
+    })
+  }, [isReady, shootType])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -483,23 +526,25 @@ function ReviewPage() {
                       {cluster.label}
                     </span>
                     {shootType === 'still-life' && (
-                      <select
-                        value={cluster.category ?? ''}
-                        onChange={(e) => {
-                          const newCatId = e.target.value || null
-                          setClusterCategory(cluster.id, newCatId)
-                          const newCat = newCatId ? getCategoryById(newCatId) : undefined
-                          const newAngles: ViewLabel[] = newCat ? (newCat.angles as ViewLabel[]) : DEFAULT_VIEW_SEQUENCE
-                          relabelCluster(cluster.id, newAngles)
-                        }}
-                        className="text-[0.68rem] px-[6px] py-[2px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer"
-                        title="Product category"
-                      >
-                        <option value="">— category —</option>
-                        {ACCESSORY_CATEGORIES.map((cat) => (
-                          <option key={cat.id} value={cat.id}>{cat.label}</option>
-                        ))}
-                      </select>
+                      detectingCategories.has(cluster.id)
+                        ? <span className="text-[0.68rem] text-[var(--text3)] animate-pulse px-1">detecting…</span>
+                        : <select
+                            value={cluster.category ?? ''}
+                            onChange={(e) => {
+                              const newCatId = e.target.value || null
+                              setClusterCategory(cluster.id, newCatId)
+                              const newCat = newCatId ? getCategoryById(newCatId) : undefined
+                              const newAngles: ViewLabel[] = newCat ? (newCat.angles as ViewLabel[]) : DEFAULT_VIEW_SEQUENCE
+                              relabelCluster(cluster.id, newAngles)
+                            }}
+                            className="text-[0.68rem] px-[6px] py-[2px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer"
+                            title="Product category"
+                          >
+                            <option value="">— category —</option>
+                            {ACCESSORY_CATEGORIES.map((cat) => (
+                              <option key={cat.id} value={cat.id}>{cat.label}</option>
+                            ))}
+                          </select>
                     )}
                     <div className="flex-1 flex flex-wrap gap-1">
                       {(() => {
