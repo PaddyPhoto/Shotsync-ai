@@ -351,12 +351,6 @@ function ReviewPage() {
               )}
             </button>
             <button
-              onClick={() => { reset(); router.push('/dashboard/upload') }}
-              className="btn btn-ghost btn-sm"
-            >
-              New Job
-            </button>
-            <button
               onClick={() => setShowExportPanel(true)}
               className="btn btn-primary"
             >
@@ -372,8 +366,8 @@ function ReviewPage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar — cluster list */}
-        <div className="w-[220px] flex-shrink-0 border-r border-[var(--line)] overflow-y-auto bg-[var(--bg2)]">
-          <div className="p-3">
+        <div className="w-[220px] flex-shrink-0 border-r border-[var(--line)] flex flex-col bg-[var(--bg2)]">
+          <div className="p-3 flex-1 overflow-y-auto">
             <p className="text-[0.7rem] text-[var(--text3)] uppercase tracking-[0.08em] mb-2 px-1">
               {clusters.length} clusters
             </p>
@@ -397,6 +391,17 @@ function ReviewPage() {
                 </div>
               </button>
             ))}
+          </div>
+          <div className="p-3 border-t border-[var(--line)]">
+            <button
+              onClick={() => { reset(); router.push('/dashboard/upload') }}
+              className="w-full flex items-center gap-2 px-2 py-[7px] rounded-sm text-left text-[0.75rem] text-[var(--text3)] hover:text-[var(--accent3)] hover:bg-[var(--bg3)] transition-all"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 1v5M3 3L6 1l3 2"/><path d="M2 7v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7"/>
+              </svg>
+              New upload
+            </button>
           </div>
         </div>
 
