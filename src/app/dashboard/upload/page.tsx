@@ -133,6 +133,7 @@ export default function UploadPage() {
     }
   }, []) // only on mount
   const [files, setFiles] = useState<File[]>([])
+  const imageGridRef = useRef<HTMLDivElement>(null)
 
   const [progress, setProgress] = useState<ProcessProgress>({ phase: '', done: 0, total: 0 })
   const [isDraggingOver, setIsDraggingOver] = useState(false)
@@ -147,6 +148,7 @@ export default function UploadPage() {
       return [...prev, ...unique]
     })
     setStep('files')
+    setTimeout(() => imageGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
   }, [])
 
   const onDrop = useCallback((e: React.DragEvent) => {
@@ -481,7 +483,7 @@ export default function UploadPage() {
                 )}
 
                 {files.length > 0 && (
-                  <div className="mt-4">
+                  <div className="mt-4" ref={imageGridRef}>
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-[0.8rem] font-medium text-[var(--text2)]">{files.length} images queued</p>
                       <button onClick={() => { setFiles([]); setStep('config') }} className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors">Clear all</button>
