@@ -190,8 +190,9 @@ export async function processFiles(
     // Assign positional angles based on the configured shoot sequence.
     // Priority: still-life category angles > brand angleSequence > shoot-type defaults.
     const categoryAngles = stillLifeCategory ? getCategoryById(stillLifeCategory)?.angles : undefined
-    const positionalOrder: string[] = categoryAngles
-      ?? (shootType === 'on-model' && angleSequence?.length ? angleSequence : null)
+    const positionalOrder: string[] =
+      (angleSequence?.length ? angleSequence : null)   // brand custom sequence always wins
+      ?? categoryAngles                                  // category default
       ?? (shootType === 'still-life' ? VIEW_ORDER_STILL_LIFE : VIEW_ORDER_ON_MODEL)
 
     // Assign positional angles to ALL images in sequence order (ignore filename detection

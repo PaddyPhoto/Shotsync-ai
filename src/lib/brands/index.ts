@@ -13,6 +13,7 @@ export interface Brand {
   images_per_look: number
   still_life_images_per_look: number
   on_model_angle_sequence: string[]
+  still_life_angle_sequences: Record<string, string[]>  // keyed by accessory category id
   naming_template: string
   gm_position: 'first' | 'last' | null
   created_at: string
@@ -139,6 +140,7 @@ export const DEMO_BRANDS: Brand[] = [
     images_per_look: 4,
     still_life_images_per_look: 2,
     on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
+    still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),
@@ -156,6 +158,7 @@ export const DEMO_BRANDS: Brand[] = [
     images_per_look: 4,
     still_life_images_per_look: 2,
     on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
+    still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),
@@ -173,6 +176,7 @@ export const DEMO_BRANDS: Brand[] = [
     images_per_look: 4,
     still_life_images_per_look: 2,
     on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
+    still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     created_at: new Date().toISOString(),
