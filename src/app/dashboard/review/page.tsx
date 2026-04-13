@@ -485,7 +485,13 @@ function ReviewPage() {
                     {shootType === 'still-life' && (
                       <select
                         value={cluster.category ?? ''}
-                        onChange={(e) => setClusterCategory(cluster.id, e.target.value || null)}
+                        onChange={(e) => {
+                          const newCatId = e.target.value || null
+                          setClusterCategory(cluster.id, newCatId)
+                          const newCat = newCatId ? getCategoryById(newCatId) : undefined
+                          const newAngles: ViewLabel[] = newCat ? (newCat.angles as ViewLabel[]) : DEFAULT_VIEW_SEQUENCE
+                          relabelCluster(cluster.id, newAngles)
+                        }}
                         className="text-[0.68rem] px-[6px] py-[2px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer"
                         title="Product category"
                       >
