@@ -658,7 +658,7 @@ function SettingsInner() {
 
         {/* ── Marketplace Rules (editable) ──────────────────────────────────── */}
         {tab === 'marketplaces' && (
-          <div className="flex flex-col gap-4 max-w-[760px]">
+          <div className="flex flex-col gap-8 max-w-[760px]">
 
             {/* Save indicator + reset all */}
             <div className="flex items-center justify-between">
