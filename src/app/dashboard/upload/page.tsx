@@ -449,64 +449,67 @@ export default function UploadPage() {
                   onDragOver={(e) => { e.preventDefault(); setIsDraggingOver(true) }}
                   onDragLeave={() => setIsDraggingOver(false)}
                   onDrop={onDrop}
-                  onClick={() => inputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-md py-12 flex flex-col items-center gap-3 cursor-pointer transition-all duration-150 ${
+                  className={`border-2 border-dashed rounded-md transition-all duration-150 ${
                     isDraggingOver
                       ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.05)]'
-                      : 'border-[var(--line2)] hover:border-[var(--line)] bg-[var(--bg3)]'
+                      : files.length > 0 ? 'border-[var(--line2)] bg-[var(--bg3)]' : 'border-[var(--line2)] hover:border-[var(--line)] bg-[var(--bg3)]'
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-[var(--bg4)] border border-[var(--line2)] flex items-center justify-center">
-                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--text3)" strokeWidth="1.5">
-                      <path d="M11 16V6M7 10l4-4 4 4" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M4 18h14" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-[0.88rem] font-medium text-[var(--text)]">Drop images here</p>
-                    <p className="text-[0.78rem] text-[var(--text3)] mt-1">or click to browse · JPG, PNG · 500–1000+ supported</p>
-                  </div>
-                  <input ref={inputRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
-                </div>
-
-                {files.length > 0 && plan.limits.imagesPerJob !== -1 && files.length > plan.limits.imagesPerJob && (
-                  <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-sm bg-[rgba(232,122,122,0.08)] border border-[rgba(232,122,122,0.2)]">
-                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent3)" strokeWidth="1.5" className="flex-shrink-0">
-                      <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
-                      <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
-                    </svg>
-                    <p className="text-[0.78rem] text-[var(--accent3)]">
-                      {files.length} images selected — your plan allows {plan.limits.imagesPerJob}.{' '}
-                      <button onClick={() => openUpgrade(`Upgrade to process more than ${plan.limits.imagesPerJob} images`)} className="underline hover:no-underline">Upgrade</button>
-                    </p>
-                  </div>
-                )}
-
-                {files.length > 0 && (
-                  <div className="mt-4" ref={imageGridRef}>
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-[0.8rem] font-medium text-[var(--text2)]">{files.length} images queued</p>
-                      <button onClick={() => { setFiles([]); setStep('config') }} className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors">Clear all</button>
+                  {files.length === 0 ? (
+                    <div onClick={() => inputRef.current?.click()} className="py-12 flex flex-col items-center gap-3 cursor-pointer">
+                      <div className="w-12 h-12 rounded-full bg-[var(--bg4)] border border-[var(--line2)] flex items-center justify-center">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--text3)" strokeWidth="1.5">
+                          <path d="M11 16V6M7 10l4-4 4 4" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M4 18h14" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[0.88rem] font-medium text-[var(--text)]">Drop images here</p>
+                        <p className="text-[0.78rem] text-[var(--text3)] mt-1">or click to browse · JPG, PNG · 500–1000+ supported</p>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-[3px]">
-                      {files.slice(0, 40).map((f, i) => (
-                        <div key={i} className="aspect-square rounded-[3px] overflow-hidden bg-[var(--bg4)]">
-                          <img
-                            src={URL.createObjectURL(f)}
-                            alt={f.name}
-                            className="w-full h-full object-cover"
-                            onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
-                          />
+                  ) : (
+                    <div className="p-3" ref={imageGridRef}>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[0.78rem] font-medium text-[var(--text2)]">{files.length} images queued</p>
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => inputRef.current?.click()} className="text-[0.75rem] text-[var(--accent)] hover:underline">+ Add more</button>
+                          <button onClick={() => { setFiles([]); setStep('config') }} className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors">Clear all</button>
                         </div>
-                      ))}
-                      {files.length > 40 && (
-                        <div className="aspect-square rounded-[3px] bg-[var(--bg4)] flex items-center justify-center">
-                          <span className="text-[0.65rem] text-[var(--text3)]">+{files.length - 40}</span>
+                      </div>
+                      <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-[3px]">
+                        {files.slice(0, 80).map((f, i) => (
+                          <div key={i} className="aspect-square rounded-[3px] overflow-hidden bg-[var(--bg4)]">
+                            <img
+                              src={URL.createObjectURL(f)}
+                              alt={f.name}
+                              className="w-full h-full object-cover"
+                              onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                            />
+                          </div>
+                        ))}
+                        {files.length > 80 && (
+                          <div className="aspect-square rounded-[3px] bg-[var(--bg4)] flex items-center justify-center">
+                            <span className="text-[0.65rem] text-[var(--text3)]">+{files.length - 80}</span>
+                          </div>
+                        )}
+                      </div>
+                      {plan.limits.imagesPerJob !== -1 && files.length > plan.limits.imagesPerJob && (
+                        <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-sm bg-[rgba(232,122,122,0.08)] border border-[rgba(232,122,122,0.2)]">
+                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent3)" strokeWidth="1.5" className="flex-shrink-0">
+                            <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
+                            <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
+                          </svg>
+                          <p className="text-[0.78rem] text-[var(--accent3)]">
+                            {files.length} images selected — your plan allows {plan.limits.imagesPerJob}.{' '}
+                            <button onClick={() => openUpgrade(`Upgrade to process more than ${plan.limits.imagesPerJob} images`)} className="underline hover:no-underline">Upgrade</button>
+                          </p>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  )}
+                  <input ref={inputRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
+                </div>
               </div>
             </div>
 
