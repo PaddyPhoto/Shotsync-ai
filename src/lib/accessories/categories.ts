@@ -10,6 +10,26 @@ export interface AccessoryCategory {
 
 export const ACCESSORY_CATEGORIES: AccessoryCategory[] = [
   {
+    id: 'ghost-mannequin',
+    label: 'Ghost Mannequin',
+    angles: ['front', 'back'],
+    defaultCount: 2,
+    angleDisplayNames: { front: 'Front', back: 'Back' },
+  },
+  {
+    id: 'accessories',
+    label: 'Accessories',
+    angles: ['front', 'side', 'detail', 'back', 'inside'],
+    defaultCount: 5,
+  },
+  {
+    id: 'jewellery',
+    label: 'Jewellery',
+    angles: ['front', 'side', 'back'],
+    defaultCount: 3,
+    angleDisplayNames: { front: 'Angle 1', side: 'Angle 2', back: 'Angle 3' },
+  },
+  {
     id: 'bags',
     label: 'Bags & Handbags',
     angles: ['front', 'side', 'detail', 'back', 'inside'],
@@ -32,13 +52,6 @@ export const ACCESSORY_CATEGORIES: AccessoryCategory[] = [
     label: 'Caps & Hats',
     angles: ['front-3/4', 'back-3/4'],
     defaultCount: 2,
-  },
-  {
-    id: 'jewellery',
-    label: 'Jewellery',
-    angles: ['front', 'back'],
-    defaultCount: 2,
-    angleDisplayNames: { front: 'Shot 1', back: 'Shot 2' },
   },
   {
     id: 'scarves',

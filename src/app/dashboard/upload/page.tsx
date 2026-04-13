@@ -40,6 +40,7 @@ export default function UploadPage() {
 
   const [shootType, setShootType] = useState<ShootType>('on-model')
   const [accessoryCategory, setAccessoryCategory] = useState<string | null>(null)
+  const [stillLifeType, setStillLifeType] = useState<string | null>(null)
 
   const [step, setStep] = useState<Step>('config')
   const [styleList, setStyleListLocal] = useState<StyleListEntry[]>([])
@@ -118,7 +119,10 @@ export default function UploadPage() {
     if (!existingSession.isReady || !existingSession.clusters.length) return
     if (existingSession.jobName) setJobName(existingSession.jobName)
     if (existingSession.shootType) setShootType(existingSession.shootType)
-    if (existingSession.accessoryCategory !== null) setAccessoryCategory(existingSession.accessoryCategory)
+    if (existingSession.accessoryCategory !== null) {
+      setAccessoryCategory(existingSession.accessoryCategory)
+      setStillLifeType(existingSession.accessoryCategory)
+    }
     if (existingSession.marketplaces.length) setMarketplaces(existingSession.marketplaces as MarketplaceName[])
     if (existingSession.styleList.length) setStyleListLocal(existingSession.styleList)
     // Reconstruct file list from in-memory cluster images (available as long as page wasn't refreshed)
@@ -162,8 +166,8 @@ export default function UploadPage() {
     setProgress({ phase: 'Starting…', done: 0, total: files.length })
 
     const name = jobName || `Shoot – ${new Date().toLocaleDateString()}`
-    setShootConfig(shootType, null)
-    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType)
+    setShootConfig(shootType, stillLifeType)
+    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined)
 
     setSession(name, clusters, marketplaces)
     router.push('/dashboard/review')
@@ -322,7 +326,7 @@ export default function UploadPage() {
                     <button
                       key={id}
                       type="button"
-                      onClick={() => { setShootType(id); if (id === 'on-model') setAccessoryCategory(null) }}
+                      onClick={() => { setShootType(id); if (id === 'on-model') { setAccessoryCategory(null); setStillLifeType(null) } }}
                       className={`flex flex-col items-start gap-2 p-4 rounded-sm border text-left transition-all ${
                         shootType === id
                           ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.06)] text-[var(--text)]'
@@ -338,9 +342,34 @@ export default function UploadPage() {
 
                 {shootType === 'still-life' && (
                   <div className="border-t border-[var(--line)] pt-3">
-                    <p className="text-[0.75rem] text-[var(--text3)]">
-                      Product category (bags, shoes, jewellery etc.) is detected automatically per cluster by AI when enabled, or can be set manually on the clusters page.
-                    </p>
+                    <label className="text-[0.75rem] font-medium text-[var(--text2)] mb-2 block">Still Life Type</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {[
+                        { id: 'ghost-mannequin', label: 'Ghost Mannequin', desc: 'Front & Back', count: 2 },
+                        { id: 'accessories',     label: 'Accessories',     desc: 'Front · Side · Detail · Back · Inside', count: 5 },
+                        { id: 'jewellery',       label: 'Jewellery',       desc: 'Angle 1 · Angle 2 · Angle 3', count: 3 },
+                      ].map(({ id, label, desc, count }) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => {
+                            setStillLifeType(id)
+                            setImagesPerLook(count)
+                          }}
+                          className={`flex flex-col items-start px-3 py-2 rounded-sm border text-left transition-all ${
+                            stillLifeType === id
+                              ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.07)] text-[var(--accent)]'
+                              : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)] bg-[var(--bg3)]'
+                          }`}
+                        >
+                          <span className="text-[0.78rem] font-medium">{label}</span>
+                          <span className="text-[0.68rem] text-[var(--text3)] mt-[1px]">{desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {!stillLifeType && (
+                      <p className="text-[0.68rem] text-[var(--text3)] mt-2">Select a type to set the correct angle sequence. You can still change angles per cluster on the review page.</p>
+                    )}
                   </div>
                 )}
               </div>

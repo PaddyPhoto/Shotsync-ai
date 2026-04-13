@@ -3,6 +3,7 @@
 import type { ViewLabel } from '@/types'
 import type { SessionCluster, SessionImage } from '@/store/session'
 import { clusterEmbeddings } from '@/lib/pipeline/step3-clustering'
+import { getCategoryById } from '@/lib/accessories/categories'
 
 // ── Colour detection ──────────────────────────────────────────────────────────
 
@@ -283,7 +284,8 @@ export async function processFiles(
   files: File[],
   imagesPerLook: number,
   onProgress: (p: ProcessProgress) => void,
-  shootType: 'on-model' | 'still-life' = 'on-model'
+  shootType: 'on-model' | 'still-life' = 'on-model',
+  stillLifeCategory?: string
 ): Promise<SessionCluster[]> {
   const total = files.length
 
@@ -350,8 +352,10 @@ export async function processFiles(
     const lookNumber = clusters.length + 1
 
     // Assign positional angles to any images that filename detection left as 'unknown'.
-    // Use shoot-type-specific order so on-model images never get still-life labels.
-    const positionalOrder = shootType === 'still-life' ? VIEW_ORDER_STILL_LIFE : VIEW_ORDER_ON_MODEL
+    // Category angles take priority for still-life (ghost-mannequin, accessories, jewellery).
+    // Fall back to shoot-type-specific order so on-model images never get still-life labels.
+    const categoryAngles = stillLifeCategory ? getCategoryById(stillLifeCategory)?.angles : undefined
+    const positionalOrder = categoryAngles ?? (shootType === 'still-life' ? VIEW_ORDER_STILL_LIFE : VIEW_ORDER_ON_MODEL)
     const unknownCount = { idx: 0 }
     for (const img of groupImages) {
       if (img.viewLabel === 'unknown') {
@@ -379,7 +383,7 @@ export async function processFiles(
       colourCode: '',
       styleNumber: '',
       label: shootType === 'still-life' ? `Product ${lookNumber}` : `Look ${lookNumber}`,
-      category: null,
+      category: stillLifeCategory ?? null,
       confirmed: false,
     })
   }
