@@ -195,24 +195,33 @@ function ReviewPage() {
     if (!uncategorised.length) return
 
     uncategorised.forEach(async (cluster) => {
-      const firstImage = cluster.images[0]
-      if (!firstImage?.file) return
+      if (!cluster.images.length) return
 
       setDetectingCategories((prev) => new Set(prev).add(cluster.id))
       try {
-        // Convert file to base64
-        const arrayBuffer = await firstImage.file.arrayBuffer()
-        const bytes = new Uint8Array(arrayBuffer)
-        let binary = ''
-        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
-        const base64 = btoa(binary)
+        // Use up to 3 images for better accuracy. Convert via previewUrl (blob URL)
+        // so it works whether or not the original File object is still in memory.
+        const candidates = cluster.images.slice(0, Math.min(3, cluster.images.length))
+        const images: { base64: string; filename: string }[] = await Promise.all(
+          candidates.map(async (img) => {
+            const res = await fetch(img.previewUrl)
+            const buf = await res.arrayBuffer()
+            const bytes = new Uint8Array(buf)
+            let binary = ''
+            for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
+            return { base64: btoa(binary), filename: img.filename }
+          })
+        )
 
         const res = await fetch('/api/ai/classify-accessory', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64, filename: firstImage.filename }),
+          body: JSON.stringify({ images }),
         })
-        if (!res.ok) return
+        if (!res.ok) {
+          console.warn('[classify-accessory] failed:', res.status)
+          return
+        }
         const { categoryId } = await res.json()
         if (!categoryId) return
 
@@ -220,8 +229,8 @@ function ReviewPage() {
         if (!cat) return
         setClusterCategory(cluster.id, categoryId)
         relabelCluster(cluster.id, cat.angles as ViewLabel[])
-      } catch {
-        // silently skip on error — user can set manually
+      } catch (err) {
+        console.warn('[classify-accessory] error:', err)
       } finally {
         setDetectingCategories((prev) => { const s = new Set(prev); s.delete(cluster.id); return s })
       }
