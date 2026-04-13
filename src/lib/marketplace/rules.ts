@@ -1,6 +1,18 @@
 import type { MarketplaceRule, MarketplaceName, ViewLabel } from '@/types'
 
 export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
+  shopify: {
+    id: 'shopify',
+    name: 'Shopify',
+    required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
+    image_dimensions: { width: 2369, height: 2953 },
+    file_format: 'jpg',
+    quality: 100,
+    max_file_size_kb: 2000,
+    background_color: '#FFFFFF',
+    naming_template: '{SKU}_{VIEW}',
+    naming_locked: false,
+  },
   'the-iconic': {
     id: 'the-iconic',
     name: 'THE ICONIC',
@@ -35,18 +47,6 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
     max_file_size_kb: 2000,
     background_color: '#F8F8F8',
     naming_template: '{BRAND}_{SKU}_{VIEW}',
-    naming_locked: false,
-  },
-  shopify: {
-    id: 'shopify',
-    name: 'Shopify',
-    required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
-    image_dimensions: { width: 2369, height: 2953 },
-    file_format: 'jpg',
-    quality: 100,
-    max_file_size_kb: 2000,
-    background_color: '#FFFFFF',
-    naming_template: '{SKU}_{VIEW}',
     naming_locked: false,
   },
 }
