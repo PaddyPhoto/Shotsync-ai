@@ -2,7 +2,6 @@
 
 import type { ViewLabel } from '@/types'
 import type { SessionCluster, SessionImage } from '@/store/session'
-import { clusterEmbeddings } from '@/lib/pipeline/step3-clustering'
 import { getCategoryById } from '@/lib/accessories/categories'
 
 // ── Colour detection ──────────────────────────────────────────────────────────
@@ -209,47 +208,6 @@ async function imageToBase64(file: File, maxSize = 256): Promise<string> {
   })
 }
 
-// ── Pixel embedding for K-means clustering (non-AI fallback) ─────────────────
-// Produces a 44-dim normalized vector: 36 hue buckets + 8 lightness buckets.
-// Images of the same product (same colour, similar tones) will have similar
-// vectors, giving the K-means meaningful signal to group them together.
-async function generatePixelEmbedding(file: File): Promise<number[]> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file)
-    const img = new window.Image()
-    img.onload = () => {
-      try {
-        const SIZE = 48
-        const canvas = document.createElement('canvas')
-        canvas.width = SIZE; canvas.height = SIZE
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0, SIZE, SIZE)
-        const data = ctx.getImageData(0, 0, SIZE, SIZE).data
-        const hues = new Array(36).fill(0)
-        const lights = new Array(8).fill(0)
-        let total = 0
-        for (let i = 0; i < data.length; i += 4) {
-          const [h, s, l] = rgbToHsl(data[i], data[i + 1], data[i + 2])
-          if (l > 0.92 && s < 0.08) continue // skip white background
-          hues[Math.floor(h / 10)]++
-          lights[Math.min(7, Math.floor(l * 8))]++
-          total++
-        }
-        URL.revokeObjectURL(url)
-        if (total === 0) { resolve(new Array(44).fill(1 / Math.sqrt(44))); return }
-        const vec = [...hues.map((v) => v / total), ...lights.map((v) => v / total)]
-        const mag = Math.sqrt(vec.reduce((s, v) => s + v * v, 0))
-        resolve(mag > 0 ? vec.map((v) => v / mag) : vec)
-      } catch {
-        URL.revokeObjectURL(url)
-        resolve(new Array(44).fill(1 / Math.sqrt(44)))
-      }
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(new Array(44).fill(1 / Math.sqrt(44))) }
-    img.src = url
-  })
-}
-
 // ── Shot angle labels in display order ───────────────────────────────────────
 // Separate orders per shoot type so positional fallback never assigns
 // still-life-only angles (ghost-mannequin, flat-lay, etc.) to on-model images.
@@ -340,37 +298,17 @@ export async function processFiles(
 
   const aiEnabled = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
 
-  // Step 3: Cluster images using pixel colour histogram K-means.
-  // Consecutive shoot images share the same background, model, and lighting —
-  // similar pixel distributions reliably group images from the same look.
-  // Semantic/AI embeddings were tried but cluster by garment appearance rather
-  // than shoot context, causing mixed-product clusters.
+  // Step 3: Group images into looks by sequential chunking.
+  // Photographers shoot all angles of one product, then move to the next —
+  // so splitting the sorted file list into consecutive groups of imagesPerLook
+  // is deterministic and matches camera roll order exactly.
   onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
   await new Promise((r) => setTimeout(r, 0))
 
-  const embeddings = await Promise.all(
-    images.map(async (img) => ({
-      id: img.id,
-      vector: await generatePixelEmbedding(img.file),
-    }))
-  )
-
-  const kHint = Math.max(1, Math.round(images.length / imagesPerLook))
-  const assignments = clusterEmbeddings(embeddings, kHint)
-  const clusterIdMap = new Map(assignments.map((a) => [a.imageId, a.clusterId]))
-
-  // Group images by K-means cluster ID, ordered by lowest seqIndex for stable display order
-  const groupMap = new Map<number, SessionImage[]>()
-  for (const img of images) {
-    const cid = clusterIdMap.get(img.id) ?? 0
-    if (!groupMap.has(cid)) groupMap.set(cid, [])
-    groupMap.get(cid)!.push(img)
+  const sortedGroups: [number, SessionImage[]][] = []
+  for (let i = 0; i < images.length; i += imagesPerLook) {
+    sortedGroups.push([sortedGroups.length, images.slice(i, i + imagesPerLook)])
   }
-
-  // Sort groups by their first image's seqIndex so cluster ordering follows camera roll
-  const sortedGroups = [...groupMap.entries()].sort(
-    ([, a], [, b]) => Math.min(...a.map((i) => i.seqIndex)) - Math.min(...b.map((i) => i.seqIndex))
-  )
 
   const clusters: SessionCluster[] = []
   for (const [, groupImages] of sortedGroups) {
