@@ -277,7 +277,48 @@ export default function UploadPage() {
                   </div>
                 </div>
 
-                {/* Images per look + angle sequence (on-model only) */}
+              </div>
+            </div>
+
+            {/* Shoot Type */}
+            <div className="card mb-6">
+              <div className="card-head"><span className="card-title">Shoot Type</span></div>
+              <div className="card-body flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    { id: 'on-model', label: 'On-Model', desc: 'Clothing worn by a model — front, back, side, full-length, mood', icon: (
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <circle cx="10" cy="5" r="2.5"/>
+                        <path d="M6 20v-6l-2-4h12l-2 4v6" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M8 20v-5M12 20v-5" strokeLinecap="round"/>
+                      </svg>
+                    )},
+                    { id: 'still-life', label: 'Still Life', desc: 'Accessories & products shot without a model', icon: (
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="7" width="14" height="10" rx="1.5"/>
+                        <path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/>
+                        <circle cx="10" cy="12" r="1.5"/>
+                      </svg>
+                    )},
+                  ] as { id: ShootType; label: string; desc: string; icon: React.ReactNode }[]).map(({ id, label, desc, icon }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => { setShootType(id); if (id === 'on-model') { setAccessoryCategory(null); setStillLifeType(null) } }}
+                      className={`flex flex-col items-start gap-2 p-4 rounded-sm border text-left transition-all ${
+                        shootType === id
+                          ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.06)] text-[var(--text)]'
+                          : 'border-[var(--line2)] bg-[var(--bg3)] text-[var(--text2)] hover:border-[var(--line)] hover:text-[var(--text)]'
+                      }`}
+                    >
+                      <span className={shootType === id ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}>{icon}</span>
+                      <span className="text-[0.85rem] font-semibold">{label}</span>
+                      <span className="text-[0.72rem] text-[var(--text3)] leading-snug">{desc}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Images per look + angle sequence */}
                 <div className="border-t border-[var(--line)] pt-4">
                   <div className="flex items-center justify-between mb-[8px]">
                     <label className="text-[0.78rem] text-[var(--text2)] block">Images per Look</label>
@@ -369,46 +410,6 @@ export default function UploadPage() {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
-
-            {/* Shoot Type */}
-            <div className="card mb-6">
-              <div className="card-head"><span className="card-title">Shoot Type</span></div>
-              <div className="card-body flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {([
-                    { id: 'on-model', label: 'On-Model', desc: 'Clothing worn by a model — front, back, side, full-length, mood', icon: (
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <circle cx="10" cy="5" r="2.5"/>
-                        <path d="M6 20v-6l-2-4h12l-2 4v6" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M8 20v-5M12 20v-5" strokeLinecap="round"/>
-                      </svg>
-                    )},
-                    { id: 'still-life', label: 'Still Life', desc: 'Accessories & products shot without a model', icon: (
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="3" y="7" width="14" height="10" rx="1.5"/>
-                        <path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/>
-                        <circle cx="10" cy="12" r="1.5"/>
-                      </svg>
-                    )},
-                  ] as { id: ShootType; label: string; desc: string; icon: React.ReactNode }[]).map(({ id, label, desc, icon }) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => { setShootType(id); if (id === 'on-model') { setAccessoryCategory(null); setStillLifeType(null) } }}
-                      className={`flex flex-col items-start gap-2 p-4 rounded-sm border text-left transition-all ${
-                        shootType === id
-                          ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.06)] text-[var(--text)]'
-                          : 'border-[var(--line2)] bg-[var(--bg3)] text-[var(--text2)] hover:border-[var(--line)] hover:text-[var(--text)]'
-                      }`}
-                    >
-                      <span className={shootType === id ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}>{icon}</span>
-                      <span className="text-[0.85rem] font-semibold">{label}</span>
-                      <span className="text-[0.72rem] text-[var(--text3)] leading-snug">{desc}</span>
-                    </button>
-                  ))}
                 </div>
 
                 {shootType === 'still-life' && (
