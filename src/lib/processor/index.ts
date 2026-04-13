@@ -4,41 +4,7 @@ import type { ViewLabel } from '@/types'
 import type { SessionCluster, SessionImage } from '@/store/session'
 import { getCategoryById } from '@/lib/accessories/categories'
 
-// ── Colour detection ──────────────────────────────────────────────────────────
-
-function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-  r /= 255; g /= 255; b /= 255
-  const max = Math.max(r, g, b), min = Math.min(r, g, b)
-  const l = (max + min) / 2
-  if (max === min) return [0, 0, l]
-  const d = max - min
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-  let h = 0
-  switch (max) {
-    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
-    case g: h = ((b - r) / d + 2) / 6; break
-    case b: h = ((r - g) / d + 4) / 6; break
-  }
-  return [h * 360, s, l]
-}
-
-function hslToColorName(h: number, s: number, l: number): string {
-  if (l < 0.15) return 'BLACK'
-  if (l > 0.88 && s < 0.15) return 'WHITE'
-  if (s < 0.12) return l < 0.45 ? 'CHARCOAL' : 'GREY'
-  if (l < 0.30 && h >= 200 && h < 270) return 'NAVY'
-  if (l < 0.35 && s < 0.25) return 'BROWN'
-  if (l > 0.75 && s < 0.30) return 'CREAM'
-  if ((h >= 0 && h < 15) || h >= 345) return 'RED'
-  if (h >= 15 && h < 42) return 'ORANGE'
-  if (h >= 42 && h < 70) return 'YELLOW'
-  if (h >= 70 && h < 160) return 'GREEN'
-  if (h >= 160 && h < 200) return 'TEAL'
-  if (h >= 200 && h < 255) return 'BLUE'
-  if (h >= 255 && h < 300) return 'PURPLE'
-  return 'PINK'
-}
-
+// ── Colour keyword map (used by review page style list auto-match) ────────────
 // Try to detect colour from filename tokens first (fast, no canvas needed)
 const FILENAME_COLOUR_MAP: [string, string][] = [
   // Blacks
@@ -114,76 +80,6 @@ export function detectColourFromFilename(filename: string): string | null {
     if (tokens.has(kw)) return colour
   }
   return null
-}
-
-async function detectColourFromImage(file: File): Promise<string> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file)
-    const img = new window.Image()
-    img.onload = () => {
-      try {
-        const SIZE = 80
-        const canvas = document.createElement('canvas')
-        canvas.width = SIZE
-        canvas.height = SIZE
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0, SIZE, SIZE)
-
-        const data = ctx.getImageData(0, 0, SIZE, SIZE).data
-
-        // Sample the center 60% of the image (avoid white background edges)
-        const margin = Math.floor(SIZE * 0.2)
-        const hueBuckets = new Array(36).fill(0)
-        let sampled = 0
-
-        for (let y = margin; y < SIZE - margin; y++) {
-          for (let x = margin; x < SIZE - margin; x++) {
-            const idx = (y * SIZE + x) * 4
-            const r = data[idx], g = data[idx + 1], b = data[idx + 2]
-            const [h, s, l] = rgbToHsl(r, g, b)
-            // Skip near-white pixels (likely background) and very dark pixels
-            if (l > 0.85 && s < 0.15) continue
-            if (l < 0.08) continue
-            // For clearly dark/neutral pixels, still count them
-            if (s < 0.08) { hueBuckets[0] += 0.5; sampled += 0.5; continue }
-            hueBuckets[Math.floor(h / 10)]++
-            sampled++
-          }
-        }
-
-        if (sampled < 10) { URL.revokeObjectURL(url); resolve(''); return }
-
-        // Find most dominant hue bucket
-        let maxBucket = 0, maxCount = 0
-        for (let i = 0; i < hueBuckets.length; i++) {
-          if (hueBuckets[i] > maxCount) { maxCount = hueBuckets[i]; maxBucket = i }
-        }
-
-        // Build dominant hue — average hue, s, l from that bucket's pixels
-        let sumH = 0, sumS = 0, sumL = 0, count = 0
-        for (let y = margin; y < SIZE - margin; y++) {
-          for (let x = margin; x < SIZE - margin; x++) {
-            const idx = (y * SIZE + x) * 4
-            const [h, s, l] = rgbToHsl(data[idx], data[idx + 1], data[idx + 2])
-            if (l > 0.85 && s < 0.15) continue
-            if (l < 0.08) continue
-            if (s < 0.08) continue
-            if (Math.floor(h / 10) === maxBucket) { sumH += h; sumS += s; sumL += l; count++ }
-          }
-        }
-
-        URL.revokeObjectURL(url)
-
-        if (count === 0) { resolve(''); return }
-        resolve(hslToColorName(sumH / count, sumS / count, sumL / count))
-      } catch {
-        URL.revokeObjectURL(url)
-        resolve('')
-      }
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve('') }
-    img.src = url
-  })
 }
 
 // ── Shot angle labels in display order ───────────────────────────────────────
@@ -328,28 +224,7 @@ export async function processFiles(
     })
   }
 
-  // Step 4: Colour detection per cluster.
-  // Tries filename keywords first (e.g. "BLACK", "NAVY" in the filename),
-  // then falls back to pixel colour sampling from the front/detail image.
-  // Brand colour names come from the style list match on the review page.
-  onProgress({ phase: 'Detecting colours…', done: 0, total: clusters.length })
-
-  for (let i = 0; i < clusters.length; i++) {
-    const cluster = clusters[i]
-
-    const preferOrder: ViewLabel[] = ['front', 'detail', 'full-length']
-    const bestImg =
-      preferOrder.reduce<SessionImage | null>((found, label) =>
-        found ?? cluster.images.find((img) => img.viewLabel === label) ?? null
-      , null) ?? cluster.images[0]
-
-    const fromFilename = detectColourFromFilename(bestImg.filename)
-    cluster.color = fromFilename ?? await detectColourFromImage(bestImg.file)
-
-    onProgress({ phase: 'Detecting colours…', done: i + 1, total: clusters.length })
-    await new Promise((r) => setTimeout(r, 0))
-  }
-
+  // Colour is left blank — populated from style list import on the review page.
   onProgress({ phase: 'Done', done: total, total })
   return clusters
 }
