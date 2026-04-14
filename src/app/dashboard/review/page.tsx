@@ -191,7 +191,10 @@ function ReviewPage() {
   // Runs once when the session loads. Only fires for still-life shoots with no category set.
   useEffect(() => {
     if (!isReady || shootType !== 'still-life') return
-    const uncategorised = clusters.filter((c) => !c.category)
+    // Treat null AND generic 'accessories' as uncategorised — the upload page assigns
+    // 'accessories' as a catch-all when the user picks Still Life → Accessories, but
+    // we want AI to refine that into shoes/bags/jewellery/etc. per cluster.
+    const uncategorised = clusters.filter((c) => !c.category || c.category === 'accessories')
     if (!uncategorised.length) return
 
     uncategorised.forEach(async (cluster) => {
@@ -199,27 +202,38 @@ function ReviewPage() {
 
       setDetectingCategories((prev) => new Set(prev).add(cluster.id))
       try {
-        // Use up to 3 images for better accuracy. Convert via previewUrl (blob URL)
-        // so it works whether or not the original File object is still in memory.
-        const candidates = cluster.images.slice(0, Math.min(3, cluster.images.length))
-        const images: { base64: string; filename: string }[] = await Promise.all(
-          candidates.map(async (img) => {
-            const res = await fetch(img.previewUrl)
-            const buf = await res.arrayBuffer()
-            const bytes = new Uint8Array(buf)
-            let binary = ''
-            for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
-            return { base64: btoa(binary), filename: img.filename }
-          })
-        )
+        // Resize first image to 512×512 JPEG on canvas before sending.
+        // Product photos can be 5–10MB — resizing keeps the payload small and
+        // ensures a valid JPEG regardless of original format.
+        const img = cluster.images[0]
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const image = new Image()
+          image.onload = () => {
+            const canvas = document.createElement('canvas')
+            canvas.width = 512
+            canvas.height = 512
+            const ctx = canvas.getContext('2d')!
+            ctx.fillStyle = '#ffffff'
+            ctx.fillRect(0, 0, 512, 512)
+            // Centre-crop to square
+            const size = Math.min(image.width, image.height)
+            const sx = (image.width - size) / 2
+            const sy = (image.height - size) / 2
+            ctx.drawImage(image, sx, sy, size, size, 0, 0, 512, 512)
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+            resolve(dataUrl.split(',')[1])
+          }
+          image.onerror = reject
+          image.src = img.previewUrl
+        })
 
         const res = await fetch('/api/ai/classify-accessory', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ images }),
+          body: JSON.stringify({ images: [{ base64, filename: 'image.jpg' }] }),
         })
         if (!res.ok) {
-          console.warn('[classify-accessory] failed:', res.status)
+          console.warn('[classify-accessory] failed:', res.status, await res.text())
           return
         }
         const { categoryId } = await res.json()
