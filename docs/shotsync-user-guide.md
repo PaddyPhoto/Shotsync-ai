@@ -27,6 +27,9 @@ Brand Setup → Upload → Review → Export
 
 Brand setup is a one-time configuration. Once it's done, your day-to-day workflow is Upload → Review → Export.
 
+![Overview — ShotSync.ai dashboard showing the four-step workflow](images/01-dashboard-overview.png)
+_The ShotSync.ai dashboard. Recent jobs, marketplace status, and quick actions are visible at a glance._
+
 ---
 
 ## Step 1 — Brand Setup
@@ -42,6 +45,9 @@ Brand setup tells ShotSync.ai how your files should be named when exported. You 
 3. Click **New Brand**.
 4. Enter your brand name (e.g. `My Brand`).
 5. Enter a short brand code (e.g. `MB`) — this is used in filenames.
+
+![Brand setup — creating a new brand](images/02-settings-brands.png)
+_The Brands tab in Settings. Each brand has its own naming template and angle sequences._
 
 ### 1.2 Set Your Naming Template
 
@@ -71,9 +77,12 @@ The naming template defines the structure of your exported filenames. It uses to
 | `{BRAND}_{SKU}_{COLOR}_{VIEW}` | `MB_NS27502_BLACK_FRONT.jpg` |
 | `{SKU}_{VIEW}_{INDEX}` | `NS27502_FRONT_01.jpg` |
 
-**To build your template:** Click the token buttons to add them in order. Tokens are joined with underscores automatically. Drag to reorder or click an existing token to remove it.
+**To build your template:** Click the token buttons to add them in order. Tokens are joined with underscores automatically. Click an active token to remove it.
 
 > **Note:** If a token has no value (e.g. no colour was entered for a cluster), it is automatically dropped from the filename — no double underscores will appear.
+
+![Naming template builder — token chips](images/03-naming-template.png)
+_Click tokens to build your naming pattern. The live preview below shows an example filename._
 
 ### 1.3 Marketplace Naming Rules
 
@@ -83,6 +92,9 @@ Each marketplace (Shopify, THE ICONIC, David Jones, Myer) can have its own namin
 
 - If a marketplace has no custom template set, it uses your brand's default template.
 - You can customise each marketplace independently to meet their specific requirements.
+
+![Marketplace naming rules](images/04-settings-marketplaces.png)
+_Each marketplace card has its own naming template. Changes here override the brand default for that marketplace only._
 
 ### 1.4 Still Life Angle Sequences (Accessories)
 
@@ -98,11 +110,17 @@ For example, for **Shoes** you might set: `Front → Side → Back → Detail �
 - Use **+ Add angle** to add more.
 - Click **Reset** to restore the default sequence for that category.
 
+![Still life angle sequences per accessory category](images/05-still-life-sequences.png)
+_Each accessory category has its own collapsible sequence editor. The order here determines how angles are assigned to images in a cluster._
+
 ---
 
 ## Step 2 — Upload
 
 > **Where:** Dashboard → Upload (or click **New Job** in the sidebar)
+
+![Upload page — job configuration](images/06-upload-page.png)
+_The Upload page. Configure your job before dropping in images._
 
 ### 2.1 Configure Your Job
 
@@ -116,6 +134,9 @@ Choose the type of shoot you're uploading:
 - **Still Life** — product photography without a model. Choose a sub-type:
   - **Ghost Mannequin** — clothing on an invisible ghost mannequin. Angles: Front, Back.
   - **Accessories** — shoes, bags, jewellery, and other accessories. Angles: Front, Side, Detail, Back, Inside. AI will automatically identify the specific accessory type per cluster on the review page.
+
+![Shoot type selector — On-Model vs Still Life](images/07-shoot-type.png)
+_Select On-Model or Still Life. For Still Life, a second selector appears for Ghost Mannequin or Accessories._
 
 **Images per Look**
 Set how many images make up one complete product look (e.g. if each product has 5 shots, set this to 5). ShotSync.ai uses this number to group your images into clusters — it splits the uploaded files sequentially into groups of this size.
@@ -131,6 +152,9 @@ Upload your brand's range list to automatically populate SKU, product name, colo
 **How matching works:** ShotSync.ai looks at each image filename in a cluster. If the filename contains a SKU from your spreadsheet, it assigns that SKU and its associated data to the cluster automatically.
 
 For this to work reliably, **include the SKU in your image filenames** when shooting (e.g. `NS27502_BLACK_FRONT.jpg`).
+
+![Style list import](images/08-style-list.png)
+_Once imported, the style list shows how many styles and colour variants were found._
 
 **Expected columns in your spreadsheet:**
 
@@ -152,6 +176,9 @@ Drag and drop your images (or click to browse). Supported formats: `.jpg`, `.jpe
 
 Once uploaded, click **Process** to begin grouping.
 
+![Image upload drop zone](images/09-image-upload.png)
+_Drag and drop your shoot images. Files are sorted alphabetically before grouping._
+
 ---
 
 ## Step 3 — Review
@@ -160,15 +187,20 @@ Once uploaded, click **Process** to begin grouping.
 
 This is where you verify and refine your clusters before export.
 
+![Review page — clusters overview](images/10-review-clusters.png)
+_The Review page showing grouped clusters. Each card represents one product look._
+
 ### 3.1 What You'll See
 
 Each cluster represents one product look. It shows:
-- The images grouped together
-- The angle label assigned to each image (Front, Side, Back, etc.)
+- The images grouped together with their angle labels
 - The SKU, colour, and other metadata fields
-- A confirmation checkbox
+- A Confirm button
 
-**Still Life — Accessories:** If you uploaded accessories, ShotSync.ai will automatically use AI to identify the specific accessory type (shoes, bags, jewellery, etc.) for each cluster and apply the correct angle sequence. This happens in the background when the review page loads — you'll see a brief loading indicator on each cluster.
+**Still Life — Accessories:** ShotSync.ai will automatically use AI to identify the specific accessory type (shoes, bags, jewellery, etc.) for each cluster and apply the correct angle sequence. This happens in the background when the review page loads — you'll see a brief "detecting…" indicator on each cluster.
+
+![AI detecting accessory category on a cluster](images/11-ai-detecting.png)
+_The "detecting…" indicator shows the AI is identifying the accessory type. It updates the category dropdown and angle sequence automatically._
 
 ### 3.2 Editing Cluster Details
 
@@ -181,31 +213,49 @@ Each cluster has editable fields:
 
 > These fields feed the naming template tokens. Empty fields are simply omitted from the filename.
 
+![Cluster detail fields — SKU, colour, style number](images/12-cluster-fields.png)
+_Cluster fields auto-fill from the style list when a SKU match is found. All fields are editable._
+
 ### 3.3 Editing Image Angles
 
 Each image in a cluster has an angle label. If the automatic assignment is wrong:
 - Click the angle label on an image to change it via the dropdown.
 - Images within a cluster can be reordered by dragging.
 
+![Angle label dropdown on an image](images/13-angle-dropdown.png)
+_Click an image's angle label to change it. Drag images to reorder them within the cluster._
+
 ### 3.4 Accessory Category
 
 For still-life clusters, a category dropdown appears at the top of the cluster. The AI will pre-select this, but you can manually change it if needed. Changing the category immediately re-applies the correct angle sequence for that accessory type.
+
+![Accessory category dropdown on a cluster](images/14-accessory-category.png)
+_The category dropdown on a still-life cluster. Changing it immediately updates the angle sequence._
 
 ### 3.5 Missing Shots Warning
 
 If a cluster is missing shots required by your selected marketplaces, a warning indicator will appear. This is informational — you can still export, but the marketplace may reject or flag the listing.
 
+![Missing shots warning on a cluster](images/15-missing-shots.png)
+_A warning appears listing which required angles are absent for each marketplace._
+
 ### 3.6 Confirming Clusters
 
-Once you're happy with a cluster, click the **Confirm** checkbox. Only confirmed clusters are included in the export.
+Once you're happy with a cluster, click the **Confirm** button. Only confirmed clusters are included in the export.
 
-Use **Confirm All** to confirm every cluster at once if everything looks correct.
+Use **Confirm all** (top right) to confirm every cluster at once if everything looks correct.
+
+![Confirming a cluster and the Confirm all button](images/16-confirm-cluster.png)
+_Click Confirm on individual clusters, or use Confirm all to confirm everything at once. The counter in the top bar tracks progress._
 
 ---
 
 ## Step 4 — Export
 
 > **Where:** Review page → click **Export** button (top right)
+
+![Export panel](images/17-export-panel.png)
+_The Export panel showing confirmed clusters, marketplace breakdown, and download options._
 
 ### 4.1 Export as ZIP
 
