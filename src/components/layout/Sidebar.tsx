@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { BrandSwitcher } from './BrandSwitcher'
 import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
+import { openWelcomeModal } from '@/components/onboarding/WelcomeModal'
 
 interface NavItem {
   label: string
@@ -254,6 +255,23 @@ export function Sidebar() {
       </div>
 
       </Suspense>
+
+      {/* Quick Guide */}
+      <div className="px-[10px] pb-[6px]">
+        <button
+          onClick={openWelcomeModal}
+          className="flex items-center gap-[9px] px-[8px] py-[7px] rounded-sm text-[0.8rem] w-full text-[var(--text3)] hover:bg-[var(--bg3)] hover:text-[var(--text2)] border border-transparent transition-all duration-150"
+        >
+          <span className="w-[14px] h-[14px] flex-shrink-0 opacity-70">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="8" cy="8" r="7"/>
+              <path d="M8 11v-1a2 2 0 1 0-2-2" strokeLinecap="round"/>
+              <circle cx="8" cy="12.5" r="0.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </span>
+          Quick Guide
+        </button>
+      </div>
 
       {/* Plan indicator — hidden from members */}
       {canSeeBilling && (

@@ -5,6 +5,10 @@ import Link from 'next/link'
 
 const STORAGE_KEY = 'shotsync_welcome_dismissed'
 
+// Allows other components (e.g. Sidebar) to open the modal programmatically
+let _openModal: (() => void) | null = null
+export function openWelcomeModal() { _openModal?.() }
+
 const STEPS = [
   {
     number: '01',
@@ -66,8 +70,10 @@ export function WelcomeModal() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
+    _openModal = () => setVisible(true)
     const dismissed = typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY)
     if (!dismissed) setVisible(true)
+    return () => { _openModal = null }
   }, [])
 
   const dismiss = (permanent: boolean) => {
