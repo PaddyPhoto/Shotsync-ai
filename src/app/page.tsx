@@ -348,7 +348,7 @@ export default function LandingPage() {
               color: 'var(--text3)',
               popular: false,
               founding: false,
-              features: ['1 job only', 'Up to 20 images', '1 marketplace export folder', '1 brand, 1 seat'],
+              features: ['Up to 3 exports/month', 'Up to 50 images per export', '1 marketplace export folder', '1 brand, 1 seat'],
               forNote: 'Try the workflow',
               cta: 'Get Started Free',
               ctaStyle: 'btn-ghost',
