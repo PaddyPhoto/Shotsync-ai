@@ -11,6 +11,7 @@ import type { StyleListEntry, ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import type { MarketplaceName } from '@/types'
+import { HelpTooltip } from '@/components/ui/HelpTooltip'
 
 type Step = 'config' | 'files' | 'processing'
 
@@ -328,7 +329,19 @@ export default function UploadPage() {
                 {/* Images per look + angle sequence */}
                 <div className="border-t border-[var(--line)] pt-4">
                   <div className="flex items-center justify-between mb-[8px]">
-                    <label className="text-[0.78rem] text-[var(--text2)] block">Images per Look</label>
+                    <label className="text-[0.78rem] text-[var(--text2)] flex items-center gap-1">
+                      Images per Look
+                      <HelpTooltip
+                        position="right"
+                        width={220}
+                        content={
+                          <span>
+                            How many images make up <strong>one complete product</strong>. ShotSync.ai splits your uploaded files into groups of this size — in the same order your camera roll produces them.<br /><br />
+                            <strong>Example:</strong> If every product has a Front, Back, Side, Detail and Mood shot, set this to 5.
+                          </span>
+                        }
+                      />
+                    </label>
                     {activeBrand && defaultImagesPerLook !== imagesPerLook && (
                       <button
                         onClick={() => {
@@ -421,7 +434,19 @@ export default function UploadPage() {
 
                 {shootType === 'still-life' && (
                   <div className="border-t border-[var(--line)] pt-3">
-                    <label className="text-[0.75rem] font-medium text-[var(--text2)] mb-2 block">Still Life Type</label>
+                    <label className="text-[0.75rem] font-medium text-[var(--text2)] mb-2 flex items-center gap-1">
+                      Still Life Type
+                      <HelpTooltip
+                        position="right"
+                        width={230}
+                        content={
+                          <span>
+                            <strong>Ghost Mannequin</strong> — clothing shot on an invisible mannequin. Assigns Front + Back angles.<br /><br />
+                            <strong>Accessories</strong> — shoes, bags, jewellery, etc. AI will automatically identify the specific accessory type per cluster and apply the correct angle sequence.
+                          </span>
+                        }
+                      />
+                    </label>
                     <div className="flex gap-2 flex-wrap">
                       {[
                         { id: 'ghost-mannequin', label: 'Ghost Mannequin', desc: 'Front & Back', count: 2 },
@@ -456,7 +481,19 @@ export default function UploadPage() {
             {/* Style List Import */}
             <div className="card mb-6">
               <div className="card-head">
-                <span className="card-title">Style List</span>
+                <span className="card-title flex items-center gap-1">
+                  Style List
+                  <HelpTooltip
+                    position="bottom"
+                    width={260}
+                    content={
+                      <span>
+                        Upload your brand's range sheet (.xlsx or .csv) to <strong>auto-fill SKU, colour, and product name</strong> on every cluster.<br /><br />
+                        Matching works by finding the SKU from your spreadsheet inside the image filename — so include the SKU when naming your shoot files (e.g. <code style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>NS27502_BLACK_FRONT.jpg</code>).
+                      </span>
+                    }
+                  />
+                </span>
                 {styleList.length > 0 && (
                   <span className="text-[0.78rem] text-[var(--accent2)]">{styleList.length} styles imported</span>
                 )}

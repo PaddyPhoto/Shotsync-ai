@@ -15,6 +15,7 @@ import { applyNamingTemplate } from '@/lib/brands'
 import type { Brand } from '@/lib/brands'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import type { MarketplaceName, ViewLabel } from '@/types'
+import { HelpTooltip } from '@/components/ui/HelpTooltip'
 
 type Tab = 'general' | 'shopify' | 'marketplaces' | 'brands' | 'billing' | 'team' | 'integrations'
 
@@ -830,7 +831,19 @@ function SettingsInner() {
 
                       {/* Naming template */}
                       <div className="col-span-2 py-[12px] border-t border-[var(--line)]">
-                        <p className="text-[0.82rem] text-[var(--text2)] mb-2">Naming Template</p>
+                        <p className="text-[0.82rem] text-[var(--text2)] mb-2 flex items-center gap-1">
+                          Naming Template
+                          <HelpTooltip
+                            position="right"
+                            width={240}
+                            content={
+                              <span>
+                                Overrides the brand default template for this marketplace only. If left as the default, the brand's template is used.<br /><br />
+                                Each marketplace can have a different structure to meet their specific requirements.
+                              </span>
+                            }
+                          />
+                        </p>
                         <div className="flex flex-wrap gap-[6px] mb-2">
                           {NAMING_TOKENS.filter((t) => t.token !== '{SEQ}').map((t) => {
                             const active = rule.naming_template.includes(t.token)
@@ -1578,7 +1591,20 @@ function SettingsInner() {
 
               {/* Naming template */}
               <div className="border-t border-[var(--line)] pt-3">
-                <p className="text-[0.75rem] font-medium text-[var(--text2)] mb-2">File Naming Template</p>
+                <p className="text-[0.75rem] font-medium text-[var(--text2)] mb-2 flex items-center gap-1">
+                  File Naming Template
+                  <HelpTooltip
+                    position="right"
+                    width={260}
+                    content={
+                      <span>
+                        Build the pattern used to name your exported files. Click tokens to add or remove them — they are joined with underscores in the order shown.<br /><br />
+                        <strong>Example:</strong> <code style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>{'{SKU}_{COLOR}_{VIEW}'}</code> → <code style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>NS27502_BLACK_FRONT.jpg</code><br /><br />
+                        Empty tokens (e.g. no colour entered) are automatically removed so you never get double underscores.
+                      </span>
+                    }
+                  />
+                </p>
                 {/* Clickable token chips */}
                 <div className="flex flex-wrap gap-[6px] mb-3">
                   {NAMING_TOKENS.map((t) => {

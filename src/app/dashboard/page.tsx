@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
 import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
+import { WelcomeModal } from '@/components/onboarding/WelcomeModal'
 
 interface JobRecord {
   id: string
@@ -86,6 +87,7 @@ export default function DashboardPage() {
 
   return (
     <div>
+      <WelcomeModal />
       <Topbar
         breadcrumbs={[{ label: 'ShotSync.ai' }, { label: 'Dashboard' }]}
         actions={

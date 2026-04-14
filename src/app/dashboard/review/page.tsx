@@ -12,6 +12,7 @@ import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { detectColourFromFilename } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
+import { HelpTooltip } from '@/components/ui/HelpTooltip'
 import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
@@ -382,8 +383,17 @@ function ReviewPage() {
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: jobName || 'Review' }]}
         actions={
           <div className="flex items-center gap-2">
-            <span className="text-[0.78rem] text-[var(--text3)]">
+            <span className="text-[0.78rem] text-[var(--text3)] flex items-center gap-1">
               {confirmedCount}/{clusters.length} confirmed
+              <HelpTooltip
+                position="bottom"
+                width={230}
+                content={
+                  <span>
+                    Only <strong>confirmed</strong> clusters are included in the export. Enter the SKU and verify the angles, then click <strong>Confirm</strong> on each cluster — or use <strong>Confirm all</strong> to confirm everything at once.
+                  </span>
+                }
+              />
             </span>
             <button
               onClick={() => {
@@ -791,7 +801,19 @@ function ReviewPage() {
 
                   {/* Colour chip */}
                   <div className="px-3 pb-[8px] flex items-center gap-2">
-                    <span className="text-[0.7rem] text-[var(--text3)]">Colour</span>
+                    <span className="text-[0.7rem] text-[var(--text3)] flex items-center gap-1">
+                      Colour
+                      <HelpTooltip
+                        position="top"
+                        width={220}
+                        content={
+                          <span>
+                            The colour name used in exported filenames — e.g. <strong>NAVY</strong>, <strong>BLACK</strong>.<br /><br />
+                            Auto-filled from your style list if a match is found. Can also be detected from the filename itself.
+                          </span>
+                        }
+                      />
+                    </span>
                     {editingColor === cluster.id ? (
                       <input
                         autoFocus
