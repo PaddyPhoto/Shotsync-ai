@@ -43,7 +43,6 @@ export const PLANS: Record<PlanId, Plan> = {
       '1 job only',
       'Up to 20 images',
       '1 marketplace export folder',
-      'Watermarked exports',
       '1 brand, 1 seat',
     ],
     forNote: 'Try the workflow before you commit',
