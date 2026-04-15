@@ -103,7 +103,7 @@ export default function LandingPage() {
             Now in early access — ANZ fashion brands
           </div>
           <h1 className="hero-h1" style={{ fontSize: 'clamp(44px,7vw,80px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.05, color: '#1d1d1f', maxWidth: '820px', marginBottom: '24px' }}>
-            Post-production.<br/><span style={{ color: '#6e6e73' }}>On autopilot.</span>
+            From shoot to marketplace,<br/><span style={{ color: '#6e6e73' }}>in minutes.</span>
           </h1>
           <p className="hero-sub" style={{ fontSize: 'clamp(17px,2.2vw,21px)', color: '#6e6e73', maxWidth: '520px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '44px' }}>
             Upload your shoot. ShotSync clusters, names, resizes, and exports marketplace-ready images — automatically.
