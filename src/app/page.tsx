@@ -59,12 +59,12 @@ export default function LandingPage() {
       <div style={{ minHeight: '100vh', background: '#f5f5f7', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden', position: 'relative' }}>
 
         {/* ── PARALLAX ORBS ── */}
-        <Orb color="rgba(0,113,227,0.45)"   size={420} top={-60}  left="-5%"  speed={0.15} />
-        <Orb color="rgba(94,50,245,0.38)"   size={380} top={100}  left="64%"  speed={0.22} />
-        <Orb color="rgba(48,209,88,0.35)"   size={360} top={880}  left="4%"   speed={0.10} />
-        <Orb color="rgba(0,190,220,0.35)"   size={400} top={1620} left="60%"  speed={0.18} />
-        <Orb color="rgba(255,149,0,0.32)"   size={350} top={2700} left="10%"  speed={0.13} />
-        <Orb color="rgba(0,113,227,0.38)"   size={400} top={3900} left="52%"  speed={0.17} />
+        <Orb color="rgba(0,113,227,0.45)"   size={420} top={-60}  left="-5%"  speed={0.40} />
+        <Orb color="rgba(94,50,245,0.38)"   size={380} top={100}  left="64%"  speed={0.55} />
+        <Orb color="rgba(48,209,88,0.35)"   size={360} top={880}  left="4%"   speed={0.30} />
+        <Orb color="rgba(0,190,220,0.35)"   size={400} top={1620} left="60%"  speed={0.45} />
+        <Orb color="rgba(255,149,0,0.32)"   size={350} top={2700} left="10%"  speed={0.35} />
+        <Orb color="rgba(0,113,227,0.38)"   size={400} top={3900} left="52%"  speed={0.50} />
 
         {/* ── NAV ── */}
         <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,245,247,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
