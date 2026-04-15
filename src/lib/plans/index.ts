@@ -32,7 +32,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'Try the full workflow before you commit',
     stripePriceId: null,
     limits: {
-      imagesPerJob: 50,
+      imagesPerJob: 25,
       marketplaces: 1,
       exportsPerMonth: 3,
       brands: 1,
@@ -41,7 +41,7 @@ export const PLANS: Record<PlanId, Plan> = {
     },
     highlights: [
       'Up to 3 exports/month',
-      'Up to 50 images per export',
+      'Up to 25 images per export',
       '1 marketplace export folder',
       '1 brand, 1 seat',
     ],
