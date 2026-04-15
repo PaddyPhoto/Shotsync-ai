@@ -1168,7 +1168,12 @@ function ExportPanel({
           for (let j = 0; j < bytes.byteLength; j++) binary += String.fromCharCode(bytes[j])
           return { filename: img.filename, base64: btoa(binary), position: i + 1 }
         }))
-        return { sku: cluster.sku || cluster.label, images }
+        const copy = clusterCopy[cluster.id]
+        return {
+          sku: cluster.sku || cluster.label,
+          images,
+          ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
+        }
       }))
 
       const res = await fetch('/api/shopify/upload', {

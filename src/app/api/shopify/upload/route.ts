@@ -37,7 +37,11 @@ export async function POST(req: NextRequest) {
   const { brand_id, clusters, replace = false } = body as {
     brand_id: string
     replace: boolean
-    clusters: { sku: string; images: { filename: string; base64: string; position: number }[] }[]
+    clusters: {
+      sku: string
+      images: { filename: string; base64: string; position: number }[]
+      copy?: { title: string; description: string; bullets: string[] }
+    }[]
   }
 
   if (!brand_id || !Array.isArray(clusters) || clusters.length === 0) {
@@ -76,6 +80,15 @@ export async function POST(req: NextRequest) {
       for (const img of cluster.images) {
         const ok = await client.uploadProductImage(productId, img.base64, img.filename, img.position)
         if (ok) uploaded++
+      }
+
+      // Update product copy (title + description) if provided
+      if (cluster.copy?.title) {
+        const bulletHtml = cluster.copy.bullets?.length
+          ? `<ul>${cluster.copy.bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`
+          : ''
+        const bodyHtml = `<p>${cluster.copy.description ?? ''}</p>${bulletHtml}`
+        await client.updateProductCopy(productId, cluster.copy.title, bodyHtml)
       }
 
       results.push({ sku: cluster.sku, status: 'uploaded', uploaded })

@@ -90,6 +90,17 @@ export class ShopifyClient {
     return res.ok
   }
 
+  // Update a product's title and body HTML (description + bullets)
+  async updateProductCopy(productId: string, title: string, bodyHtml: string): Promise<boolean> {
+    const url = `${this.baseUrl}/products/${productId}.json`
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: this.headers,
+      body: JSON.stringify({ product: { id: Number(productId), title, body_html: bodyHtml } }),
+    })
+    return res.ok
+  }
+
   // Delete all existing images on a product (for clean re-upload)
   async clearProductImages(productId: string): Promise<void> {
     const listUrl = `${this.baseUrl}/products/${productId}/images.json?fields=id`
