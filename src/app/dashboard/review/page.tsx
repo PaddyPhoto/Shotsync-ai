@@ -76,6 +76,41 @@ function ReviewPage() {
 
   const [detectingCategories, setDetectingCategories] = useState<Set<string>>(new Set())
 
+  const [clusterCopy, setClusterCopy] = useState<Record<string, {
+    title: string; description: string; bullets: string[]; loading: boolean; open: boolean
+  }>>({})
+
+  const generateCopy = async (cluster: SessionCluster) => {
+    const angles = [...new Set(cluster.images.map((img) => img.viewLabel).filter(Boolean))]
+    setClusterCopy((prev) => ({
+      ...prev,
+      [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: true, open: true },
+    }))
+    try {
+      const res = await fetch('/api/copy/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sku: cluster.sku,
+          productName: cluster.productName,
+          color: cluster.color,
+          brandName: activeBrand?.name ?? '',
+          angles,
+        }),
+      })
+      const data = await res.json()
+      setClusterCopy((prev) => ({
+        ...prev,
+        [cluster.id]: { title: data.title ?? '', description: data.description ?? '', bullets: data.bullets ?? [], loading: false, open: true },
+      }))
+    } catch {
+      setClusterCopy((prev) => ({
+        ...prev,
+        [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: false, open: true },
+      }))
+    }
+  }
+
   const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
   const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
 
@@ -920,6 +955,108 @@ function ReviewPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* ── AI Product Copy ── */}
+                  {(() => {
+                    const copy = clusterCopy[cluster.id]
+                    const isOpen = copy?.open ?? false
+                    return (
+                      <div className="border-t border-[var(--line)]">
+                        {/* Toggle header */}
+                        <button
+                          className="w-full flex items-center gap-2 px-3 py-[8px] text-left hover:bg-[var(--bg3)] transition-colors"
+                          onClick={() => setClusterCopy((prev) => ({
+                            ...prev,
+                            [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [], loading: false }), open: !isOpen },
+                          }))}
+                        >
+                          <svg viewBox="0 0 16 16" fill="none" width="12" height="12" stroke="none">
+                            <path d="M8 1l1.4 3.2L13 5.2l-2.4 2.3.6 3.3L8 9.2l-3.2 1.6.6-3.3L3 5.2l3.6-.9L8 1z" fill="var(--accent4)" opacity="0.9"/>
+                          </svg>
+                          <span className="text-[0.72rem] font-medium text-[var(--text2)] flex-1">AI Product Copy</span>
+                          {copy?.title && !isOpen && (
+                            <span className="text-[0.65rem] text-[var(--text3)] truncate max-w-[140px]">{copy.title}</span>
+                          )}
+                          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" width="10" height="10"
+                            style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .15s', flexShrink: 0, color: 'var(--text3)' }}>
+                            <path d="M2 3.5l3 3 3-3" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+
+                        {isOpen && (
+                          <div className="px-3 pb-3 flex flex-col gap-[10px]">
+                            {copy?.loading ? (
+                              <div className="flex items-center justify-center gap-2 py-4">
+                                <svg className="animate-spin" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="var(--accent4)" strokeWidth="2">
+                                  <circle cx="6.5" cy="6.5" r="4.5" strokeDasharray="18 8"/>
+                                </svg>
+                                <span className="text-[0.72rem] text-[var(--text3)]">Generating copy…</span>
+                              </div>
+                            ) : copy?.title ? (
+                              <>
+                                <div>
+                                  <label className="text-[0.63rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Title</label>
+                                  <input
+                                    className="input text-[0.78rem] py-[5px]"
+                                    value={copy.title}
+                                    onChange={(e) => setClusterCopy((prev) => ({ ...prev, [cluster.id]: { ...prev[cluster.id], title: e.target.value } }))}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[0.63rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Description</label>
+                                  <textarea
+                                    className="input text-[0.78rem] py-[5px] resize-none"
+                                    rows={3}
+                                    value={copy.description}
+                                    onChange={(e) => setClusterCopy((prev) => ({ ...prev, [cluster.id]: { ...prev[cluster.id], description: e.target.value } }))}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[0.63rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Bullet Points</label>
+                                  <div className="flex flex-col gap-[5px]">
+                                    {copy.bullets.map((bullet, i) => (
+                                      <div key={i} className="flex items-center gap-[6px]">
+                                        <span className="text-[var(--text3)] text-[0.8rem] flex-shrink-0">·</span>
+                                        <input
+                                          className="input text-[0.78rem] py-[4px] flex-1"
+                                          value={bullet}
+                                          onChange={(e) => {
+                                            const next = [...copy.bullets]
+                                            next[i] = e.target.value
+                                            setClusterCopy((prev) => ({ ...prev, [cluster.id]: { ...prev[cluster.id], bullets: next } }))
+                                          }}
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => generateCopy(cluster)}
+                                  className="flex items-center gap-1 text-[0.7rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors self-start"
+                                >
+                                  <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" width="10" height="10" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M10.5 2A5.5 5.5 0 1 0 10.5 10"/>
+                                    <path d="M10.5 5V2H7.5"/>
+                                  </svg>
+                                  Regenerate
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => generateCopy(cluster)}
+                                className="btn btn-ghost btn-sm w-full justify-center gap-[6px]"
+                              >
+                                <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
+                                  <path d="M8 1l1.4 3.2L13 5.2l-2.4 2.3.6 3.3L8 9.2l-3.2 1.6.6-3.3L3 5.2l3.6-.9L8 1z" fill="var(--accent4)" opacity="0.9"/>
+                                </svg>
+                                Generate with AI
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
               )
             })}
