@@ -114,12 +114,12 @@ function NavLink({ item }: { item: NavItem }) {
       : pathname.startsWith(hrefPath)
 
   const baseClass = cn(
-    'flex items-center gap-[9px] px-[8px] py-[7px] rounded-sm text-[0.8rem] font-normal transition-all duration-150 w-full',
+    'flex items-center gap-[9px] px-[8px] py-[7px] rounded-sm text-[0.8rem] font-medium transition-all duration-150 w-full',
     item.disabled
-      ? 'opacity-35 cursor-not-allowed border border-transparent text-[var(--text3)]'
+      ? 'opacity-35 cursor-not-allowed text-[var(--text3)]'
       : isActive
-      ? 'text-[var(--accent)] border border-[rgba(74,158,255,0.15)]'
-      : 'text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] border border-transparent'
+      ? 'text-[var(--accent)] bg-[rgba(77,101,255,0.08)]'
+      : 'text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)]'
   )
 
   const inner = (
@@ -147,7 +147,7 @@ function NavLink({ item }: { item: NavItem }) {
   }
 
   return (
-    <Link href={item.href} className={baseClass} style={isActive ? { background: 'var(--accent-glow)' } : {}}>
+    <Link href={item.href} className={baseClass}>
       {inner}
     </Link>
   )
@@ -181,7 +181,7 @@ export function Sidebar() {
   const canSeeBilling = !orgRole || orgRole === 'owner' || orgRole === 'admin'
 
   return (
-    <aside className="w-[216px] min-w-[216px] bg-[var(--bg2)] border-r border-[var(--line)] flex flex-col sticky top-0 h-screen overflow-hidden">
+    <aside className="w-[216px] min-w-[216px] bg-[var(--bg2)] flex flex-col sticky top-0 h-screen overflow-hidden" style={{ boxShadow: '1px 0 0 var(--line), 2px 0 12px rgba(0,0,0,0.04)' }}>
 
       {/* Logo */}
       <div className="px-4 py-5 border-b border-[var(--line)] flex items-center gap-[10px]">

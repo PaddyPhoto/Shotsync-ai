@@ -12,7 +12,7 @@ interface TopbarProps {
 
 export function Topbar({ breadcrumbs, actions }: TopbarProps) {
   return (
-    <header className="flex items-center justify-between px-7 py-4 border-b border-[var(--line)] bg-[var(--bg)] sticky top-0 z-10 backdrop-blur-[10px]">
+    <header className="flex items-center justify-between px-7 py-4 bg-[var(--bg2)] sticky top-0 z-10" style={{ boxShadow: '0 1px 0 var(--line), 0 2px 12px rgba(0,0,0,0.04)' }}>
       <div className="flex items-center gap-2">
         <nav className="flex items-center gap-1 text-[0.82rem] text-[var(--text3)]">
           {breadcrumbs.map((crumb, i) => (

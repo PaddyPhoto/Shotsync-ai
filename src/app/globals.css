@@ -147,26 +147,35 @@ img { display: block; }
 
   /* Card */
   .card {
-    @apply bg-[var(--bg2)] border border-[var(--line)] rounded-md overflow-hidden;
+    background: var(--bg2);
+    border-radius: var(--r2);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    border: 1px solid var(--line);
   }
   .card-head {
-    @apply px-[18px] py-[14px] border-b border-[var(--line)] flex items-center justify-between;
+    @apply px-[20px] py-[16px] border-b border-[var(--line)] flex items-center justify-between;
   }
   .card-title {
-    @apply text-[0.85rem] font-semibold text-[var(--text)];
+    @apply text-[0.88rem] font-semibold text-[var(--text)];
   }
   .card-body {
-    @apply p-[18px];
+    @apply p-[20px];
   }
 
   /* Input */
   .input {
-    @apply w-full bg-[var(--bg3)] border border-[var(--line2)] rounded-sm text-[var(--text)] text-[0.82rem] px-3 py-[7px] focus:outline-none focus:border-[var(--accent)] transition-colors placeholder:text-[var(--text3)];
+    @apply w-full bg-[var(--bg3)] border border-[var(--line2)] rounded-sm text-[var(--text)] text-[0.82rem] px-3 py-[8px] focus:outline-none focus:border-[var(--accent)] transition-colors placeholder:text-[var(--text3)];
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
   }
 
   /* Stat card */
   .stat-card {
-    @apply bg-[var(--bg2)] border border-[var(--line)] rounded-md p-4 px-5;
+    background: var(--bg2);
+    border-radius: var(--r2);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    @apply p-4 px-5;
   }
   .stat-label {
     @apply text-[0.72rem] text-[var(--text3)] uppercase tracking-[0.08em];
