@@ -473,7 +473,7 @@ function SettingsInner() {
                   onClick={async () => {
                     const { createClient } = await import('@/lib/supabase/client')
                     await createClient().auth.signOut()
-                    window.location.href = '/login'
+                    window.location.href = '/'
                   }}
                   className="btn btn-ghost btn-sm"
                   style={{ color: 'var(--accent3)' }}
