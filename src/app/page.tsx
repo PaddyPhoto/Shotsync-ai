@@ -477,9 +477,6 @@ export default function LandingPage() {
               <a href="mailto:hello@shotsync.ai" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none' }}>
                 Request early access
               </a>
-              <a href="mailto:hello@shotsync.ai" style={{ background: 'transparent', color: 'rgba(255,255,255,0.8)', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', border: '0.5px solid rgba(255,255,255,0.2)' }}>
-                hello@shotsync.ai
-              </a>
             </div>
           </div>
         </section>
