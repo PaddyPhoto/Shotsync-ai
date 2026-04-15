@@ -59,6 +59,33 @@ export default function LandingPage() {
         .price-cta-btn.featured { background:#fff;color:#1d1d1f; }
         .mp-logo-cell:last-child { border-right: none !important; }
         .hero-stat-cell:last-child { border-right: none !important; }
+
+        @media (max-width: 767px) {
+          .nav-links-desktop { display: none !important; }
+          .nav-cta-desktop { display: none !important; }
+          .nav-mobile-signin { display: flex !important; }
+          .hero-section { padding: 100px 20px 60px !important; }
+          .hero-stats { flex-wrap: wrap !important; width: 100% !important; }
+          .hero-stat-cell { flex: 1 1 45% !important; padding: 18px 16px !important; border-right: none !important; border-bottom: 0.5px solid rgba(0,0,0,0.08) !important; }
+          .app-mockup-section { display: none !important; }
+          .section-pad { padding-left: 20px !important; padding-right: 20px !important; }
+          .how-it-works-grid { grid-template-columns: 1fr !important; }
+          .features-grid { grid-template-columns: 1fr !important; }
+          .mp-logos-row { flex-direction: column !important; }
+          .mp-logo-cell { border-right: none !important; border-bottom: 0.5px solid rgba(0,0,0,0.08) !important; }
+          .mp-logo-cell:last-child { border-bottom: none !important; }
+          .pricing-grid { grid-template-columns: 1fr 1fr !important; }
+          .enterprise-row { flex-direction: column !important; align-items: flex-start !important; }
+          .testimonial-pad { padding: 36px 24px !important; }
+          .cta-pad { padding: 48px 28px !important; }
+          .footer-inner { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
+          .footer-links { flex-wrap: wrap !important; gap: 12px !important; }
+          .nav-bar { padding: 0 20px !important; }
+        }
+        @media (max-width: 480px) {
+          .pricing-grid { grid-template-columns: 1fr !important; }
+          .hero-stat-cell { flex: 1 1 100% !important; }
+        }
       `}</style>
 
       {/* ── FIXED BACKGROUND ── */}
@@ -75,28 +102,32 @@ export default function LandingPage() {
       <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
 
         {/* ── NAV ── */}
-        <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,245,247,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
+        <nav className="nav-bar" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,245,247,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
             <img src="/icon.png" alt="ShotSync" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
             <span style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-.3px', color: '#1d1d1f' }}>Shot<span style={{ color: '#6e6e73' }}>Sync</span></span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+          <div className="nav-links-desktop" style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
             <a href="#how-it-works" className="nav-link">How it works</a>
             <a href="#features" className="nav-link">Features</a>
             <a href="#pricing" className="nav-link">Pricing</a>
             <a href="mailto:hello@shotsync.ai" className="nav-link">Contact</a>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="nav-cta-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link href="/login" className="nav-link">Sign in</Link>
             <a href="#demo" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               Watch demo
             </a>
           </div>
+          <div className="nav-mobile-signin" style={{ display: 'none', alignItems: 'center', gap: '8px' }}>
+            <Link href="/login" className="nav-link">Sign in</Link>
+            <Link href="/signup" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>Get started</Link>
+          </div>
         </nav>
 
         {/* ── HERO ── */}
-        <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', position: 'relative' }}>
+        <section className="hero-section" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', position: 'relative' }}>
           <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '28px' }}>
             <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
             Now in early access — ANZ fashion brands
@@ -135,7 +166,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── APP MOCKUP ── */}
-        <section style={{ padding: '0 40px 100px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+        <section className="app-mockup-section" style={{ padding: '0 40px 100px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
           <div style={{ width: '100%', maxWidth: '1000px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
             {/* Browser bar */}
             <div style={{ padding: '12px 16px', background: 'rgba(245,245,247,0.8)', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -247,13 +278,13 @@ export default function LandingPage() {
         </section>
 
         {/* ── HOW IT WORKS ── */}
-        <section id="how-it-works" style={{ padding: '100px 40px', textAlign: 'center', position: 'relative' }}>
+        <section id="how-it-works" className="section-pad" style={{ padding: '100px 40px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p>
           <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Three steps. Zero manual work.</h2>
           <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
             Drop your shoot. ShotSync handles everything between the photographer&apos;s delivery and your marketplace upload.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '900px', margin: '0 auto' }}>
+          <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '900px', margin: '0 auto' }}>
             {[
               {
                 icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
@@ -283,9 +314,9 @@ export default function LandingPage() {
         </section>
 
         {/* ── FEATURES ── */}
-        <section id="features" style={{ padding: '0 40px 100px', position: 'relative' }}>
+        <section id="features" className="section-pad" style={{ padding: '0 40px 100px', position: 'relative' }}>
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden' }}>
+            <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden' }}>
 
               {/* Feature 1: Auto-rename */}
               <div style={{ background: '#fff', padding: '40px' }}>
@@ -388,9 +419,9 @@ export default function LandingPage() {
         </section>
 
         {/* ── MARKETPLACE LOGOS ── */}
-        <section style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
+        <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Built for ANZ&apos;s top fashion marketplaces</p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '700px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
+          <div className="mp-logos-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '700px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
             {[
               { name: 'THE ICONIC', sub: "Australia's largest fashion retailer" },
               { name: 'Myer',       sub: 'PIM direct upload ready' },
@@ -405,7 +436,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── PRICING ── */}
-        <section id="pricing" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
+        <section id="pricing" className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>
           <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Simple, transparent pricing.</h2>
           <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 36px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Start free. Upgrade as you grow. Cancel anytime.</p>
@@ -426,7 +457,7 @@ export default function LandingPage() {
           </div>
 
           {/* Plan cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '960px', margin: '0 auto 16px' }}>
+          <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '960px', margin: '0 auto 16px' }}>
             {([
               { planKey: 'free'    as const, badge: 'Free',         featured: false, cta: 'Get started free',    href: '/signup' },
               { planKey: 'starter' as const, badge: 'Starter',      featured: false, cta: 'Start with Starter',  href: '/signup?plan=starter' },
@@ -462,7 +493,7 @@ export default function LandingPage() {
           </div>
 
           {/* Enterprise row */}
-          <div style={{ maxWidth: '960px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
+          <div className="enterprise-row" style={{ maxWidth: '960px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.3px', marginBottom: '4px' }}>Enterprise</div>
               <div style={{ fontSize: '14px', color: '#6e6e73', letterSpacing: '-.1px' }}>Unlimited everything — custom contracts, SSO, SLA, dedicated CSM, and invoiced billing.</div>
@@ -472,8 +503,8 @@ export default function LandingPage() {
         </section>
 
         {/* ── TESTIMONIAL ── */}
-        <section style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <div style={{ maxWidth: '680px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', padding: '52px 60px' }}>
+        <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
+          <div className="testimonial-pad" style={{ maxWidth: '680px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', padding: '52px 60px' }}>
             <p style={{ fontSize: 'clamp(18px,2.5vw,24px)', fontWeight: 400, letterSpacing: '-.5px', lineHeight: 1.5, color: '#1d1d1f', marginBottom: '32px' }}>
               &ldquo;I used to spend 2–3 days after every shoot just renaming files and uploading to marketplaces. ShotSync has automated the entire process&mdash;it&apos;s been a complete game changer for my workflow.&rdquo;
             </p>
@@ -488,8 +519,8 @@ export default function LandingPage() {
         </section>
 
         {/* ── CTA ── */}
-        <section style={{ padding: '0 40px 120px', textAlign: 'center', position: 'relative' }}>
-          <div style={{ maxWidth: '680px', margin: '0 auto', background: '#1d1d1f', borderRadius: '24px', padding: '72px 60px' }}>
+        <section className="section-pad" style={{ padding: '0 40px 120px', textAlign: 'center', position: 'relative' }}>
+          <div className="cta-pad" style={{ maxWidth: '680px', margin: '0 auto', background: '#1d1d1f', borderRadius: '24px', padding: '72px 60px' }}>
             <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.5px', color: '#f5f5f7', lineHeight: 1.1, marginBottom: '16px' }}>Shoot. Sync. Done.</h2>
             <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', marginBottom: '36px', letterSpacing: '-.2px', lineHeight: 1.5 }}>Start free — no credit card required. Upgrade when you&apos;re ready.</p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -505,25 +536,25 @@ export default function LandingPage() {
         </section>
 
         {/* ── FOOTER ── */}
-        <footer style={{ padding: '40px', borderTop: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-            <div style={{ width: '20px', height: '20px', background: '#1d1d1f', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" width="10" height="10"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <footer className="section-pad" style={{ padding: '40px', borderTop: '0.5px solid rgba(0,0,0,0.08)', position: 'relative' }}>
+          <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+              <img src="/icon.png" alt="ShotSync" style={{ width: '24px', height: '24px', borderRadius: '6px' }} />
+              <span style={{ fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', color: '#1d1d1f' }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
+            </Link>
+            <div className="footer-links" style={{ display: 'flex', gap: '24px' }}>
+              {[
+                { label: 'How it works', href: '#how-it-works' },
+                { label: 'Features',     href: '#features' },
+                { label: 'Pricing',      href: '#pricing' },
+                { label: 'Contact',      href: 'mailto:hello@shotsync.ai' },
+                { label: 'Privacy',      href: '/privacy' },
+              ].map(({ label, href }) => (
+                <a key={label} href={href} className="footer-link">{label}</a>
+              ))}
             </div>
-            <span style={{ fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', color: '#1d1d1f' }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
-          </Link>
-          <div style={{ display: 'flex', gap: '24px' }}>
-            {[
-              { label: 'How it works', href: '#how-it-works' },
-              { label: 'Features',     href: '#features' },
-              { label: 'Pricing',      href: '#pricing' },
-              { label: 'Contact',      href: 'mailto:hello@shotsync.ai' },
-              { label: 'Privacy',      href: '/privacy' },
-            ].map(({ label, href }) => (
-              <a key={label} href={href} className="footer-link">{label}</a>
-            ))}
+            <p style={{ fontSize: '13px', color: '#aeaeb2' }}>© 2026 ShotSync.ai</p>
           </div>
-          <p style={{ fontSize: '13px', color: '#aeaeb2' }}>© 2026 ShotSync.ai</p>
         </footer>
 
       </div>
