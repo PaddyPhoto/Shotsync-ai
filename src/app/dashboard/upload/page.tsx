@@ -153,15 +153,38 @@ export default function UploadPage() {
 
   const [progress, setProgress] = useState<ProcessProgress>({ phase: '', done: 0, total: 0 })
   const [isDraggingOver, setIsDraggingOver] = useState(false)
+  const [rejectedFiles, setRejectedFiles] = useState<{ name: string; reason: string }[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const MAX_FILE_SIZE_MB = 20
+  const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+  const ALLOWED_EXT = /\.(jpe?g|png|webp|heic|heif)$/i
+
   const acceptFiles = useCallback((newFiles: File[]) => {
-    const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
-    const images = newFiles.filter((f) => ALLOWED.includes(f.type.toLowerCase()) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name))
-    if (!images.length) return
+    const accepted: File[] = []
+    const rejected: { name: string; reason: string }[] = []
+
+    for (const f of newFiles) {
+      const isAllowedType = ALLOWED_TYPES.includes(f.type.toLowerCase()) || ALLOWED_EXT.test(f.name)
+      const isTooBig = f.size > MAX_FILE_SIZE_MB * 1024 * 1024
+
+      if (!isAllowedType) {
+        const ext = f.name.split('.').pop()?.toUpperCase() ?? 'unknown'
+        rejected.push({ name: f.name, reason: `Unsupported format (.${ext}) — use JPEG, PNG, WebP or HEIC` })
+      } else if (isTooBig) {
+        const sizeMb = (f.size / (1024 * 1024)).toFixed(1)
+        rejected.push({ name: f.name, reason: `File too large (${sizeMb} MB) — maximum is ${MAX_FILE_SIZE_MB} MB` })
+      } else {
+        accepted.push(f)
+      }
+    }
+
+    setRejectedFiles(rejected)
+
+    if (!accepted.length) return
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => f.name + f.size))
-      const unique = images.filter((f) => !existing.has(f.name + f.size))
+      const unique = accepted.filter((f) => !existing.has(f.name + f.size))
       return [...prev, ...unique]
     })
     setStep('files')
@@ -617,6 +640,39 @@ export default function UploadPage() {
                             {files.length} images selected — your plan allows {plan.limits.imagesPerJob}.{' '}
                             <button onClick={() => openUpgrade(`Upgrade to process more than ${plan.limits.imagesPerJob} images`)} className="underline hover:no-underline">Upgrade</button>
                           </p>
+                        </div>
+                      )}
+                      {rejectedFiles.length > 0 && (
+                        <div className="mt-2 rounded-sm border border-[rgba(255,159,10,0.25)] bg-[rgba(255,159,10,0.06)] px-3 py-2">
+                          <div className="flex items-start gap-2">
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent4)" strokeWidth="1.5" className="flex-shrink-0 mt-[1px]">
+                              <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
+                              <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
+                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[0.78rem] font-medium text-[var(--accent4)]">
+                                {rejectedFiles.length} file{rejectedFiles.length > 1 ? 's' : ''} skipped
+                              </p>
+                              <p className="text-[0.73rem] text-[var(--text3)] mt-[2px]">
+                                Accepted formats: JPEG, PNG, WebP, HEIC · Max size: 20 MB per image
+                              </p>
+                              <ul className="mt-1 space-y-[2px]">
+                                {rejectedFiles.slice(0, 5).map((r, i) => (
+                                  <li key={i} className="text-[0.72rem] text-[var(--text3)] truncate">
+                                    <span className="font-medium text-[var(--text2)]">{r.name}</span> — {r.reason}
+                                  </li>
+                                ))}
+                                {rejectedFiles.length > 5 && (
+                                  <li className="text-[0.72rem] text-[var(--text3)]">…and {rejectedFiles.length - 5} more</li>
+                                )}
+                              </ul>
+                            </div>
+                            <button onClick={() => setRejectedFiles([])} className="flex-shrink-0 text-[var(--text3)] hover:text-[var(--text)] transition-colors">
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M1 1l10 10M11 1L1 11" strokeLinecap="round"/>
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
