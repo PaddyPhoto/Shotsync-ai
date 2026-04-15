@@ -2,9 +2,10 @@
  * POST /api/copy/generate
  *
  * Generates AI product listing copy for a confirmed cluster.
- * Uses GPT-4o-mini for fast, cost-effective text generation.
+ * Sends the hero image to GPT-4o vision so it can identify the garment,
+ * then writes title, description, and bullet points from what it sees.
  *
- * Body: { sku, productName, color, brandName, angles }
+ * Body: { sku, productName, color, brandName, angles, heroImage?: string (base64 JPEG) }
  * Response: { title, description, bullets }
  */
 
@@ -15,45 +16,65 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'AI copywriting not configured' }, { status: 503 })
   }
 
-  const { sku, productName, color, brandName, angles } = await req.json()
+  const { sku, productName, color, brandName, angles, heroImage } = await req.json()
 
   const OpenAI = (await import('openai')).default
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
   const angleList = Array.isArray(angles) ? angles.join(', ') : 'front, back'
-  const product = [productName, color].filter(Boolean).join(' in ') || 'fashion item'
   const brand = brandName || ''
 
-  const prompt = `You are a fashion eCommerce copywriter for ANZ (Australian/New Zealand) brands.
-Write compelling product listing copy for the following item.
+  const systemPrompt = `You are a fashion eCommerce copywriter for ANZ (Australian/New Zealand) brands.
+You write confident, editorial, direct copy for fashion-forward customers.
+When given an image, identify the garment type, style, and any visible details (cut, length, details, texture).
+Never invent details you cannot see. Keep copy grounded in what's actually visible.`
 
-Product details:
-- SKU: ${sku || 'N/A'}
-- Product: ${product}
+  const userText = `Write product listing copy for this fashion item.
+
+Known details:
+${sku ? `- SKU: ${sku}` : ''}
+${productName ? `- Product name: ${productName}` : ''}
+${color ? `- Colour: ${color}` : ''}
 ${brand ? `- Brand: ${brand}` : ''}
 - Available shots: ${angleList}
 
-Return ONLY valid JSON in this exact format:
+${heroImage ? 'Use the image to identify the garment type and any visible style details.' : 'Use the product details above to write the copy.'}
+
+Return ONLY valid JSON:
 {
-  "title": "Concise product title, max 80 characters, no brand name prefix",
-  "description": "2-3 sentence product description. Highlight style, fit, fabric feel, and occasion. Avoid generic filler phrases.",
+  "title": "Concise product title max 80 chars — lead with garment type and key detail",
+  "description": "2-3 sentences. Describe what you see: garment type, silhouette, fabric feel, and occasion. No generic filler.",
   "bullets": [
-    "Key feature or detail",
-    "Fit or silhouette note",
-    "Fabric or material",
-    "Styling suggestion",
+    "Garment type and key style feature",
+    "Fit or silhouette detail",
+    "Fabric or material (if visible)",
+    "Styling suggestion or occasion",
     "Care or sizing note"
   ]
-}
-
-Tone: confident, editorial, direct. Written for a fashion-forward ANZ customer.`
+}`
 
   try {
+    const messages: Parameters<typeof openai.chat.completions.create>[0]['messages'] = [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: heroImage
+          ? [
+              {
+                type: 'image_url' as const,
+                image_url: { url: `data:image/jpeg;base64,${heroImage}`, detail: 'low' as const },
+              },
+              { type: 'text' as const, text: userText },
+            ]
+          : userText,
+      },
+    ]
+
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+      model: heroImage ? 'gpt-4o' : 'gpt-4o-mini',
+      messages,
       response_format: { type: 'json_object' },
-      temperature: 0.75,
+      temperature: 0.7,
       max_tokens: 500,
     })
 
