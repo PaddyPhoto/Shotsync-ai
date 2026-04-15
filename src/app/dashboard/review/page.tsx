@@ -1098,6 +1098,7 @@ function ReviewPage() {
           marketplaces={sessionMarketplaces as MarketplaceName[]}
           marketplaceRules={marketplaceRules}
           namingTemplate={activeTemplate}
+          clusterCopy={clusterCopy}
           onClose={() => setShowExportPanel(false)}
         />
       )}
@@ -1114,6 +1115,7 @@ function ExportPanel({
   marketplaces,
   marketplaceRules,
   namingTemplate,
+  clusterCopy,
   onClose,
 }: {
   jobName: string
@@ -1122,6 +1124,7 @@ function ExportPanel({
   marketplaces: MarketplaceName[]
   marketplaceRules: EditableRules
   namingTemplate: string
+  clusterCopy: Record<string, { title: string; description: string; bullets: string[]; loading: boolean; open: boolean }>
   onClose: () => void
 }) {
   const selectedMarketplaces = marketplaces
@@ -1281,6 +1284,19 @@ function ExportPanel({
           setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
         }))
       }
+    }
+
+    // Add product_copy.csv if any confirmed clusters have AI copy
+    const copyClusters = confirmedClusters.filter((c) => clusterCopy[c.id]?.title)
+    if (copyClusters.length > 0) {
+      const headers = ['SKU', 'Product Name', 'Colour', 'Title', 'Description', 'Bullet 1', 'Bullet 2', 'Bullet 3', 'Bullet 4', 'Bullet 5']
+      const rows = copyClusters.map((c) => {
+        const copy = clusterCopy[c.id]
+        return [c.sku, c.productName, c.color, copy.title, copy.description, ...copy.bullets]
+          .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
+          .join(',')
+      })
+      zip.file('product_copy.csv', [headers.join(','), ...rows].join('\n'))
     }
 
     setProgress((p) => ({ ...p, phase: 'Building ZIP…' }))
