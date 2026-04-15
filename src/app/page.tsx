@@ -3,26 +3,29 @@
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 
+// Fixed-position orb — stays in viewport, drifts upward at `speed` rate as you scroll.
+// This creates true parallax: content scrolls at 1× while each orb drifts at a different speed.
 function Orb({ color, size, top, left, speed }: {
-  color: string; size: number; top: number; left: string; speed: number
+  color: string; size: number; top: string; left: string; speed: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const fn = () => { el.style.transform = `translateY(${window.scrollY * speed}px)` }
+    const fn = () => { el.style.transform = `translateY(${window.scrollY * -speed}px)` }
     window.addEventListener('scroll', fn, { passive: true })
     return () => window.removeEventListener('scroll', fn)
   }, [speed])
   return (
     <div ref={ref} style={{
-      position: 'absolute', top, left,
+      position: 'fixed', top, left,
       width: size, height: size,
       background: color,
       borderRadius: '50%',
-      filter: 'blur(80px)',
+      filter: 'blur(90px)',
       pointerEvents: 'none',
       willChange: 'transform',
+      zIndex: 0,
     }} />
   )
 }
@@ -56,15 +59,18 @@ export default function LandingPage() {
         .hero-stat-cell:last-child { border-right: none !important; }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#f5f5f7', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden', position: 'relative' }}>
+      {/* ── FIXED BACKGROUND ── */}
+      <div style={{ position: 'fixed', inset: 0, background: '#f5f5f7', zIndex: -1, pointerEvents: 'none' }} />
 
-        {/* ── PARALLAX ORBS ── */}
-        <Orb color="rgba(0,113,227,0.45)"   size={420} top={-60}  left="-5%"  speed={0.40} />
-        <Orb color="rgba(94,50,245,0.38)"   size={380} top={100}  left="64%"  speed={0.55} />
-        <Orb color="rgba(48,209,88,0.35)"   size={360} top={880}  left="4%"   speed={0.30} />
-        <Orb color="rgba(0,190,220,0.35)"   size={400} top={1620} left="60%"  speed={0.45} />
-        <Orb color="rgba(255,149,0,0.32)"   size={350} top={2700} left="10%"  speed={0.35} />
-        <Orb color="rgba(0,113,227,0.38)"   size={400} top={3900} left="52%"  speed={0.50} />
+      {/* ── PARALLAX ORBS (fixed, drift upward at different speeds) ── */}
+      <Orb color="rgba(0,113,227,0.50)"  size={480} top="-5vh"  left="-8%"  speed={0.08} />
+      <Orb color="rgba(94,50,245,0.42)"  size={440} top="5vh"   left="62%"  speed={0.20} />
+      <Orb color="rgba(48,209,88,0.40)"  size={400} top="55vh"  left="5%"   speed={0.04} />
+      <Orb color="rgba(0,190,220,0.38)"  size={460} top="65vh"  left="58%"  speed={0.16} />
+      <Orb color="rgba(255,149,0,0.36)"  size={420} top="110vh" left="10%"  speed={0.10} />
+      <Orb color="rgba(0,113,227,0.42)"  size={450} top="120vh" left="55%"  speed={0.24} />
+
+      <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
 
         {/* ── NAV ── */}
         <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,245,247,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
