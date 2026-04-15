@@ -1,368 +1,470 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-
-const FEATURES = [
-  {
-    color: '#007aff', bg: 'rgba(0,122,255,0.08)',
-    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#007aff" strokeWidth="1.6"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>,
-    title: 'Smart Grouping',
-    desc: 'Images sorted by filename sequence and split into product clusters automatically. No manual sorting.',
-  },
-  {
-    color: '#ff9f0a', bg: 'rgba(255,159,10,0.08)',
-    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#ff9f0a" strokeWidth="1.6"><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M11.4 3.2l-1.4 1.4M3.2 11.4l1.4 1.4" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5"/></svg>,
-    title: 'Angle Detection',
-    desc: 'Front, back, side, and detail shots automatically classified for every cluster using AI.',
-  },
-  {
-    color: '#30d158', bg: 'rgba(48,209,88,0.08)',
-    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="1.6"><path d="M8 11V4M5 8l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 13h12" strokeLinecap="round"/></svg>,
-    title: 'Multi-marketplace Export',
-    desc: 'Rename and package images per THE ICONIC, Myer, and David Jones specs in one click.',
-  },
-  {
-    color: '#af52de', bg: 'rgba(175,82,222,0.08)',
-    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#af52de" strokeWidth="1.6"><path d="M6 3H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3M10 3h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3M6 10H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3M10 10h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3M6 4.5h4M6 11.5h4M8 7v2" strokeLinecap="round"/></svg>,
-    title: 'Shopify Integration',
-    desc: 'Push confirmed clusters directly to your Shopify product listings without downloading a ZIP.',
-  },
-  {
-    color: '#ff3b30', bg: 'rgba(255,59,48,0.07)',
-    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#ff3b30" strokeWidth="1.6"><path d="M8 2l6.5 11H1.5L8 2z" strokeLinejoin="round"/><path d="M8 6v3.5M8 11.5v.5" strokeLinecap="round"/></svg>,
-    title: 'Missing Shot Alerts',
-    desc: 'See instantly which products are missing required angles per marketplace before you export.',
-  },
-  {
-    color: '#007aff', bg: 'rgba(0,122,255,0.08)',
-    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#007aff" strokeWidth="1.6"><path d="M2 4h12M2 8h8M2 12h5" strokeLinecap="round"/></svg>,
-    title: 'Style List Import',
-    desc: 'Upload your range sheet to auto-fill SKU, colour, and product name across every cluster.',
-  },
-]
-
-const STEPS = [
-  { step: '01', color: '#007aff', bg: 'rgba(0,122,255,0.08)', title: 'Upload your shoot folder', desc: 'Drop in your images. ShotSync reads the filenames, sorts by sequence, and groups images into product clusters automatically.' },
-  { step: '02', color: '#ff9f0a', bg: 'rgba(255,159,10,0.08)', title: 'Review and assign SKUs', desc: 'Check clusters, fix any grouping issues with drag and drop, assign SKU codes from your range list, and confirm each product.' },
-  { step: '03', color: '#30d158', bg: 'rgba(48,209,88,0.08)', title: 'Export to all marketplaces', desc: 'Select your marketplaces. ShotSync renames every image per retailer spec and downloads a ready-to-upload ZIP.' },
-]
 
 export default function LandingPage() {
-  const [annual, setAnnual] = useState(true)
-
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f5f7', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Text','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased' }}>
+    <>
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes eyebrowPulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.4; }
+        }
+        .hero-eyebrow { animation: fadeUp .7s ease both .1s; }
+        .hero-h1      { animation: fadeUp .7s ease both .2s; }
+        .hero-sub     { animation: fadeUp .7s ease both .3s; }
+        .hero-actions { animation: fadeUp .7s ease both .4s; }
+        .hero-stats   { animation: fadeUp .7s ease both .55s; }
+        .eyebrow-dot  { animation: eyebrowPulse 2s infinite; }
+        .nav-link { font-size:13px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
+        .nav-link:hover { color:#1d1d1f; }
+        .footer-link { font-size:12px;color:#aeaeb2;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
+        .footer-link:hover { color:#1d1d1f; }
+        .price-cta-btn { display:block;text-align:center;margin-top:24px;padding:10px;border-radius:8px;font-size:13px;font-weight:500;letter-spacing:-.2px;text-decoration:none;transition:opacity .15s;background:rgba(0,0,0,0.06);color:#1d1d1f; }
+        .price-cta-btn:hover { opacity:.8; }
+        .price-cta-btn.featured { background:#fff;color:#1d1d1f; }
+        .mp-logo-cell:last-child { border-right: none !important; }
+        .hero-stat-cell:last-child { border-right: none !important; }
+      `}</style>
 
-      {/* Nav */}
-      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', height: '52px', background: 'rgba(245,245,247,0.8)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-          <div style={{ width: '26px', height: '26px', background: '#1d1d1f', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>
-            </svg>
+      <div style={{ minHeight: '100vh', background: '#f5f5f7', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
+
+        {/* ── NAV ── */}
+        <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,245,247,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '9px', textDecoration: 'none' }}>
+            <div style={{ width: '24px', height: '24px', background: '#1d1d1f', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="12" height="12">
+                <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+              </svg>
+            </div>
+            <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-.3px', color: '#1d1d1f' }}>Shot<span style={{ color: '#6e6e73' }}>Sync</span></span>
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+            <a href="#how-it-works" className="nav-link">How it works</a>
+            <a href="#features" className="nav-link">Features</a>
+            <a href="#pricing" className="nav-link">Pricing</a>
+            <a href="mailto:hello@shotsync.ai" className="nav-link">Contact</a>
           </div>
-          <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-0.3px', color: '#1d1d1f' }}>
-            Shot<span style={{ color: '#6e6e73' }}>Sync</span>
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
-          <Link href="/signup" className="btn btn-primary btn-sm">Get started free</Link>
-        </div>
-      </nav>
+          <a href="#pricing" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>
+            Get early access
+          </a>
+        </nav>
 
-      {/* Hero */}
-      <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '96px 40px 80px' }}>
-        {/* Accent badge */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '20px', padding: '4px 12px 4px 8px', borderRadius: '999px', background: 'rgba(0,122,255,0.07)', border: '0.5px solid rgba(0,122,255,0.15)' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#007aff', flexShrink: 0 }} />
-          <span style={{ fontSize: '11px', fontWeight: 500, color: '#005fc4', letterSpacing: '-0.1px' }}>Fashion post-production, automated</span>
-        </div>
+        {/* ── HERO ── */}
+        <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', position: 'relative', overflow: 'hidden' }}>
+          <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '12px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '28px' }}>
+            <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
+            Now in early access — ANZ fashion brands
+          </div>
+          <h1 className="hero-h1" style={{ fontSize: 'clamp(44px,7vw,80px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.05, color: '#1d1d1f', maxWidth: '820px', marginBottom: '24px' }}>
+            Post-production.<br/><span style={{ color: '#6e6e73' }}>On autopilot.</span>
+          </h1>
+          <p className="hero-sub" style={{ fontSize: 'clamp(17px,2.2vw,21px)', color: '#6e6e73', maxWidth: '520px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '44px' }}>
+            Upload your shoot. ShotSync clusters, names, resizes, and exports marketplace-ready images — automatically.
+          </p>
+          <div className="hero-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a href="#pricing" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              Request early access
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a href="#how-it-works" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.08)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              See how it works
+            </a>
+          </div>
 
-        <h1 style={{ fontSize: '52px', fontWeight: 500, letterSpacing: '-2px', color: '#1d1d1f', lineHeight: 1.05, marginBottom: '20px', maxWidth: '640px' }}>
-          From shoot to marketplace, in minutes.
-        </h1>
-        <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '460px', lineHeight: 1.6, marginBottom: '36px', letterSpacing: '-0.2px' }}>
-          Upload your product images. ShotSync groups them by SKU, detects shot angles, renames everything, and exports marketplace-ready sets for THE ICONIC, Myer, and David Jones.
-        </p>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Link href="/signup" className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '13px' }}>
-            Get started free
-          </Link>
-          <Link href="/login" className="btn btn-ghost" style={{ padding: '8px 20px', fontSize: '13px' }}>
-            Sign in
-          </Link>
-        </div>
-
-        {/* Stats */}
-        <div style={{ display: 'flex', gap: '48px', marginTop: '56px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {[
-            { stat: '500+', label: 'images per job', color: '#007aff' },
-            { stat: '3 hrs', label: 'saved per session', color: '#30d158' },
-            { stat: '4', label: 'marketplaces', color: '#ff9f0a' },
-          ].map(({ stat, label, color }) => (
-            <div key={stat} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-              <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-0.8px', color }}>{stat}</span>
-              <span style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-0.1px' }}>{label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Feature grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '64px', maxWidth: '840px', width: '100%', textAlign: 'left' }}>
-          {FEATURES.map((f) => (
-            <div key={f.title} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '18px', backdropFilter: 'blur(8px)' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
-                {f.icon}
+          {/* Stats bar */}
+          <div className="hero-stats" style={{ display: 'flex', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', marginTop: '64px', overflow: 'hidden' }}>
+            {[
+              { value: '2–3 days', label: 'Manual post-production', color: '#1d1d1f' },
+              { value: '25 min',   label: 'With ShotSync',          color: '#30d158' },
+              { value: '500+',     label: 'Images per job',         color: '#1d1d1f' },
+              { value: '3',        label: 'ANZ marketplaces',       color: '#1d1d1f' },
+            ].map(({ value, label, color }, i) => (
+              <div key={i} className="hero-stat-cell" style={{ padding: '24px 36px', textAlign: 'center', borderRight: '0.5px solid rgba(0,0,0,0.08)', flex: 1 }}>
+                <div style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-1px', color, marginBottom: '4px', lineHeight: 1 }}>{value}</div>
+                <div style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-.1px' }}>{label}</div>
               </div>
-              <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px', letterSpacing: '-0.2px' }}>{f.title}</p>
-              <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
 
-      {/* Marketplace bar */}
-      <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)', borderBottom: '0.5px solid rgba(0,0,0,0.07)', padding: '36px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'rgba(255,255,255,0.6)' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '24px' }}>
-          Export ready for Australia&apos;s leading fashion platforms
-        </p>
-        <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {['THE ICONIC', 'MYER', 'DAVID JONES', 'SHOPIFY'].map((name) => (
-            <span key={name} style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-0.2px' }}>{name}</span>
-          ))}
-        </div>
+        {/* ── APP MOCKUP ── */}
+        <section style={{ padding: '0 40px 100px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '100%', maxWidth: '1000px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
+            {/* Browser bar */}
+            <div style={{ padding: '12px 16px', background: 'rgba(245,245,247,0.8)', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.06)'].map((bg, i) => (
+                  <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: bg }} />
+                ))}
+              </div>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ display: 'inline-block', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', padding: '4px 12px', fontSize: '11px', color: '#aeaeb2', maxWidth: '260px' }}>app.shotsync.ai</div>
+              </div>
+            </div>
+            {/* App inner */}
+            <div style={{ display: 'flex', height: '420px' }}>
+              {/* Sidebar */}
+              <div style={{ width: '180px', minWidth: '180px', background: 'rgba(248,248,250,0.9)', borderRight: '0.5px solid rgba(0,0,0,0.05)', padding: '16px 10px', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '4px 8px', marginBottom: '16px' }}>
+                  <div style={{ width: '20px', height: '20px', background: '#1d1d1f', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" width="10" height="10"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: 500, letterSpacing: '-.2px' }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
+                </div>
+                <div style={{ fontSize: '9px', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', margin: '12px 0 4px' }}>Workspace</div>
+                {[
+                  { label: 'Overview', active: true, dot: null },
+                  { label: 'All jobs', active: false, dot: 'green' },
+                ].map(({ label, active, dot }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', color: active ? '#1d1d1f' : '#6e6e73', background: active ? 'rgba(0,0,0,0.05)' : 'transparent', fontWeight: active ? 500 : 400, marginBottom: '1px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="11" height="11" style={{ flexShrink: 0, opacity: active ? 1 : 0.6 }}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    <span style={{ flex: 1 }}>{label}</span>
+                    {dot === 'green' && <span style={{ marginLeft: 'auto', width: '5px', height: '5px', borderRadius: '50%', background: '#30d158' }} />}
+                  </div>
+                ))}
+                <div style={{ fontSize: '9px', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', margin: '12px 0 4px' }}>Pipeline</div>
+                {[
+                  { label: 'Upload', dot: null },
+                  { label: 'Processing', dot: 'green' },
+                  { label: 'Clusters', dot: 'amber' },
+                  { label: 'Export', dot: null },
+                ].map(({ label, dot }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', color: '#6e6e73', marginBottom: '1px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="11" height="11" style={{ flexShrink: 0, opacity: 0.6 }}><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
+                    <span style={{ flex: 1 }}>{label}</span>
+                    {dot === 'green' && <span style={{ marginLeft: 'auto', width: '5px', height: '5px', borderRadius: '50%', background: '#30d158' }} />}
+                    {dot === 'amber' && <span style={{ marginLeft: 'auto', width: '5px', height: '5px', borderRadius: '50%', background: '#ff9f0a' }} />}
+                  </div>
+                ))}
+              </div>
+              {/* Main */}
+              <div style={{ flex: 1, padding: '20px', overflow: 'hidden' }}>
+                <div style={{ fontSize: '16px', fontWeight: 500, letterSpacing: '-.4px', marginBottom: '2px' }}>Good morning.</div>
+                <div style={{ fontSize: '11px', color: '#aeaeb2', marginBottom: '16px', letterSpacing: '-.1px' }}>3 active jobs · 4 clusters need attention · Last sync 2h ago</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginBottom: '14px' }}>
+                  {[
+                    { label: 'Images',    value: '8,412', delta: '↑ 1,204',    deltaColor: '#30d158' },
+                    { label: 'Clusters',  value: '247',   delta: '↑ 38 today', deltaColor: '#30d158' },
+                    { label: 'Ready',     value: '19',    delta: '3 markets',  deltaColor: '#aeaeb2' },
+                    { label: 'SKU match', value: '94%',   delta: '↑ 3%',       deltaColor: '#30d158' },
+                  ].map(({ label, value, delta, deltaColor }) => (
+                    <div key={label} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '8px', padding: '10px 12px' }}>
+                      <div style={{ fontSize: '9px', color: '#aeaeb2', marginBottom: '4px', letterSpacing: '-.1px' }}>{label}</div>
+                      <div style={{ fontSize: '17px', fontWeight: 500, letterSpacing: '-.5px', color: '#1d1d1f' }}>{value}</div>
+                      <div style={{ fontSize: '9px', color: deltaColor, marginTop: '2px' }}>{delta}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  {/* Recent jobs */}
+                  <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', overflow: 'hidden' }}>
+                    <div style={{ padding: '10px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 500, color: '#1d1d1f' }}>Recent jobs</div>
+                    {[
+                      { name: 'SS25 Campaign',  meta: '384 images', chip: 'Review',     chipBg: 'rgba(255,159,10,.1)',  chipColor: '#c27800' },
+                      { name: 'Winter Basics',  meta: '128 images', chip: 'Ready',      chipBg: 'rgba(48,209,88,.1)',   chipColor: '#1a8a35' },
+                      { name: 'Accessories 04', meta: '67 images',  chip: 'Processing', chipBg: 'rgba(0,113,227,.08)', chipColor: '#005fc4' },
+                    ].map(({ name, meta, chip, chipBg, chipColor }) => (
+                      <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                        <div style={{ width: '22px', height: '22px', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.1px' }}>{name}</div>
+                          <div style={{ fontSize: '10px', color: '#aeaeb2' }}>{meta}</div>
+                        </div>
+                        <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 500, background: chipBg, color: chipColor }}>{chip}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Marketplace coverage */}
+                  <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', overflow: 'hidden' }}>
+                    <div style={{ padding: '10px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 500, color: '#1d1d1f' }}>Marketplace coverage</div>
+                    {[
+                      { name: 'THE ICONIC',  pct: 82 },
+                      { name: 'Myer',        pct: 64 },
+                      { name: 'David Jones', pct: 71 },
+                    ].map(({ name, pct }) => (
+                      <div key={name} style={{ padding: '8px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '5px' }}>
+                          <span style={{ fontWeight: 500, color: '#1d1d1f' }}>{name}</span>
+                          <span style={{ color: '#aeaeb2' }}>{pct}%</span>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '999px', height: '2.5px' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: '#1d1d1f' }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── HOW IT WORKS ── */}
+        <section id="how-it-works" style={{ padding: '100px 40px', textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p>
+          <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Three steps. Zero manual work.</h2>
+          <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
+            Drop your shoot. ShotSync handles everything between the photographer&apos;s delivery and your marketplace upload.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '900px', margin: '0 auto' }}>
+            {[
+              {
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+                title: 'Upload your shoot',
+                desc: 'Drop up to 1,000 images. ShotSync ingests, reads your CSV catalogue, and starts the pipeline immediately.',
+              },
+              {
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>,
+                title: 'AI does the work',
+                desc: 'Images are clustered by SKU, angles detected, colours matched, files renamed — all automatically, with confidence scoring.',
+              },
+              {
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+                title: 'Download and upload',
+                desc: 'Export a ZIP per marketplace — THE ICONIC, Myer, David Jones — cropped and sized to their exact specs. Ready to upload.',
+              },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} style={{ background: '#fff', padding: '40px 36px', textAlign: 'left' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+                  {icon}
+                </div>
+                <h3 style={{ fontSize: '16px', fontWeight: 500, letterSpacing: '-.3px', marginBottom: '8px', color: '#1d1d1f' }}>{title}</h3>
+                <p style={{ fontSize: '13px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── FEATURES ── */}
+        <section id="features" style={{ padding: '0 40px 100px' }}>
+          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden' }}>
+
+              {/* Feature 1: Auto-rename */}
+              <div style={{ background: '#fff', padding: '40px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#aeaeb2' }} />
+                  Auto-rename
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Files named right. Every time.</h3>
+                <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Configure your naming convention once. ShotSync applies it to every image, every job — no manual renaming, no typos, no rejections.</p>
+                <div style={{ marginTop: '28px', background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.05)', borderRadius: '12px', padding: '16px' }}>
+                  {[
+                    { old: 'IMG_4821.jpg',  neo: 'PR05324.062_FRONT.jpg' },
+                    { old: 'IMG_4822.jpg',  neo: 'PR05324.062_BACK.jpg' },
+                    { old: 'DSC_0019.jpg',  neo: 'PR06001.034_FRONT.jpg' },
+                    { old: 'DSC_0020.jpg',  neo: 'PR06001.034_SIDE.jpg' },
+                  ].map(({ old, neo }) => (
+                    <div key={old} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                      <span style={{ fontSize: '11px', color: '#aeaeb2', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{old}</span>
+                      <span style={{ fontSize: '12px', color: '#aeaeb2', flexShrink: 0 }}>→</span>
+                      <span style={{ fontSize: '11px', color: '#1d1d1f', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{neo}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feature 2: AI clustering */}
+              <div style={{ background: '#fff', padding: '40px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#0071e3' }} />
+                  AI clustering
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Groups images by SKU automatically.</h3>
+                <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload a raw, unsorted shoot. The AI clusters every image by product using visual similarity — no manual sorting by your senior staff.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px', marginTop: '28px' }}>
+                  {[
+                    { bg: '#1a1a1a', label: 'Front',  conf: '97%' },
+                    { bg: '#111111', label: 'Back',   conf: '94%' },
+                    { bg: '#222222', label: 'Side',   conf: '88%' },
+                    { bg: '#0d0d0d', label: 'Detail', conf: '91%' },
+                  ].map(({ bg, label, conf }) => (
+                    <div key={label} style={{ background: bg, borderRadius: '6px', aspectRatio: '3/4', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', bottom: '4px', left: '4px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', fontSize: '8px', fontWeight: 500, color: '#fff', padding: '1px 4px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{label}</div>
+                      <div style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(48,209,88,.2)', borderRadius: '3px', fontSize: '8px', fontWeight: 500, color: '#1a8a35', padding: '1px 4px' }}>{conf}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feature 3: Marketplace rules */}
+              <div style={{ background: '#fff', padding: '40px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ff9f0a' }} />
+                  Marketplace rules
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>THE ICONIC. Myer. David Jones.</h3>
+                <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Every marketplace has different dimensions, view requirements, and naming rules. ShotSync knows them all and packages output to spec.</p>
+                <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {[
+                    { name: 'THE ICONIC',     spec: '2000×2667 · 4 views' },
+                    { name: 'Myer PIM',       spec: '1200×1600 · 2 views' },
+                    { name: 'David Jones PIM',spec: '1500×2000 · 3 views' },
+                  ].map(({ name, spec }) => (
+                    <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px' }}>
+                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(48,209,88,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                      <span style={{ fontSize: '12px', fontWeight: 500, color: '#1d1d1f', flex: 1 }}>{name}</span>
+                      <span style={{ fontSize: '10px', color: '#aeaeb2', background: 'rgba(0,0,0,0.04)', padding: '2px 7px', borderRadius: '4px' }}>{spec}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feature 4: CSV catalogue */}
+              <div style={{ background: '#fff', padding: '40px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#30d158' }} />
+                  CSV catalogue
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Works without Shopify.</h3>
+                <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload your season&apos;s SKU sheet — any format, any columns. ShotSync maps your data and matches images against it automatically. No API required.</p>
+                <div style={{ marginTop: '28px', background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.05)', borderRadius: '12px', padding: '16px' }}>
+                  {[
+                    { style: 'Style', colour: 'Colour', code: 'Code', name: 'Name', isHeader: true },
+                    { style: '05324', colour: 'Burgundy', code: '062', name: 'Midi Dress', isHeader: false },
+                    { style: '05324', colour: 'Black',    code: '010', name: 'Midi Dress', isHeader: false },
+                    { style: '06001', colour: 'Navy',     code: '034', name: 'Wide Leg',   isHeader: false },
+                  ].map((row, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '10px', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                      {[row.style, row.colour, row.code, row.name].map((cell, j) => (
+                        <span key={j} style={{ fontSize: '11px', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, color: row.isHeader ? '#aeaeb2' : '#1d1d1f', fontWeight: row.isHeader ? 400 : 500 }}>{cell}</span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ── MARKETPLACE LOGOS ── */}
+        <section style={{ padding: '0 40px 100px', textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Built for ANZ&apos;s top fashion marketplaces</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '700px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
+            {[
+              { name: 'THE ICONIC', sub: "Australia's largest fashion retailer" },
+              { name: 'Myer',       sub: 'PIM direct upload ready' },
+              { name: 'David Jones',sub: 'PIM asset management ready' },
+            ].map(({ name, sub }, i) => (
+              <div key={name} className="mp-logo-cell" style={{ flex: 1, padding: '28px 20px', borderRight: '0.5px solid rgba(0,0,0,0.08)', textAlign: 'center' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-.2px', color: '#1d1d1f' }}>{name}</div>
+                <div style={{ fontSize: '11px', color: '#aeaeb2', marginTop: '4px' }}>{sub}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── PRICING ── */}
+        <section id="pricing" style={{ padding: '0 40px 100px', textAlign: 'center' }}>
+          <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>
+          <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Simple, transparent pricing.</h2>
+          <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Early access customers lock in their price for life.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '960px', margin: '0 auto' }}>
+            {[
+              {
+                badge: 'Free', name: 'Starter', amount: '$0', period: 'forever',
+                features: ['Up to 50 images per export', '3 exports per month', '1 marketplace', '1 brand, 1 seat'],
+                cta: 'Get started', href: '/signup', featured: false,
+              },
+              {
+                badge: 'Early access', name: 'Brand', amount: '$79', period: 'AUD / month',
+                features: ['500 images / month', '2 marketplaces', '1 brand · 1 Shopify store', 'Email support'],
+                cta: 'Request access', href: 'mailto:hello@shotsync.ai', featured: false,
+              },
+              {
+                badge: 'Most popular', name: 'Studio', amount: '$179', period: 'AUD / month',
+                features: ['2,000 images / month', 'All 3 ANZ marketplaces', '3 brands · custom naming', 'Priority + onboarding call'],
+                cta: 'Request access', href: 'mailto:hello@shotsync.ai', featured: true,
+              },
+              {
+                badge: 'Scale', name: 'Enterprise', amount: 'Contact', period: 'custom pricing',
+                features: ['Unlimited images', 'Unlimited brands', 'SSO · SLA · dedicated CSM', 'Invoiced billing'],
+                cta: 'Get in touch', href: 'mailto:hello@shotsync.ai', featured: false,
+              },
+            ].map(({ badge, name, amount, period, features, cta, href, featured }) => (
+              <div key={name} style={{ background: featured ? '#1d1d1f' : '#fff', padding: '32px 28px', textAlign: 'left', position: 'relative' }}>
+                <div style={{ display: 'inline-block', background: featured ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '10px', fontWeight: 500, color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
+                <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '6px' }}>{name}</div>
+                <div style={{ fontSize: amount === 'Contact' ? '28px' : '36px', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : '#1d1d1f', lineHeight: 1, marginBottom: '4px' }}>{amount}</div>
+                <div style={{ fontSize: '13px', color: featured ? 'rgba(255,255,255,0.5)' : '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>{period}</div>
+                <div style={{ height: '0.5px', background: featured ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
+                {features.map((f) => (
+                  <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '13px', color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', letterSpacing: '-.1px' }}>
+                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: featured ? 'rgba(48,209,88,.2)' : 'rgba(48,209,88,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    {f}
+                  </div>
+                ))}
+                <Link href={href} className={`price-cta-btn${featured ? ' featured' : ''}`}>{cta}</Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── TESTIMONIAL ── */}
+        <section style={{ padding: '0 40px 100px', textAlign: 'center' }}>
+          <div style={{ maxWidth: '680px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', padding: '52px 60px' }}>
+            <p style={{ fontSize: 'clamp(18px,2.5vw,24px)', fontWeight: 400, letterSpacing: '-.5px', lineHeight: 1.5, color: '#1d1d1f', marginBottom: '32px' }}>
+              &ldquo;I spend 2–3 days after every shoot just renaming files and uploading to portals. If ShotSync does what it says, that&apos;s genuinely the most painful part of my job gone.&rdquo;
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 500, color: '#6e6e73', flexShrink: 0 }}>KC</div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Kat C.</div>
+                <div style={{ fontSize: '12px', color: '#aeaeb2' }}>eCommerce Coordinator, ANZ fashion brand</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA ── */}
+        <section style={{ padding: '0 40px 120px', textAlign: 'center' }}>
+          <div style={{ maxWidth: '680px', margin: '0 auto', background: '#1d1d1f', borderRadius: '24px', padding: '72px 60px' }}>
+            <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.5px', color: '#f5f5f7', lineHeight: 1.1, marginBottom: '16px' }}>Shoot. Sync. Done.</h2>
+            <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', marginBottom: '36px', letterSpacing: '-.2px', lineHeight: 1.5 }}>Join the early access program. Lock in your price for life.</p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="mailto:hello@shotsync.ai" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none' }}>
+                Request early access
+              </a>
+              <a href="mailto:hello@shotsync.ai" style={{ background: 'transparent', color: 'rgba(255,255,255,0.8)', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', border: '0.5px solid rgba(255,255,255,0.2)' }}>
+                hello@shotsync.ai
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FOOTER ── */}
+        <footer style={{ padding: '40px', borderTop: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+            <div style={{ width: '20px', height: '20px', background: '#1d1d1f', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" width="10" height="10"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            </div>
+            <span style={{ fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', color: '#1d1d1f' }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
+          </Link>
+          <div style={{ display: 'flex', gap: '24px' }}>
+            {[
+              { label: 'How it works', href: '#how-it-works' },
+              { label: 'Features',     href: '#features' },
+              { label: 'Pricing',      href: '#pricing' },
+              { label: 'Contact',      href: 'mailto:hello@shotsync.ai' },
+              { label: 'Privacy',      href: '/privacy' },
+            ].map(({ label, href }) => (
+              <a key={label} href={href} className="footer-link">{label}</a>
+            ))}
+          </div>
+          <p style={{ fontSize: '12px', color: '#aeaeb2' }}>© 2026 ShotSync.ai</p>
+        </footer>
+
       </div>
-
-      {/* How it works */}
-      <section style={{ padding: '80px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '12px' }}>How it works</p>
-        <h2 style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-1px', color: '#1d1d1f', marginBottom: '8px', textAlign: 'center' }}>
-          From folder to marketplace in 3 steps
-        </h2>
-        <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '56px', textAlign: 'center', letterSpacing: '-0.1px' }}>
-          No retouching knowledge required. No manual renaming. No spreadsheets.
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', maxWidth: '820px', width: '100%' }}>
-          {STEPS.map(({ step, color, bg, title, desc }) => (
-            <div key={step} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '20px', backdropFilter: 'blur(8px)' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '8px', background: bg, marginBottom: '12px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '-0.2px', color }}>{step}</span>
-              </div>
-              <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', marginBottom: '8px', letterSpacing: '-0.2px' }}>{title}</p>
-              <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>{desc}</p>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <Link href="/signup" className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '13px' }}>
-            Try it free — no credit card needed
-          </Link>
-          <p style={{ fontSize: '11px', color: '#aeaeb2' }}>Set up in under 2 minutes</p>
-        </div>
-      </section>
-
-      {/* Outcomes */}
-      <section style={{ padding: '80px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', borderTop: '0.5px solid rgba(0,0,0,0.07)', background: 'rgba(255,255,255,0.5)' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '12px' }}>The outcome</p>
-        <h2 style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-1px', color: '#1d1d1f', marginBottom: '48px', textAlign: 'center', maxWidth: '520px' }}>
-          Three days of post-production. Automated in 25 minutes.
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', maxWidth: '700px', width: '100%' }}>
-          {[
-            { heading: '3-day job done in 25 minutes', body: 'From folder drop to marketplace-ready ZIPs — no spreadsheets, no manual renaming, no back-and-forth.', color: '#30d158', dot: 'rgba(48,209,88,0.12)' },
-            { heading: 'Zero marketplace rejections', body: 'Every image exported to exact retailer spec — correct naming convention and required angles confirmed.', color: '#007aff', dot: 'rgba(0,122,255,0.08)' },
-            { heading: 'Products live before the window closes', body: 'Stop racing deadlines. Launch-ready assets delivered while the shoot is still fresh.', color: '#ff9f0a', dot: 'rgba(255,159,10,0.08)' },
-            { heading: 'No more missed seasons', body: 'Post-production is no longer the bottleneck. Your range hits the floor on time, every time.', color: '#30d158', dot: 'rgba(48,209,88,0.08)' },
-          ].map(({ heading, body, color, dot }) => (
-            <div key={heading} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '18px 20px', backdropFilter: 'blur(8px)', borderLeft: `2px solid ${color}` }}>
-              <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px', letterSpacing: '-0.2px' }}>{heading}</p>
-              <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>{body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section style={{ padding: '80px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '12px' }}>Pricing</p>
-        <h2 style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-1px', color: '#1d1d1f', marginBottom: '8px', textAlign: 'center' }}>
-          Simple, transparent pricing
-        </h2>
-        <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '32px', textAlign: 'center' }}>Start free. Upgrade as you grow.</p>
-
-        {/* Early access banner */}
-        <div style={{ width: '100%', maxWidth: '1060px', marginBottom: '28px', borderRadius: '12px', padding: '14px 18px', background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', backdropFilter: 'blur(8px)', borderLeft: '2px solid #ff9f0a' }}>
-          <p style={{ fontSize: '12px', fontWeight: 500, color: '#1d1d1f', marginBottom: '3px', letterSpacing: '-0.2px' }}>Early Access Pricing — Lock in your rate for life.</p>
-          <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.5, letterSpacing: '-0.1px' }}>
-            Direct marketplace integrations with THE ICONIC, Myer, and David Jones are on the roadmap. Founding customers keep their current price when new features ship.
-          </p>
-        </div>
-
-        {/* Billing toggle */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '13px', color: !annual ? '#1d1d1f' : '#aeaeb2', letterSpacing: '-0.1px' }}>Monthly</span>
-            <button
-              onClick={() => setAnnual((v) => !v)}
-              style={{ position: 'relative', width: '40px', height: '24px', borderRadius: '999px', background: annual ? '#1d1d1f' : 'rgba(0,0,0,0.12)', border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
-            >
-              <span style={{ position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s', left: annual ? '19px' : '3px' }} />
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '13px', color: annual ? '#1d1d1f' : '#aeaeb2', letterSpacing: '-0.1px' }}>Annual</span>
-              <span style={{ fontSize: '11px', fontWeight: 500, background: 'rgba(48,209,88,0.1)', color: '#1a8a35', padding: '2px 7px', borderRadius: '999px' }}>Save 20%</span>
-            </div>
-          </div>
-          <p style={{ fontSize: '11px', color: '#aeaeb2' }}>All prices in AUD inc. GST. Annual billing charged upfront.</p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', maxWidth: '1060px', width: '100%' }}>
-          {([
-            { id: 'free',       name: 'Free',       monthly: '$0',   annual: '$0',   note: 'No credit card required',     features: ['Up to 3 exports/month', 'Up to 50 images per export', '1 marketplace export folder', '1 brand, 1 seat'],                                                                                                                                         forNote: 'Try the workflow',             cta: 'Get started free',   primary: false, popular: false, founding: false },
-            { id: 'starter',    name: 'Starter',    monthly: '$79',  annual: '$63',  note: 'per month, billed annually',  features: ['Up to 500 images/month', '1 brand', '2 ANZ marketplaces', '2 seats', '1 Shopify store', 'Email support'],                                                                                                                                       forNote: 'Small brands',                 cta: 'Start with Starter', primary: false, popular: false, founding: true  },
-            { id: 'brand',      name: 'Brand',      monthly: '$199', annual: '$143', note: 'per month, billed annually',  features: ['Up to 2,000 images/month', '3 brands', 'All 4 ANZ marketplaces', '5 seats', '3 Shopify stores', 'Custom naming convention', 'Priority processing', 'Onboarding call'],                                                                            forNote: '100–200 SKUs/month',           cta: 'Start with Brand',   primary: true,  popular: true,  founding: true  },
-            { id: 'scale',      name: 'Scale',      monthly: '$399', annual: '$359', note: 'per month, billed annually',  features: ['Up to 10,000 images/month', 'Unlimited brands', 'All 4 ANZ marketplaces', 'Unlimited seats', 'Unlimited Shopify stores', 'Custom naming', 'API access', 'Dedicated support', 'Monthly review call', 'White-label exports'],                       forNote: '300–500 SKUs/month',           cta: 'Start with Scale',   primary: false, popular: false, founding: true  },
-            { id: 'enterprise', name: 'Enterprise', monthly: null,   annual: null,   note: 'Custom contract & pricing',   features: ['Unlimited everything', 'Custom marketplace rules', 'SSO + role-based permissions', 'SLA guarantee', 'Invoiced billing', 'Dedicated CSM'],                                                                                                           forNote: 'High-volume brands at scale',  cta: 'Contact us',         primary: false, popular: false, founding: false },
-          ] as const).map((plan) => {
-            const price = annual ? plan.annual : plan.monthly
-            return (
-              <div
-                key={plan.id}
-                style={{
-                  background: plan.popular ? '#1d1d1f' : 'rgba(255,255,255,0.8)',
-                  border: `0.5px solid ${plan.popular ? 'transparent' : 'rgba(0,0,0,0.07)'}`,
-                  borderRadius: '14px',
-                  padding: '18px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  position: 'relative',
-                  backdropFilter: 'blur(8px)',
-                }}
-              >
-                {plan.popular && (
-                  <div style={{ position: 'absolute', top: '-11px', left: '50%', transform: 'translateX(-50%)', background: '#007aff', color: '#fff', fontSize: '10px', fontWeight: 500, padding: '3px 10px', borderRadius: '999px', whiteSpace: 'nowrap', letterSpacing: '-0.1px' }}>
-                    Most popular
-                  </div>
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase', color: plan.popular ? 'rgba(255,255,255,0.5)' : '#aeaeb2' }}>{plan.name}</p>
-                  {plan.founding && (
-                    <span style={{ fontSize: '9px', fontWeight: 500, padding: '2px 6px', borderRadius: '4px', background: plan.popular ? 'rgba(255,159,10,0.2)' : 'rgba(255,159,10,0.1)', color: plan.popular ? '#ffb340' : '#c27800', letterSpacing: '0.02em' }}>
-                      Founding
-                    </span>
-                  )}
-                </div>
-
-                {price === null ? (
-                  <p style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-0.8px', color: plan.popular ? '#ffffff' : '#1d1d1f', marginBottom: '3px' }}>Custom</p>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '28px', fontWeight: 500, letterSpacing: '-1px', color: plan.popular ? '#ffffff' : '#1d1d1f', lineHeight: 1 }}>{price}</span>
-                    {price !== '$0' && <span style={{ fontSize: '11px', color: plan.popular ? 'rgba(255,255,255,0.4)' : '#aeaeb2', marginBottom: '3px' }}>/mo</span>}
-                  </div>
-                )}
-                <p style={{ fontSize: '11px', color: plan.popular ? 'rgba(255,255,255,0.4)' : '#aeaeb2', marginBottom: '16px', letterSpacing: '-0.1px' }}>{plan.note}</p>
-
-                <ul style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: '16px', flex: 1 }}>
-                  {plan.features.map((f) => (
-                    <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '11px', color: plan.popular ? 'rgba(255,255,255,0.7)' : '#6e6e73', letterSpacing: '-0.1px' }}>
-                      <svg style={{ flexShrink: 0, marginTop: '2px' }} width="10" height="10" viewBox="0 0 12 12" fill="none" stroke={plan.popular ? '#30d158' : '#30d158'} strokeWidth="1.8"><polyline points="2 6 5 9 10 3"/></svg>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <p style={{ fontSize: '10px', color: plan.popular ? 'rgba(255,255,255,0.3)' : '#aeaeb2', marginBottom: '12px', letterSpacing: '-0.1px' }}>For: {plan.forNote}</p>
-                <Link
-                  href={plan.id === 'enterprise' ? 'mailto:hello@shotsync.ai' : '/signup'}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '7px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 500, letterSpacing: '-0.1px',
-                    background: plan.popular ? '#007aff' : 'rgba(0,0,0,0.06)',
-                    color: plan.popular ? '#ffffff' : '#1d1d1f',
-                    border: plan.popular ? 'none' : '0.5px solid rgba(0,0,0,0.1)',
-                    transition: 'all 0.15s',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {plan.cta}
-                </Link>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* What's coming */}
-        <div style={{ width: '100%', maxWidth: '1060px', marginTop: '56px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-            <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2' }}>What&apos;s coming</p>
-            <div style={{ flex: 1, height: '0.5px', background: 'rgba(0,0,0,0.08)' }} />
-          </div>
-          <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-0.5px', color: '#1d1d1f', marginBottom: '4px' }}>
-            Direct marketplace integrations — in development
-          </h3>
-          <p style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '20px', letterSpacing: '-0.1px' }}>
-            Included in your plan at no extra cost when launched. Early Access customers lock in their rate now.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-            {[
-              { marketplace: 'THE ICONIC', desc: 'Images pushed directly to your THE ICONIC supplier portal. No manual upload.' },
-              { marketplace: 'Myer', desc: 'Automatic delivery to Myer\'s supplier portal on export.' },
-              { marketplace: 'David Jones', desc: 'One-click submission to David Jones with compliance validation.' },
-            ].map(({ marketplace, desc }) => (
-              <div key={marketplace} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '16px 18px', backdropFilter: 'blur(8px)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-0.2px' }}>{marketplace}</p>
-                  <span style={{ fontSize: '10px', fontWeight: 500, padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,159,10,0.08)', color: '#c27800', letterSpacing: '-0.1px' }}>Coming soon</span>
-                </div>
-                <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)', padding: '56px 40px 32px', background: 'rgba(255,255,255,0.5)' }}>
-        <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '40px', marginBottom: '48px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                <div style={{ width: '24px', height: '24px', background: '#1d1d1f', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>
-                  </svg>
-                </div>
-                <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-0.3px', color: '#1d1d1f' }}>Shot<span style={{ color: '#6e6e73' }}>Sync</span></span>
-              </div>
-              <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>Post-production automation for fashion eCommerce. Built for ANZ brands and agencies.</p>
-              <a href="mailto:hello@shotsync.ai" style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-0.1px' }}>hello@shotsync.ai</a>
-            </div>
-            {[
-              { heading: 'Product', links: [{ label: 'Features', href: '/#features' }, { label: 'Pricing', href: '/#pricing' }, { label: 'Sign up free', href: '/signup' }, { label: 'Sign in', href: '/login' }] },
-              { heading: 'Marketplaces', links: [{ label: 'THE ICONIC', href: '#' }, { label: 'Myer', href: '#' }, { label: 'David Jones', href: '#' }, { label: 'Shopify', href: '#' }] },
-              { heading: 'Company', links: [{ label: 'Privacy Policy', href: '/privacy' }, { label: 'Terms of Service', href: '/terms' }, { label: 'Contact us', href: 'mailto:hello@shotsync.ai' }] },
-            ].map(({ heading, links }) => (
-              <div key={heading}>
-                <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '16px' }}>{heading}</p>
-                <ul style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {links.map(({ label, href }) => (
-                    <li key={label}>
-                      <Link href={href} style={{ fontSize: '13px', color: '#6e6e73', letterSpacing: '-0.1px', textDecoration: 'none' }}>{label}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <p style={{ fontSize: '11px', color: '#aeaeb2', letterSpacing: '-0.1px' }}>© 2026 ShotSync.ai — Photoworks Sydney Pty Ltd</p>
-            <p style={{ fontSize: '11px', color: '#aeaeb2', letterSpacing: '-0.1px' }}>Built for fashion eCommerce teams in Australia</p>
-          </div>
-        </div>
-      </footer>
-
-    </div>
+    </>
   )
 }
