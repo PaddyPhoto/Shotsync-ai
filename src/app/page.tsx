@@ -12,7 +12,7 @@ function Orb({ color, size, top, left, speed }: {
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const fn = () => { el.style.transform = `translateY(${window.scrollY * -speed}px)` }
+    const fn = () => { el.style.transform = `translateY(${window.scrollY * speed}px)` }
     window.addEventListener('scroll', fn, { passive: true })
     return () => window.removeEventListener('scroll', fn)
   }, [speed])
