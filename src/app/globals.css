@@ -2,36 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg:       #0a0a0f;
-  --bg2:      #111118;
-  --bg3:      #1c1c28;
-  --bg4:      #252535;
-  --line:     rgba(255,255,255,0.06);
-  --line2:    rgba(255,255,255,0.10);
-  --text:     #f0eee9;
-  --text2:    #9896a2;
-  --text3:    #4e4d5a;
-  --accent:   #4a9eff;
-  --accent-deep: #1a4fff;
-  --accent-glow: rgba(74,158,255,0.15);
-  --accent2:  #3ecf8e;
-  --accent3:  #e85454;
-  --accent4:  #f0a429;
-  --r:        6px;
-  --r2:       10px;
-  --r3:       16px;
+  --bg:       #f7f7fb;
+  --bg2:      #ffffff;
+  --bg3:      #f0f0f6;
+  --bg4:      #e6e6f0;
+  --line:     rgba(0,0,0,0.07);
+  --line2:    rgba(0,0,0,0.11);
+  --text:     #18182a;
+  --text2:    #6b6b85;
+  --text3:    #a8a8be;
+  --accent:   #4d65ff;
+  --accent-deep: #3350e8;
+  --accent-glow: rgba(77,101,255,0.10);
+  --accent2:  #2ec98a;
+  --accent3:  #e84f4f;
+  --accent4:  #7c5cf6;
+  --r:        8px;
+  --r2:       12px;
+  --r3:       20px;
 
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-body:    'Inter', sans-serif;
+  --font-display: 'Poppins', sans-serif;
+  --font-body:    'Poppins', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 
   /* Legacy aliases so existing components don't break */
-  --font-syne:    'Space Grotesk', sans-serif;
+  --font-syne:    'Poppins', sans-serif;
   --font-dm-mono: 'JetBrains Mono', monospace;
-  --font-dm-sans: 'Inter', sans-serif;
+  --font-dm-sans: 'Poppins', sans-serif;
 }
 
 *, *::before, *::after {
@@ -56,23 +56,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle noise texture */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-  background-size: 160px;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.5;
-}
+/* No noise texture on light theme */
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-track { background: var(--bg3); }
 ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--line2); }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
 /* Selection */
 ::selection {
@@ -120,13 +110,13 @@ img { display: block; }
   .rounded-lg { border-radius: var(--r3); }
 
   .shimmer {
-    background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+    background: linear-gradient(90deg, var(--bg3) 25%, var(--bg2) 50%, var(--bg3) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
 
   .glow-blue {
-    box-shadow: 0 0 16px rgba(26, 79, 255, 0.3);
+    box-shadow: 0 4px 20px rgba(77, 101, 255, 0.2);
   }
 }
 
@@ -136,16 +126,17 @@ img { display: block; }
     @apply inline-flex items-center gap-[7px] px-4 py-2 rounded-sm text-[0.82rem] font-medium transition-all duration-150 cursor-pointer border-0;
   }
   .btn-primary {
-    background: var(--accent-deep);
+    background: var(--accent);
     color: #fff;
-    box-shadow: 0 0 16px rgba(26,79,255,0.3);
+    box-shadow: 0 2px 12px rgba(77,101,255,0.25);
     @apply btn font-semibold;
   }
   .btn-primary:hover {
-    background: var(--accent);
+    background: var(--accent-deep);
+    box-shadow: 0 4px 16px rgba(77,101,255,0.35);
   }
   .btn-ghost {
-    @apply btn bg-transparent text-[var(--text2)] border border-[var(--line2)] hover:bg-[var(--bg3)] hover:text-[var(--text)];
+    @apply btn bg-[var(--bg2)] text-[var(--text2)] border border-[var(--line2)] hover:bg-[var(--bg3)] hover:text-[var(--text)];
   }
   .btn-danger {
     @apply btn bg-transparent text-[var(--accent3)] border border-[rgba(232,84,84,0.3)] hover:bg-[rgba(232,84,84,0.08)];
@@ -189,29 +180,29 @@ img { display: block; }
   .chip {
     @apply px-[10px] py-[3px] rounded-[20px] text-[0.72rem] font-semibold;
   }
-  .chip-processing { @apply bg-[rgba(74,158,255,0.12)] text-[var(--accent)]; }
-  .chip-review     { @apply bg-[rgba(240,164,41,0.12)] text-[var(--accent4)]; }
-  .chip-ready      { @apply bg-[rgba(62,207,142,0.12)] text-[var(--accent2)]; }
-  .chip-error      { @apply bg-[rgba(232,84,84,0.12)] text-[var(--accent3)]; }
-  .chip-uploading  { @apply bg-[rgba(74,158,255,0.12)] text-[var(--accent)]; }
+  .chip-processing { background: rgba(77,101,255,0.10); color: var(--accent); }
+  .chip-review     { background: rgba(124,92,246,0.10); color: var(--accent4); }
+  .chip-ready      { background: rgba(46,201,138,0.10); color: var(--accent2); }
+  .chip-error      { background: rgba(232,79,79,0.10); color: var(--accent3); }
+  .chip-uploading  { background: rgba(77,101,255,0.10); color: var(--accent); }
 
   /* Shot pills */
   .shot-pill {
     @apply text-[0.65rem] px-[7px] py-[2px] rounded-[10px] font-semibold uppercase tracking-[0.05em];
   }
-  .shot-front       { @apply bg-[rgba(62,207,142,0.15)] text-[var(--accent2)]; }
-  .shot-back        { @apply bg-[rgba(74,158,255,0.15)] text-[var(--accent)]; }
-  .shot-side        { @apply bg-[rgba(240,164,41,0.15)] text-[var(--accent4)]; }
-  .shot-detail      { @apply bg-[rgba(232,84,84,0.15)] text-[var(--accent3)]; }
-  .shot-mood        { @apply bg-[rgba(180,122,232,0.15)] text-[#b47ae8]; }
-  .shot-full-length    { @apply bg-[rgba(232,180,122,0.15)] text-[#e8b47a]; }
-  .shot-gm             { @apply bg-[rgba(110,180,255,0.15)] text-[#6eb4ff]; }
-  .shot-flat           { @apply bg-[rgba(122,232,200,0.15)] text-[#7ae8c8]; }
-  .shot-topdown        { @apply bg-[rgba(200,180,255,0.15)] text-[#c8b4ff]; }
-  .shot-inside         { @apply bg-[rgba(255,200,122,0.15)] text-[#ffc87a]; }
-  .shot-threequarter   { @apply bg-[rgba(122,220,180,0.15)] text-[#7adcb4]; }
-  .shot-missing        { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)] border border-dashed border-[var(--text3)]; }
-  .shot-unknown        { @apply bg-[rgba(255,255,255,0.04)] text-[var(--text3)]; }
+  .shot-front       { @apply bg-[rgba(46,201,138,0.12)] text-[#1a9e68]; }
+  .shot-back        { @apply bg-[rgba(77,101,255,0.12)] text-[#3350e8]; }
+  .shot-side        { @apply bg-[rgba(124,92,246,0.12)] text-[#6040d0]; }
+  .shot-detail      { @apply bg-[rgba(232,79,79,0.12)] text-[#c03030]; }
+  .shot-mood        { @apply bg-[rgba(180,100,220,0.12)] text-[#8040b0]; }
+  .shot-full-length    { @apply bg-[rgba(220,140,60,0.12)] text-[#a05010]; }
+  .shot-gm             { @apply bg-[rgba(60,140,255,0.12)] text-[#1a60d0]; }
+  .shot-flat           { @apply bg-[rgba(40,200,180,0.12)] text-[#0a8070]; }
+  .shot-topdown        { @apply bg-[rgba(160,100,255,0.12)] text-[#6020c0]; }
+  .shot-inside         { @apply bg-[rgba(255,160,60,0.12)] text-[#b06010]; }
+  .shot-threequarter   { @apply bg-[rgba(60,180,140,0.12)] text-[#107060]; }
+  .shot-missing        { @apply bg-[rgba(0,0,0,0.03)] text-[var(--text3)] border border-dashed border-[var(--line2)]; }
+  .shot-unknown        { @apply bg-[rgba(0,0,0,0.03)] text-[var(--text3)]; }
 }
 
 @keyframes shimmer {
