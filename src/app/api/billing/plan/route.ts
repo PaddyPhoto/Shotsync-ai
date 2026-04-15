@@ -20,19 +20,21 @@ export async function GET(req: Request) {
     const { data: { user } } = await supabase.auth.getUser(token)
     if (!user) return NextResponse.json({ data: null })
 
-    // Read plan from the org the user belongs to (org-level billing)
+    // Two-step lookup to avoid PostgREST schema cache issues with ALTER TABLE columns
     const { data: membership } = await supabase
       .from('org_members')
-      .select('orgs(id, plan, exports_this_month)')
+      .select('org_id')
       .eq('user_id', user.id)
       .limit(1)
       .single()
 
-    const org = membership?.orgs as unknown as {
-      id: string
-      plan: string
-      exports_this_month: number
-    } | null
+    if (!membership?.org_id) return NextResponse.json({ data: null })
+
+    const { data: org } = await supabase
+      .from('orgs')
+      .select('id, plan, exports_this_month')
+      .eq('id', membership.org_id)
+      .single()
 
     if (!org) return NextResponse.json({ data: null })
 
