@@ -1,6 +1,32 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useRef } from 'react'
+
+function ParallaxOrb({ color, size, top, left, speed }: {
+  color: string; size: number; top: number; left: string; speed: number
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const fn = () => { el.style.transform = `translateY(${window.scrollY * speed}px)` }
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [speed])
+  return (
+    <div ref={ref} style={{
+      position: 'absolute', top, left,
+      width: size, height: size,
+      background: color,
+      borderRadius: '50%',
+      filter: `blur(${Math.round(size / 4)}px)`,
+      pointerEvents: 'none',
+      willChange: 'transform',
+      zIndex: 0,
+    }} />
+  )
+}
 
 export default function LandingPage() {
   return (
@@ -31,7 +57,15 @@ export default function LandingPage() {
         .hero-stat-cell:last-child { border-right: none !important; }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#f5f5f7', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
+      <div style={{ minHeight: '100vh', background: '#f5f5f7', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden', position: 'relative' }}>
+
+        {/* ── PARALLAX ORBS ── */}
+        <ParallaxOrb color="radial-gradient(circle, rgba(0,100,255,0.16) 0%, transparent 70%)"  size={800} top={-200} left="-12%"  speed={0.15} />
+        <ParallaxOrb color="radial-gradient(circle, rgba(94,50,255,0.12) 0%, transparent 70%)"  size={700} top={60}   left="58%"   speed={0.22} />
+        <ParallaxOrb color="radial-gradient(circle, rgba(48,209,88,0.13) 0%, transparent 70%)"  size={620} top={820}  left="8%"    speed={0.10} />
+        <ParallaxOrb color="radial-gradient(circle, rgba(0,180,215,0.11) 0%, transparent 70%)"  size={700} top={1500} left="55%"   speed={0.18} />
+        <ParallaxOrb color="radial-gradient(circle, rgba(255,149,0,0.09) 0%, transparent 70%)"  size={650} top={2600} left="15%"   speed={0.13} />
+        <ParallaxOrb color="radial-gradient(circle, rgba(0,100,255,0.11) 0%, transparent 70%)"  size={720} top={3800} left="48%"   speed={0.17} />
 
         {/* ── NAV ── */}
         <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,245,247,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
@@ -58,7 +92,7 @@ export default function LandingPage() {
         </nav>
 
         {/* ── HERO ── */}
-        <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', position: 'relative', overflow: 'hidden' }}>
+        <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', position: 'relative', zIndex: 1 }}>
           <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '12px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '28px' }}>
             <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
             Now in early access — ANZ fashion brands
@@ -96,7 +130,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── APP MOCKUP ── */}
-        <section style={{ padding: '0 40px 100px', display: 'flex', justifyContent: 'center' }}>
+        <section style={{ padding: '0 40px 100px', display: 'flex', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ width: '100%', maxWidth: '1000px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
             {/* Browser bar */}
             <div style={{ padding: '12px 16px', background: 'rgba(245,245,247,0.8)', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -208,7 +242,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── HOW IT WORKS ── */}
-        <section id="how-it-works" style={{ padding: '100px 40px', textAlign: 'center' }}>
+        <section id="how-it-works" style={{ padding: '100px 40px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p>
           <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Three steps. Zero manual work.</h2>
           <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
@@ -244,7 +278,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── FEATURES ── */}
-        <section id="features" style={{ padding: '0 40px 100px' }}>
+        <section id="features" style={{ padding: '0 40px 100px', position: 'relative', zIndex: 1 }}>
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden' }}>
 
@@ -349,7 +383,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── MARKETPLACE LOGOS ── */}
-        <section style={{ padding: '0 40px 100px', textAlign: 'center' }}>
+        <section style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Built for ANZ&apos;s top fashion marketplaces</p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '700px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
             {[
@@ -366,7 +400,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── PRICING ── */}
-        <section id="pricing" style={{ padding: '0 40px 100px', textAlign: 'center' }}>
+        <section id="pricing" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>
           <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Simple, transparent pricing.</h2>
           <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Early access customers lock in their price for life.</p>
@@ -414,7 +448,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── TESTIMONIAL ── */}
-        <section style={{ padding: '0 40px 100px', textAlign: 'center' }}>
+        <section style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ maxWidth: '680px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', padding: '52px 60px' }}>
             <p style={{ fontSize: 'clamp(18px,2.5vw,24px)', fontWeight: 400, letterSpacing: '-.5px', lineHeight: 1.5, color: '#1d1d1f', marginBottom: '32px' }}>
               &ldquo;I spend 2–3 days after every shoot just renaming files and uploading to portals. If ShotSync does what it says, that&apos;s genuinely the most painful part of my job gone.&rdquo;
@@ -430,7 +464,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── CTA ── */}
-        <section style={{ padding: '0 40px 120px', textAlign: 'center' }}>
+        <section style={{ padding: '0 40px 120px', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ maxWidth: '680px', margin: '0 auto', background: '#1d1d1f', borderRadius: '24px', padding: '72px 60px' }}>
             <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.5px', color: '#f5f5f7', lineHeight: 1.1, marginBottom: '16px' }}>Shoot. Sync. Done.</h2>
             <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', marginBottom: '36px', letterSpacing: '-.2px', lineHeight: 1.5 }}>Join the early access program. Lock in your price for life.</p>
@@ -446,7 +480,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── FOOTER ── */}
-        <footer style={{ padding: '40px', borderTop: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <footer style={{ padding: '40px', borderTop: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
             <div style={{ width: '20px', height: '20px', background: '#1d1d1f', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" width="10" height="10"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
