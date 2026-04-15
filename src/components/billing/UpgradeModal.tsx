@@ -97,8 +97,14 @@ export function UpgradeModal() {
                 </div>
 
                 <div className="flex items-baseline gap-1">
-                  <span className="text-[1.6rem] font-[700] text-[var(--text)]">${p.priceAud}</span>
-                  <span className="text-[0.75rem] text-[var(--text3)]">AUD/month</span>
+                  {id === 'enterprise' ? (
+                    <span className="text-[1.2rem] font-[700] text-[var(--text)]">Contact us</span>
+                  ) : (
+                    <>
+                      <span className="text-[1.6rem] font-[700] text-[var(--text)]">${p.priceAud}</span>
+                      <span className="text-[0.75rem] text-[var(--text3)]">AUD/month</span>
+                    </>
+                  )}
                 </div>
 
                 <ul className="flex flex-col gap-[6px]">
