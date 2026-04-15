@@ -418,7 +418,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 5: AI Copywriting — full width */}
-            <div className="ai-copy-feature" style={{ background: '#f0f0f2', padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'center' }}>
+            <div className="ai-copy-feature" style={{ background: '#f0f0f2', padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'center', borderRadius: '24px', border: '0.5px solid rgba(0,0,0,0.08)', marginTop: '12px', overflow: 'hidden' }}>
               <div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#5e32f5' }} />
