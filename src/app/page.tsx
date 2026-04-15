@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { PLANS } from '@/lib/plans'
 
 // Fixed-position orb — stays in viewport, drifts upward at `speed` rate as you scroll.
 // This creates true parallax: content scrolls at 1× while each orb drifts at a different speed.
@@ -31,6 +32,7 @@ function Orb({ color, size, top, left, speed }: {
 }
 
 export default function LandingPage() {
+  const [annual, setAnnual] = useState(false)
   return (
     <>
       <style>{`
@@ -90,8 +92,9 @@ export default function LandingPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link href="/login" className="nav-link">Sign in</Link>
-            <a href="#pricing" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>
-            Get early access
+            <a href="#demo" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Watch demo
             </a>
           </div>
         </nav>
@@ -109,12 +112,13 @@ export default function LandingPage() {
             Upload your shoot. ShotSync clusters, names, resizes, and exports marketplace-ready images — automatically.
           </p>
           <div className="hero-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="#pricing" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              Request early access
+            <Link href="/signup" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              Get started free
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </a>
-            <a href="#how-it-works" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.08)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              See how it works
+            </Link>
+            <a href="#demo" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.08)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style={{ color: '#1d1d1f' }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Watch demo
             </a>
           </div>
 
@@ -408,47 +412,66 @@ export default function LandingPage() {
         <section id="pricing" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>
           <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Simple, transparent pricing.</h2>
-          <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Early access customers lock in their price for life.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '960px', margin: '0 auto' }}>
-            {[
-              {
-                badge: 'Free', name: 'Starter', amount: '$0', period: 'forever',
-                features: ['Up to 50 images per export', '3 exports per month', '1 marketplace', '1 brand, 1 seat'],
-                cta: 'Get started', href: '/signup', featured: false,
-              },
-              {
-                badge: 'Early access', name: 'Brand', amount: '$79', period: 'AUD / month',
-                features: ['500 images / month', '2 marketplaces', '1 brand · 1 Shopify store', 'Email support'],
-                cta: 'Request access', href: 'mailto:hello@shotsync.ai', featured: false,
-              },
-              {
-                badge: 'Most popular', name: 'Studio', amount: '$179', period: 'AUD / month',
-                features: ['2,000 images / month', 'All 3 ANZ marketplaces', '3 brands · custom naming', 'Priority + onboarding call'],
-                cta: 'Request access', href: 'mailto:hello@shotsync.ai', featured: true,
-              },
-              {
-                badge: 'Scale', name: 'Enterprise', amount: 'Contact', period: 'custom pricing',
-                features: ['Unlimited images', 'Unlimited brands', 'SSO · SLA · dedicated CSM', 'Invoiced billing'],
-                cta: 'Get in touch', href: 'mailto:hello@shotsync.ai', featured: false,
-              },
-            ].map(({ badge, name, amount, period, features, cta, href, featured }) => (
-              <div key={name} style={{ background: featured ? '#1d1d1f' : '#fff', padding: '32px 28px', textAlign: 'left', position: 'relative' }}>
-                <div style={{ display: 'inline-block', background: featured ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
-                <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '6px' }}>{name}</div>
-                <div style={{ fontSize: amount === 'Contact' ? '28px' : '36px', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : '#1d1d1f', lineHeight: 1, marginBottom: '4px' }}>{amount}</div>
-                <div style={{ fontSize: '13px', color: featured ? 'rgba(255,255,255,0.5)' : '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>{period}</div>
-                <div style={{ height: '0.5px', background: featured ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
-                {features.map((f) => (
-                  <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '13px', color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', letterSpacing: '-.1px' }}>
-                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: featured ? 'rgba(48,209,88,.2)' : 'rgba(48,209,88,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
-                    </div>
-                    {f}
+          <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 36px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Start free. Upgrade as you grow. Cancel anytime.</p>
+
+          {/* Monthly / Annual toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '52px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-.1px', color: annual ? '#aeaeb2' : '#1d1d1f', transition: 'color .2s' }}>Monthly</span>
+            <button
+              onClick={() => setAnnual(a => !a)}
+              style={{ width: '44px', height: '26px', borderRadius: '999px', border: 'none', cursor: 'pointer', background: annual ? '#1d1d1f' : 'rgba(0,0,0,0.14)', position: 'relative', transition: 'background .2s', flexShrink: 0, padding: 0 }}
+            >
+              <div style={{ position: 'absolute', top: '3px', left: annual ? '21px' : '3px', width: '20px', height: '20px', borderRadius: '50%', background: '#fff', transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
+            </button>
+            <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-.1px', color: annual ? '#1d1d1f' : '#aeaeb2', transition: 'color .2s', display: 'flex', alignItems: 'center', gap: '7px' }}>
+              Annual
+              <span style={{ background: 'rgba(48,209,88,0.12)', color: '#1a8a35', fontSize: '12px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px' }}>Save up to 28%</span>
+            </span>
+          </div>
+
+          {/* Plan cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '960px', margin: '0 auto 16px' }}>
+            {([
+              { planKey: 'free'    as const, badge: 'Free',         featured: false, cta: 'Get started free',    href: '/signup' },
+              { planKey: 'starter' as const, badge: 'Starter',      featured: false, cta: 'Start with Starter',  href: '/signup?plan=starter' },
+              { planKey: 'brand'   as const, badge: 'Most popular', featured: true,  cta: 'Start with Brand',    href: '/signup?plan=brand' },
+              { planKey: 'scale'   as const, badge: 'Scale',        featured: false, cta: 'Start with Scale',    href: '/signup?plan=scale' },
+            ]).map(({ planKey, badge, featured, cta, href }) => {
+              const p = PLANS[planKey]
+              const price = planKey === 'free' ? '$0' : `$${annual ? p.priceAudAnnual : p.priceAud}`
+              const period = planKey === 'free' ? 'forever' : annual ? 'AUD / mo, billed annually' : 'AUD / month'
+              const saving = planKey !== 'free' && annual ? Math.round((1 - p.priceAudAnnual / p.priceAud) * 100) : 0
+              return (
+                <div key={planKey} style={{ background: featured ? '#1d1d1f' : '#fff', padding: '32px 28px', textAlign: 'left', position: 'relative' }}>
+                  <div style={{ display: 'inline-block', background: featured ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{p.name}</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '36px', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : '#1d1d1f', lineHeight: 1 }}>{price}</div>
+                    {saving > 0 && <span style={{ fontSize: '11px', background: 'rgba(48,209,88,0.18)', color: '#1a8a35', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>-{saving}%</span>}
                   </div>
-                ))}
-                <Link href={href} className={`price-cta-btn${featured ? ' featured' : ''}`}>{cta}</Link>
-              </div>
-            ))}
+                  <div style={{ fontSize: '13px', color: featured ? 'rgba(255,255,255,0.5)' : '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>{period}</div>
+                  <div style={{ height: '0.5px', background: featured ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
+                  {p.highlights.map((f) => (
+                    <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '13px', color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', letterSpacing: '-.1px' }}>
+                      <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: featured ? 'rgba(48,209,88,.2)' : 'rgba(48,209,88,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                      {f}
+                    </div>
+                  ))}
+                  <Link href={href} className={`price-cta-btn${featured ? ' featured' : ''}`}>{cta}</Link>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Enterprise row */}
+          <div style={{ maxWidth: '960px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.3px', marginBottom: '4px' }}>Enterprise</div>
+              <div style={{ fontSize: '14px', color: '#6e6e73', letterSpacing: '-.1px' }}>Unlimited everything — custom contracts, SSO, SLA, dedicated CSM, and invoiced billing.</div>
+            </div>
+            <a href="mailto:hello@shotsync.ai" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>Contact sales</a>
           </div>
         </section>
 
@@ -472,10 +495,14 @@ export default function LandingPage() {
         <section style={{ padding: '0 40px 120px', textAlign: 'center', position: 'relative' }}>
           <div style={{ maxWidth: '680px', margin: '0 auto', background: '#1d1d1f', borderRadius: '24px', padding: '72px 60px' }}>
             <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.5px', color: '#f5f5f7', lineHeight: 1.1, marginBottom: '16px' }}>Shoot. Sync. Done.</h2>
-            <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', marginBottom: '36px', letterSpacing: '-.2px', lineHeight: 1.5 }}>Join the early access program. Lock in your price for life.</p>
+            <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', marginBottom: '36px', letterSpacing: '-.2px', lineHeight: 1.5 }}>Start free — no credit card required. Upgrade when you&apos;re ready.</p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <a href="mailto:hello@shotsync.ai" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none' }}>
-                Request early access
+              <Link href="/signup" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none' }}>
+                Get started free
+              </Link>
+              <a href="#demo" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', border: '0.5px solid rgba(255,255,255,0.15)' }}>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Watch demo
               </a>
             </div>
           </div>
