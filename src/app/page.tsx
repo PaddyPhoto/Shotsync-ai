@@ -50,7 +50,7 @@ export default function LandingPage() {
         .eyebrow-dot  { animation: eyebrowPulse 2s infinite; }
         .nav-link { font-size:13px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
         .nav-link:hover { color:#1d1d1f; }
-        .footer-link { font-size:12px;color:#aeaeb2;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
+        .footer-link { font-size:13px;color:#aeaeb2;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
         .footer-link:hover { color:#1d1d1f; }
         .price-cta-btn { display:block;text-align:center;margin-top:24px;padding:10px;border-radius:8px;font-size:13px;font-weight:500;letter-spacing:-.2px;text-decoration:none;transition:opacity .15s;background:rgba(0,0,0,0.06);color:#1d1d1f; }
         .price-cta-btn:hover { opacity:.8; }
@@ -98,7 +98,7 @@ export default function LandingPage() {
 
         {/* ── HERO ── */}
         <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', position: 'relative' }}>
-          <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '12px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '28px' }}>
+          <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '28px' }}>
             <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
             Now in early access — ANZ fashion brands
           </div>
@@ -128,7 +128,7 @@ export default function LandingPage() {
             ].map(({ value, label, color }, i) => (
               <div key={i} className="hero-stat-cell" style={{ padding: '24px 36px', textAlign: 'center', borderRight: '0.5px solid rgba(0,0,0,0.08)', flex: 1 }}>
                 <div style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-1px', color, marginBottom: '4px', lineHeight: 1 }}>{value}</div>
-                <div style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-.1px' }}>{label}</div>
+                <div style={{ fontSize: '13px', color: '#aeaeb2', letterSpacing: '-.1px' }}>{label}</div>
               </div>
             ))}
           </div>
@@ -248,7 +248,7 @@ export default function LandingPage() {
 
         {/* ── HOW IT WORKS ── */}
         <section id="how-it-works" style={{ padding: '100px 40px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p>
           <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Three steps. Zero manual work.</h2>
           <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
             Drop your shoot. ShotSync handles everything between the photographer&apos;s delivery and your marketplace upload.
@@ -276,7 +276,7 @@ export default function LandingPage() {
                   {icon}
                 </div>
                 <h3 style={{ fontSize: '16px', fontWeight: 500, letterSpacing: '-.3px', marginBottom: '8px', color: '#1d1d1f' }}>{title}</h3>
-                <p style={{ fontSize: '13px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>{desc}</p>
+                <p style={{ fontSize: '15px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>{desc}</p>
               </div>
             ))}
           </div>
@@ -289,12 +289,12 @@ export default function LandingPage() {
 
               {/* Feature 1: Auto-rename */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#aeaeb2' }} />
                   Auto-rename
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Files named right. Every time.</h3>
-                <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Configure your naming convention once. ShotSync applies it to every image, every job — no manual renaming, no typos, no rejections.</p>
+                <p style={{ fontSize: '15px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Configure your naming convention once. ShotSync applies it to every image, every job — no manual renaming, no typos, no rejections.</p>
                 <div style={{ marginTop: '28px', background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.05)', borderRadius: '12px', padding: '16px' }}>
                   {[
                     { old: 'IMG_4821.jpg',  neo: 'PR05324.062_FRONT.jpg' },
@@ -303,9 +303,9 @@ export default function LandingPage() {
                     { old: 'DSC_0020.jpg',  neo: 'PR06001.034_SIDE.jpg' },
                   ].map(({ old, neo }) => (
                     <div key={old} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
-                      <span style={{ fontSize: '11px', color: '#aeaeb2', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{old}</span>
+                      <span style={{ fontSize: '12px', color: '#aeaeb2', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{old}</span>
                       <span style={{ fontSize: '12px', color: '#aeaeb2', flexShrink: 0 }}>→</span>
-                      <span style={{ fontSize: '11px', color: '#1d1d1f', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{neo}</span>
+                      <span style={{ fontSize: '12px', color: '#1d1d1f', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{neo}</span>
                     </div>
                   ))}
                 </div>
@@ -313,12 +313,12 @@ export default function LandingPage() {
 
               {/* Feature 2: AI clustering */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#0071e3' }} />
                   AI clustering
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Groups images by SKU automatically.</h3>
-                <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload a raw, unsorted shoot. The AI clusters every image by product using visual similarity — no manual sorting by your senior staff.</p>
+                <p style={{ fontSize: '15px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload a raw, unsorted shoot. The AI clusters every image by product using visual similarity — no manual sorting by your senior staff.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px', marginTop: '28px' }}>
                   {[
                     { bg: '#1a1a1a', label: 'Front',  conf: '97%' },
@@ -336,12 +336,12 @@ export default function LandingPage() {
 
               {/* Feature 3: Marketplace rules */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ff9f0a' }} />
                   Marketplace rules
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>THE ICONIC. Myer. David Jones.</h3>
-                <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Every marketplace has different dimensions, view requirements, and naming rules. ShotSync knows them all and packages output to spec.</p>
+                <p style={{ fontSize: '15px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Every marketplace has different dimensions, view requirements, and naming rules. ShotSync knows them all and packages output to spec.</p>
                 <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {[
                     { name: 'THE ICONIC',     spec: '2000×2667 · 4 views' },
@@ -353,7 +353,7 @@ export default function LandingPage() {
                         <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                       <span style={{ fontSize: '12px', fontWeight: 500, color: '#1d1d1f', flex: 1 }}>{name}</span>
-                      <span style={{ fontSize: '10px', color: '#aeaeb2', background: 'rgba(0,0,0,0.04)', padding: '2px 7px', borderRadius: '4px' }}>{spec}</span>
+                      <span style={{ fontSize: '12px', color: '#aeaeb2', background: 'rgba(0,0,0,0.04)', padding: '2px 7px', borderRadius: '4px' }}>{spec}</span>
                     </div>
                   ))}
                 </div>
@@ -361,12 +361,12 @@ export default function LandingPage() {
 
               {/* Feature 4: CSV catalogue */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#30d158' }} />
                   CSV catalogue
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Works without Shopify.</h3>
-                <p style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload your season&apos;s SKU sheet — any format, any columns. ShotSync maps your data and matches images against it automatically. No API required.</p>
+                <p style={{ fontSize: '15px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload your season&apos;s SKU sheet — any format, any columns. ShotSync maps your data and matches images against it automatically. No API required.</p>
                 <div style={{ marginTop: '28px', background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.05)', borderRadius: '12px', padding: '16px' }}>
                   {[
                     { style: 'Style', colour: 'Colour', code: 'Code', name: 'Name', isHeader: true },
@@ -376,7 +376,7 @@ export default function LandingPage() {
                   ].map((row, i) => (
                     <div key={i} style={{ display: 'flex', gap: '10px', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
                       {[row.style, row.colour, row.code, row.name].map((cell, j) => (
-                        <span key={j} style={{ fontSize: '11px', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, color: row.isHeader ? '#aeaeb2' : '#1d1d1f', fontWeight: row.isHeader ? 400 : 500 }}>{cell}</span>
+                        <span key={j} style={{ fontSize: '12px', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, color: row.isHeader ? '#aeaeb2' : '#1d1d1f', fontWeight: row.isHeader ? 400 : 500 }}>{cell}</span>
                       ))}
                     </div>
                   ))}
@@ -389,7 +389,7 @@ export default function LandingPage() {
 
         {/* ── MARKETPLACE LOGOS ── */}
         <section style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Built for ANZ&apos;s top fashion marketplaces</p>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Built for ANZ&apos;s top fashion marketplaces</p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '700px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
             {[
               { name: 'THE ICONIC', sub: "Australia's largest fashion retailer" },
@@ -398,7 +398,7 @@ export default function LandingPage() {
             ].map(({ name, sub }, i) => (
               <div key={name} className="mp-logo-cell" style={{ flex: 1, padding: '28px 20px', borderRight: '0.5px solid rgba(0,0,0,0.08)', textAlign: 'center' }}>
                 <div style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-.2px', color: '#1d1d1f' }}>{name}</div>
-                <div style={{ fontSize: '11px', color: '#aeaeb2', marginTop: '4px' }}>{sub}</div>
+                <div style={{ fontSize: '13px', color: '#aeaeb2', marginTop: '4px' }}>{sub}</div>
               </div>
             ))}
           </div>
@@ -406,7 +406,7 @@ export default function LandingPage() {
 
         {/* ── PRICING ── */}
         <section id="pricing" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '12px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>
           <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Simple, transparent pricing.</h2>
           <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '480px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Early access customers lock in their price for life.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '960px', margin: '0 auto' }}>
@@ -433,7 +433,7 @@ export default function LandingPage() {
               },
             ].map(({ badge, name, amount, period, features, cta, href, featured }) => (
               <div key={name} style={{ background: featured ? '#1d1d1f' : '#fff', padding: '32px 28px', textAlign: 'left', position: 'relative' }}>
-                <div style={{ display: 'inline-block', background: featured ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '10px', fontWeight: 500, color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
+                <div style={{ display: 'inline-block', background: featured ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
                 <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '6px' }}>{name}</div>
                 <div style={{ fontSize: amount === 'Contact' ? '28px' : '36px', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : '#1d1d1f', lineHeight: 1, marginBottom: '4px' }}>{amount}</div>
                 <div style={{ fontSize: '13px', color: featured ? 'rgba(255,255,255,0.5)' : '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>{period}</div>
@@ -462,7 +462,7 @@ export default function LandingPage() {
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 500, color: '#6e6e73', flexShrink: 0 }}>KC</div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Kat C.</div>
-                <div style={{ fontSize: '12px', color: '#aeaeb2' }}>eCommerce Coordinator, ANZ fashion brand</div>
+                <div style={{ fontSize: '13px', color: '#aeaeb2' }}>eCommerce Coordinator, ANZ fashion brand</div>
               </div>
             </div>
           </div>
@@ -500,7 +500,7 @@ export default function LandingPage() {
               <a key={label} href={href} className="footer-link">{label}</a>
             ))}
           </div>
-          <p style={{ fontSize: '12px', color: '#aeaeb2' }}>© 2026 ShotSync.ai</p>
+          <p style={{ fontSize: '13px', color: '#aeaeb2' }}>© 2026 ShotSync.ai</p>
         </footer>
 
       </div>
