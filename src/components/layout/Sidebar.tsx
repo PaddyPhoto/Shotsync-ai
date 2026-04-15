@@ -185,12 +185,7 @@ export function Sidebar() {
 
       {/* Logo */}
       <div className="flex items-center gap-[9px]" style={{ padding: '24px 20px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-        <div className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: '#1d1d1f' }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 7l-7 5 7 5V7z"/>
-            <rect x="1" y="5" width="15" height="14" rx="2"/>
-          </svg>
-        </div>
+        <img src="/icon.png" alt="ShotSync" className="w-[30px] h-[30px] rounded-[8px] flex-shrink-0" />
         <div className="text-[16px] font-medium tracking-[-0.3px] text-[#1d1d1f]">
           Shot<span style={{ color: '#6e6e73' }}>Sync</span>
         </div>
