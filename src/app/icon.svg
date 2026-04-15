@@ -1,7 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <rect width="24" height="24" rx="5" fill="#1a4fff"/>
-  <!-- Camera body (filled, matches homepage logo rect) -->
+  <rect width="24" height="24" rx="5" fill="#1d1d1f"/>
   <rect x="1" y="5" width="15" height="14" rx="2" fill="white"/>
-  <!-- Camera lens chevron (filled, matches homepage logo path exactly) -->
   <path d="M23 7l-7 5 7 5V7z" fill="white"/>
 </svg>
