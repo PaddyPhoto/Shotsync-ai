@@ -49,9 +49,12 @@ export default function LandingPage() {
             <a href="#pricing" className="nav-link">Pricing</a>
             <a href="mailto:hello@shotsync.ai" className="nav-link">Contact</a>
           </div>
-          <a href="#pricing" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Link href="/login" className="nav-link">Sign in</Link>
+            <a href="#pricing" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>
             Get early access
-          </a>
+            </a>
+          </div>
         </nav>
 
         {/* ── HERO ── */}
