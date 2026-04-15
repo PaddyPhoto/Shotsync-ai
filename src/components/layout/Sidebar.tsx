@@ -114,7 +114,7 @@ function NavLink({ item }: { item: NavItem }) {
       : pathname.startsWith(hrefPath)
 
   const baseClass = cn(
-    'flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[13px] transition-all duration-150 w-full border-0',
+    'flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[15px] transition-all duration-150 w-full border-0',
     item.disabled
       ? 'opacity-40 cursor-not-allowed text-[#aeaeb2]'
       : isActive
@@ -124,7 +124,7 @@ function NavLink({ item }: { item: NavItem }) {
 
   const inner = (
     <>
-      <span className={cn('w-[14px] h-[14px] flex-shrink-0', isActive && !item.disabled ? 'opacity-100' : 'opacity-60')}>
+      <span className={cn('w-[16px] h-[16px] flex-shrink-0', isActive && !item.disabled ? 'opacity-100' : 'opacity-60')}>
         {item.icon}
       </span>
       <span className="flex-1">{item.label}</span>
@@ -185,13 +185,13 @@ export function Sidebar() {
 
       {/* Logo */}
       <div className="flex items-center gap-[9px]" style={{ padding: '24px 20px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-        <div className="w-[26px] h-[26px] rounded-[7px] flex items-center justify-center flex-shrink-0" style={{ background: '#1d1d1f' }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <div className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: '#1d1d1f' }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M23 7l-7 5 7 5V7z"/>
             <rect x="1" y="5" width="15" height="14" rx="2"/>
           </svg>
         </div>
-        <div className="text-[14px] font-medium tracking-[-0.3px] text-[#1d1d1f]">
+        <div className="text-[16px] font-medium tracking-[-0.3px] text-[#1d1d1f]">
           Shot<span style={{ color: '#6e6e73' }}>Sync</span>
         </div>
       </div>
@@ -202,7 +202,7 @@ export function Sidebar() {
       <Suspense fallback={null}>
       {/* Workspace */}
       <div style={{ padding: '16px 10px 6px' }}>
-        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
           Workspace
         </p>
         <nav className="flex flex-col gap-0">
@@ -214,7 +214,7 @@ export function Sidebar() {
 
       {/* Pipeline */}
       <div style={{ padding: '10px 10px 6px' }}>
-        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
           Pipeline
         </p>
         <nav className="flex flex-col gap-0">
@@ -238,7 +238,7 @@ export function Sidebar() {
 
       {/* Brand */}
       <div style={{ padding: '10px 10px 6px' }}>
-        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
           Brand
         </p>
         <nav className="flex flex-col gap-0">
@@ -254,7 +254,7 @@ export function Sidebar() {
       <div className="px-[10px] pb-[6px]">
         <button
           onClick={openWelcomeModal}
-          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[13px] w-full transition-all duration-150"
+          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[15px] w-full transition-all duration-150"
           style={{ color: '#aeaeb2' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.color = '#1d1d1f' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#aeaeb2' }}
@@ -281,14 +281,14 @@ export function Sidebar() {
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
           >
             <div
-              className="w-[26px] h-[26px] rounded-full flex items-center justify-center font-medium text-[10px] flex-shrink-0"
+              className="w-[30px] h-[30px] rounded-full flex items-center justify-center font-medium text-[12px] flex-shrink-0"
               style={{ background: '#1d1d1f', color: '#f5f5f7', letterSpacing: '-0.3px' }}
             >
               {orgName ? orgName[0].toUpperCase() : 'S'}
             </div>
             <div className="min-w-0">
-              <p className="text-[12px] font-medium truncate" style={{ color: '#1d1d1f', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
-              <p className="text-[11px] mt-[1px]" style={{ color: '#aeaeb2' }}>
+              <p className="text-[14px] font-medium truncate" style={{ color: '#1d1d1f', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
+              <p className="text-[12px] mt-[1px]" style={{ color: '#aeaeb2' }}>
                 {PLAN_LABEL[planId] ?? planId} plan
               </p>
             </div>
