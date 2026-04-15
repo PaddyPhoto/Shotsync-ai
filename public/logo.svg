@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" width="360" height="100">
+  <defs>
+    <filter id="b" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+    <clipPath id="r">
+      <rect width="100" height="100" rx="18"/>
+    </clipPath>
+  </defs>
+
+  <!-- Icon background -->
+  <rect width="100" height="100" rx="18" fill="#111"/>
+
+  <!-- Orbs -->
+  <g clip-path="url(#r)">
+    <g filter="url(#b)">
+      <circle cx="12"  cy="12"  r="32" fill="#0071e3" opacity="0.85"/>
+      <circle cx="88" cy="12"  r="32" fill="#5e32f5" opacity="0.80"/>
+      <circle cx="12"  cy="88" r="32" fill="#30d158" opacity="0.80"/>
+      <circle cx="88" cy="88" r="32" fill="#ff9500" opacity="0.80"/>
+    </g>
+  </g>
+
+  <!-- Camera body -->
+  <rect x="10" y="33" width="52" height="37" rx="7" fill="white"/>
+  <!-- Lens flap -->
+  <path d="M62 41 L90 31 L90 69 L62 59 Z" fill="white"/>
+  <!-- Lens circle outer -->
+  <circle cx="37" cy="51" r="12" fill="#111" opacity="0.30"/>
+  <!-- Lens circle inner -->
+  <circle cx="37" cy="51" r="6" fill="#111" opacity="0.25"/>
+
+  <!-- Wordmark -->
+  <text
+    x="118"
+    y="62"
+    font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif"
+    font-size="42"
+    font-weight="600"
+    letter-spacing="-1"
+    fill="white"
+  >Shot<tspan fill="#6e6e73">Sync</tspan></text>
+</svg>
