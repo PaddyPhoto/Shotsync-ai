@@ -3,6 +3,51 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
+const FEATURES = [
+  {
+    color: '#007aff', bg: 'rgba(0,122,255,0.08)',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#007aff" strokeWidth="1.6"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>,
+    title: 'Smart Grouping',
+    desc: 'Images sorted by filename sequence and split into product clusters automatically. No manual sorting.',
+  },
+  {
+    color: '#ff9f0a', bg: 'rgba(255,159,10,0.08)',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#ff9f0a" strokeWidth="1.6"><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M11.4 3.2l-1.4 1.4M3.2 11.4l1.4 1.4" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5"/></svg>,
+    title: 'Angle Detection',
+    desc: 'Front, back, side, and detail shots automatically classified for every cluster using AI.',
+  },
+  {
+    color: '#30d158', bg: 'rgba(48,209,88,0.08)',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="1.6"><path d="M8 11V4M5 8l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 13h12" strokeLinecap="round"/></svg>,
+    title: 'Multi-marketplace Export',
+    desc: 'Rename and package images per THE ICONIC, Myer, and David Jones specs in one click.',
+  },
+  {
+    color: '#af52de', bg: 'rgba(175,82,222,0.08)',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#af52de" strokeWidth="1.6"><path d="M6 3H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3M10 3h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3M6 10H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3M10 10h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3M6 4.5h4M6 11.5h4M8 7v2" strokeLinecap="round"/></svg>,
+    title: 'Shopify Integration',
+    desc: 'Push confirmed clusters directly to your Shopify product listings without downloading a ZIP.',
+  },
+  {
+    color: '#ff3b30', bg: 'rgba(255,59,48,0.07)',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#ff3b30" strokeWidth="1.6"><path d="M8 2l6.5 11H1.5L8 2z" strokeLinejoin="round"/><path d="M8 6v3.5M8 11.5v.5" strokeLinecap="round"/></svg>,
+    title: 'Missing Shot Alerts',
+    desc: 'See instantly which products are missing required angles per marketplace before you export.',
+  },
+  {
+    color: '#007aff', bg: 'rgba(0,122,255,0.08)',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#007aff" strokeWidth="1.6"><path d="M2 4h12M2 8h8M2 12h5" strokeLinecap="round"/></svg>,
+    title: 'Style List Import',
+    desc: 'Upload your range sheet to auto-fill SKU, colour, and product name across every cluster.',
+  },
+]
+
+const STEPS = [
+  { step: '01', color: '#007aff', bg: 'rgba(0,122,255,0.08)', title: 'Upload your shoot folder', desc: 'Drop in your images. ShotSync reads the filenames, sorts by sequence, and groups images into product clusters automatically.' },
+  { step: '02', color: '#ff9f0a', bg: 'rgba(255,159,10,0.08)', title: 'Review and assign SKUs', desc: 'Check clusters, fix any grouping issues with drag and drop, assign SKU codes from your range list, and confirm each product.' },
+  { step: '03', color: '#30d158', bg: 'rgba(48,209,88,0.08)', title: 'Export to all marketplaces', desc: 'Select your marketplaces. ShotSync renames every image per retailer spec and downloads a ready-to-upload ZIP.' },
+]
+
 export default function LandingPage() {
   const [annual, setAnnual] = useState(true)
 
@@ -29,9 +74,12 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '96px 40px 80px' }}>
-        <p style={{ fontSize: '12px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '20px' }}>
-          Fashion post-production, automated
-        </p>
+        {/* Accent badge */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '20px', padding: '4px 12px 4px 8px', borderRadius: '999px', background: 'rgba(0,122,255,0.07)', border: '0.5px solid rgba(0,122,255,0.15)' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#007aff', flexShrink: 0 }} />
+          <span style={{ fontSize: '11px', fontWeight: 500, color: '#005fc4', letterSpacing: '-0.1px' }}>Fashion post-production, automated</span>
+        </div>
+
         <h1 style={{ fontSize: '52px', fontWeight: 500, letterSpacing: '-2px', color: '#1d1d1f', lineHeight: 1.05, marginBottom: '20px', maxWidth: '640px' }}>
           From shoot to marketplace, in minutes.
         </h1>
@@ -50,12 +98,12 @@ export default function LandingPage() {
         {/* Stats */}
         <div style={{ display: 'flex', gap: '48px', marginTop: '56px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {[
-            { stat: '500+', label: 'images per job' },
-            { stat: '3 hrs', label: 'saved per session' },
-            { stat: '4', label: 'marketplaces' },
-          ].map(({ stat, label }) => (
+            { stat: '500+', label: 'images per job', color: '#007aff' },
+            { stat: '3 hrs', label: 'saved per session', color: '#30d158' },
+            { stat: '4', label: 'marketplaces', color: '#ff9f0a' },
+          ].map(({ stat, label, color }) => (
             <div key={stat} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-              <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-0.8px', color: '#1d1d1f' }}>{stat}</span>
+              <span style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-0.8px', color }}>{stat}</span>
               <span style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-0.1px' }}>{label}</span>
             </div>
           ))}
@@ -63,15 +111,11 @@ export default function LandingPage() {
 
         {/* Feature grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '64px', maxWidth: '840px', width: '100%', textAlign: 'left' }}>
-          {[
-            { title: 'Smart Grouping', desc: 'Images sorted by filename sequence and split into product clusters automatically. No manual sorting.' },
-            { title: 'Angle Detection', desc: 'Front, back, side, and detail shots automatically classified for every cluster using AI.' },
-            { title: 'Multi-marketplace Export', desc: 'Rename and package images per THE ICONIC, Myer, and David Jones specs in one click.' },
-            { title: 'Shopify Integration', desc: 'Push confirmed clusters directly to your Shopify product listings without downloading a ZIP.' },
-            { title: 'Missing Shot Alerts', desc: 'See instantly which products are missing required angles per marketplace before you export.' },
-            { title: 'Style List Import', desc: 'Upload your range sheet to auto-fill SKU, colour, and product name across every cluster.' },
-          ].map((f) => (
+          {FEATURES.map((f) => (
             <div key={f.title} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '18px', backdropFilter: 'blur(8px)' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
+                {f.icon}
+              </div>
               <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px', letterSpacing: '-0.2px' }}>{f.title}</p>
               <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>{f.desc}</p>
             </div>
@@ -101,13 +145,11 @@ export default function LandingPage() {
           No retouching knowledge required. No manual renaming. No spreadsheets.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', maxWidth: '820px', width: '100%' }}>
-          {[
-            { step: '01', title: 'Upload your shoot folder', desc: 'Drop in your images. ShotSync reads the filenames, sorts by sequence, and groups images into product clusters automatically.' },
-            { step: '02', title: 'Review and assign SKUs', desc: 'Check clusters, fix any grouping issues with drag and drop, assign SKU codes from your range list, and confirm each product.' },
-            { step: '03', title: 'Export to all marketplaces', desc: 'Select your marketplaces. ShotSync renames every image per retailer spec and downloads a ready-to-upload ZIP.' },
-          ].map(({ step, title, desc }) => (
+          {STEPS.map(({ step, color, bg, title, desc }) => (
             <div key={step} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '20px', backdropFilter: 'blur(8px)' }}>
-              <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '10px' }}>{step}</p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '8px', background: bg, marginBottom: '12px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '-0.2px', color }}>{step}</span>
+              </div>
               <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', marginBottom: '8px', letterSpacing: '-0.2px' }}>{title}</p>
               <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>{desc}</p>
             </div>
@@ -129,12 +171,12 @@ export default function LandingPage() {
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', maxWidth: '700px', width: '100%' }}>
           {[
-            { heading: '3-day job done in 25 minutes', body: 'From folder drop to marketplace-ready ZIPs — no spreadsheets, no manual renaming, no back-and-forth.' },
-            { heading: 'Zero marketplace rejections', body: 'Every image exported to exact retailer spec — correct naming convention and required angles confirmed.' },
-            { heading: 'Products live before the window closes', body: 'Stop racing deadlines. Launch-ready assets delivered while the shoot is still fresh.' },
-            { heading: 'No more missed seasons', body: 'Post-production is no longer the bottleneck. Your range hits the floor on time, every time.' },
-          ].map(({ heading, body }) => (
-            <div key={heading} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '18px 20px', backdropFilter: 'blur(8px)' }}>
+            { heading: '3-day job done in 25 minutes', body: 'From folder drop to marketplace-ready ZIPs — no spreadsheets, no manual renaming, no back-and-forth.', color: '#30d158', dot: 'rgba(48,209,88,0.12)' },
+            { heading: 'Zero marketplace rejections', body: 'Every image exported to exact retailer spec — correct naming convention and required angles confirmed.', color: '#007aff', dot: 'rgba(0,122,255,0.08)' },
+            { heading: 'Products live before the window closes', body: 'Stop racing deadlines. Launch-ready assets delivered while the shoot is still fresh.', color: '#ff9f0a', dot: 'rgba(255,159,10,0.08)' },
+            { heading: 'No more missed seasons', body: 'Post-production is no longer the bottleneck. Your range hits the floor on time, every time.', color: '#30d158', dot: 'rgba(48,209,88,0.08)' },
+          ].map(({ heading, body, color, dot }) => (
+            <div key={heading} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '18px 20px', backdropFilter: 'blur(8px)', borderLeft: `2px solid ${color}` }}>
               <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px', letterSpacing: '-0.2px' }}>{heading}</p>
               <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>{body}</p>
             </div>
@@ -151,7 +193,7 @@ export default function LandingPage() {
         <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '32px', textAlign: 'center' }}>Start free. Upgrade as you grow.</p>
 
         {/* Early access banner */}
-        <div style={{ width: '100%', maxWidth: '1060px', marginBottom: '28px', borderRadius: '12px', padding: '14px 18px', background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', backdropFilter: 'blur(8px)' }}>
+        <div style={{ width: '100%', maxWidth: '1060px', marginBottom: '28px', borderRadius: '12px', padding: '14px 18px', background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', backdropFilter: 'blur(8px)', borderLeft: '2px solid #ff9f0a' }}>
           <p style={{ fontSize: '12px', fontWeight: 500, color: '#1d1d1f', marginBottom: '3px', letterSpacing: '-0.2px' }}>Early Access Pricing — Lock in your rate for life.</p>
           <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.5, letterSpacing: '-0.1px' }}>
             Direct marketplace integrations with THE ICONIC, Myer, and David Jones are on the roadmap. Founding customers keep their current price when new features ship.
@@ -200,14 +242,14 @@ export default function LandingPage() {
                 }}
               >
                 {plan.popular && (
-                  <div style={{ position: 'absolute', top: '-11px', left: '50%', transform: 'translateX(-50%)', background: '#1d1d1f', color: '#f5f5f7', fontSize: '10px', fontWeight: 500, padding: '3px 10px', borderRadius: '999px', whiteSpace: 'nowrap', letterSpacing: '-0.1px', border: '0.5px solid rgba(255,255,255,0.15)' }}>
+                  <div style={{ position: 'absolute', top: '-11px', left: '50%', transform: 'translateX(-50%)', background: '#007aff', color: '#fff', fontSize: '10px', fontWeight: 500, padding: '3px 10px', borderRadius: '999px', whiteSpace: 'nowrap', letterSpacing: '-0.1px' }}>
                     Most popular
                   </div>
                 )}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase', color: plan.popular ? 'rgba(255,255,255,0.5)' : '#aeaeb2' }}>{plan.name}</p>
                   {plan.founding && (
-                    <span style={{ fontSize: '9px', fontWeight: 500, padding: '2px 6px', borderRadius: '4px', background: plan.popular ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', color: plan.popular ? 'rgba(255,255,255,0.6)' : '#6e6e73', letterSpacing: '0.02em' }}>
+                    <span style={{ fontSize: '9px', fontWeight: 500, padding: '2px 6px', borderRadius: '4px', background: plan.popular ? 'rgba(255,159,10,0.2)' : 'rgba(255,159,10,0.1)', color: plan.popular ? '#ffb340' : '#c27800', letterSpacing: '0.02em' }}>
                       Founding
                     </span>
                   )}
@@ -226,7 +268,7 @@ export default function LandingPage() {
                 <ul style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: '16px', flex: 1 }}>
                   {plan.features.map((f) => (
                     <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '11px', color: plan.popular ? 'rgba(255,255,255,0.7)' : '#6e6e73', letterSpacing: '-0.1px' }}>
-                      <svg style={{ flexShrink: 0, marginTop: '2px' }} width="10" height="10" viewBox="0 0 12 12" fill="none" stroke={plan.popular ? 'rgba(255,255,255,0.5)' : '#aeaeb2'} strokeWidth="1.8"><polyline points="2 6 5 9 10 3"/></svg>
+                      <svg style={{ flexShrink: 0, marginTop: '2px' }} width="10" height="10" viewBox="0 0 12 12" fill="none" stroke={plan.popular ? '#30d158' : '#30d158'} strokeWidth="1.8"><polyline points="2 6 5 9 10 3"/></svg>
                       {f}
                     </li>
                   ))}
@@ -237,9 +279,9 @@ export default function LandingPage() {
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     padding: '7px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 500, letterSpacing: '-0.1px',
-                    background: plan.popular ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)',
+                    background: plan.popular ? '#007aff' : 'rgba(0,0,0,0.06)',
                     color: plan.popular ? '#ffffff' : '#1d1d1f',
-                    border: plan.popular ? '0.5px solid rgba(255,255,255,0.2)' : '0.5px solid rgba(0,0,0,0.1)',
+                    border: plan.popular ? 'none' : '0.5px solid rgba(0,0,0,0.1)',
                     transition: 'all 0.15s',
                     textDecoration: 'none',
                   }}
@@ -272,7 +314,7 @@ export default function LandingPage() {
               <div key={marketplace} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', padding: '16px 18px', backdropFilter: 'blur(8px)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-0.2px' }}>{marketplace}</p>
-                  <span style={{ fontSize: '10px', fontWeight: 500, padding: '2px 7px', borderRadius: '4px', background: 'rgba(0,0,0,0.05)', color: '#aeaeb2', letterSpacing: '-0.1px' }}>Coming soon</span>
+                  <span style={{ fontSize: '10px', fontWeight: 500, padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,159,10,0.08)', color: '#c27800', letterSpacing: '-0.1px' }}>Coming soon</span>
                 </div>
                 <p style={{ fontSize: '12px', color: '#aeaeb2', lineHeight: 1.6, letterSpacing: '-0.1px' }}>{desc}</p>
               </div>
