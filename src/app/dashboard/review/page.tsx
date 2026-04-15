@@ -79,6 +79,23 @@ function ReviewPage() {
   const [clusterCopy, setClusterCopy] = useState<Record<string, {
     title: string; description: string; bullets: string[]; loading: boolean; open: boolean
   }>>({})
+  const [generatingAll, setGeneratingAll] = useState(false)
+  const [generateAllProgress, setGenerateAllProgress] = useState({ done: 0, total: 0 })
+
+  const COPY_LIMIT = 200
+
+  const generateAllCopy = async () => {
+    const targets = clusters.filter((c) => !clusterCopy[c.id]?.title).slice(0, COPY_LIMIT)
+    if (targets.length === 0) return
+    setGeneratingAll(true)
+    setGenerateAllProgress({ done: 0, total: targets.length })
+    for (let i = 0; i < targets.length; i++) {
+      await generateCopy(targets[i])
+      setGenerateAllProgress({ done: i + 1, total: targets.length })
+    }
+    setGeneratingAll(false)
+    setGenerateAllProgress({ done: 0, total: 0 })
+  }
 
   const generateCopy = async (cluster: SessionCluster) => {
     const angles = [...new Set(cluster.images.map((img) => img.viewLabel).filter(Boolean))]
@@ -485,6 +502,19 @@ function ReviewPage() {
                   Unconfirm all
                 </>
               )}
+            </button>
+            <button
+              onClick={generateAllCopy}
+              disabled={generatingAll}
+              className="btn btn-ghost btn-sm"
+              title={clusters.length > COPY_LIMIT ? `Generates copy for first ${COPY_LIMIT} clusters` : 'Generate AI copy for all clusters'}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              {generatingAll
+                ? `Generating ${generateAllProgress.done}/${generateAllProgress.total}…`
+                : `Generate all copy${clusters.length > COPY_LIMIT ? ` (first ${COPY_LIMIT})` : ''}`}
             </button>
             <button
               onClick={() => setShowExportPanel(true)}
