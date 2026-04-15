@@ -87,27 +87,25 @@ function ReviewPage() {
       [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: true, open: true },
     }))
 
-    // Convert the hero (front) image to base64 so GPT-4o vision can see the garment
+    // Convert the hero (front) image to base64 so GPT-4o vision can see the garment.
+    // Uses the previewUrl (blob URL) which is valid as long as the session is in memory.
     let heroImage: string | undefined
     const heroImg = cluster.images.find((img) => img.viewLabel === 'front') ?? cluster.images[0]
-    if (heroImg?.file) {
+    if (heroImg?.previewUrl) {
       try {
         heroImage = await new Promise<string>((resolve, reject) => {
-          const canvas = document.createElement('canvas')
-          const image = new window.Image()
-          const url = URL.createObjectURL(heroImg.file)
-          image.onload = () => {
-            // Downscale to max 512px on longest side for API efficiency
-            const scale = Math.min(1, 512 / Math.max(image.width, image.height))
-            canvas.width = Math.round(image.width * scale)
-            canvas.height = Math.round(image.height * scale)
-            canvas.getContext('2d')!.drawImage(image, 0, 0, canvas.width, canvas.height)
-            URL.revokeObjectURL(url)
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
-            resolve(dataUrl.split(',')[1]) // strip "data:image/jpeg;base64,"
+          const reader = new FileReader()
+          reader.onload = () => {
+            const result = reader.result as string
+            // strip "data:image/...;base64,"
+            resolve(result.split(',')[1])
           }
-          image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('load failed')) }
-          image.src = url
+          reader.onerror = reject
+          // Fetch the blob URL and read it as a data URL
+          fetch(heroImg.previewUrl)
+            .then((r) => r.blob())
+            .then((blob) => reader.readAsDataURL(blob))
+            .catch(reject)
         })
       } catch { /* proceed without image */ }
     }
