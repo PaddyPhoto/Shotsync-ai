@@ -113,7 +113,7 @@ export default function DashboardPage() {
 
       <div style={{ padding: '28px' }}>
         {/* Page title */}
-        <h1 style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.6px', color: '#1d1d1f', marginBottom: '3px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '3px' }}>
           {greeting}{orgName ? `, ${orgName}` : ''}.
         </h1>
         <p style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>
@@ -128,12 +128,12 @@ export default function DashboardPage() {
             { label: 'Exports ready',    value: stats?.total_exports,  delta: 'completed jobs' },
             { label: 'SKU match rate',   value: null,                  delta: 'last batch',      display: clusters.length ? `${Math.round((clusters.filter(c => c.sku).length / clusters.length) * 100)}%` : '—' },
           ].map(({ label, value, delta, display }) => (
-            <div key={label} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '12px', padding: '16px 18px', backdropFilter: 'blur(8px)' }}>
-              <div style={{ fontSize: '11px', color: '#aeaeb2', letterSpacing: '-.1px', marginBottom: '6px' }}>{label}</div>
+            <div key={label} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '16px 18px', backdropFilter: 'blur(8px)' }}>
+              <div style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-.1px', marginBottom: '6px' }}>{label}</div>
               <div style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', lineHeight: 1, marginBottom: '4px' }}>
                 {loading ? '—' : (display ?? (value ?? 0).toLocaleString())}
               </div>
-              <div style={{ fontSize: '11px', color: '#aeaeb2' }}>{delta}</div>
+              <div style={{ fontSize: '12px', color: '#aeaeb2' }}>{delta}</div>
             </div>
           ))}
         </div>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
 
           {/* Recent jobs */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Recent jobs</span>
               <Link href="/dashboard/jobs" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '11px' }}>View all</Link>
@@ -167,11 +167,11 @@ export default function DashboardPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '12px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.job_name}</div>
-                      <div style={{ fontSize: '11px', color: '#aeaeb2', marginTop: '1px' }}>
+                      <div style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '1px' }}>
                         {job.image_count} images · {job.cluster_count} clusters · {new Date(job.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                       </div>
                     </div>
-                    <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 500, background: chip.bg, color: chip.color, letterSpacing: '-.1px', flexShrink: 0 }}>
+                    <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, background: chip.bg, color: chip.color, letterSpacing: '-.1px', flexShrink: 0 }}>
                       {chip.label}
                     </span>
                   </Link>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Marketplace coverage */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
               <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Marketplace coverage</span>
             </div>
@@ -203,12 +203,12 @@ export default function DashboardPage() {
                     <div key={name} style={{ marginBottom: i < marketplaceNames.length - 1 ? '14px' : 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
                         <span style={{ color: '#1d1d1f', fontWeight: 500 }}>{name}</span>
-                        <span style={{ color: '#aeaeb2', fontSize: '11px' }}>
+                        <span style={{ color: '#aeaeb2', fontSize: '12px' }}>
                           {jobs.length === 0 ? 'No jobs yet' : `${exported} exported · ${displayPct}%`}
                         </span>
                       </div>
                       <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '999px', height: '3px', overflow: 'hidden' }}>
-                        <div style={{ width: `${displayPct}%`, height: '100%', borderRadius: '999px', background: '#1d1d1f', transition: 'width 0.4s ease' }} />
+                        <div style={{ width: `${displayPct}%`, height: '100%', borderRadius: '999px', background: '#30d158', transition: 'width 0.4s ease' }} />
                       </div>
                     </div>
                   )
@@ -222,7 +222,7 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
 
           {/* Active pipeline */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
                 {processingJob ? `Active pipeline — ${processingJob.job_name}` : 'Active pipeline'}
@@ -269,7 +269,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Cluster review */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
                 {isReady && clusters.length > 0 ? `Cluster review — ${jobs[0]?.job_name ?? 'Current session'}` : 'Cluster review'}
