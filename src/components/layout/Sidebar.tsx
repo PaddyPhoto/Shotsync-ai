@@ -114,17 +114,17 @@ function NavLink({ item }: { item: NavItem }) {
       : pathname.startsWith(hrefPath)
 
   const baseClass = cn(
-    'flex items-center gap-[9px] px-[8px] py-[7px] rounded-sm text-[0.8rem] font-medium transition-all duration-150 w-full',
+    'flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[13px] transition-all duration-150 w-full border-0',
     item.disabled
-      ? 'opacity-35 cursor-not-allowed text-[var(--text3)]'
+      ? 'opacity-40 cursor-not-allowed text-[#aeaeb2]'
       : isActive
-      ? 'text-[var(--accent)] bg-[rgba(77,101,255,0.08)]'
-      : 'text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)]'
+      ? 'bg-[rgba(0,0,0,0.06)] text-[#1d1d1f] font-medium'
+      : 'text-[#6e6e73] hover:bg-[rgba(0,0,0,0.04)] hover:text-[#1d1d1f] font-normal'
   )
 
   const inner = (
     <>
-      <span className={cn('w-[14px] h-[14px] flex-shrink-0', isActive && !item.disabled ? 'opacity-100' : 'opacity-70')}>
+      <span className={cn('w-[14px] h-[14px] flex-shrink-0', isActive && !item.disabled ? 'opacity-100' : 'opacity-60')}>
         {item.icon}
       </span>
       <span className="flex-1">{item.label}</span>
@@ -181,24 +181,18 @@ export function Sidebar() {
   const canSeeBilling = !orgRole || orgRole === 'owner' || orgRole === 'admin'
 
   return (
-    <aside className="w-[216px] min-w-[216px] bg-[var(--bg2)] flex flex-col sticky top-0 h-screen overflow-hidden" style={{ boxShadow: '1px 0 0 var(--line), 2px 0 12px rgba(0,0,0,0.04)' }}>
+    <aside className="w-[200px] min-w-[200px] flex flex-col sticky top-0 h-screen overflow-hidden" style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: '0.5px solid rgba(0,0,0,0.08)' }}>
 
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-[var(--line)] flex items-center gap-[10px]">
-        <div
-          className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0"
-          style={{ background: 'var(--accent-deep)', boxShadow: '0 0 16px rgba(26,79,255,0.4)' }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className="flex items-center gap-[9px]" style={{ padding: '24px 20px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+        <div className="w-[26px] h-[26px] rounded-[7px] flex items-center justify-center flex-shrink-0" style={{ background: '#1d1d1f' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M23 7l-7 5 7 5V7z"/>
             <rect x="1" y="5" width="15" height="14" rx="2"/>
           </svg>
         </div>
-        <div
-          className="text-[0.95rem] font-bold tracking-[-0.5px] text-[var(--text)]"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Shot<span style={{ color: 'var(--accent)' }}>Sync</span><span style={{ color: 'var(--text3)', fontWeight: 300 }}>.ai</span>
+        <div className="text-[14px] font-medium tracking-[-0.3px] text-[#1d1d1f]">
+          Shot<span style={{ color: '#6e6e73' }}>Sync</span>
         </div>
       </div>
 
@@ -207,23 +201,23 @@ export function Sidebar() {
 
       <Suspense fallback={null}>
       {/* Workspace */}
-      <div className="px-[10px] pt-[14px] pb-[6px]">
-        <p className="text-[9px] font-semibold tracking-[0.1em] uppercase text-[var(--text3)] px-[6px] mb-[5px]">
+      <div style={{ padding: '16px 10px 6px' }}>
+        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
           Workspace
         </p>
-        <nav className="flex flex-col gap-[1px]">
+        <nav className="flex flex-col gap-0">
           {NAV_WORKSPACE.map((item) => (
             <NavLink key={item.href} item={item} />
           ))}
         </nav>
       </div>
 
-      {/* Workflow */}
-      <div className="px-[10px] pt-[10px] pb-[6px]">
-        <p className="text-[9px] font-semibold tracking-[0.1em] uppercase text-[var(--text3)] px-[6px] mb-[5px]">
-          Workflow
+      {/* Pipeline */}
+      <div style={{ padding: '10px 10px 6px' }}>
+        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+          Pipeline
         </p>
-        <nav className="flex flex-col gap-[1px]">
+        <nav className="flex flex-col gap-0">
           {NAV_WORKFLOW.map((item) => {
             if (item.label === 'Export') {
               return (
@@ -242,12 +236,12 @@ export function Sidebar() {
         </nav>
       </div>
 
-      {/* Config */}
-      <div className="px-[10px] pt-[10px] pb-[6px]">
-        <p className="text-[9px] font-semibold tracking-[0.1em] uppercase text-[var(--text3)] px-[6px] mb-[5px]">
-          Config
+      {/* Brand */}
+      <div style={{ padding: '10px 10px 6px' }}>
+        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+          Brand
         </p>
-        <nav className="flex flex-col gap-[1px]">
+        <nav className="flex flex-col gap-0">
           {NAV_CONFIG.map((item) => (
             <NavLink key={item.href} item={item} />
           ))}
@@ -260,9 +254,12 @@ export function Sidebar() {
       <div className="px-[10px] pb-[6px]">
         <button
           onClick={openWelcomeModal}
-          className="flex items-center gap-[9px] px-[8px] py-[7px] rounded-sm text-[0.8rem] w-full text-[var(--text3)] hover:bg-[var(--bg3)] hover:text-[var(--text2)] border border-transparent transition-all duration-150"
+          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[13px] w-full transition-all duration-150"
+          style={{ color: '#aeaeb2' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.color = '#1d1d1f' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#aeaeb2' }}
         >
-          <span className="w-[14px] h-[14px] flex-shrink-0 opacity-70">
+          <span className="w-[14px] h-[14px] flex-shrink-0 opacity-60">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="8" cy="8" r="7"/>
               <path d="M8 11v-1a2 2 0 1 0-2-2" strokeLinecap="round"/>
@@ -275,43 +272,38 @@ export function Sidebar() {
 
       {/* Plan indicator — hidden from members */}
       {canSeeBilling && (
-        <div className="mt-auto border-t border-[var(--line)] p-3">
+        <div className="mt-auto p-[10px]" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
           <Link
             href="/dashboard/settings?tab=billing"
-            className="block bg-[var(--bg3)] rounded-[10px] p-[10px] px-3 hover:bg-[var(--bg4)] transition-colors"
+            className="flex items-center gap-[9px] px-[10px] py-[8px] rounded-[10px] transition-colors"
+            style={{ cursor: 'pointer' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
           >
-            <div className="flex items-center gap-[9px] mb-2">
-              <div
-                className="w-[28px] h-[28px] rounded-full flex items-center justify-center font-bold text-[11px] text-white flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', fontFamily: 'var(--font-display)' }}
-              >
-                {orgName ? orgName[0].toUpperCase() : 'S'}
-              </div>
-              <div>
-                <p className="text-[11px] font-medium text-[var(--text)] truncate max-w-[130px]">{orgName ?? 'My Workspace'}</p>
-                <p className="text-[9px] text-[var(--text3)] mt-[1px]">
-                  {PLAN_LABEL[planId] ?? planId} Plan
-                  {exportsLimit !== -1 && ` · ${exportsUsed}/${exportsLimit} exports`}
-                  {exportsLimit === -1 && ' · Unlimited'}
-                </p>
-              </div>
+            <div
+              className="w-[26px] h-[26px] rounded-full flex items-center justify-center font-medium text-[10px] flex-shrink-0"
+              style={{ background: '#1d1d1f', color: '#f5f5f7', letterSpacing: '-0.3px' }}
+            >
+              {orgName ? orgName[0].toUpperCase() : 'S'}
             </div>
-            {exportsLimit !== -1 && (
-              <div className="h-[3px] bg-[var(--bg4)] rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.min(100, Math.round((exportsUsed / exportsLimit) * 100))}%`,
-                    background: exportsUsed >= exportsLimit
-                      ? 'var(--accent3)'
-                      : exportsUsed / exportsLimit >= 0.8
-                      ? 'var(--accent4)'
-                      : 'var(--accent)',
-                  }}
-                />
-              </div>
-            )}
+            <div className="min-w-0">
+              <p className="text-[12px] font-medium truncate" style={{ color: '#1d1d1f', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
+              <p className="text-[11px] mt-[1px]" style={{ color: '#aeaeb2' }}>
+                {PLAN_LABEL[planId] ?? planId} plan
+              </p>
+            </div>
           </Link>
+          {exportsLimit !== -1 && (
+            <div className="mx-[10px] mt-[6px] h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.min(100, Math.round((exportsUsed / exportsLimit) * 100))}%`,
+                  background: exportsUsed >= exportsLimit ? '#ff3b30' : exportsUsed / exportsLimit >= 0.8 ? '#ff9f0a' : '#1d1d1f',
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </aside>
