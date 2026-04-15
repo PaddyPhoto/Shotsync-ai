@@ -1,5 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <rect width="24" height="24" rx="5" fill="#1d1d1f"/>
-  <rect x="1" y="5" width="15" height="14" rx="2" fill="white"/>
-  <path d="M23 7l-7 5 7 5V7z" fill="white"/>
+  <defs>
+    <filter id="b" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.8"/>
+    </filter>
+    <clipPath id="r">
+      <rect width="24" height="24" rx="5"/>
+    </clipPath>
+  </defs>
+  <!-- Background -->
+  <rect width="24" height="24" rx="5" fill="#111"/>
+  <!-- Orbs — blurred, clipped to rounded square -->
+  <g clip-path="url(#r)">
+    <g filter="url(#b)">
+      <circle cx="3"  cy="3"  r="8" fill="#0071e3" opacity="0.85"/>
+      <circle cx="21" cy="3"  r="8" fill="#5e32f5" opacity="0.80"/>
+      <circle cx="3"  cy="21" r="8" fill="#30d158" opacity="0.80"/>
+      <circle cx="21" cy="21" r="8" fill="#ff9500" opacity="0.80"/>
+    </g>
+  </g>
+  <!-- Camera body -->
+  <rect x="2.5" y="8" width="12.5" height="9" rx="1.8" fill="white"/>
+  <!-- Lens flap -->
+  <path d="M15 10 L21.5 7.5 L21.5 16.5 L15 14 Z" fill="white"/>
+  <!-- Lens circle -->
+  <circle cx="9" cy="12.5" r="2.8" fill="#111" opacity="0.35"/>
+  <circle cx="9" cy="12.5" r="1.5" fill="#111" opacity="0.25"/>
 </svg>
