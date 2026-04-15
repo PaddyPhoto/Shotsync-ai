@@ -479,7 +479,7 @@ export default function LandingPage() {
         <section style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <div style={{ maxWidth: '680px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', padding: '52px 60px' }}>
             <p style={{ fontSize: 'clamp(18px,2.5vw,24px)', fontWeight: 400, letterSpacing: '-.5px', lineHeight: 1.5, color: '#1d1d1f', marginBottom: '32px' }}>
-              &ldquo;I used to spend 2–3 days after every shoot just renaming files and uploading to portals. ShotSync has automated the entire process&mdash;it&apos;s been a complete game changer for my workflow.&rdquo;
+              &ldquo;I used to spend 2–3 days after every shoot just renaming files and uploading to marketplaces. ShotSync has automated the entire process&mdash;it&apos;s been a complete game changer for my workflow.&rdquo;
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 500, color: '#6e6e73', flexShrink: 0 }}>KC</div>
