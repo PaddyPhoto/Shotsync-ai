@@ -3,51 +3,27 @@
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 
-// Floating photo card — represents a raw image from a fashion shoot
-function PhotoCard({ w, top, left, rotate, speed, opacity = 0.7, status }: {
-  w: number; top: number; left: string; rotate: number; speed: number; opacity?: number; status?: 'done' | 'pending' | 'active'
+function Orb({ color, size, top, left, speed }: {
+  color: string; size: number; top: number; left: string; speed: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const fn = () => { el.style.transform = `translateY(${window.scrollY * speed}px) rotate(${rotate}deg)` }
+    const fn = () => { el.style.transform = `translateY(${window.scrollY * speed}px)` }
     window.addEventListener('scroll', fn, { passive: true })
     return () => window.removeEventListener('scroll', fn)
-  }, [speed, rotate])
-  const h = Math.round(w * 1.35)
-  const dotColor = status === 'done' ? '#30d158' : status === 'active' ? '#0071e3' : '#aeaeb2'
+  }, [speed])
   return (
     <div ref={ref} style={{
       position: 'absolute', top, left,
-      width: w, height: h,
-      background: 'rgba(255,255,255,0.85)',
-      border: '0.5px solid rgba(0,0,0,0.1)',
-      borderRadius: 10,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05)',
-      transform: `rotate(${rotate}deg)`,
+      width: size, height: size,
+      background: color,
+      borderRadius: '50%',
+      filter: 'blur(80px)',
       pointerEvents: 'none',
       willChange: 'transform',
-      opacity,
-      overflow: 'hidden',
-    }}>
-      {/* image placeholder */}
-      <div style={{ margin: 8, borderRadius: 5, background: 'rgba(0,0,0,0.05)', height: h - 40, position: 'relative' }}>
-        {/* subtle garment silhouette lines */}
-        <svg viewBox="0 0 60 80" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1.5" width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
-          <path d="M20 12 Q30 8 40 12 L44 22 Q38 20 30 20 Q22 20 16 22 Z"/>
-          <path d="M16 22 L12 44 Q20 48 30 48 Q40 48 48 44 L44 22"/>
-          <path d="M12 44 L10 72 L50 72 L48 44"/>
-        </svg>
-      </div>
-      {/* bottom bar with filename + status dot */}
-      <div style={{ padding: '0 8px', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 7, color: 'rgba(0,0,0,0.3)', fontFamily: "'SF Mono','Fira Code',monospace", letterSpacing: '-.2px' }}>
-          {status === 'done' ? 'PR0' + Math.floor(Math.random() * 9000 + 1000) + '.jpg' : 'IMG_' + Math.floor(Math.random() * 9000 + 1000) + '.jpg'}
-        </span>
-        <div style={{ width: 5, height: 5, borderRadius: '50%', background: dotColor }} />
-      </div>
-    </div>
+    }} />
   )
 }
 
@@ -82,22 +58,13 @@ export default function LandingPage() {
 
       <div style={{ minHeight: '100vh', background: '#f5f5f7', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden', position: 'relative' }}>
 
-        {/* ── FLOATING PHOTO CARDS (parallax) ── */}
-        {/* Right cluster — raw incoming shoot */}
-        <PhotoCard w={88}  top={110}  left="71%"  rotate={8}   speed={0.18} opacity={0.65} status="pending" />
-        <PhotoCard w={72}  top={200}  left="82%"  rotate={-6}  speed={0.24} opacity={0.55} status="pending" />
-        <PhotoCard w={100} top={300}  left="75%"  rotate={14}  speed={0.14} opacity={0.6}  status="pending" />
-        <PhotoCard w={62}  top={90}   left="89%"  rotate={-12} speed={0.28} opacity={0.5}  status="pending" />
-        <PhotoCard w={80}  top={420}  left="80%"  rotate={5}   speed={0.20} opacity={0.45} status="active"  />
-        {/* Left cluster — processed/done */}
-        <PhotoCard w={76}  top={340}  left="-1%"  rotate={-9}  speed={0.12} opacity={0.55} status="done"    />
-        <PhotoCard w={60}  top={460}  left="5%"   rotate={7}   speed={0.17} opacity={0.5}  status="done"    />
-        <PhotoCard w={94}  top={540}  left="-2%"  rotate={16}  speed={0.10} opacity={0.45} status="done"    />
-        <PhotoCard w={68}  top={250}  left="3%"   rotate={-4}  speed={0.22} opacity={0.45} status="done"    />
-        {/* Lower scattered — mid-page depth */}
-        <PhotoCard w={70}  top={1100} left="77%"  rotate={-7}  speed={0.20} opacity={0.35} status="done"    />
-        <PhotoCard w={84}  top={1220} left="84%"  rotate={11}  speed={0.15} opacity={0.3}  status="done"    />
-        <PhotoCard w={66}  top={1050} left="-1%"  rotate={-11} speed={0.13} opacity={0.3}  status="done"    />
+        {/* ── PARALLAX ORBS ── */}
+        <Orb color="rgba(0,113,227,0.45)"   size={420} top={-60}  left="-5%"  speed={0.15} />
+        <Orb color="rgba(94,50,245,0.38)"   size={380} top={100}  left="64%"  speed={0.22} />
+        <Orb color="rgba(48,209,88,0.35)"   size={360} top={880}  left="4%"   speed={0.10} />
+        <Orb color="rgba(0,190,220,0.35)"   size={400} top={1620} left="60%"  speed={0.18} />
+        <Orb color="rgba(255,149,0,0.32)"   size={350} top={2700} left="10%"  speed={0.13} />
+        <Orb color="rgba(0,113,227,0.38)"   size={400} top={3900} left="52%"  speed={0.17} />
 
         {/* ── NAV ── */}
         <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,245,247,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
