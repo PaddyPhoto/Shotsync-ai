@@ -118,7 +118,7 @@ function NavLink({ item }: { item: NavItem }) {
     item.disabled
       ? 'opacity-40 cursor-not-allowed text-[#aeaeb2]'
       : isActive
-      ? 'bg-[rgba(0,0,0,0.06)] text-[#1d1d1f] font-medium'
+      ? 'bg-[rgba(48,209,88,0.10)] text-[#1d1d1f] font-medium'
       : 'text-[#6e6e73] hover:bg-[rgba(0,0,0,0.04)] hover:text-[#1d1d1f] font-normal'
   )
 

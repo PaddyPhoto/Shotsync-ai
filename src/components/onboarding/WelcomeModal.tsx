@@ -98,7 +98,7 @@ export function WelcomeModal() {
           <div className="flex items-center gap-3 mb-2">
             <div
               className="w-[32px] h-[32px] rounded-[8px] flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--accent-deep)', boxShadow: '0 0 16px rgba(26,79,255,0.4)' }}
+              style={{ background: '#1d1d1f' }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 7l-7 5 7 5V7z"/>
@@ -106,10 +106,10 @@ export function WelcomeModal() {
               </svg>
             </div>
             <h2 className="text-[1.1rem] font-bold tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
-              Welcome to Shot<span style={{ color: 'var(--accent)' }}>Sync</span>.ai
+              Welcome to Shot<span style={{ color: '#6e6e73' }}>Sync</span>.ai
             </h2>
           </div>
-          <p className="text-[0.8rem] text-[var(--text2)]">
+          <p className="text-[0.85rem] text-[var(--text2)]">
             Your post-production workflow in four steps. Here's how it works.
           </p>
         </div>
@@ -131,13 +131,13 @@ export function WelcomeModal() {
                   {step.icon}
                 </span>
                 <div>
-                  <p className="text-[9px] font-semibold tracking-[0.1em] uppercase" style={{ color: step.color }}>
+                  <p className="text-[11px] font-semibold tracking-[0.1em] uppercase" style={{ color: step.color }}>
                     Step {step.number}
                   </p>
                   <p className="text-[0.8rem] font-semibold text-[var(--text)] leading-tight">{step.title}</p>
                 </div>
               </div>
-              <p className="text-[0.72rem] text-[var(--text3)] leading-relaxed">{step.description}</p>
+              <p className="text-[0.78rem] text-[var(--text3)] leading-relaxed">{step.description}</p>
             </Link>
           ))}
         </div>
@@ -146,7 +146,7 @@ export function WelcomeModal() {
         <div className="px-6 pb-5 flex items-center justify-between">
           <button
             onClick={() => dismiss(true)}
-            className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
+            className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
           >
             Don't show this again
           </button>

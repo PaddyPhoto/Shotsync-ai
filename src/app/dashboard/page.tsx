@@ -116,24 +116,24 @@ export default function DashboardPage() {
         <h1 style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '3px' }}>
           {greeting}{orgName ? `, ${orgName}` : ''}.
         </h1>
-        <p style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>
+        <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>
           {loading ? 'Loading…' : `${jobs.length} recent jobs\u00a0·\u00a0${warningClusters.length} clusters need attention`}
         </p>
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '20px' }}>
           {[
-            { label: 'Images processed', value: stats?.total_images,   delta: 'lifetime total' },
-            { label: 'Active clusters',  value: stats?.total_clusters, delta: 'across all jobs' },
-            { label: 'Exports ready',    value: stats?.total_exports,  delta: 'completed jobs' },
-            { label: 'SKU match rate',   value: null,                  delta: 'last batch',      display: clusters.length ? `${Math.round((clusters.filter(c => c.sku).length / clusters.length) * 100)}%` : '—' },
-          ].map(({ label, value, delta, display }) => (
-            <div key={label} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '16px 18px', backdropFilter: 'blur(8px)' }}>
-              <div style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-.1px', marginBottom: '6px' }}>{label}</div>
+            { label: 'Images processed', value: stats?.total_images,   delta: 'lifetime total',  accent: '#30d158' },
+            { label: 'Active clusters',  value: stats?.total_clusters, delta: 'across all jobs', accent: '#0071e3' },
+            { label: 'Exports ready',    value: stats?.total_exports,  delta: 'completed jobs',  accent: '#ff9f0a' },
+            { label: 'SKU match rate',   value: null,                  delta: 'last batch',      accent: '#af52de', display: clusters.length ? `${Math.round((clusters.filter(c => c.sku).length / clusters.length) * 100)}%` : '—' },
+          ].map(({ label, value, delta, display, accent }) => (
+            <div key={label} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '16px 18px', backdropFilter: 'blur(8px)', borderTop: `3px solid ${accent}` }}>
+              <div style={{ fontSize: '14px', color: '#aeaeb2', letterSpacing: '-.1px', marginBottom: '6px' }}>{label}</div>
               <div style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', lineHeight: 1, marginBottom: '4px' }}>
                 {loading ? '—' : (display ?? (value ?? 0).toLocaleString())}
               </div>
-              <div style={{ fontSize: '12px', color: '#aeaeb2' }}>{delta}</div>
+              <div style={{ fontSize: '14px', color: accent, fontWeight: 500 }}>{delta}</div>
             </div>
           ))}
         </div>
@@ -144,16 +144,16 @@ export default function DashboardPage() {
           {/* Recent jobs */}
           <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Recent jobs</span>
-              <Link href="/dashboard/jobs" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '11px' }}>View all</Link>
+              <span style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Recent jobs</span>
+              <Link href="/dashboard/jobs" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '13px' }}>View all</Link>
             </div>
             {loading ? (
-              <div style={{ padding: '16px 18px', fontSize: '12px', color: '#aeaeb2' }}>Loading…</div>
+              <div style={{ padding: '16px 18px', fontSize: '14px', color: '#aeaeb2' }}>Loading…</div>
             ) : jobs.length === 0 ? (
               <div style={{ padding: '32px 18px', textAlign: 'center' }}>
-                <p style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>No jobs yet</p>
-                <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '14px' }}>Upload your first shoot to get started.</p>
-                <Link href="/dashboard/upload" className="btn btn-primary" style={{ fontSize: '12px' }}>New upload</Link>
+                <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>No jobs yet</p>
+                <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '14px' }}>Upload your first shoot to get started.</p>
+                <Link href="/dashboard/upload" className="btn btn-primary" style={{ fontSize: '14px' }}>New upload</Link>
               </div>
             ) : (
               jobs.map((job) => {
@@ -166,12 +166,12 @@ export default function DashboardPage() {
                       </svg>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.job_name}</div>
-                      <div style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '1px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.job_name}</div>
+                      <div style={{ fontSize: '13px', color: '#aeaeb2', marginTop: '1px' }}>
                         {job.image_count} images · {job.cluster_count} clusters · {new Date(job.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                       </div>
                     </div>
-                    <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 500, background: chip.bg, color: chip.color, letterSpacing: '-.1px', flexShrink: 0 }}>
+                    <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, background: chip.bg, color: chip.color, letterSpacing: '-.1px', flexShrink: 0 }}>
                       {chip.label}
                     </span>
                   </Link>
@@ -183,13 +183,13 @@ export default function DashboardPage() {
           {/* Marketplace coverage */}
           <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Marketplace coverage</span>
+              <span style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Marketplace coverage</span>
             </div>
             <div style={{ padding: '16px 18px' }}>
               {marketplaceNames.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                  <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>No marketplaces configured yet.</p>
-                  <Link href="/dashboard/settings?tab=marketplaces" className="btn btn-ghost" style={{ fontSize: '11px', padding: '4px 10px' }}>Configure</Link>
+                  <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '10px' }}>No marketplaces configured yet.</p>
+                  <Link href="/dashboard/settings?tab=marketplaces" className="btn btn-ghost" style={{ fontSize: '13px', padding: '4px 10px' }}>Configure</Link>
                 </div>
               ) : (
                 marketplaceNames.map((name, i) => {
@@ -201,9 +201,9 @@ export default function DashboardPage() {
                   const displayPct = Math.max(pct, jobs.length === 0 ? 0 : 20)
                   return (
                     <div key={name} style={{ marginBottom: i < marketplaceNames.length - 1 ? '14px' : 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '6px' }}>
                         <span style={{ color: '#1d1d1f', fontWeight: 500 }}>{name}</span>
-                        <span style={{ color: '#aeaeb2', fontSize: '12px' }}>
+                        <span style={{ color: '#aeaeb2', fontSize: '13px' }}>
                           {jobs.length === 0 ? 'No jobs yet' : `${exported} exported · ${displayPct}%`}
                         </span>
                       </div>
@@ -224,11 +224,11 @@ export default function DashboardPage() {
           {/* Active pipeline */}
           <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
+              <span style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
                 {processingJob ? `Active pipeline — ${processingJob.job_name}` : 'Active pipeline'}
               </span>
               {processingJob && (
-                <span style={{ fontSize: '11px', color: '#aeaeb2', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ fontSize: '13px', color: '#aeaeb2', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', display: 'inline-block', animation: 'blink 1.4s infinite' }} />
                   Running
                 </span>
@@ -238,8 +238,8 @@ export default function DashboardPage() {
             <div style={{ padding: '8px 18px' }}>
               {!processingJob ? (
                 <div style={{ padding: '20px 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>No active pipeline. Upload a new shoot to begin.</p>
-                  <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '11px', padding: '4px 10px' }}>New upload</Link>
+                  <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '10px' }}>No active pipeline. Upload a new shoot to begin.</p>
+                  <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '13px', padding: '4px 10px' }}>New upload</Link>
                 </div>
               ) : (
                 PIPELINE_STEPS.map((step, i) => {
@@ -251,14 +251,14 @@ export default function DashboardPage() {
                     <div key={step} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 0', borderBottom: i < PIPELINE_STEPS.length - 1 ? '0.5px solid rgba(0,0,0,0.05)' : 'none' }}>
                       <div style={{
                         width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '9px', fontWeight: 500, flexShrink: 0,
+                        fontSize: '11px', fontWeight: 500, flexShrink: 0,
                         background: isDone ? 'rgba(48,209,88,0.12)' : isActive ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
                         color:      isDone ? '#1a8a35'              : isActive ? '#f5f5f7' : '#aeaeb2',
                       }}>
                         {isDone ? '✓' : i + 1}
                       </div>
-                      <span style={{ fontSize: '12px', color: isDone || isActive ? '#1d1d1f' : '#aeaeb2', flex: 1, letterSpacing: '-.1px', fontWeight: isDone || isActive ? 500 : 400 }}>{step}</span>
-                      <span style={{ fontSize: '11px', color: isDone ? '#aeaeb2' : isActive ? '#1d1d1f' : '#aeaeb2' }}>
+                      <span style={{ fontSize: '14px', color: isDone || isActive ? '#1d1d1f' : '#aeaeb2', flex: 1, letterSpacing: '-.1px', fontWeight: isDone || isActive ? 500 : 400 }}>{step}</span>
+                      <span style={{ fontSize: '13px', color: isDone ? '#aeaeb2' : isActive ? '#1d1d1f' : '#aeaeb2' }}>
                         {isDone ? ['0.8s','12.4s','3.2s','2.1s'][i] ?? '—' : '—'}
                       </span>
                     </div>
@@ -271,11 +271,11 @@ export default function DashboardPage() {
           {/* Cluster review */}
           <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
+              <span style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
                 {isReady && clusters.length > 0 ? `Cluster review — ${jobs[0]?.job_name ?? 'Current session'}` : 'Cluster review'}
               </span>
               {warningClusters.length > 0 && (
-                <span style={{ fontSize: '10px', fontWeight: 500, color: '#c27800', background: 'rgba(255,159,10,0.1)', padding: '3px 8px', borderRadius: '5px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 500, color: '#c27800', background: 'rgba(255,159,10,0.1)', padding: '3px 8px', borderRadius: '5px' }}>
                   {warningClusters.length} unconfirmed
                 </span>
               )}
@@ -283,8 +283,8 @@ export default function DashboardPage() {
             <div style={{ padding: '16px 18px' }}>
               {!isReady || clusters.length === 0 ? (
                 <div style={{ padding: '20px 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>No active session. Upload a shoot to see clusters here.</p>
-                  <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '11px', padding: '4px 10px' }}>New upload</Link>
+                  <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '10px' }}>No active session. Upload a shoot to see clusters here.</p>
+                  <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '13px', padding: '4px 10px' }}>New upload</Link>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                                 ) : (
                                   <div style={{ width: '100%', height: '100%', background: `hsl(${i * 30},0%,${15 + i * 5}%)` }} />
                                 )}
-                                <div style={{ position: 'absolute', bottom: '3px', left: '3px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', fontSize: '8px', fontWeight: 500, color: '#fff', padding: '1px 4px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                                <div style={{ position: 'absolute', bottom: '3px', left: '3px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', fontSize: '10px', fontWeight: 500, color: '#fff', padding: '1px 4px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '.04em' }}>
                                   {img.viewLabel?.replace('_', ' ') ?? `${i + 1}`}
                                 </div>
                               </div>
@@ -315,8 +315,8 @@ export default function DashboardPage() {
                           </div>
                           {/* Footer */}
                           <div style={{ padding: '8px 10px' }}>
-                            <div style={{ fontSize: '10px', fontWeight: 500, color: '#1d1d1f', marginBottom: '2px' }}>{cluster.sku || 'No SKU'}</div>
-                            <div style={{ fontSize: '10px', color: '#aeaeb2' }}>{cluster.productName || cluster.color || '—'}</div>
+                            <div style={{ fontSize: '12px', fontWeight: 500, color: '#1d1d1f', marginBottom: '2px' }}>{cluster.sku || 'No SKU'}</div>
+                            <div style={{ fontSize: '12px', color: '#aeaeb2' }}>{cluster.productName || cluster.color || '—'}</div>
                             {/* Shot pills */}
                             <div style={{ display: 'flex', gap: '3px', marginTop: '5px', flexWrap: 'wrap' }}>
                               {cluster.images.slice(0, 4).map((img) => {
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                                 }
                                 const p = pillStyles[lbl] ?? { bg: 'rgba(0,0,0,0.05)', color: '#aeaeb2', text: lbl?.slice(0,2) ?? '?' }
                                 return (
-                                  <span key={img.id} style={{ fontSize: '8px', fontWeight: 500, padding: '2px 5px', borderRadius: '4px', background: p.bg, color: p.color }}>
+                                  <span key={img.id} style={{ fontSize: '10px', fontWeight: 500, padding: '2px 5px', borderRadius: '4px', background: p.bg, color: p.color }}>
                                     {p.text}
                                   </span>
                                 )
@@ -344,7 +344,7 @@ export default function DashboardPage() {
                 </div>
               )}
               {isReady && clusters.length > 3 && (
-                <Link href="/dashboard/review" style={{ display: 'block', textAlign: 'center', marginTop: '12px', fontSize: '12px', color: '#aeaeb2', textDecoration: 'none' }}>
+                <Link href="/dashboard/review" style={{ display: 'block', textAlign: 'center', marginTop: '12px', fontSize: '14px', color: '#aeaeb2', textDecoration: 'none' }}>
                   +{clusters.length - 3} more clusters →
                 </Link>
               )}
