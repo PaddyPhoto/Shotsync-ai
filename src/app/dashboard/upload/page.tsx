@@ -156,7 +156,8 @@ export default function UploadPage() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const acceptFiles = useCallback((newFiles: File[]) => {
-    const images = newFiles.filter((f) => f.type.startsWith('image/'))
+    const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+    const images = newFiles.filter((f) => ALLOWED.includes(f.type.toLowerCase()) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name))
     if (!images.length) return
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => f.name + f.size))
@@ -620,7 +621,7 @@ export default function UploadPage() {
                       )}
                     </div>
                   )}
-                  <input ref={inputRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
+                  <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
                 </div>
               </div>
             </div>
