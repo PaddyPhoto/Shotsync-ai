@@ -71,6 +71,7 @@ export default function LandingPage() {
           .section-pad { padding-left: 20px !important; padding-right: 20px !important; }
           .how-it-works-grid { grid-template-columns: 1fr !important; }
           .features-grid { grid-template-columns: 1fr !important; }
+          .ai-copy-feature { grid-template-columns: 1fr !important; }
           .mp-logos-row { flex-direction: column !important; }
           .mp-logo-cell { border-right: none !important; border-bottom: 0.5px solid rgba(0,0,0,0.08) !important; }
           .mp-logo-cell:last-child { border-bottom: none !important; }
@@ -415,6 +416,42 @@ export default function LandingPage() {
               </div>
 
             </div>
+
+            {/* Feature 5: AI Copywriting — full width */}
+            <div className="ai-copy-feature" style={{ background: '#1d1d1f', padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'center' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.1)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#5e32f5' }} />
+                  AI copywriting
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#fff' }}>Product listings written by AI.</h3>
+                <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, letterSpacing: '-.1px' }}>After clustering, ShotSync uses GPT-4o vision to look at your hero image and write a title, description, and bullet points — tailored for ANZ fashion eCommerce. One click, ready to publish.</p>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', letterSpacing: '.06em', textTransform: 'uppercase' }}>Generated copy</div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Title</div>
+                  <div style={{ fontSize: '13px', fontWeight: 500, color: '#fff', letterSpacing: '-.2px' }}>Relaxed Linen Blazer — Tailored, Breathable</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Description</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>A relaxed-fit blazer in lightweight linen. Clean lapels, a slightly oversized silhouette, and a single-button closure make this a season-spanning layer.</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px' }}>Bullets</div>
+                  {['Relaxed linen blazer with clean lapels', 'Slightly oversized, single-button closure', 'Lightweight woven linen — breathable', 'Wear over a slip dress or with tailored trousers'].map((b) => (
+                    <div key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', marginBottom: '5px' }}>
+                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(94,50,245,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+          </div>
           </div>
         </section>
 
