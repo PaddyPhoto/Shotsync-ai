@@ -1467,7 +1467,7 @@ function ExportPanel({
           {/* Output mode */}
           <div>
             <p className="text-[0.75rem] text-[var(--text2)] mb-2 font-medium">Output</p>
-            <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px] mb-3">
+            <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
               {([
                 ['zip', 'Download ZIP'],
                 ['folder', 'Save to Folder'],
@@ -1481,6 +1481,10 @@ function ExportPanel({
                 </button>
               ))}
             </div>
+            {exportMode === 'folder' && (
+              <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">Chrome and Edge only — not supported in Safari or Firefox</p>
+            )}
+            {exportMode === 'zip' && <div className="mb-3" />}
 
             {/* Flat export toggle */}
             <label className="flex items-center gap-2 cursor-pointer mb-3">
