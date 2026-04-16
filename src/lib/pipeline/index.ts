@@ -7,7 +7,6 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { generateEmbedding } from './step2-embeddings'
 import { clusterEmbeddings } from './step3-clustering'
 import { createClusterRecords } from './step4-clusters'
-import { matchClustersToSKUs } from './step5-shopify-match'
 import { labelClusterImages } from './step6-angle-detection'
 import { validateJobShots } from './step7-missing-shots'
 import { renameJobImages } from './step8-naming'
@@ -59,14 +58,6 @@ export async function runPipeline(
     // Step 4: Create cluster records
     await updateJobStep(jobId, 4, 'grouping')
     await createClusterRecords(jobId, assignments)
-
-    // Step 5: Match to Shopify SKUs (optional — skipped gracefully if no SKUs cached)
-    await updateJobStep(jobId, 5, 'matching')
-    try {
-      await matchClustersToSKUs(jobId, userId)
-    } catch (err) {
-      console.warn('Step 5 SKU matching skipped:', err)
-    }
 
     // Step 6: Classify angles for each cluster
     await updateJobStep(jobId, 6, 'processing')
