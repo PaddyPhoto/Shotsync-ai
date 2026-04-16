@@ -106,7 +106,7 @@ export default function LandingPage() {
         <nav className="nav-bar" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 40px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,245,247,0.82)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
             <img src="/icon.png" alt="ShotSync" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
-            <span style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-.3px', color: '#1d1d1f' }}>Shot<span style={{ color: '#6e6e73' }}>Sync</span></span>
+            <span style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-.3px', color: '#1d1d1f', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#6e6e73' }}>Sync</span></span>
           </Link>
           <div className="nav-links-desktop" style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
             <a href="#how-it-works" className="nav-link">How it works</a>
@@ -188,7 +188,7 @@ export default function LandingPage() {
                   <div style={{ width: '20px', height: '20px', background: '#1d1d1f', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" width="10" height="10"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 500, letterSpacing: '-.2px' }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
+                  <span style={{ fontSize: '12px', fontWeight: 500, letterSpacing: '-.2px', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
                 </div>
                 <div style={{ fontSize: '9px', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', margin: '12px 0 4px' }}>Workspace</div>
                 {[
@@ -576,7 +576,7 @@ export default function LandingPage() {
           <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <img src="/icon.png" alt="ShotSync" style={{ width: '24px', height: '24px', borderRadius: '6px' }} />
-              <span style={{ fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', color: '#1d1d1f' }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
+              <span style={{ fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', color: '#1d1d1f', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
             </Link>
             <div className="footer-links" style={{ display: 'flex', gap: '24px' }}>
               {[

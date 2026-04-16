@@ -186,7 +186,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-[9px]" style={{ padding: '24px 20px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
         <img src="/icon.png" alt="ShotSync" className="w-[30px] h-[30px] rounded-[8px] flex-shrink-0" />
-        <div className="text-[16px] font-medium tracking-[-0.3px] text-[#1d1d1f]">
+        <div className="text-[16px] font-medium tracking-[-0.3px] text-[#1d1d1f]" style={{ fontFamily: "'Inter', sans-serif" }}>
           Shot<span style={{ color: '#6e6e73' }}>Sync</span>
         </div>
       </div>
