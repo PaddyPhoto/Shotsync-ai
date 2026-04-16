@@ -112,7 +112,6 @@ export default function LandingPage() {
             <a href="#how-it-works" className="nav-link">How it works</a>
             <a href="#features" className="nav-link">Features</a>
             <a href="#pricing" className="nav-link">Pricing</a>
-            <a href="mailto:hello@shotsync.ai" className="nav-link">Contact</a>
           </div>
           <div className="nav-cta-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link href="/login" className="nav-link">Sign in</Link>
