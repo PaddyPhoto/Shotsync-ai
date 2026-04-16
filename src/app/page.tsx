@@ -117,8 +117,7 @@ export default function LandingPage() {
             <Link href="/login" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>Sign in</Link>
           </div>
           <div className="nav-mobile-signin" style={{ display: 'none', alignItems: 'center', gap: '8px' }}>
-            <Link href="/login" className="nav-link">Sign in</Link>
-            <Link href="/signup" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>Get started</Link>
+            <Link href="/login" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>Sign in</Link>
           </div>
         </nav>
 
