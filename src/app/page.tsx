@@ -114,11 +114,7 @@ export default function LandingPage() {
             <a href="#pricing" className="nav-link">Pricing</a>
           </div>
           <div className="nav-cta-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link href="/login" className="nav-link">Sign in</Link>
-            <a href="#demo" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Watch demo
-            </a>
+            <Link href="/login" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>Sign in</Link>
           </div>
           <div className="nav-mobile-signin" style={{ display: 'none', alignItems: 'center', gap: '8px' }}>
             <Link href="/login" className="nav-link">Sign in</Link>
