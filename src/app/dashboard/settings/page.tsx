@@ -1657,6 +1657,7 @@ function SettingsInner() {
                       className="input"
                       style={{ fontFamily: 'var(--font-dm-mono)' }}
                       placeholder="your-store.myshopify.com"
+                      autoComplete="off"
                       value={brandForm.shopify_store_url}
                       onChange={(e) => setBrandForm((f) => ({ ...f, shopify_store_url: e.target.value }))}
                     />
@@ -1668,6 +1669,7 @@ function SettingsInner() {
                       type="password"
                       style={{ fontFamily: 'var(--font-dm-mono)' }}
                       placeholder="shpat_..."
+                      autoComplete="new-password"
                       value={brandForm.shopify_access_token}
                       onChange={(e) => setBrandForm((f) => ({ ...f, shopify_access_token: e.target.value }))}
                     />
