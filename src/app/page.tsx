@@ -315,8 +315,8 @@ export default function LandingPage() {
 
               {/* Feature 1: Auto-rename */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#aeaeb2' }} />
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,122,255,0.08)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#005fc4', marginBottom: '16px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#007aff' }} />
                   Auto-rename
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Files named right. Every time.</h3>
@@ -339,8 +339,8 @@ export default function LandingPage() {
 
               {/* Feature 2: AI clustering */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#0071e3' }} />
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(175,82,222,0.08)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#7b2fa0', marginBottom: '16px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#af52de' }} />
                   AI clustering
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Groups images by SKU automatically.</h3>
@@ -362,7 +362,7 @@ export default function LandingPage() {
 
               {/* Feature 3: Marketplace rules */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(255,159,10,0.10)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#c27800', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ff9f0a' }} />
                   Marketplace rules
                 </div>
@@ -387,7 +387,7 @@ export default function LandingPage() {
 
               {/* Feature 4: CSV catalogue */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.04)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(48,209,88,0.10)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#1a8a35', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#30d158' }} />
                   CSV catalogue
                 </div>
