@@ -577,7 +577,7 @@ export default function LandingPage() {
                 },
                 {
                   q: 'Which marketplaces are supported?',
-                  a: 'THE ICONIC, Myer PIM, David Jones PIM, and Catch (COTD) are supported out of the box — including their specific image dimensions, naming conventions, and view requirements. Additional marketplaces can be configured in Settings.',
+                  a: 'THE ICONIC, Myer PIM, and David Jones PIM are supported out of the box — including their specific image dimensions, naming conventions, and view requirements. Additional marketplaces can be configured in Settings.',
                 },
                 {
                   q: 'What image formats are accepted?',
