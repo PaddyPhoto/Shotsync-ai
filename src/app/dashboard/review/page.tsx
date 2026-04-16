@@ -1232,18 +1232,7 @@ function ExportPanel({
     setIsExporting(true)
     setDone(false)
 
-    // If the total number of processed outputs (images × marketplaces) exceeds the
-    // safe in-browser ZIP threshold (~1,200 outputs ≈ ~300 MB), split into batches
-    // of 2 marketplaces so the browser never holds too much in memory at once.
     const sourceImageCount = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
-    const totalOutputCount = sourceImageCount * selectedMarketplaces.length
-    const SAFE_OUTPUT_LIMIT = 1200
-    const marketplacesPerBatch = totalOutputCount > SAFE_OUTPUT_LIMIT ? 2 : selectedMarketplaces.length
-    const batches: MarketplaceName[][] = []
-    for (let i = 0; i < selectedMarketplaces.length; i += marketplacesPerBatch) {
-      batches.push(selectedMarketplaces.slice(i, i + marketplacesPerBatch) as MarketplaceName[])
-    }
-
     const totalImages = sourceImageCount * selectedMarketplaces.length
     let doneCount = 0
     setProgress({ done: 0, total: totalImages, phase: 'Processing images…' })
@@ -1252,78 +1241,76 @@ function ExportPanel({
     const brandCode = activeBrand?.brand_code ?? 'BRAND'
     const supplierCode = activeBrand?.supplier_code ?? ''
     const season = activeBrand?.season ?? ''
-
     const copyClusters = confirmedClusters.filter((c) => clusterCopy[c.id]?.title)
 
-    for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
-      const batchMarketplaces = batches[batchIdx]
-      const JSZip = (await import('jszip')).default
-      const zip = new JSZip()
-
-      for (const marketplace of batchMarketplaces) {
-        const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
-        const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
-        const template = rule.naming_template || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
-
-        type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }
-        const tasks: ExportTask[] = []
-        for (let clusterIdx = 0; clusterIdx < confirmedClusters.length; clusterIdx++) {
-          const cluster = confirmedClusters[clusterIdx]
-          const seq = clusterIdx + 1
-          const folderName = applyNamingTemplate(
-            template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, '').replace(/_{ANGLE}/g, '').replace(/_{ANGLE_NUMBER}/g, ''),
-            { brand: brandCode, seq, sku: cluster.sku, color: cluster.color, view: '', index: 0, supplierCode, season, styleNumber: cluster.styleNumber, colourCode: cluster.colourCode }
-          ).replace(/_+$/, '') || `${brandCode}_${String(seq).padStart(3, '0')}`
-          const gmPosition = activeBrand?.gm_position ?? 'last'
-          const sortedImages = [...cluster.images].sort((a, b) => {
-            const aIsGM = a.viewLabel === 'ghost-mannequin'
-            const bIsGM = b.viewLabel === 'ghost-mannequin'
-            if (aIsGM && !bIsGM) return gmPosition === 'first' ? -1 : 1
-            if (!aIsGM && bIsGM) return gmPosition === 'first' ? 1 : -1
-            return 0
-          })
-          for (let imgIdx = 0; imgIdx < sortedImages.length; imgIdx++) {
-            tasks.push({ cluster, seq, img: sortedImages[imgIdx], imgIdx, folderName })
-          }
+    // Helper: build the task list for a marketplace (shared by both paths)
+    type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }
+    const buildTasks = (template: string): ExportTask[] => {
+      const tasks: ExportTask[] = []
+      for (let clusterIdx = 0; clusterIdx < confirmedClusters.length; clusterIdx++) {
+        const cluster = confirmedClusters[clusterIdx]
+        const seq = clusterIdx + 1
+        const folderName = applyNamingTemplate(
+          template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, '').replace(/_{ANGLE}/g, '').replace(/_{ANGLE_NUMBER}/g, ''),
+          { brand: brandCode, seq, sku: cluster.sku, color: cluster.color, view: '', index: 0, supplierCode, season, styleNumber: cluster.styleNumber, colourCode: cluster.colourCode }
+        ).replace(/_+$/, '') || `${brandCode}_${String(seq).padStart(3, '0')}`
+        const gmPosition = activeBrand?.gm_position ?? 'last'
+        const sortedImages = [...cluster.images].sort((a, b) => {
+          const aIsGM = a.viewLabel === 'ghost-mannequin'
+          const bIsGM = b.viewLabel === 'ghost-mannequin'
+          if (aIsGM && !bIsGM) return gmPosition === 'first' ? -1 : 1
+          if (!aIsGM && bIsGM) return gmPosition === 'first' ? 1 : -1
+          return 0
+        })
+        for (let imgIdx = 0; imgIdx < sortedImages.length; imgIdx++) {
+          tasks.push({ cluster, seq, img: sortedImages[imgIdx], imgIdx, folderName })
         }
+      }
+      return tasks
+    }
+
+    if (exportMode === 'folder' && folderRef.current) {
+      // ── Folder export: write directly to disk, one image at a time ──────────
+      // No ZIP ever built — memory stays flat regardless of job size.
+      const rootHandle = folderRef.current
+
+      for (const marketplace of selectedMarketplaces) {
+        const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
+        const template = rule.naming_template || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
+        const mpHandle = flatExport
+          ? rootHandle
+          : await rootHandle.getDirectoryHandle(rule.name.replace(/\s+/g, '_'), { create: true })
+        const tasks = buildTasks(template)
 
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
-          const batch = tasks.slice(i, i + CONCURRENCY)
-          await Promise.all(batch.map(async ({ cluster, seq, img, imgIdx, folderName }) => {
+          await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
             try {
               const buffer = await processImageOnCanvas(
-                img.file,
-                rule.image_dimensions.width,
-                rule.image_dimensions.height,
-                rule.background_color,
-                (rule.quality ?? 100) / 100,
-                rule.max_file_size_kb ?? 0,
+                img.file, rule.image_dimensions.width, rule.image_dimensions.height,
+                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
               )
               const filename = applyNamingTemplate(template, {
-                brand: brandCode,
-                seq,
-                sku: cluster.sku,
-                color: cluster.color,
-                view: img.viewLabel,
-                index: imgIdx + 1,
-                supplierCode,
-                season,
-                styleNumber: cluster.styleNumber,
-                colourCode: cluster.colourCode,
+                brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
+                view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
               }) + '.jpg'
-              marketplaceFolder.file(flatExport ? filename : `${folderName}/${filename}`, buffer)
+              const dirHandle = flatExport ? mpHandle : await mpHandle.getDirectoryHandle(folderName, { create: true })
+              const fh = await dirHandle.getFileHandle(filename, { create: true })
+              const writable = await fh.createWritable()
+              await writable.write(buffer)
+              await writable.close()
             } catch (err) {
               console.warn(`Export skipped: ${img.filename}`, err)
             }
             doneCount++
-            const batchLabel = batches.length > 1 ? `Part ${batchIdx + 1}/${batches.length} · ` : ''
-            setProgress({ done: doneCount, total: totalImages, phase: `${batchLabel}${rule.name} · ${doneCount}/${totalImages}` })
+            setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
           }))
         }
       }
 
-      // Add product_copy.csv to first batch only
-      if (batchIdx === 0 && copyClusters.length > 0) {
+      // Write CSV directly to the folder root
+      if (copyClusters.length > 0) {
+        setProgress((p) => ({ ...p, phase: 'Writing CSV…' }))
         const headers = ['SKU', 'Product Name', 'Colour', 'Title', 'Description', 'Bullet 1', 'Bullet 2', 'Bullet 3', 'Bullet 4', 'Bullet 5']
         const rows = copyClusters.map((c) => {
           const copy = clusterCopy[c.id]
@@ -1331,30 +1318,70 @@ function ExportPanel({
             .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
             .join(',')
         })
-        zip.file('product_copy.csv', [headers.join(','), ...rows].join('\n'))
+        const csvFh = await rootHandle.getFileHandle('product_copy.csv', { create: true })
+        const csvWritable = await csvFh.createWritable()
+        await csvWritable.write([headers.join(','), ...rows].join('\n'))
+        await csvWritable.close()
       }
 
-      const batchSuffix = batches.length > 1 ? `_part${batchIdx + 1}of${batches.length}` : ''
-      const buildLabel = batches.length > 1 ? `Building ZIP ${batchIdx + 1} of ${batches.length}…` : 'Building ZIP…'
-      setProgress((p) => ({ ...p, phase: buildLabel }))
+    } else {
+      // ── ZIP download: batch by 2 marketplaces when job exceeds safe memory limit ──
+      const SAFE_OUTPUT_LIMIT = 1200
+      const marketplacesPerBatch = sourceImageCount * selectedMarketplaces.length > SAFE_OUTPUT_LIMIT
+        ? 2
+        : selectedMarketplaces.length
+      const batches: MarketplaceName[][] = []
+      for (let i = 0; i < selectedMarketplaces.length; i += marketplacesPerBatch) {
+        batches.push(selectedMarketplaces.slice(i, i + marketplacesPerBatch) as MarketplaceName[])
+      }
 
-      if (exportMode === 'folder' && folderRef.current) {
-        setProgress((p) => ({ ...p, phase: `Writing to folder${batches.length > 1 ? ` (${batchIdx + 1}/${batches.length})` : ''}…` }))
-        const zipBlob = await zip.generateAsync({ type: 'blob' })
-        const zipData = await JSZip.loadAsync(zipBlob)
-        const entries = Object.entries(zipData.files).filter(([, f]) => !f.dir)
-        for (const [path, file] of entries) {
-          const parts = path.split('/')
-          let handle = folderRef.current
-          for (let i = 0; i < parts.length - 1; i++) {
-            handle = await handle.getDirectoryHandle(parts[i], { create: true })
+      for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+        const JSZip = (await import('jszip')).default
+        const zip = new JSZip()
+
+        for (const marketplace of batches[batchIdx]) {
+          const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
+          const template = rule.naming_template || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
+          const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
+          const tasks = buildTasks(template)
+
+          for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+            await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
+              try {
+                const buffer = await processImageOnCanvas(
+                  img.file, rule.image_dimensions.width, rule.image_dimensions.height,
+                  rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
+                )
+                const filename = applyNamingTemplate(template, {
+                  brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
+                  view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                  styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+                }) + '.jpg'
+                marketplaceFolder.file(flatExport ? filename : `${folderName}/${filename}`, buffer)
+              } catch (err) {
+                console.warn(`Export skipped: ${img.filename}`, err)
+              }
+              doneCount++
+              const batchLabel = batches.length > 1 ? `Part ${batchIdx + 1}/${batches.length} · ` : ''
+              setProgress({ done: doneCount, total: totalImages, phase: `${batchLabel}${rule.name} · ${doneCount}/${totalImages}` })
+            }))
           }
-          const fh = await handle.getFileHandle(parts[parts.length - 1], { create: true })
-          const writable = await fh.createWritable()
-          await writable.write(await file.async('arraybuffer'))
-          await writable.close()
         }
-      } else {
+
+        // CSV goes in the first batch only
+        if (batchIdx === 0 && copyClusters.length > 0) {
+          const headers = ['SKU', 'Product Name', 'Colour', 'Title', 'Description', 'Bullet 1', 'Bullet 2', 'Bullet 3', 'Bullet 4', 'Bullet 5']
+          const rows = copyClusters.map((c) => {
+            const copy = clusterCopy[c.id]
+            return [c.sku, c.productName, c.color, copy.title, copy.description, ...copy.bullets]
+              .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
+              .join(',')
+          })
+          zip.file('product_copy.csv', [headers.join(','), ...rows].join('\n'))
+        }
+
+        const batchSuffix = batches.length > 1 ? `_part${batchIdx + 1}of${batches.length}` : ''
+        setProgress((p) => ({ ...p, phase: batches.length > 1 ? `Building ZIP ${batchIdx + 1} of ${batches.length}…` : 'Building ZIP…' }))
         const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
@@ -1362,11 +1389,9 @@ function ExportPanel({
         a.download = `${jobName || 'export'}${batchSuffix}.zip`
         a.click()
         URL.revokeObjectURL(url)
-      }
 
-      // Pause between batches so the browser can garbage-collect the ZIP before the next one
-      if (batchIdx < batches.length - 1) {
-        await new Promise((r) => setTimeout(r, 800))
+        // Let browser GC the old ZIP before starting the next batch
+        if (batchIdx < batches.length - 1) await new Promise((r) => setTimeout(r, 800))
       }
     }
 
