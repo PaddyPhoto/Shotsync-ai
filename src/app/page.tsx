@@ -548,6 +548,56 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ── FAQ ── */}
+        <section className="section-pad" style={{ padding: '0 40px 100px', position: 'relative' }}>
+          <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+            <p style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '12px', textAlign: 'center' }}>FAQ</p>
+            <h2 style={{ fontSize: 'clamp(26px,3.5vw,38px)', fontWeight: 500, letterSpacing: '-1px', color: '#1d1d1f', lineHeight: 1.15, marginBottom: '48px', textAlign: 'center' }}>Common questions</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {[
+                {
+                  q: 'Do my images leave my computer?',
+                  a: 'No. The entire workflow — upload, clustering, renaming, resizing, and export — runs inside your browser on your own device. Your images are never uploaded to ShotSync\'s servers.',
+                },
+                {
+                  q: 'Does ShotSync have access to our images?',
+                  a: 'We have no access to your images at any point. Nothing is stored on our servers. We only store your account details (name, email, billing) — never your shoot files.',
+                },
+                {
+                  q: 'What about the AI copywriting feature?',
+                  a: 'AI copywriting is entirely optional and only triggered when you click "Generate Copy." At that point, the hero image for that SKU is sent to OpenAI\'s API to generate the product title, description and bullets. OpenAI\'s API policy states they do not use API inputs to train their models. If you don\'t use this feature, zero images ever leave your machine.',
+                },
+                {
+                  q: 'What happens when I push images to Shopify?',
+                  a: 'Images go directly from your browser to your own Shopify store. ShotSync\'s servers are not involved — we act as the bridge that formats and names the files, but the transfer is between your device and your store.',
+                },
+                {
+                  q: 'Do I need to connect Shopify to use ShotSync?',
+                  a: 'No. Shopify integration is optional. You can upload a CSV style list instead, and export your processed images as a ZIP or directly to a folder on your computer. Shopify connection is only needed if you want to push images directly to product listings.',
+                },
+                {
+                  q: 'Which marketplaces are supported?',
+                  a: 'THE ICONIC, Myer PIM, David Jones PIM, and Catch (COTD) are supported out of the box — including their specific image dimensions, naming conventions, and view requirements. Additional marketplaces can be configured in Settings.',
+                },
+                {
+                  q: 'What image formats are accepted?',
+                  a: 'JPEG, PNG, WebP, and HEIC/HEIF — up to 20 MB per image. TIFF and RAW files are not supported; ask your photographer to export as high-quality JPEG before delivery.',
+                },
+              ].map(({ q, a }, i) => (
+                <details key={i} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '12px', padding: '0', overflow: 'hidden' }}>
+                  <summary style={{ padding: '18px 22px', fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', cursor: 'pointer', listStyle: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                    {q}
+                    <span style={{ flexShrink: 0, width: '18px', height: '18px', borderRadius: '50%', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg viewBox="0 0 12 12" fill="none" stroke="#6e6e73" strokeWidth="1.5" width="10" height="10"><path d="M2 4l4 4 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  </summary>
+                  <p style={{ padding: '0 22px 18px', fontSize: '14px', color: '#6e6e73', lineHeight: 1.65, letterSpacing: '-.1px', marginTop: '-4px' }}>{a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── CTA ── */}
         <section className="section-pad" style={{ padding: '0 40px 120px', textAlign: 'center', position: 'relative' }}>
           <div className="cta-pad" style={{ maxWidth: '680px', margin: '0 auto', background: '#1d1d1f', borderRadius: '24px', padding: '72px 60px' }}>
