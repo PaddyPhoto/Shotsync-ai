@@ -1277,9 +1277,8 @@ function ExportPanel({
       for (const marketplace of selectedMarketplaces) {
         const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
         const template = rule.naming_template || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
-        const mpHandle = flatExport
-          ? rootHandle
-          : await rootHandle.getDirectoryHandle(rule.name.replace(/\s+/g, '_'), { create: true })
+        // Always create the marketplace folder — flatExport only skips SKU subfolders
+        const mpHandle = await rootHandle.getDirectoryHandle(rule.name.replace(/\s+/g, '_'), { create: true })
         const tasks = buildTasks(template)
 
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
