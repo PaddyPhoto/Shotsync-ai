@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { MarketplaceName } from '@/types'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
+import { getOrgForUser } from '@/lib/supabase/getOrgForUser'
 
 export const maxDuration = 300
 
@@ -45,12 +46,12 @@ export async function POST(req: NextRequest) {
     if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
 
     // Enforce exports-per-month limit
-    const { data: orgData } = await supabase.from('orgs').select('plan, exports_this_month').eq('id', user.id).single()
-    const planId = (orgData?.plan ?? 'free') as PlanId
+    const org = await getOrgForUser(supabase, user.id)
+    const planId = ((org?.plan) ?? 'free') as PlanId
     const plan = PLANS[planId]
     const exportLimit = plan.limits.exportsPerMonth
     if (exportLimit !== -1) {
-      const used = orgData?.exports_this_month ?? 0
+      const used = org?.exports_this_month ?? 0
       if (used >= exportLimit) {
         return NextResponse.json({
           error: `Your ${plan.name} plan allows ${exportLimit} export${exportLimit !== 1 ? 's' : ''} per month and you've used all ${exportLimit}. Upgrade or wait until next month.`
@@ -61,7 +62,9 @@ export async function POST(req: NextRequest) {
     const result = await runExport(job_id, marketplaces)
 
     // Increment monthly export counter
-    try { await supabase.rpc('increment_org_exports', { org_id: user.id }) } catch {}
+    if (org?.id) {
+      try { await supabase.rpc('increment_org_exports', { p_org_id: org.id }) } catch {}
+    }
 
     return NextResponse.json({ data: result })
   } catch (err) {

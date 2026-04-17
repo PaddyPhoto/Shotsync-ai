@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { MarketplaceName } from '@/types'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
+import { getOrgForUser } from '@/lib/supabase/getOrgForUser'
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -34,8 +35,8 @@ export async function POST(
     if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
 
     // Enforce images-per-job limit
-    const { data: orgData } = await supabase.from('orgs').select('plan').eq('id', user.id).single()
-    const planId = (orgData?.plan ?? 'free') as PlanId
+    const org = await getOrgForUser(supabase, user.id)
+    const planId = ((org?.plan) ?? 'free') as PlanId
     const plan = PLANS[planId]
     const imageLimit = plan.limits.imagesPerJob
     if (imageLimit !== -1) {

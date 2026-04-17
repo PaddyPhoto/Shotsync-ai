@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
+import { getOrgForUser } from '@/lib/supabase/getOrgForUser'
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -50,8 +51,8 @@ export async function PATCH(
 
       const isNewConnection = !currentBrand?.shopify_access_token
       if (isNewConnection) {
-        const { data: orgData } = await service.from('orgs').select('plan').eq('id', user.id).single()
-        const planId = (orgData?.plan ?? 'free') as PlanId
+        const org = await getOrgForUser(service, user.id)
+        const planId = ((org?.plan) ?? 'free') as PlanId
         const plan = PLANS[planId]
         const shopifyLimit = plan.limits.shopifyStores
         if (shopifyLimit === 0) {
