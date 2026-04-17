@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
+import { sendEmail, teamInviteEmail } from '@/lib/email'
 
 async function getServiceClientAndUser(request: NextRequest) {
   const { createServiceClient } = await import('@/lib/supabase/server')
@@ -92,8 +93,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Build the invite URL for the caller to send via their own email
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/invite/${invite.token}`
+
+  // Get org name for the invite email
+  const { data: orgData } = await supabase.from('orgs').select('name').eq('id', membership.org_id).single()
+  const orgName = orgData?.name ?? 'your team'
+
+  // Send invite email — non-fatal if it fails
+  sendEmail(teamInviteEmail(email, orgName, user.email!, inviteUrl)).catch(() => {})
 
   return NextResponse.json({ data: { inviteUrl, expiresAt: invite.expires_at } })
 }

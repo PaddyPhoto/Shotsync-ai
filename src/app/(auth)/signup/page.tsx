@@ -39,6 +39,12 @@ export default function SignupPage() {
         return
       }
 
+      // Fire welcome email — non-blocking, don't await
+      fetch('/api/users/welcome', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${data.session.access_token}` },
+      }).catch(() => {})
+
       // Session created — hard navigate so middleware picks up the new cookie
       window.location.href = '/dashboard'
     } catch {
