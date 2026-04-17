@@ -32,7 +32,7 @@ function Orb({ color, size, top, left, speed }: {
 }
 
 export default function LandingPage() {
-  const [annual, setAnnual] = useState(false)
+  const [annual, setAnnual] = useState(true)
   return (
     <>
       <style>{`
