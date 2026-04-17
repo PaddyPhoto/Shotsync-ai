@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
   try {
     const { createClient, createServiceClient } = await import('@/lib/supabase/server')
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized', reason: authError?.message ?? 'no user returned' }, { status: 401 })
     const service = createServiceClient()
 
     const Stripe = (await import('stripe')).default
