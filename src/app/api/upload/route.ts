@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rateLimit'
 
 export const maxDuration = 60
 
@@ -7,6 +8,9 @@ const SUPABASE_CONFIGURED =
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
 
 export async function POST(req: NextRequest) {
+  // 30 upload requests per minute per IP
+  if (!rateLimit(getClientIp(req), 30, 60_000)) return rateLimitResponse()
+
   const formData = await req.formData()
   const files = formData.getAll('files') as File[]
 

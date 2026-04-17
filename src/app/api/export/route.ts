@@ -3,6 +3,7 @@ import type { MarketplaceName } from '@/types'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
 import { getOrgForUser } from '@/lib/supabase/getOrgForUser'
+import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rateLimit'
 
 export const maxDuration = 300
 
@@ -17,6 +18,9 @@ export async function POST(req: NextRequest) {
   if (!job_id || !marketplaces?.length) {
     return NextResponse.json({ error: 'job_id and marketplaces required' }, { status: 400 })
   }
+
+  // 10 export requests per minute per IP
+  if (!rateLimit(getClientIp(req), 10, 60_000)) return rateLimitResponse()
 
   // Demo mode: return a mock export result
   if (!SUPABASE_CONFIGURED) {
