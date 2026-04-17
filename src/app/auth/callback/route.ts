@@ -36,15 +36,11 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error) {
-      const setCookies = response.cookies.getAll().map(c => c.name).join(',')
-      const debugNext = `${next}&_dbg=${encodeURIComponent(setCookies || 'none')}`
-      return NextResponse.redirect(`${origin}${debugNext}`)
-    }
+    if (!error) return response
 
     console.error('[auth/callback] exchangeCodeForSession error:', error.message)
-    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed&detail=${encodeURIComponent(error.message)}`)
+    return NextResponse.redirect(`${origin}/auth/error?detail=${encodeURIComponent(error.message)}`)
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed&detail=no_code`)
+  return NextResponse.redirect(`${origin}/auth/error?detail=no_code`)
 }

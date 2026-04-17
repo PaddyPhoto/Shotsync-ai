@@ -65,8 +65,10 @@ export async function middleware(request: NextRequest) {
   const isDashboard = pathname.startsWith(DASHBOARD_PREFIX)
   const isAuthPage = AUTH_PATHS.some((p) => pathname.startsWith(p))
 
-  // Also check for the cookie directly as a fallback
-  const hasCookie = request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'))
+  // Fallback: check for the actual session token cookie (exclude code-verifier which is not a session)
+  const hasCookie = request.cookies.getAll().some(
+    (c) => c.name.startsWith('sb-') && c.name.endsWith('-auth-token')
+  )
   const isAuthenticated = !!session || hasCookie
 
 
