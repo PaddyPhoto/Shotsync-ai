@@ -20,14 +20,22 @@ function CallbackHandler() {
 
     if (access_token && refresh_token) {
       const type = hashParams.get('type')
-      const destination = type === 'recovery' ? '/auth/reset-password' : next
+
+      if (type === 'recovery') {
+        // For password reset, skip set-session and forward the tokens in the hash
+        // so the reset page can call setSession() on the browser client directly.
+        router.replace(
+          `/auth/reset-password#access_token=${access_token}&refresh_token=${refresh_token}`
+        )
+        return
+      }
 
       // Persist the session as SSR cookies so API routes and middleware can read it.
       fetch('/api/auth/set-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ access_token, refresh_token }),
-      }).finally(() => router.replace(destination))
+      }).finally(() => router.replace(next))
       return
     }
 

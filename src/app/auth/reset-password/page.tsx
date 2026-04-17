@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -11,6 +11,27 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [ready, setReady] = useState(false)
+
+  // The callback page forwards tokens in the hash. Set them on the browser
+  // client so updateUser() has an active session to work with.
+  useEffect(() => {
+    const hash = window.location.hash.substring(1)
+    const params = new URLSearchParams(hash)
+    const access_token = params.get('access_token')
+    const refresh_token = params.get('refresh_token')
+
+    if (access_token && refresh_token) {
+      createClient().auth.setSession({ access_token, refresh_token }).then(() => {
+        // Clear tokens from the URL bar
+        window.history.replaceState(null, '', window.location.pathname)
+        setReady(true)
+      })
+    } else {
+      // No tokens — session might already be set (e.g. page refresh)
+      setReady(true)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,7 +133,7 @@ export default function ResetPasswordPage() {
 
               {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
 
-              <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-1">
+              <button type="submit" disabled={loading || !ready} className="btn btn-primary w-full justify-center mt-1">
                 {loading ? 'Saving…' : 'Set password'}
               </button>
             </form>
