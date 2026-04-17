@@ -8,7 +8,9 @@ export interface PlanLimits {
   exportsPerMonth: number    // -1 = unlimited
   brands: number             // -1 = unlimited
   seats: number              // -1 = unlimited
+  shopifyStores: number      // -1 = unlimited, 0 = not included
   shopify: boolean
+  aiCopy: boolean
 }
 
 export interface Plan {
@@ -37,7 +39,9 @@ export const PLANS: Record<PlanId, Plan> = {
       exportsPerMonth: 3,
       brands: 1,
       seats: 1,
+      shopifyStores: 0,
       shopify: false,
+      aiCopy: false,
     },
     highlights: [
       'Up to 3 exports/month',
@@ -60,7 +64,9 @@ export const PLANS: Record<PlanId, Plan> = {
       exportsPerMonth: -1,
       brands: 1,
       seats: 2,
+      shopifyStores: 1,
       shopify: true,
+      aiCopy: false,
     },
     highlights: [
       'Up to 500 images/month',
@@ -80,19 +86,22 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'For mid-tier brands doing 100–200 SKUs/month',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID ?? null,
     limits: {
-      imagesPerJob: 2000,
+      imagesPerJob: 1500,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 3,
       seats: 5,
+      shopifyStores: 1,
       shopify: true,
+      aiCopy: true,
     },
     highlights: [
-      'Up to 2,000 images/month',
+      'Up to 1,500 images/month',
       '3 brands',
       'All 4 ANZ marketplaces',
       '5 seats',
-      '3 Shopify store connections',
+      '1 Shopify store connection',
+      'AI product listing copywriting',
       'Custom naming convention',
       'Priority processing',
       'Onboarding call included',
@@ -107,26 +116,29 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'For fast-growing brands ramping up volume',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID ?? null,
     limits: {
-      imagesPerJob: 10000,
+      imagesPerJob: 5000,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: -1,
-      seats: -1,
+      seats: 10,
+      shopifyStores: 2,
       shopify: true,
+      aiCopy: true,
     },
     highlights: [
-      'Up to 10,000 images/month',
+      'Up to 5,000 images/month',
       'Unlimited brands',
       'All 4 ANZ marketplaces',
-      'Unlimited seats',
-      'Unlimited Shopify stores',
+      'Up to 10 seats',
+      'Up to 2 Shopify store connections',
+      'AI product listing copywriting',
       'Custom naming convention',
       'API access',
       'Dedicated support channel',
       'Monthly review call',
       'White-label exports',
     ],
-    forNote: 'Growing brands doing 300–500 SKUs/month',
+    forNote: 'Growing brands doing 300–800 SKUs/month',
   },
   enterprise: {
     id: 'enterprise',
@@ -141,7 +153,9 @@ export const PLANS: Record<PlanId, Plan> = {
       exportsPerMonth: -1,
       brands: -1,
       seats: -1,
+      shopifyStores: -1,
       shopify: true,
+      aiCopy: true,
     },
     highlights: [
       'Unlimited everything',

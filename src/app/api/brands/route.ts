@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { PLANS } from '@/lib/plans'
+import type { PlanId } from '@/lib/plans'
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -71,6 +73,47 @@ export async function POST(req: NextRequest) {
 
     const { data: { user }, error: userError } = await service.auth.getUser(token)
     if (userError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // Resolve org plan
+    const { data: orgData } = await service.from('orgs').select('plan').eq('id', user.id).single()
+    const planId = (orgData?.plan ?? 'free') as PlanId
+    const plan = PLANS[planId]
+
+    // Enforce brand limit
+    const brandLimit = plan.limits.brands
+    if (brandLimit !== -1) {
+      const { count: brandCount } = await service
+        .from('brands')
+        .select('*', { count: 'exact', head: true })
+        .eq('org_id', user.id)
+      if ((brandCount ?? 0) >= brandLimit) {
+        return NextResponse.json({
+          error: `Your ${plan.name} plan supports up to ${brandLimit} brand${brandLimit !== 1 ? 's' : ''}. Upgrade to add more.`
+        }, { status: 403 })
+      }
+    }
+
+    // Enforce Shopify store limit when credentials are provided
+    if (shopify_store_url && shopify_access_token) {
+      const shopifyLimit = plan.limits.shopifyStores
+      if (shopifyLimit === 0) {
+        return NextResponse.json({
+          error: `Your ${plan.name} plan does not include Shopify integration. Upgrade to connect a store.`
+        }, { status: 403 })
+      }
+      if (shopifyLimit !== -1) {
+        const { count: shopifyCount } = await service
+          .from('brands')
+          .select('*', { count: 'exact', head: true })
+          .eq('org_id', user.id)
+          .not('shopify_access_token', 'is', null)
+        if ((shopifyCount ?? 0) >= shopifyLimit) {
+          return NextResponse.json({
+            error: `Your ${plan.name} plan supports up to ${shopifyLimit} Shopify store connection${shopifyLimit !== 1 ? 's' : ''}. Upgrade to add more.`
+          }, { status: 403 })
+        }
+      }
+    }
 
     const { data, error } = await service
       .from('brands')

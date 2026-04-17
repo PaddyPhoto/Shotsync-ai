@@ -10,10 +10,30 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { PLANS } from '@/lib/plans'
+import type { PlanId } from '@/lib/plans'
 
 export async function POST(req: NextRequest) {
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json({ error: 'AI copywriting not configured' }, { status: 503 })
+  }
+
+  // Enforce aiCopy plan gate
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co') {
+    try {
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: orgData } = await supabase.from('orgs').select('plan').eq('id', user.id).single()
+        const planId = (orgData?.plan ?? 'free') as PlanId
+        if (!PLANS[planId].limits.aiCopy) {
+          return NextResponse.json({
+            error: `AI copywriting is available on the Brand plan and above. Upgrade to unlock this feature.`
+          }, { status: 403 })
+        }
+      }
+    } catch {}
   }
 
   const { sku, productName, color, brandName, angles, heroImage } = await req.json()
