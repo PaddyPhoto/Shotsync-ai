@@ -55,10 +55,8 @@ export async function GET(req: NextRequest) {
 
     if (!org) return NextResponse.json({ data: null })
 
-    // Temporary debug — remove after diagnosis
-    console.log('[plan] raw org row:', JSON.stringify(org))
-
     return NextResponse.json({
+      _debug: org,
       data: {
         plan: (org.plan ?? 'free') as PlanId,
         usage: {
