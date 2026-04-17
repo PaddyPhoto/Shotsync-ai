@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 import type { PlanId } from '@/lib/plans'
 
 export const dynamic = 'force-dynamic'
@@ -7,18 +8,34 @@ const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   if (!SUPABASE_CONFIGURED) {
     return NextResponse.json({ data: null }) // client falls back to localStorage
   }
 
   try {
     const { createServiceClient } = await import('@/lib/supabase/server')
-    const supabase = createServiceClient()
+    const service = createServiceClient()
+
+    // Try bearer token first, fall back to request cookies
+    let user: { id: string } | null = null
     const token = req.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token) return NextResponse.json({ data: null })
-    const { data: { user } } = await supabase.auth.getUser(token)
+    if (token) {
+      const { data } = await service.auth.getUser(token)
+      user = data.user
+    }
+    if (!user) {
+      const cookieClient = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { cookies: { getAll: () => req.cookies.getAll(), setAll: () => {} } }
+      )
+      const { data } = await cookieClient.auth.getUser()
+      user = data.user
+    }
     if (!user) return NextResponse.json({ data: null })
+
+    const supabase = service
 
     // Two-step lookup to avoid PostgREST schema cache issues with ALTER TABLE columns
     const { data: membership } = await supabase
