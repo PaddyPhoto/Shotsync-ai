@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     const result = await runExport(job_id, marketplaces)
 
     // Increment monthly export counter
-    await supabase.rpc('increment_org_exports', { org_id: user.id }).then(() => {}).catch(() => {})
+    try { await supabase.rpc('increment_org_exports', { org_id: user.id }) } catch {}
 
     return NextResponse.json({ data: result })
   } catch (err) {
