@@ -98,10 +98,11 @@ export async function POST(req: NextRequest) {
         if (!orgId) break
         const priceId = sub.items.data[0]?.price?.id
         const planId = priceId ? priceIdToPlan(priceId) : null
-        await service.from('orgs').update({
-          plan: planId ?? 'free',
-          stripe_subscription_status: sub.status,
-        }).eq('id', orgId)
+        // Only update plan if we can positively identify it — never reset to free
+        // on an unrecognised price ID (e.g. env var mismatch). Use subscription.deleted for downgrades.
+        const updateFields: Record<string, unknown> = { stripe_subscription_status: sub.status }
+        if (planId) updateFields.plan = planId
+        await service.from('orgs').update(updateFields).eq('id', orgId)
         break
       }
 
