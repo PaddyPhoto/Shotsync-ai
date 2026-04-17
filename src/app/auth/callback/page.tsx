@@ -19,7 +19,16 @@ function CallbackHandler() {
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN' && session) {
           subscription.unsubscribe()
-          router.replace(next)
+          // Persist session as server-side SSR cookies so API routes and
+          // middleware can read the session without needing a bearer token.
+          fetch('/api/auth/set-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token,
+            }),
+          }).finally(() => router.replace(next))
         }
       })
 
