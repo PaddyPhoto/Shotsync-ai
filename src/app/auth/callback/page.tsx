@@ -11,52 +11,25 @@ function CallbackHandler() {
   useEffect(() => {
     const next = params.get('next') ?? '/dashboard'
 
-    import('@/lib/supabase/client').then(({ createClient }) => {
-      const supabase = createClient()
+    // Implicit flow: Supabase puts tokens in the URL hash (#access_token=...&refresh_token=...)
+    // Parse them directly — no Supabase client needed, no PKCE verifier required.
+    const hash = window.location.hash.substring(1) // strip leading #
+    const hashParams = new URLSearchParams(hash)
+    const access_token = hashParams.get('access_token')
+    const refresh_token = hashParams.get('refresh_token')
 
-      // Implicit flow: browser client detects the #access_token hash automatically.
-      // Listen for SIGNED_IN, then redirect.
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          subscription.unsubscribe()
-          // Persist session as server-side SSR cookies so API routes and
-          // middleware can read the session without needing a bearer token.
-          fetch('/api/auth/set-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              access_token: session.access_token,
-              refresh_token: session.refresh_token,
-            }),
-          }).finally(() => router.replace(next))
-        }
-      })
+    if (access_token && refresh_token) {
+      // Persist the session as SSR cookies so API routes and middleware can read it.
+      fetch('/api/auth/set-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token, refresh_token }),
+      }).finally(() => router.replace(next))
+      return
+    }
 
-      // In case session is already established by the time we subscribe
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          subscription.unsubscribe()
-          router.replace(next)
-        }
-      })
-
-      // Timeout: if nothing happens in 8s, show an error
-      const timeout = setTimeout(() => {
-        subscription.unsubscribe()
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            router.replace(next)
-          } else {
-            router.replace('/auth/error?detail=timeout')
-          }
-        })
-      }, 8000)
-
-      return () => {
-        subscription.unsubscribe()
-        clearTimeout(timeout)
-      }
-    })
+    // No hash tokens — redirect to error so the user knows something went wrong.
+    router.replace('/auth/error?detail=no_token_in_hash')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
