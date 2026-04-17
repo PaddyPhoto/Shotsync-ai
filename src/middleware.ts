@@ -72,6 +72,13 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = !!session || hasCookie
 
 
+  // Forward auth callback codes that land on root (Supabase fallback when redirect URL isn't allow-listed)
+  if (pathname === '/' && request.nextUrl.searchParams.has('code')) {
+    const callbackUrl = request.nextUrl.clone()
+    callbackUrl.pathname = '/auth/callback'
+    return NextResponse.redirect(callbackUrl)
+  }
+
   // Redirect authenticated users from landing page to dashboard
   if (pathname === '/' && isAuthenticated) {
     return NextResponse.redirect(new URL(DASHBOARD_PREFIX, request.url))
