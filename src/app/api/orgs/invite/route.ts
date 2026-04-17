@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/invite/${invite.token}`
 
   // Get org name for the invite email
-  const { data: orgData } = await supabase.from('orgs').select('name').eq('id', membership.org_id).single()
-  const orgName = orgData?.name ?? 'your team'
+  const { data: orgInfo } = await supabase.from('orgs').select('name').eq('id', membership.org_id).single()
+  const orgName = orgInfo?.name ?? 'your team'
 
   // Send invite email — non-fatal if it fails
   sendEmail(teamInviteEmail(email, orgName, user.email!, inviteUrl)).catch(() => {})
