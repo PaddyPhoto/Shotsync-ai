@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-type Mode = 'password' | 'magic' | 'reset'
+type Mode = 'password' | 'magic'
 
 export default function LoginPage() {
   return <Suspense><LoginInner /></Suspense>
@@ -25,11 +25,10 @@ function LoginInner() {
     urlError === 'auth_callback_failed' ? 'The sign-in link expired or was already used. Try again.' : null
   )
   const [magicSent, setMagicSent] = useState(false)
-  const [resetSent, setResetSent] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
   // Clear error when switching modes
-  useEffect(() => { setError(null); setMagicSent(false); setResetSent(false) }, [mode])
+  useEffect(() => { setError(null); setMagicSent(false) }, [mode])
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,22 +48,6 @@ if (authError) {
       // Small delay to allow session cookie to be written before middleware runs
       window.location.href = nextPath
     }
-  }
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/settings?tab=account`,
-    })
-    if (authError) {
-      setError(authError.message)
-    } else {
-      setResetSent(true)
-    }
-    setLoading(false)
   }
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -133,36 +116,6 @@ if (authError) {
               ))}
             </div>
 
-            {/* Reset mode — shown inline, not as a tab */}
-            {mode === 'reset' && (
-              resetSent ? (
-                <div className="text-center py-4">
-                  <p className="text-[0.88rem] text-[var(--text)] font-[600]">Check your inbox</p>
-                  <p className="text-[0.78rem] text-[var(--text2)] mt-1">
-                    We sent a password reset link to <strong>{email}</strong>
-                  </p>
-                  <button type="button" onClick={() => setMode('password')} className="mt-4 text-[0.75rem] text-[var(--accent)] hover:underline">
-                    Back to sign in
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
-                  <div>
-                    <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Email</label>
-                    <input type="email" className="input" placeholder="you@brand.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                  </div>
-                  <p className="text-[0.75rem] text-[var(--text3)] -mt-1">We'll send you a link to reset your password.</p>
-                  {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
-                  <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-1">
-                    {loading ? 'Sending…' : 'Send reset link'}
-                  </button>
-                  <button type="button" onClick={() => setMode('password')} className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--text2)] text-center">
-                    ← Back to sign in
-                  </button>
-                </form>
-              )
-            )}
-
             {magicSent ? (
               <div className="text-center py-4">
                 <div className="text-2xl mb-3">✉️</div>
@@ -224,8 +177,8 @@ if (authError) {
                   </div>
                 </div>
 
-                <button type="button" onClick={() => setMode('reset')} className="text-[0.73rem] text-[var(--text3)] hover:text-[var(--accent)] text-left -mt-2">
-                  Forgot password?
+                <button type="button" onClick={() => setMode('magic')} className="text-[0.73rem] text-[var(--text3)] hover:text-[var(--accent)] text-left -mt-2">
+                  Forgot password? Use a magic link instead
                 </button>
 
                 {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
