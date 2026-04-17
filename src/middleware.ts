@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const DASHBOARD_PREFIX = '/dashboard'
-const AUTH_PATHS = ['/login', '/signup']
+const AUTH_PATHS = ['/login', '/signup', '/']
 
 // ── Site-wide password gate (Early Access) ────────────────────────────────────
 const SITE_PASSWORD = process.env.SITE_PASSWORD
