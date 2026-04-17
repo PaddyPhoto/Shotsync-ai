@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 async function getUserAndOrg(req: NextRequest) {
-  const { createServiceClient } = await import('@/lib/supabase/server')
-  const service = createServiceClient()
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return null
-
-  const { data: { user } } = await service.auth.getUser(token)
+  const { createServiceClient, getAuthUser } = await import('@/lib/supabase/server')
+  const user = await getAuthUser(req)
   if (!user) return null
 
+  const service = createServiceClient()
   const { data } = await service
     .from('org_members')
     .select('org_id, role, orgs(id, name)')

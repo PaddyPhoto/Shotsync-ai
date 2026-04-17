@@ -11,13 +11,8 @@ export async function POST(req: NextRequest) {
   if (!SUPABASE_CONFIGURED) return NextResponse.json({ ok: true })
 
   try {
-    const { createServiceClient } = await import('@/lib/supabase/server')
-    const service = createServiceClient()
-
-    const token = req.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const { data: { user } } = await service.auth.getUser(token)
+    const { getAuthUser } = await import('@/lib/supabase/server')
+    const user = await getAuthUser(req)
     if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await sendEmail(welcomeFreeEmail(user.email))

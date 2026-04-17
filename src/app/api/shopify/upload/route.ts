@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient, getAuthUser } from '@/lib/supabase/server'
 import { ShopifyClient } from '@/lib/shopify/client'
 
 /**
@@ -24,14 +24,10 @@ import { ShopifyClient } from '@/lib/shopify/client'
  * Returns per-cluster results so the client can show progress.
  */
 export async function POST(req: NextRequest) {
+  const user = await getAuthUser(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const service = createServiceClient()
-
-  // Auth via bearer token
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { data: { user }, error: authErr } = await service.auth.getUser(token)
-  if (authErr || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
   const { brand_id, clusters, replace = false } = body as {

@@ -4,12 +4,10 @@ import type { PlanId } from '@/lib/plans'
 import { sendEmail, teamInviteEmail } from '@/lib/email'
 
 async function getServiceClientAndUser(request: NextRequest) {
-  const { createServiceClient } = await import('@/lib/supabase/server')
-  const service = createServiceClient()
-  const token = request.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return null
-  const { data: { user } } = await service.auth.getUser(token)
+  const { createServiceClient, getAuthUser } = await import('@/lib/supabase/server')
+  const user = await getAuthUser(request)
   if (!user) return null
+  const service = createServiceClient()
   return { service, user }
 }
 

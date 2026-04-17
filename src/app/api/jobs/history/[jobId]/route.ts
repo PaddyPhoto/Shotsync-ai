@@ -1,28 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-async function getUserOrgId(req: NextRequest): Promise<string | null> {
-  const { createServiceClient } = await import('@/lib/supabase/server')
-  const service = createServiceClient()
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return null
-  const { data: { user } } = await service.auth.getUser(token)
-  if (!user) return null
-  const { data } = await service
-    .from('org_members')
-    .select('org_id')
-    .eq('user_id', user.id)
-    .limit(1)
-    .single()
-  return data?.org_id ?? null
-}
-
 export async function DELETE(req: NextRequest, { params }: { params: { jobId: string } }) {
   try {
-    const orgId = await getUserOrgId(req)
-    if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { createServiceClient, getAuthUser } = await import('@/lib/supabase/server')
+    const user = await getAuthUser(req)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { createServiceClient } = await import('@/lib/supabase/server')
     const service = createServiceClient()
+    const { data: membership } = await service
+      .from('org_members')
+      .select('org_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .single()
+    const orgId = membership?.org_id ?? null
+    if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { error } = await service
       .from('job_history')

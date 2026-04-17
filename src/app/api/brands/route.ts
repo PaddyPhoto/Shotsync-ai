@@ -13,12 +13,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const { createServiceClient } = await import('@/lib/supabase/server')
+    const { createServiceClient, getAuthUser } = await import('@/lib/supabase/server')
     const service = createServiceClient()
-    const token = req.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token) return NextResponse.json({ data: [] })
-
-    const { data: { user } } = await service.auth.getUser(token)
+    const user = await getAuthUser(req)
     if (!user) return NextResponse.json({ data: [] })
 
     const { data, error } = await service
@@ -64,16 +61,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { createServiceClient } = await import('@/lib/supabase/server')
+    const { createServiceClient, getAuthUser } = await import('@/lib/supabase/server')
     const service = createServiceClient()
 
-    // Verify the user via the Authorization header (bearer token from browser client)
-    const authHeader = req.headers.get('authorization')
-    const token = authHeader?.replace('Bearer ', '')
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const { data: { user }, error: userError } = await service.auth.getUser(token)
-    if (userError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getAuthUser(req)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Resolve org + plan
     const org = await getOrgForUser(service, user.id)

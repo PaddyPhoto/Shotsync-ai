@@ -15,12 +15,8 @@ const HISTORY_DEPTH: Record<PlanId, number> = {
 }
 
 async function getUserFromRequest(req: NextRequest) {
-  const { createServiceClient } = await import('@/lib/supabase/server')
-  const service = createServiceClient()
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return null
-  const { data: { user } } = await service.auth.getUser(token)
-  return user ?? null
+  const { getAuthUser } = await import('@/lib/supabase/server')
+  return getAuthUser(req)
 }
 
 // GET /api/jobs/history — list job history for the user's org

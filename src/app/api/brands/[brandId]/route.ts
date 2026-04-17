@@ -8,12 +8,8 @@ const SUPABASE_CONFIGURED =
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
 
 async function getUserFromRequest(req: NextRequest) {
-  const { createServiceClient } = await import('@/lib/supabase/server')
-  const service = createServiceClient()
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return null
-  const { data: { user } } = await service.auth.getUser(token)
-  return user ?? null
+  const { getAuthUser } = await import('@/lib/supabase/server')
+  return getAuthUser(req)
 }
 
 export async function PATCH(
