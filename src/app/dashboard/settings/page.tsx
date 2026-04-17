@@ -77,7 +77,14 @@ function SettingsInner() {
   const [shopifyProgress, setShopifyProgress] = useState({ done: 0, total: 0, phase: '' })
   const [selectedShopifyBrandId, setSelectedShopifyBrandId] = useState('')
 
-  const { plan, planId, usage, openUpgrade, canAddBrand } = usePlan()
+  const { plan, planId, usage, openUpgrade, canAddBrand, refreshPlan } = usePlan()
+
+  // Refresh plan after returning from Stripe checkout
+  useEffect(() => {
+    if (searchParams.get('checkout') === 'success') {
+      refreshPlan()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const { clusters, jobName, isReady } = useSession()
   const confirmedClusters = clusters.filter((c) => c.confirmed)
   const [portalLoading, setPortalLoading] = useState(false)
