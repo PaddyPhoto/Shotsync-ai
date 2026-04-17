@@ -26,11 +26,9 @@ export async function GET(request: NextRequest) {
         cookies: {
           getAll: () => request.cookies.getAll(),
           setAll: (cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) => {
-            console.log('[auth/callback] setAll cookies:', cookiesToSet.map(c => c.name))
             cookiesToSet.forEach(({ name, value, options }) =>
               response.cookies.set(name, value, options)
             )
-            console.log('[auth/callback] response cookies after set:', response.cookies.getAll().map(c => c.name))
           },
         },
       }
@@ -38,7 +36,11 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error) return response
+    if (!error) {
+      const setCookies = response.cookies.getAll().map(c => c.name).join(',')
+      const debugNext = `${next}&_dbg=${encodeURIComponent(setCookies || 'none')}`
+      return NextResponse.redirect(`${origin}${debugNext}`)
+    }
 
     console.error('[auth/callback] exchangeCodeForSession error:', error.message)
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed&detail=${encodeURIComponent(error.message)}`)
