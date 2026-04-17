@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 import { PLANS, type PlanId } from '@/lib/plans'
 
 const STRIPE_CONFIGURED = !!(
@@ -34,10 +35,26 @@ export async function POST(req: NextRequest) {
     const { createServiceClient } = await import('@/lib/supabase/server')
     const service = createServiceClient()
 
+    // Auth: try bearer token first, fall back to request cookies (same pattern as middleware)
     const token = req.headers.get('authorization')?.replace('Bearer ', '')
-    if (!token) return NextResponse.json({ error: 'Unauthorized', reason: 'no token' }, { status: 401 })
-    const { data: { user }, error: authError } = await service.auth.getUser(token)
-    if (!user) return NextResponse.json({ error: 'Unauthorized', reason: authError?.message ?? 'no user returned' }, { status: 401 })
+    let user: { id: string; email?: string } | null = null
+
+    if (token) {
+      const { data } = await service.auth.getUser(token)
+      user = data.user
+    }
+
+    if (!user) {
+      const cookieClient = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { cookies: { getAll: () => req.cookies.getAll(), setAll: () => {} } }
+      )
+      const { data } = await cookieClient.auth.getUser()
+      user = data.user
+    }
+
+    if (!user) return NextResponse.json({ error: 'Unauthorized', reason: 'no session' }, { status: 401 })
 
     const Stripe = (await import('stripe')).default
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
