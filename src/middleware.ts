@@ -24,6 +24,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Skip auth checks for /auth/* routes — the callback handles its own session
+  // and middleware's getSession() call can clear the PKCE code verifier before
+  // the route handler gets a chance to use it.
+  if (pathname.startsWith('/auth/')) {
+    return NextResponse.next({ request })
+  }
+
   // Build a response we can mutate cookies on
   let response = NextResponse.next({ request })
 
