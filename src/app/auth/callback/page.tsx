@@ -19,6 +19,12 @@ function CallbackHandler() {
 
     // Exchange the code client-side so the browser Supabase client can access
     // its own code verifier storage directly — no cross-boundary cookie issues.
+    // Debug: log all storage to console
+    const allCookies = document.cookie
+    const lsKeys = Object.keys(localStorage).filter(k => k.includes('supabase') || k.includes('sb-'))
+    console.log('[callback] cookies:', allCookies)
+    console.log('[callback] localStorage keys:', lsKeys)
+
     import('@/lib/supabase/client').then(({ createClient }) => {
       const supabase = createClient()
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
