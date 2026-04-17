@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const DASHBOARD_PREFIX = '/dashboard'
-const AUTH_PATHS = ['/login', '/signup', '/']
+const AUTH_PATHS = ['/login', '/signup']
 
 // ── Site-wide password gate (Early Access) ────────────────────────────────────
 const SITE_PASSWORD = process.env.SITE_PASSWORD
@@ -69,6 +69,11 @@ export async function middleware(request: NextRequest) {
   const hasCookie = request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'))
   const isAuthenticated = !!session || hasCookie
 
+
+  // Redirect authenticated users from landing page to dashboard
+  if (pathname === '/' && isAuthenticated) {
+    return NextResponse.redirect(new URL(DASHBOARD_PREFIX, request.url))
+  }
 
   if (isDashboard && !isAuthenticated) {
     const loginUrl = request.nextUrl.clone()
