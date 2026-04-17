@@ -33,7 +33,7 @@ function baseTemplate(content: string) {
       <div class="logo">Shot<span>Sync</span></div>
     </div>
     <div class="body">${content}</div>
-    <div class="footer">© 2026 ShotSync.ai — Photoworks Sydney Pty Ltd</div>
+    <div class="footer">© 2026 ShotSync.ai</div>
   </div>
 </body>
 </html>`
