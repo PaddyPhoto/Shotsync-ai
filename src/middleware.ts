@@ -7,7 +7,7 @@ const AUTH_PATHS = ['/login', '/signup']
 // ── Site-wide password gate (Early Access) ────────────────────────────────────
 const SITE_PASSWORD = process.env.SITE_PASSWORD
 const GATE_COOKIE = 'ss_gate'
-const GATE_BYPASS = ['/', '/enter', '/api/enter', '/api/stripe', '/invite']
+const GATE_BYPASS = ['/', '/enter', '/api/enter', '/api/stripe', '/invite', '/auth/']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
