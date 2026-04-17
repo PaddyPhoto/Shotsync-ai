@@ -33,6 +33,17 @@ function Orb({ color, size, top, left, speed }: {
 
 export default function LandingPage() {
   const [annual, setAnnual] = useState(true)
+
+  // Supabase may send #access_token=... to the site root when the callback
+  // URL isn't matched. Detect and forward to the proper callback handler.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash.substring(1)
+    if (hash && hash.includes('access_token=')) {
+      window.location.replace('/auth/callback' + window.location.hash)
+    }
+  }, [])
+
   return (
     <>
       <style>{`
