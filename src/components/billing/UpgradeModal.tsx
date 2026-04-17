@@ -30,7 +30,12 @@ export function UpgradeModal() {
 
     try {
       const { createClient } = await import('@/lib/supabase/client')
-      const { data: { session } } = await createClient().auth.getSession()
+      const supabase = createClient()
+      let { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        const { data } = await supabase.auth.refreshSession()
+        session = data.session
+      }
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: {
@@ -39,7 +44,8 @@ export function UpgradeModal() {
         },
         body: JSON.stringify({ planId: targetPlanId }),
       })
-      const { url } = await res.json()
+      const { url, error } = await res.json()
+      if (error) { setLoading(null); return }
       if (url) window.location.href = url
     } catch {
       setLoading(null)
