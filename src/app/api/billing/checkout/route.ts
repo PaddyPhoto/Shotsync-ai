@@ -54,7 +54,10 @@ export async function POST(req: NextRequest) {
       user = data.user
     }
 
-    if (!user) return NextResponse.json({ error: 'Unauthorized', reason: 'no session' }, { status: 401 })
+    if (!user) {
+      const sbCookies = req.cookies.getAll().filter(c => c.name.startsWith('sb-')).map(c => c.name)
+      return NextResponse.json({ error: 'Unauthorized', reason: 'no session', cookies: sbCookies }, { status: 401 })
+    }
 
     const Stripe = (await import('stripe')).default
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
