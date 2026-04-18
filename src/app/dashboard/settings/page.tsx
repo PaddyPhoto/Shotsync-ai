@@ -222,7 +222,6 @@ function SettingsInner() {
     shopify_access_token: '',
     logo_color: '#e8d97a',
     images_per_look: 4,
-    still_life_images_per_look: 2,
     on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
     still_life_angle_sequences: {} as Record<string, string[]>,
     naming_template: '{BRAND}_{SEQ}_{VIEW}',
@@ -234,7 +233,7 @@ function SettingsInner() {
   const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null)
 
   const openAddBrand = () => {
-    setBrandForm({ name: '', brand_code: '', shopify_store_url: '', shopify_access_token: '', logo_color: '#e8d97a', images_per_look: 4, still_life_images_per_look: 2, on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'], still_life_angle_sequences: {}, naming_template: '{BRAND}_{SEQ}_{VIEW}', gm_position: 'last' })
+    setBrandForm({ name: '', brand_code: '', shopify_store_url: '', shopify_access_token: '', logo_color: '#e8d97a', images_per_look: 4, on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'], still_life_angle_sequences: {}, naming_template: '{BRAND}_{SEQ}_{VIEW}', gm_position: 'last' })
     setBrandError('')
     setEditingBrand(null)
     setBrandModal('add')
@@ -248,7 +247,7 @@ function SettingsInner() {
       shopify_access_token: b.shopify_access_token ?? '',
       logo_color: b.logo_color,
       images_per_look: b.images_per_look ?? 4,
-      still_life_images_per_look: b.still_life_images_per_look ?? 2,
+
       on_model_angle_sequence: b.on_model_angle_sequence?.length ? b.on_model_angle_sequence : ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
       still_life_angle_sequences: b.still_life_angle_sequences ?? {},
       naming_template: b.naming_template ?? '{BRAND}_{SEQ}_{VIEW}',
@@ -1463,31 +1462,6 @@ function SettingsInner() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="border-t border-[var(--line)] pt-3">
-                <label className="text-[0.75rem] font-medium text-[var(--text2)] mb-2 block">Images per Look — Still Life</label>
-                <p className="text-[0.72rem] text-[var(--text3)] mb-3">How many images are shot per product for still life / accessory shoots.</p>
-                <div className="flex gap-2 flex-wrap">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setBrandForm((f) => ({ ...f, still_life_images_per_look: n }))}
-                      className={`w-[38px] h-[38px] rounded-sm border text-[0.82rem] font-medium transition-all ${
-                        brandForm.still_life_images_per_look === n
-                          ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.1)] text-[var(--accent)]'
-                          : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)] hover:text-[var(--text)]'
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[0.7rem] text-[var(--text3)] mt-2">
-                  {['Front', 'Side', 'Detail', 'Flat Lay', 'Mood', 'Back'].slice(0, brandForm.still_life_images_per_look).join(' · ')}
-                  {brandForm.still_life_images_per_look > 6 ? ' · …' : ''}
-                </p>
               </div>
 
               {/* Still life angle sequences — per category */}

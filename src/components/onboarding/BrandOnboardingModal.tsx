@@ -72,7 +72,6 @@ export function BrandOnboardingModal() {
   const [customTemplate, setCustomTemplate] = useState('{BRAND}_{SKU}_{COLOR}_{VIEW}')
   const [imagesPerLook, setImagesPerLook] = useState(4)
   const [angleSequence, setAngleSequence] = useState(['full-length', 'front', 'back', 'side'])
-  const [stillLifeImagesPerLook, setStillLifeImagesPerLook] = useState(2)
   const [stillLifeAngleSequences, setStillLifeAngleSequences] = useState<Record<string, string[]>>({})
   const [shootTab, setShootTab] = useState<'on-model' | 'still-life'>('on-model')
   const [expandedCat, setExpandedCat] = useState<string | null>(null)
@@ -133,7 +132,6 @@ export function BrandOnboardingModal() {
           naming_template: activeTemplate,
           images_per_look: imagesPerLook,
           on_model_angle_sequence: angleSequence,
-          still_life_images_per_look: stillLifeImagesPerLook,
           still_life_angle_sequences: stillLifeAngleSequences,
           supplier_code: '',
           season: '',
@@ -405,28 +403,6 @@ export function BrandOnboardingModal() {
               {/* Still Life */}
               {shootTab === 'still-life' && (
                 <>
-                  <div>
-                    <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Images per look — Still Life</label>
-                    <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>Default image count for still life / accessory shoots.</p>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                        <button
-                          key={n}
-                          onClick={() => setStillLifeImagesPerLook(n)}
-                          style={{
-                            width: '40px', height: '40px', borderRadius: '10px', border: 'none', fontSize: '14px',
-                            fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                            background: stillLifeImagesPerLook === n ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
-                            color: stillLifeImagesPerLook === n ? '#f5f5f7' : '#6e6e73',
-                            boxShadow: stillLifeImagesPerLook === n ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                          }}
-                        >
-                          {n}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   <div>
                     <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Angle sequences by category</label>
                     <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>Override the default angle order per accessory type. Leave collapsed to use category defaults.</p>

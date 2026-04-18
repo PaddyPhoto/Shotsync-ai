@@ -103,9 +103,7 @@ export default function UploadPage() {
   const [jobName, setJobName] = useState('')
   const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(['the-iconic'])
   const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
-  const defaultImagesPerLook = shootType === 'still-life'
-    ? (activeBrand?.still_life_images_per_look ?? 2)
-    : (activeBrand?.images_per_look ?? 4)
+  const defaultImagesPerLook = activeBrand?.images_per_look ?? 4
   const [imagesPerLook, setImagesPerLook] = useState<number>(defaultImagesPerLook)
   const [angleSequence, setAngleSequence] = useState<string[]>(() => {
     const base = activeBrand?.on_model_angle_sequence?.length
@@ -116,18 +114,14 @@ export default function UploadPage() {
 
   // Sync when the active brand changes or shoot type changes
   useEffect(() => {
-    if (shootType === 'still-life') {
-      setImagesPerLook(activeBrand?.still_life_images_per_look ?? 2)
-    } else {
-      const n = activeBrand?.images_per_look ?? 4
-      setImagesPerLook(n)
-      const base = activeBrand?.on_model_angle_sequence?.length
-        ? activeBrand.on_model_angle_sequence
-        : ALL_ON_MODEL_ANGLES
-      const seq = [...base]
-      while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
-      setAngleSequence(seq.slice(0, n))
-    }
+    const n = activeBrand?.images_per_look ?? 4
+    setImagesPerLook(n)
+    const base = activeBrand?.on_model_angle_sequence?.length
+      ? activeBrand.on_model_angle_sequence
+      : ALL_ON_MODEL_ANGLES
+    const seq = [...base]
+    while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
+    setAngleSequence(seq.slice(0, n))
   }, [activeBrand?.id, shootType])
 
   // Pre-populate form fields and file list from existing session on mount
@@ -406,7 +400,8 @@ export default function UploadPage() {
                   ))}
                 </div>
 
-                {/* Images per look + angle sequence */}
+                {/* Images per look + angle sequence — on-model only */}
+                {shootType === 'on-model' && (
                 <div className="border-t border-[var(--line)] pt-4">
                   <div className="flex items-center justify-between mb-[8px]">
                     <label className="text-[0.78rem] text-[var(--text2)] flex items-center gap-1">
@@ -445,11 +440,9 @@ export default function UploadPage() {
                         type="button"
                         onClick={() => {
                           setImagesPerLook(n)
-                          if (shootType === 'on-model') {
-                            const seq = [...angleSequence]
-                            while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
-                            setAngleSequence(seq.slice(0, n))
-                          }
+                          const seq = [...angleSequence]
+                          while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
+                          setAngleSequence(seq.slice(0, n))
                         }}
                         style={{
                           width: '40px', height: '40px', borderRadius: '10px', border: 'none',
@@ -464,9 +457,8 @@ export default function UploadPage() {
                     ))}
                   </div>
 
-                  {/* Angle sequence editor — on-model only */}
-                  {shootType === 'on-model' && (
-                    <div>
+                  {/* Angle sequence editor */}
+                  <div>
                       <p className="text-[0.72rem] text-[var(--text3)] mb-3">Shoot sequence — set the order your photographer shoots each angle</p>
                       <div className="flex flex-col gap-[5px]">
                         {angleSequence.slice(0, imagesPerLook).map((angle, idx) => {
@@ -531,49 +523,45 @@ export default function UploadPage() {
                         })}
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
+                {/* Still life category picker */}
                 {shootType === 'still-life' && (
-                  <div className="border-t border-[var(--line)] pt-3">
-                    <label className="text-[0.75rem] font-medium text-[var(--text2)] mb-2 flex items-center gap-1">
-                      Still Life Type
-                      <HelpTooltip
-                        position="right"
-                        width={230}
-                        content={
-                          <span>
-                            <strong>Ghost Mannequin</strong> — clothing shot on an invisible mannequin. Assigns Front + Back angles.<br /><br />
-                            <strong>Accessories</strong> — shoes, bags, jewellery, etc. AI will automatically identify the specific accessory type per cluster and apply the correct angle sequence.
-                          </span>
-                        }
-                      />
-                    </label>
-                    <div className="flex gap-2 flex-wrap">
-                      {[
-                        { id: 'ghost-mannequin', label: 'Ghost Mannequin', desc: 'Front & Back', count: 2 },
-                        { id: 'accessories',     label: 'Accessories',     desc: 'Front · Side · Detail · Back · Inside', count: 5 },
-                      ].map(({ id, label, desc, count }) => (
-                        <button
-                          key={id}
-                          type="button"
-                          onClick={() => {
-                            setStillLifeType(id)
-                            setImagesPerLook(count)
-                          }}
-                          className={`flex flex-col items-start px-3 py-2 rounded-sm border text-left transition-all ${
-                            stillLifeType === id
-                              ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.07)] text-[var(--accent)]'
-                              : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)] bg-[var(--bg3)]'
-                          }`}
-                        >
-                          <span className="text-[0.78rem] font-medium">{label}</span>
-                          <span className="text-[0.68rem] text-[var(--text3)] mt-[1px]">{desc}</span>
-                        </button>
-                      ))}
+                  <div className="border-t border-[var(--line)] pt-4">
+                    <p className="text-[0.75rem] font-medium text-[var(--text2)] mb-1">Category</p>
+                    <p className="text-[0.7rem] text-[var(--text3)] mb-3">Select what you&apos;re shooting — each category uses its own angle sequence and image count.</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ACCESSORY_CATEGORIES.map((cat) => {
+                        const brandSeq = activeBrand?.still_life_angle_sequences?.[cat.id]
+                        const effectiveSeq: string[] = brandSeq && brandSeq.length > 0 ? brandSeq : (cat.angles as string[])
+                        const count = effectiveSeq.length
+                        const isSelected = stillLifeType === cat.id
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setStillLifeType(cat.id)
+                              setImagesPerLook(count)
+                            }}
+                            className={`flex flex-col items-start px-3 py-2 rounded-sm border text-left transition-all ${
+                              isSelected
+                                ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.07)]'
+                                : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)] bg-[var(--bg3)]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full mb-[3px]">
+                              <span className={`text-[0.78rem] font-medium ${isSelected ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`}>{cat.label}</span>
+                              <span className="text-[0.65rem] font-medium text-[var(--text3)] bg-[var(--bg4)] px-[6px] py-[1px] rounded-full">{count} shots</span>
+                            </div>
+                            <span className="text-[0.67rem] text-[var(--text3)]">{effectiveSeq.join(' · ')}</span>
+                          </button>
+                        )
+                      })}
                     </div>
                     {!stillLifeType && (
-                      <p className="text-[0.68rem] text-[var(--text3)] mt-2">Select a type to set the correct angle sequence. You can still change angles per cluster on the review page.</p>
+                      <p className="text-[0.68rem] text-[var(--text3)] mt-2">Select a category to set the correct angle sequence and image count.</p>
                     )}
                   </div>
                 )}
