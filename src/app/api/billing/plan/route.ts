@@ -57,6 +57,7 @@ export async function GET(req: NextRequest) {
           totalBrandsCreated: 0,
         },
       },
+      _debug: { resolvedUserId: user.id, orgId: row.org_id, rawPlan: row.plan },
     })
   } catch (err) {
     console.error('GET /api/billing/plan error:', err)
