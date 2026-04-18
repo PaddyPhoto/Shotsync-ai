@@ -120,43 +120,90 @@ export default function DashboardPage() {
           {loading ? 'Loading…' : `${jobs.length} recent jobs\u00a0·\u00a0${warningClusters.length} clusters need attention`}
         </p>
 
-        {/* Brand setup prompt — shown only when no brands exist */}
+        {/* Brand setup — full hero when no brands exist */}
         {noBrands && (
           <div style={{
-            marginBottom: '20px',
-            borderRadius: '18px',
-            border: '0.5px solid rgba(0,113,227,0.2)',
-            background: 'linear-gradient(135deg, rgba(0,113,227,0.05) 0%, rgba(48,209,88,0.05) 100%)',
-            padding: '28px 32px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '24px',
+            marginBottom: '28px',
+            borderRadius: '22px',
+            background: '#1d1d1f',
+            padding: '44px 48px',
+            position: 'relative',
+            overflow: 'hidden',
           }}>
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '14px', background: '#1d1d1f',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="1.5">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
+            {/* Decorative colour blobs */}
+            <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '280px', height: '280px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(48,209,88,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: '-80px', right: '200px', width: '220px', height: '220px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,113,227,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: '20px', left: '380px', width: '160px', height: '160px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,159,10,0.10) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+            {/* Badge */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(48,209,88,0.15)', border: '1px solid rgba(48,209,88,0.25)', borderRadius: '20px', padding: '4px 12px', marginBottom: '20px' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158' }} />
+              <span style={{ fontSize: '12px', fontWeight: 500, color: '#30d158', letterSpacing: '-.1px' }}>Before you begin</span>
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '17px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.3px', marginBottom: '4px' }}>
-                Start by setting up your brand
-              </p>
-              <p style={{ fontSize: '14px', color: '#6e6e73', letterSpacing: '-.1px' }}>
-                Brands organise your shoots, naming rules, and exports. You need at least one before uploading images.
-              </p>
+
+            {/* Headline */}
+            <h2 style={{ fontSize: '28px', fontWeight: 600, color: '#f5f5f7', letterSpacing: '-.6px', marginBottom: '10px', maxWidth: '520px', lineHeight: 1.2 }}>
+              Set up your brand before uploading
+            </h2>
+            <p style={{ fontSize: '15px', color: 'rgba(245,245,247,0.55)', marginBottom: '36px', maxWidth: '480px', lineHeight: 1.5 }}>
+              ShotSync needs your brand details to correctly name, organise, and export your images. Complete all four steps below.
+            </p>
+
+            {/* Setup steps */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '36px' }}>
+              {[
+                {
+                  n: '01', label: 'Brand name & code',
+                  desc: 'Your brand name and short code used in all exported filenames.',
+                  color: '#30d158', bg: 'rgba(48,209,88,0.10)',
+                },
+                {
+                  n: '02', label: 'Naming template',
+                  desc: 'Define how your exported files are named — SKU, colour, view angle.',
+                  color: '#0071e3', bg: 'rgba(0,113,227,0.10)',
+                },
+                {
+                  n: '03', label: 'Images per look',
+                  desc: 'Set how many shots make up one complete product and the angle order.',
+                  color: '#ff9f0a', bg: 'rgba(255,159,10,0.10)',
+                },
+                {
+                  n: '04', label: 'Shopify connection',
+                  desc: 'Optional but recommended — enables SKU matching and direct upload.',
+                  color: '#af52de', bg: 'rgba(175,82,222,0.10)',
+                },
+              ].map(({ n, label, desc, color, bg }) => (
+                <div key={n} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '14px', padding: '18px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color, background: bg, borderRadius: '6px', padding: '2px 7px', display: 'inline-block', marginBottom: '10px', letterSpacing: '.04em' }}>
+                    {n}
+                  </div>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f7', letterSpacing: '-.2px', marginBottom: '5px', lineHeight: 1.3 }}>{label}</p>
+                  <p style={{ fontSize: '12px', color: 'rgba(245,245,247,0.45)', lineHeight: 1.5 }}>{desc}</p>
+                </div>
+              ))}
             </div>
-            <Link
-              href="/dashboard/settings?tab=brands"
-              className="btn btn-primary"
-              style={{ flexShrink: 0, fontSize: '15px', padding: '9px 20px' }}
-            >
-              Set up brand
-            </Link>
+
+            {/* CTA row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <Link
+                href="/dashboard/settings?tab=brands"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: '#f5f5f7', color: '#1d1d1f',
+                  fontSize: '15px', fontWeight: 600, letterSpacing: '-.2px',
+                  padding: '11px 24px', borderRadius: '10px',
+                  textDecoration: 'none', transition: 'background 0.15s',
+                }}
+              >
+                Set up your brand
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+              <span style={{ fontSize: '13px', color: 'rgba(245,245,247,0.35)' }}>
+                Takes about 2 minutes · you can always edit later
+              </span>
+            </div>
           </div>
         )}
 
