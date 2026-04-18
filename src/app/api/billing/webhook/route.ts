@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET)
 
-    console.error('[webhook]', JSON.stringify({ type: event.type, meta: (event.data.object as unknown as Record<string, unknown>).metadata ?? null }))
+    console.error('[webhook] event:', event.type)
 
     // Use service role — webhook has no user session, verified by Stripe signature instead
     const { createServiceClient } = await import('@/lib/supabase/server')
@@ -97,12 +97,7 @@ export async function POST(req: NextRequest) {
             await Promise.all(subIds.map(id => stripe.subscriptions.cancel(id).catch(() => {})))
           }
 
-          // Single consolidated log so Vercel captures it
-          console.error('[webhook] checkout.done', JSON.stringify({
-            orgId, planId,
-            updateOk: !updateError,
-            updateError: updateError?.message ?? null,
-          }))
+          if (updateError) console.error('[webhook] plan update error:', updateError.message)
 
           await sendSubscriptionEmails(orgId, planId, service)
         }
