@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
     if (!row) return NextResponse.json({ data: null })
 
     return NextResponse.json({
+      _debug: { user_id: user.id, rpc_rows: rows },
       data: {
         plan: (row.plan ?? 'free') as PlanId,
         usage: {
