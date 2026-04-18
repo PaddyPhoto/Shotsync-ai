@@ -66,8 +66,19 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const { data: { session } } = await createClient().auth.getSession()
+      let accessToken = session?.access_token
+      if (!accessToken) {
+        try {
+          const raw = decodeURIComponent(
+            document.cookie.split(';')
+              .find(c => c.trim().startsWith('sb-') && c.includes('auth-token') && !c.includes('code-verifier'))
+              ?.split('=').slice(1).join('=') ?? '{}'
+          )
+          accessToken = JSON.parse(raw)?.access_token
+        } catch {}
+      }
       const res = await fetch('/api/billing/plan', {
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       })
       if (res.ok) {
         const { data } = await res.json()

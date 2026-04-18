@@ -36,11 +36,23 @@ export function UpgradeModal() {
         const { data } = await supabase.auth.refreshSession()
         session = data.session
       }
+      // Final fallback: read token directly from SSR cookie
+      let accessToken = session?.access_token
+      if (!accessToken) {
+        try {
+          const raw = decodeURIComponent(
+            document.cookie.split(';')
+              .find(c => c.trim().startsWith('sb-') && c.includes('auth-token') && !c.includes('code-verifier'))
+              ?.split('=').slice(1).join('=') ?? '{}'
+          )
+          accessToken = JSON.parse(raw)?.access_token
+        } catch {}
+      }
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ planId: targetPlanId }),
       })
