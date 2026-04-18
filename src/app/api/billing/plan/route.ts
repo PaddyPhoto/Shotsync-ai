@@ -49,6 +49,8 @@ export async function GET(req: NextRequest) {
     const row = rows?.[0]
     if (!row) return NextResponse.json({ data: null })
 
+    console.error('[plan] userId:', user.id, 'orgId:', row.org_id, 'plan:', row.plan)
+
     return NextResponse.json({
       data: {
         plan: (row.plan ?? 'free') as PlanId,

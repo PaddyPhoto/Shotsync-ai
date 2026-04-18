@@ -110,24 +110,16 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.updated': {
+        // Only update subscription status — plan is managed exclusively via
+        // checkout.session.completed so no event ordering issues can corrupt it.
         const sub = event.data.object as {
           metadata?: { org_id?: string }
           status: string
-          items: { data: { price: { id: string } }[] }
         }
         const orgId = sub.metadata?.org_id
         if (!orgId) break
         console.error('[webhook] subscription.updated orgId:', orgId, 'status:', sub.status)
-
-        const updateFields: Record<string, unknown> = { stripe_subscription_status: sub.status }
-        // Only update plan when subscription is active — ignore canceled/past_due events
-        if (sub.status === 'active' || sub.status === 'trialing') {
-          const priceId = sub.items.data[0]?.price?.id
-          const planId = priceId ? priceIdToPlan(priceId) : null
-          if (planId) updateFields.plan = planId
-          console.error('[webhook] subscription.updated → plan:', planId ?? 'unknown price, not updating plan')
-        }
-        await service.from('orgs').update(updateFields).eq('id', orgId)
+        await service.from('orgs').update({ stripe_subscription_status: sub.status }).eq('id', orgId)
         break
       }
 
