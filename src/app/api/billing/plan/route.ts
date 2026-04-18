@@ -47,11 +47,13 @@ export async function GET(req: NextRequest) {
 
     if (!membership?.org_id) return NextResponse.json({ data: null })
 
-    const { data: org } = await supabase
+    const { data: org, error: orgError } = await supabase
       .from('orgs')
-      .select('id, plan, exports_this_month')
+      .select('*')
       .eq('id', membership.org_id)
       .single()
+
+    if (orgError) return NextResponse.json({ _error: orgError, data: null })
 
     if (!org) return NextResponse.json({ data: null })
 
