@@ -92,10 +92,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Cancel any existing active subscriptions so we don't end up with
-    // multiple subs firing conflicting webhook events.
+    // Collect existing active subscription IDs so the webhook can cancel them
+    // after the new checkout completes — avoids destructive events mid-upgrade.
     const existing = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 10 })
-    await Promise.all(existing.data.map(sub => stripe.subscriptions.cancel(sub.id)))
+    const existingSubIds = existing.data.map(s => s.id).join(',')
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       line_items: [{ price: plan.stripePriceId!, quantity: 1 }],
       success_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=success`,
       cancel_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=cancelled`,
-      metadata: { org_id: orgId, plan_id: planId },
+      metadata: { org_id: orgId, plan_id: planId, cancel_subs: existingSubIds },
       subscription_data: { metadata: { org_id: orgId, plan_id: planId } },
     })
 

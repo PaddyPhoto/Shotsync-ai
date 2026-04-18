@@ -69,20 +69,38 @@ export async function POST(req: NextRequest) {
 
     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET)
 
+    console.error('[webhook] event:', event.type)
+
     // Use service role — webhook has no user session, verified by Stripe signature instead
     const { createServiceClient } = await import('@/lib/supabase/server')
     const service = createServiceClient()
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as { metadata?: { org_id?: string; plan_id?: string } }
+        const session = event.data.object as {
+          metadata?: { org_id?: string; plan_id?: string; cancel_subs?: string }
+          subscription?: string
+        }
         const orgId = session.metadata?.org_id
         const planId = session.metadata?.plan_id as PlanId | undefined
+        console.error('[webhook] checkout.session.completed orgId:', orgId, 'planId:', planId)
+
         if (orgId && planId) {
           await service
             .from('orgs')
             .update({ plan: planId, stripe_subscription_status: 'active' })
             .eq('id', orgId)
+
+          // Cancel any previous subscriptions now that the new one is confirmed.
+          // Doing this here (not in checkout) prevents destructive webhook events
+          // from firing before the new plan is written to the DB.
+          const cancelSubs = session.metadata?.cancel_subs
+          if (cancelSubs) {
+            const subIds = cancelSubs.split(',').filter(Boolean)
+            await Promise.all(subIds.map(id => stripe.subscriptions.cancel(id).catch(() => {})))
+            console.error('[webhook] cancelled old subs:', subIds)
+          }
+
           await sendSubscriptionEmails(orgId, planId, service)
         }
         break
@@ -96,24 +114,29 @@ export async function POST(req: NextRequest) {
         }
         const orgId = sub.metadata?.org_id
         if (!orgId) break
+        console.error('[webhook] subscription.updated orgId:', orgId, 'status:', sub.status)
+
         const updateFields: Record<string, unknown> = { stripe_subscription_status: sub.status }
         // Only update plan when subscription is active — ignore canceled/past_due events
-        // to prevent old or cancelled subscriptions from overwriting the current plan.
         if (sub.status === 'active' || sub.status === 'trialing') {
           const priceId = sub.items.data[0]?.price?.id
           const planId = priceId ? priceIdToPlan(priceId) : null
           if (planId) updateFields.plan = planId
+          console.error('[webhook] subscription.updated → plan:', planId ?? 'unknown price, not updating plan')
         }
         await service.from('orgs').update(updateFields).eq('id', orgId)
         break
       }
 
       case 'customer.subscription.deleted': {
+        // Only update subscription status — do NOT reset plan to free here.
+        // Plan downgrade is handled explicitly via a cancel endpoint or
+        // when no active subscriptions remain on the next billing cycle.
         const sub = event.data.object as { metadata?: { org_id?: string } }
         const orgId = sub.metadata?.org_id
+        console.error('[webhook] subscription.deleted orgId:', orgId)
         if (orgId) {
           await service.from('orgs').update({
-            plan: 'free',
             stripe_subscription_status: 'canceled',
           }).eq('id', orgId)
         }
@@ -127,6 +150,7 @@ export async function POST(req: NextRequest) {
           const orgId = subscription.metadata?.org_id
           const priceId = subscription.items.data[0]?.price?.id
           const planId = priceId ? priceIdToPlan(priceId) : null
+          console.error('[webhook] payment_failed orgId:', orgId, 'planId:', planId)
           if (orgId) {
             await service.from('orgs').update({
               stripe_subscription_status: 'past_due',
