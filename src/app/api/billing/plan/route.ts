@@ -20,9 +20,11 @@ export async function GET(req: NextRequest) {
     // Try bearer token first, fall back to request cookies
     let user: { id: string } | null = null
     const token = req.headers.get('authorization')?.replace('Bearer ', '')
+    console.error('[plan] token present:', !!token)
     if (token) {
       const { data } = await service.auth.getUser(token)
       user = data.user
+      console.error('[plan] user from token:', user?.id)
     }
     if (!user) {
       const cookieClient = createServerClient(
@@ -32,8 +34,12 @@ export async function GET(req: NextRequest) {
       )
       const { data } = await cookieClient.auth.getUser()
       user = data.user
+      console.error('[plan] user from cookie:', user?.id)
     }
-    if (!user) return NextResponse.json({ data: null })
+    if (!user) {
+      console.error('[plan] no user found, returning null')
+      return NextResponse.json({ data: null })
+    }
 
     const supabase = service
 
@@ -41,13 +47,20 @@ export async function GET(req: NextRequest) {
     const { data: rows, error: rpcError } = await supabase
       .rpc('get_org_for_user', { p_user_id: user.id })
 
+    console.error('[plan] rpc result:', JSON.stringify(rows), 'error:', rpcError?.message)
+
     if (rpcError) {
       console.error('get_org_for_user rpc error:', rpcError)
       return NextResponse.json({ data: null })
     }
 
     const row = rows?.[0]
-    if (!row) return NextResponse.json({ data: null })
+    if (!row) {
+      console.error('[plan] no row returned for user:', user.id)
+      return NextResponse.json({ data: null })
+    }
+
+    console.error('[plan] returning plan:', row.plan, 'for org:', row.org_id)
 
     return NextResponse.json({
       data: {
