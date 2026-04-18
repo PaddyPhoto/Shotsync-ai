@@ -13,6 +13,7 @@ import { applyNamingTemplate } from '@/lib/brands'
 import { detectColourFromFilename } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
+import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
@@ -1157,7 +1158,9 @@ function ExportPanel({
   clusterCopy: Record<string, { title: string; description: string; bullets: string[]; loading: boolean; open: boolean }>
   onClose: () => void
 }) {
-  const selectedMarketplaces = marketplaces
+  const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(
+    marketplaces.length > 0 ? marketplaces : []
+  )
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
   const [done, setDone] = useState(false)
@@ -1445,22 +1448,13 @@ function ExportPanel({
             </p>
           )}
 
-          {/* Marketplaces (read-only — set during upload) */}
+          {/* Marketplaces — editable here so users can fix missed selections */}
           <div>
             <p className="text-[0.75rem] text-[var(--text2)] mb-2 font-medium">Marketplaces</p>
-            <div className="flex flex-wrap gap-2">
-              {selectedMarketplaces.map((id) => {
-                const label: Record<string, string> = { 'the-iconic': 'THE ICONIC', 'myer': 'Myer', 'david-jones': 'David Jones', 'shopify': 'Shopify' }
-                return (
-                  <span key={id} className="px-3 py-[6px] rounded-sm border border-[var(--accent)] bg-[rgba(74,158,255,0.08)] text-[var(--text)] text-[0.78rem] font-medium">
-                    {label[id] ?? id}
-                  </span>
-                )
-              })}
-            </div>
-            <p className="text-[0.72rem] text-[var(--text3)] mt-2">
-              To change marketplaces, start a new upload.
-            </p>
+            {selectedMarketplaces.length === 0 && (
+              <p className="text-[0.72rem] text-[var(--accent3)] mb-2">Select at least one marketplace to export.</p>
+            )}
+            <MarketplaceSelector selected={selectedMarketplaces} onChange={setSelectedMarketplaces} />
           </div>
 
           {/* Output mode */}
