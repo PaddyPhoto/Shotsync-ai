@@ -1161,6 +1161,9 @@ function ExportPanel({
   const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(
     marketplaces.length > 0 ? marketplaces : []
   )
+  const [localTemplate, setLocalTemplate] = useState(namingTemplate || '{BRAND}_{SEQ}_{VIEW}')
+  const [savingTemplate, setSavingTemplate] = useState(false)
+  const [templateSaved, setTemplateSaved] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
   const [done, setDone] = useState(false)
@@ -1183,6 +1186,25 @@ function ExportPanel({
       folderRef.current = handle
       setFolderName(handle.name)
     } catch { /* cancelled */ }
+  }
+
+  const saveTemplateAsDefault = async () => {
+    if (!activeBrand?.id || !localTemplate.trim()) return
+    setSavingTemplate(true)
+    try {
+      const { data: { session } } = await import('@/lib/supabase/client').then(({ createClient }) => createClient().auth.getSession())
+      await fetch(`/api/brands/${activeBrand.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ naming_template: localTemplate.trim() }),
+      })
+      setTemplateSaved(true)
+      setTimeout(() => setTemplateSaved(false), 2500)
+    } catch { /* non-critical */ }
+    setSavingTemplate(false)
   }
 
   const handleShopifyUpload = async () => {
@@ -1242,8 +1264,8 @@ function ExportPanel({
 
     const CONCURRENCY = 6
     const brandCode = activeBrand?.brand_code ?? 'BRAND'
-    const supplierCode = activeBrand?.supplier_code ?? ''
-    const season = activeBrand?.season ?? ''
+    const supplierCode = ''
+    const season = ''
     const copyClusters = confirmedClusters.filter((c) => clusterCopy[c.id]?.title)
 
     // Helper: build the task list for a marketplace (shared by both paths)
@@ -1279,7 +1301,7 @@ function ExportPanel({
 
       for (const marketplace of selectedMarketplaces) {
         const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
-        const template = rule.naming_template || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
+        const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
         // Always create the marketplace folder — flatExport only skips SKU subfolders
         const mpHandle = await rootHandle.getDirectoryHandle(rule.name.replace(/\s+/g, '_'), { create: true })
         const tasks = buildTasks(template)
@@ -1343,7 +1365,7 @@ function ExportPanel({
 
         for (const marketplace of batches[batchIdx]) {
           const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
-          const template = rule.naming_template || activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
+          const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
           const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
           const tasks = buildTasks(template)
 
@@ -1508,17 +1530,43 @@ function ExportPanel({
             )}
           </div>
 
-          {/* Output structure preview — uses real naming template + real cluster data */}
+          {/* Naming template — editable per-export, with save-as-default */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[0.75rem] text-[var(--text2)] font-medium">File Naming Template</p>
+              {activeBrand && (
+                <button
+                  onClick={saveTemplateAsDefault}
+                  disabled={savingTemplate || localTemplate === namingTemplate}
+                  className="text-[0.7rem] text-[var(--accent)] hover:underline disabled:opacity-40 disabled:no-underline transition-opacity"
+                >
+                  {templateSaved ? '✓ Saved as default' : savingTemplate ? 'Saving…' : 'Save as default'}
+                </button>
+              )}
+            </div>
+            <input
+              className="input w-full"
+              style={{ fontFamily: 'var(--font-dm-mono)', fontSize: '0.78rem' }}
+              value={localTemplate}
+              onChange={(e) => setLocalTemplate(e.target.value)}
+              placeholder="{BRAND}_{SEQ}_{VIEW}"
+            />
+            <p className="text-[0.68rem] text-[var(--text3)] mt-1">
+              Tokens: {['{BRAND}','{SKU}','{COLOR}','{VIEW}','{SEQ}','{INDEX}','{STYLE_NUMBER}','{COLOUR_CODE}'].map(t => (
+                <code key={t} className="mx-[2px]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{t}</code>
+              ))}
+            </p>
+          </div>
+
+          {/* Output structure preview — uses localTemplate + real cluster data */}
           {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (
             <div className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-3 py-3 text-[0.72rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
               <p className="text-[var(--text3)] mb-1">Output structure preview:</p>
               {selectedMarketplaces.slice(0, 2).map((m) => {
                 const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
-                const template = rule.naming_template || namingTemplate || '{BRAND}_{SEQ}_{VIEW}'
+                const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
                 const mpFolder = rule.name.replace(/\s+/g, '_')
                 const brandCode = activeBrand?.brand_code ?? 'BRAND'
-                const supplierCode = activeBrand?.supplier_code ?? ''
-                const season = activeBrand?.season ?? ''
                 return (
                   <div key={m} className="mb-2">
                     <span className="text-[var(--accent)]">{mpFolder}/</span>
@@ -1528,7 +1576,7 @@ function ExportPanel({
                           const firstView = c.images[0]?.viewLabel ?? 'front'
                           const filename = applyNamingTemplate(template, {
                             brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color,
-                            view: firstView, index: 1, supplierCode, season,
+                            view: firstView, index: 1, supplierCode: '', season: '',
                             styleNumber: c.styleNumber, colourCode: c.colourCode,
                           }) + '.jpg'
                           return <div key={c.id} className="pl-3 text-[var(--text3)]">└─ {filename}</div>
@@ -1540,19 +1588,19 @@ function ExportPanel({
                     ) : (
                       <>
                         {confirmedClusters.slice(0, 2).map((c, ci) => {
-                          const folderName = applyNamingTemplate(
+                          const fName = applyNamingTemplate(
                             template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, '').replace(/_{ANGLE}/g, '').replace(/_{ANGLE_NUMBER}/g, ''),
-                            { brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color, view: '', index: 0, supplierCode, season, styleNumber: c.styleNumber, colourCode: c.colourCode }
+                            { brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color, view: '', index: 0, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }
                           ).replace(/_+$/, '') || `${brandCode}_${String(ci + 1).padStart(3, '0')}`
                           const firstView = c.images[0]?.viewLabel ?? 'front'
                           const firstFile = applyNamingTemplate(template, {
                             brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color,
-                            view: firstView, index: 1, supplierCode, season,
+                            view: firstView, index: 1, supplierCode: '', season: '',
                             styleNumber: c.styleNumber, colourCode: c.colourCode,
                           }) + '.jpg'
                           return (
                             <div key={c.id} className="pl-3 text-[var(--text3)]">
-                              └─ <span className="text-[var(--text2)]">{folderName}/</span>{firstFile} …
+                              └─ <span className="text-[var(--text2)]">{fName}/</span>{firstFile} …
                             </div>
                           )
                         })}

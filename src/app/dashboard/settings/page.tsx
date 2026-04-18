@@ -1604,15 +1604,15 @@ function SettingsInner() {
               {/* Naming template */}
               <div className="border-t border-[var(--line)] pt-3">
                 <p className="text-[0.75rem] font-medium text-[var(--text2)] mb-2 flex items-center gap-1">
-                  File Naming Template
+                  Default Naming Template
                   <HelpTooltip
                     position="right"
                     width={260}
                     content={
                       <span>
-                        Build the pattern used to name your exported files. Click tokens to add or remove them — they are joined with underscores in the order shown.<br /><br />
+                        This is your default template — it pre-fills the export panel where you can adjust it per-export. Click tokens to add or remove them; they are joined with underscores in the order shown.<br /><br />
                         <strong>Example:</strong> <code style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>{'{SKU}_{COLOR}_{VIEW}'}</code> → <code style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>NS27502_BLACK_FRONT.jpg</code><br /><br />
-                        Empty tokens (e.g. no colour entered) are automatically removed so you never get double underscores.
+                        Empty tokens are automatically removed so you never get double underscores.
                       </span>
                     }
                   />
