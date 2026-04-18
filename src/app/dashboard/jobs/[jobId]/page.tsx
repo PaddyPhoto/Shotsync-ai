@@ -192,7 +192,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
   }
 
   // Completed job — show hub view
-  if (job?.status === 'complete' || job?.status === 'completed') {
+  if (job?.status === 'complete') {
     return <CompletedJobView job={job} jobId={params.jobId} />
   }
 
