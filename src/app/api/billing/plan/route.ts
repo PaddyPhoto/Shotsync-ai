@@ -37,29 +37,23 @@ export async function GET(req: NextRequest) {
 
     const supabase = service
 
-    // Two-step lookup to avoid PostgREST schema cache issues with ALTER TABLE columns
-    const { data: membership } = await supabase
-      .from('org_members')
-      .select('org_id')
-      .eq('user_id', user.id)
-      .limit(1)
-      .single()
+    // Use a SQL function to bypass PostgREST schema cache entirely
+    const { data: rows, error: rpcError } = await supabase
+      .rpc('get_org_for_user', { p_user_id: user.id })
 
-    if (!membership?.org_id) return NextResponse.json({ data: null })
+    if (rpcError) {
+      console.error('get_org_for_user rpc error:', rpcError)
+      return NextResponse.json({ data: null })
+    }
 
-    const { data: org } = await supabase
-      .from('orgs')
-      .select('id, plan, exports_this_month')
-      .eq('id', membership.org_id)
-      .single()
-
-    if (!org) return NextResponse.json({ data: null })
+    const row = rows?.[0]
+    if (!row) return NextResponse.json({ data: null })
 
     return NextResponse.json({
       data: {
-        plan: (org.plan ?? 'free') as PlanId,
+        plan: (row.plan ?? 'free') as PlanId,
         usage: {
-          exportsThisMonth: org.exports_this_month ?? 0,
+          exportsThisMonth: 0,
           totalBrandsCreated: 0,
         },
       },
