@@ -1280,10 +1280,10 @@ function SettingsInner() {
               </p>
               <div className="flex flex-col gap-3">
                 {[
+                  { name: 'Shopify', desc: 'Sync product images to your Shopify store on export.', available: true },
                   { name: 'THE ICONIC', desc: 'Auto-deliver approved image sets to THE ICONIC Content Portal.' },
                   { name: 'Myer', desc: 'Push product imagery directly to the Myer supplier portal.' },
                   { name: 'David Jones', desc: 'Deliver approved assets to David Jones via their content API.' },
-                  { name: 'Shopify', desc: 'Sync product images to your Shopify store on export.' },
                 ].map((mp) => (
                   <div
                     key={mp.name}
@@ -1293,7 +1293,16 @@ function SettingsInner() {
                       <p className="text-[0.85rem] font-medium text-[var(--text)]">{mp.name}</p>
                       <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">{mp.desc}</p>
                     </div>
-                    <span className="chip chip-uploading text-[0.7rem] ml-4 flex-shrink-0">Coming soon</span>
+                    {'available' in mp && mp.available ? (
+                      <button
+                        onClick={() => setTab('shopify')}
+                        className="chip chip-done text-[0.7rem] ml-4 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                      >
+                        Available ↗
+                      </button>
+                    ) : (
+                      <span className="chip chip-uploading text-[0.7rem] ml-4 flex-shrink-0">Coming soon</span>
+                    )}
                   </div>
                 ))}
               </div>
