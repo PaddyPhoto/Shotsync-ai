@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import type { MarketplaceName } from '@/types'
 
@@ -35,35 +34,38 @@ export function MarketplaceSelector({ selected, onChange }: MarketplaceSelectorP
           <button
             key={id}
             onClick={() => toggle(id)}
-            className={cn(
-              'relative bg-[var(--bg2)] border-2 rounded-md p-[18px] cursor-pointer transition-all duration-150 text-center overflow-hidden',
-              isSelected
-                ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.04)]'
-                : 'border-[var(--line)] hover:border-[var(--line2)]'
-            )}
+            style={{
+              position: 'relative',
+              background: isSelected ? '#1d1d1f' : 'rgba(0,0,0,0.02)',
+              border: isSelected ? '1.5px solid #1d1d1f' : '1px solid rgba(0,0,0,0.08)',
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.15s',
+              overflow: 'hidden',
+            }}
           >
             {isSelected && (
-              <span className="absolute top-[10px] right-3 w-[18px] h-[18px] bg-[var(--accent)] text-black rounded-full flex items-center justify-center text-[0.7rem] font-bold">
-                ✓
-              </span>
+              <span style={{
+                position: 'absolute', top: '10px', right: '12px',
+                width: '18px', height: '18px', borderRadius: '50%',
+                background: 'rgba(255,255,255,0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '10px', color: '#f5f5f7', fontWeight: 700,
+              }}>✓</span>
             )}
 
-            <p
-              className="text-[1.1rem] font-[800] mb-[6px] tracking-[-0.5px] text-[var(--text)]"
-              style={{ fontFamily: 'var(--font-syne)' }}
-            >
+            <p style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: isSelected ? '#f5f5f7' : '#1d1d1f' }}>
               {rule.name}
             </p>
-            <p className="text-[0.72rem] text-[var(--text3)] mb-3">
+            <p style={{ fontSize: '12px', color: isSelected ? 'rgba(245,245,247,0.55)' : '#aeaeb2', marginBottom: '12px' }}>
               {MARKETPLACE_DESCRIPTIONS[id]}
             </p>
-            <div
-              className="text-[0.72rem] text-[var(--text3)] leading-[1.7]"
-              style={{ fontFamily: 'var(--font-dm-mono)' }}
-            >
+            <div style={{ fontSize: '11px', lineHeight: 1.8, color: isSelected ? 'rgba(245,245,247,0.5)' : '#aeaeb2', fontFamily: 'var(--font-dm-mono)' }}>
               <p>{rule.image_dimensions.width}×{rule.image_dimensions.height}px</p>
-              <p><span className="text-[var(--text2)]">{rule.file_format.toUpperCase()}</span> · Q{rule.quality}</p>
-              <p>Req: <span className="text-[var(--text2)]">{rule.required_views.join(', ')}</span></p>
+              <p style={{ color: isSelected ? 'rgba(245,245,247,0.7)' : '#6e6e73' }}>{rule.file_format.toUpperCase()} · Q{rule.quality}</p>
+              <p>Req: <span style={{ color: isSelected ? 'rgba(245,245,247,0.7)' : '#6e6e73' }}>{rule.required_views.join(', ')}</span></p>
             </div>
           </button>
         )
