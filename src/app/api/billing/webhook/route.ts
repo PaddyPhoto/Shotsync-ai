@@ -86,10 +86,11 @@ export async function POST(req: NextRequest) {
         console.error('[webhook] checkout.session.completed orgId:', orgId, 'planId:', planId)
 
         if (orgId && planId) {
-          await service
+          const { error: updateError } = await service
             .from('orgs')
             .update({ plan: planId, stripe_subscription_status: 'active' })
             .eq('id', orgId)
+          console.error('[webhook] plan update error:', updateError?.message ?? 'none')
 
           // Cancel any previous subscriptions now that the new one is confirmed.
           // Doing this here (not in checkout) prevents destructive webhook events
