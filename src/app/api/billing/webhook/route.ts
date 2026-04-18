@@ -96,12 +96,14 @@ export async function POST(req: NextRequest) {
         }
         const orgId = sub.metadata?.org_id
         if (!orgId) break
-        const priceId = sub.items.data[0]?.price?.id
-        const planId = priceId ? priceIdToPlan(priceId) : null
-        // Only update plan if we can positively identify it — never reset to free
-        // on an unrecognised price ID (e.g. env var mismatch). Use subscription.deleted for downgrades.
         const updateFields: Record<string, unknown> = { stripe_subscription_status: sub.status }
-        if (planId) updateFields.plan = planId
+        // Only update plan when subscription is active — ignore canceled/past_due events
+        // to prevent old or cancelled subscriptions from overwriting the current plan.
+        if (sub.status === 'active' || sub.status === 'trialing') {
+          const priceId = sub.items.data[0]?.price?.id
+          const planId = priceId ? priceIdToPlan(priceId) : null
+          if (planId) updateFields.plan = planId
+        }
         await service.from('orgs').update(updateFields).eq('id', orgId)
         break
       }
