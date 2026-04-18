@@ -30,16 +30,6 @@ const NAV_WORKSPACE: NavItem[] = [
       </svg>
     ),
   },
-  {
-    label: 'All Jobs',
-    href: '/dashboard/jobs',
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="2" y="3" width="12" height="10" rx="1.5"/>
-        <path d="M10 3V2a2 2 0 0 0-4 0v1" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
 ]
 
 const NAV_WORKFLOW: NavItem[] = [
@@ -72,6 +62,16 @@ const NAV_WORKFLOW: NavItem[] = [
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M8 11V4M5 8l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M2 13h12" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'All Jobs',
+    href: '/dashboard/jobs',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="2" y="3" width="12" height="10" rx="1.5"/>
+        <path d="M10 3V2a2 2 0 0 0-4 0v1" strokeLinecap="round"/>
       </svg>
     ),
   },
