@@ -79,10 +79,17 @@ function SettingsInner() {
 
   const { plan, planId, usage, openUpgrade, canAddBrand, refreshPlan } = usePlan()
 
-  // Refresh plan after returning from Stripe checkout
+  // Refresh plan after returning from Stripe checkout.
+  // Poll a few times with delays to account for webhook processing latency.
   useEffect(() => {
     if (searchParams.get('checkout') === 'success') {
       refreshPlan()
+      const timers = [
+        setTimeout(() => refreshPlan(), 3000),
+        setTimeout(() => refreshPlan(), 7000),
+        setTimeout(() => refreshPlan(), 15000),
+      ]
+      return () => timers.forEach(clearTimeout)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const { clusters, jobName, isReady } = useSession()

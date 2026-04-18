@@ -90,17 +90,19 @@ export async function POST(req: NextRequest) {
             .from('orgs')
             .update({ plan: planId, stripe_subscription_status: 'active' })
             .eq('id', orgId)
-          console.error('[webhook] plan update error:', updateError?.message ?? 'none')
 
-          // Cancel any previous subscriptions now that the new one is confirmed.
-          // Doing this here (not in checkout) prevents destructive webhook events
-          // from firing before the new plan is written to the DB.
           const cancelSubs = session.metadata?.cancel_subs
           if (cancelSubs) {
             const subIds = cancelSubs.split(',').filter(Boolean)
             await Promise.all(subIds.map(id => stripe.subscriptions.cancel(id).catch(() => {})))
-            console.error('[webhook] cancelled old subs:', subIds)
           }
+
+          // Single consolidated log so Vercel captures it
+          console.error('[webhook] checkout.done', JSON.stringify({
+            orgId, planId,
+            updateOk: !updateError,
+            updateError: updateError?.message ?? null,
+          }))
 
           await sendSubscriptionEmails(orgId, planId, service)
         }
