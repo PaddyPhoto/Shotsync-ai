@@ -48,8 +48,6 @@ function toggleToken(template: string, token: string): string {
 
 const NAMING_TOKENS = [
   { token: '{BRAND}',         color: 'var(--accent3)',  desc: 'Brand code e.g. FBC' },
-  { token: '{SUPPLIER_CODE}', color: 'var(--accent3)',  desc: 'Supplier code e.g. PR' },
-  { token: '{SEASON}',        color: 'var(--accent3)',  desc: 'Season e.g. SS25' },
   { token: '{SEQ}',           color: 'var(--accent)',   desc: 'Look # e.g. 001' },
   { token: '{SKU}',           color: 'var(--accent)',   desc: 'SKU e.g. SS25-0042' },
   { token: '{STYLE_NUMBER}',  color: 'var(--accent)',   desc: 'Style number e.g. 05324' },
@@ -220,8 +218,6 @@ function SettingsInner() {
   const [brandForm, setBrandForm] = useState({
     name: '',
     brand_code: '',
-    supplier_code: '',
-    season: '',
     shopify_store_url: '',
     shopify_access_token: '',
     logo_color: '#e8d97a',
@@ -238,7 +234,7 @@ function SettingsInner() {
   const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null)
 
   const openAddBrand = () => {
-    setBrandForm({ name: '', brand_code: '', supplier_code: '', season: '', shopify_store_url: '', shopify_access_token: '', logo_color: '#e8d97a', images_per_look: 4, still_life_images_per_look: 2, on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'], still_life_angle_sequences: {}, naming_template: '{BRAND}_{SEQ}_{VIEW}', gm_position: 'last' })
+    setBrandForm({ name: '', brand_code: '', shopify_store_url: '', shopify_access_token: '', logo_color: '#e8d97a', images_per_look: 4, still_life_images_per_look: 2, on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'], still_life_angle_sequences: {}, naming_template: '{BRAND}_{SEQ}_{VIEW}', gm_position: 'last' })
     setBrandError('')
     setEditingBrand(null)
     setBrandModal('add')
@@ -248,8 +244,6 @@ function SettingsInner() {
     setBrandForm({
       name: b.name,
       brand_code: b.brand_code,
-      supplier_code: b.supplier_code ?? '',
-      season: b.season ?? '',
       shopify_store_url: b.shopify_store_url ?? '',
       shopify_access_token: b.shopify_access_token ?? '',
       logo_color: b.logo_color,
@@ -1381,28 +1375,6 @@ function SettingsInner() {
                     maxLength={6}
                     value={brandForm.brand_code}
                     onChange={(e) => setBrandForm((f) => ({ ...f, brand_code: e.target.value.toUpperCase() }))}
-                  />
-                </div>
-                <div>
-                  <label className="text-[0.75rem] text-[var(--text2)] mb-[5px] block">Supplier Code <span className="text-[var(--text3)]">({`{SUPPLIER_CODE}`})</span></label>
-                  <input
-                    className="input"
-                    style={{ fontFamily: 'var(--font-dm-mono)' }}
-                    placeholder="e.g. PR"
-                    maxLength={10}
-                    value={brandForm.supplier_code}
-                    onChange={(e) => setBrandForm((f) => ({ ...f, supplier_code: e.target.value.toUpperCase() }))}
-                  />
-                </div>
-                <div>
-                  <label className="text-[0.75rem] text-[var(--text2)] mb-[5px] block">Season <span className="text-[var(--text3)]">({`{SEASON}`})</span></label>
-                  <input
-                    className="input"
-                    style={{ fontFamily: 'var(--font-dm-mono)' }}
-                    placeholder="e.g. SS25"
-                    maxLength={10}
-                    value={brandForm.season}
-                    onChange={(e) => setBrandForm((f) => ({ ...f, season: e.target.value.toUpperCase() }))}
                   />
                 </div>
                 <div>
