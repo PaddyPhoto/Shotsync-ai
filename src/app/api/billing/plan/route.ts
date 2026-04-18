@@ -13,8 +13,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ data: null }) // client falls back to localStorage
   }
 
-  const debug: Record<string, unknown> = {}
-
   try {
     const { createServiceClient } = await import('@/lib/supabase/server')
     const service = createServiceClient()
@@ -22,11 +20,9 @@ export async function GET(req: NextRequest) {
     // Try bearer token first, fall back to request cookies
     let user: { id: string } | null = null
     const token = req.headers.get('authorization')?.replace('Bearer ', '')
-    debug.hasToken = !!token
     if (token) {
       const { data } = await service.auth.getUser(token)
       user = data.user
-      debug.userFromToken = user?.id ?? null
     }
     if (!user) {
       const cookieClient = createServerClient(
@@ -36,39 +32,22 @@ export async function GET(req: NextRequest) {
       )
       const { data } = await cookieClient.auth.getUser()
       user = data.user
-      debug.userFromCookie = user?.id ?? null
     }
-    if (!user) {
-      debug.result = 'no-user'
-      console.error('[plan-debug]', JSON.stringify(debug))
-      return NextResponse.json({ data: null })
-    }
+    if (!user) return NextResponse.json({ data: null })
 
-    debug.resolvedUserId = user.id
+    const supabase = service
 
     // Use a SQL function to bypass PostgREST schema cache entirely
-    const { data: rows, error: rpcError } = await service
+    const { data: rows, error: rpcError } = await supabase
       .rpc('get_org_for_user', { p_user_id: user.id })
 
-    debug.rpcRows = rows
-    debug.rpcError = rpcError?.message ?? null
-
     if (rpcError) {
-      console.error('[plan-debug]', JSON.stringify(debug))
+      console.error('get_org_for_user rpc error:', rpcError)
       return NextResponse.json({ data: null })
     }
 
     const row = rows?.[0]
-    if (!row) {
-      debug.result = 'no-row'
-      console.error('[plan-debug]', JSON.stringify(debug))
-      return NextResponse.json({ data: null })
-    }
-
-    debug.orgId = row.org_id
-    debug.rawPlan = row.plan
-    debug.result = 'ok'
-    console.error('[plan-debug]', JSON.stringify(debug))
+    if (!row) return NextResponse.json({ data: null })
 
     return NextResponse.json({
       data: {
@@ -78,12 +57,9 @@ export async function GET(req: NextRequest) {
           totalBrandsCreated: 0,
         },
       },
-      _debug: debug,
     })
   } catch (err) {
-    debug.result = 'exception'
-    debug.error = err instanceof Error ? err.message : String(err)
-    console.error('[plan-debug]', JSON.stringify(debug))
+    console.error('GET /api/billing/plan error:', err)
     return NextResponse.json({ data: null })
   }
 }
