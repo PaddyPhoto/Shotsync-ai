@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useBrand } from '@/context/BrandContext'
+import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 
 type Step = 0 | 1 | 2 | 3
 
-const ALL_ANGLES = ['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4']
+const ALL_ANGLES = ['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay']
+const STILL_LIFE_ANGLES = ['front', 'back', 'side', 'detail', 'inside', 'flat-lay', 'top-down', 'front-3/4', 'back-3/4']
 
 const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = {
   'front':       { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', dot: '#30d158' },
@@ -70,6 +72,10 @@ export function BrandOnboardingModal() {
   const [customTemplate, setCustomTemplate] = useState('{BRAND}_{SKU}_{COLOR}_{VIEW}')
   const [imagesPerLook, setImagesPerLook] = useState(4)
   const [angleSequence, setAngleSequence] = useState(['full-length', 'front', 'back', 'side'])
+  const [stillLifeImagesPerLook, setStillLifeImagesPerLook] = useState(2)
+  const [stillLifeAngleSequences, setStillLifeAngleSequences] = useState<Record<string, string[]>>({})
+  const [shootTab, setShootTab] = useState<'on-model' | 'still-life'>('on-model')
+  const [expandedCat, setExpandedCat] = useState<string | null>(null)
 
   const activeTemplate =
     namingPreset === 'custom'
@@ -127,12 +133,12 @@ export function BrandOnboardingModal() {
           naming_template: activeTemplate,
           images_per_look: imagesPerLook,
           on_model_angle_sequence: angleSequence,
+          still_life_images_per_look: stillLifeImagesPerLook,
+          still_life_angle_sequences: stillLifeAngleSequences,
           supplier_code: '',
           season: '',
           shopify_store_url: '',
           shopify_access_token: '',
-          still_life_images_per_look: 2,
-          still_life_angle_sequences: {},
           gm_position: 'last',
         }),
       })
@@ -323,59 +329,173 @@ export function BrandOnboardingModal() {
 
           {/* ── Step 3: Shoot setup ── */}
           {step === 2 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Images per look</label>
-                <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>How many shots make up one complete product (e.g. front + back + side = 3).</p>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => setImagesPerLook(n)}
-                      style={{
-                        width: '40px', height: '40px', borderRadius: '10px', border: 'none', fontSize: '14px',
-                        fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                        background: imagesPerLook === n ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
-                        color: imagesPerLook === n ? '#f5f5f7' : '#6e6e73',
-                        boxShadow: imagesPerLook === n ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                      }}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Tab toggle */}
+              <div style={{ display: 'flex', background: 'rgba(0,0,0,0.05)', borderRadius: '10px', padding: '3px', gap: '2px' }}>
+                {(['on-model', 'still-life'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setShootTab(tab)}
+                    style={{
+                      flex: 1, padding: '7px 0', borderRadius: '8px', border: 'none', fontSize: '13px',
+                      fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s',
+                      background: shootTab === tab ? '#fff' : 'transparent',
+                      color: shootTab === tab ? '#1d1d1f' : '#6e6e73',
+                      boxShadow: shootTab === tab ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
+                    }}
+                  >
+                    {tab === 'on-model' ? 'On-Model' : 'Still Life'}
+                  </button>
+                ))}
               </div>
 
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Angle sequence</label>
-                <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>The order your photographer shoots each angle in the studio.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                  {angleSequence.map((angle, idx) => {
-                    const s = ANGLE_STYLE[angle] ?? { bg: 'rgba(0,0,0,0.05)', color: '#6e6e73', dot: '#aeaeb2' }
-                    return (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ width: '18px', fontSize: '11px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.dot, flexShrink: 0 }} />
-                        <select
-                          value={angle}
-                          onChange={(e) => {
-                            const seq = [...angleSequence]
-                            seq[idx] = e.target.value
-                            setAngleSequence(seq)
+              {/* On-Model */}
+              {shootTab === 'on-model' && (
+                <>
+                  <div>
+                    <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Images per look</label>
+                    <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>How many shots make up one complete on-model product look.</p>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => setImagesPerLook(n)}
+                          style={{
+                            width: '40px', height: '40px', borderRadius: '10px', border: 'none', fontSize: '14px',
+                            fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+                            background: imagesPerLook === n ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
+                            color: imagesPerLook === n ? '#f5f5f7' : '#6e6e73',
+                            boxShadow: imagesPerLook === n ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
                           }}
-                          style={{ flex: 1, background: s.bg, border: `1px solid ${s.color}30`, borderRadius: '8px', padding: '5px 10px', fontSize: '13px', fontWeight: 500, color: s.color, outline: 'none', cursor: 'pointer' }}
                         >
-                          {ALL_ANGLES.map((a) => <option key={a} value={a}>{a}</option>)}
-                        </select>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <button type="button" disabled={idx === 0} onClick={() => { const seq = [...angleSequence];[seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]; setAngleSequence(seq) }} style={{ width: '20px', height: '16px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
-                          <button type="button" disabled={idx >= imagesPerLook - 1} onClick={() => { const seq = [...angleSequence];[seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]; setAngleSequence(seq) }} style={{ width: '20px', height: '16px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx >= imagesPerLook - 1 ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Angle sequence</label>
+                    <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>The order your photographer shoots each angle in the studio.</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      {angleSequence.map((angle, idx) => {
+                        const s = ANGLE_STYLE[angle] ?? { bg: 'rgba(0,0,0,0.05)', color: '#6e6e73', dot: '#aeaeb2' }
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ width: '18px', fontSize: '11px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.dot, flexShrink: 0 }} />
+                            <select
+                              value={angle}
+                              onChange={(e) => { const seq = [...angleSequence]; seq[idx] = e.target.value; setAngleSequence(seq) }}
+                              style={{ flex: 1, background: s.bg, border: `1px solid ${s.color}30`, borderRadius: '8px', padding: '5px 10px', fontSize: '13px', fontWeight: 500, color: s.color, outline: 'none', cursor: 'pointer' }}
+                            >
+                              {ALL_ANGLES.map((a) => <option key={a} value={a}>{a}</option>)}
+                            </select>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <button type="button" disabled={idx === 0} onClick={() => { const seq = [...angleSequence];[seq[idx-1],seq[idx]]=[seq[idx],seq[idx-1]]; setAngleSequence(seq) }} style={{ width: '20px', height: '16px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
+                              <button type="button" disabled={idx >= imagesPerLook - 1} onClick={() => { const seq = [...angleSequence];[seq[idx],seq[idx+1]]=[seq[idx+1],seq[idx]]; setAngleSequence(seq) }} style={{ width: '20px', height: '16px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx >= imagesPerLook - 1 ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Still Life */}
+              {shootTab === 'still-life' && (
+                <>
+                  <div>
+                    <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Images per look — Still Life</label>
+                    <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>Default image count for still life / accessory shoots.</p>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => setStillLifeImagesPerLook(n)}
+                          style={{
+                            width: '40px', height: '40px', borderRadius: '10px', border: 'none', fontSize: '14px',
+                            fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+                            background: stillLifeImagesPerLook === n ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
+                            color: stillLifeImagesPerLook === n ? '#f5f5f7' : '#6e6e73',
+                            boxShadow: stillLifeImagesPerLook === n ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                          }}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Angle sequences by category</label>
+                    <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>Override the default angle order per accessory type. Leave collapsed to use category defaults.</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {ACCESSORY_CATEGORIES.filter((cat) => cat.id !== 'ghost-mannequin').map((cat) => {
+                        const customSeq = stillLifeAngleSequences[cat.id]
+                        const isExpanded = expandedCat === cat.id
+                        const hasCustom = customSeq && customSeq.length > 0
+                        const activeSeq = hasCustom ? customSeq : cat.angles
+
+                        return (
+                          <div key={cat.id} style={{ border: '1px solid rgba(0,0,0,0.09)', borderRadius: '10px', overflow: 'hidden' }}>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedCat(isExpanded ? null : cat.id)}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f' }}>{cat.label}</span>
+                                {hasCustom
+                                  ? <span style={{ fontSize: '11px', fontWeight: 500, color: '#0071e3', background: 'rgba(0,113,227,0.08)', padding: '1px 7px', borderRadius: '20px' }}>custom</span>
+                                  : <span style={{ fontSize: '11px', color: '#aeaeb2' }}>{cat.angles.join(' · ')}</span>
+                                }
+                              </div>
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#aeaeb2" strokeWidth="1.5" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }}>
+                                <path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </button>
+
+                            {isExpanded && (
+                              <div style={{ padding: '4px 14px 12px', borderTop: '0.5px solid rgba(0,0,0,0.07)', background: 'rgba(0,0,0,0.02)' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px' }}>
+                                  {activeSeq.map((angle, idx) => (
+                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <span style={{ width: '16px', fontSize: '11px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
+                                      <select
+                                        value={angle}
+                                        onChange={(e) => {
+                                          const seq = [...activeSeq]
+                                          seq[idx] = e.target.value
+                                          setStillLifeAngleSequences((prev) => ({ ...prev, [cat.id]: seq }))
+                                        }}
+                                        style={{ flex: 1, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: '7px', padding: '4px 8px', fontSize: '12px', color: '#1d1d1f', outline: 'none', cursor: 'pointer' }}
+                                      >
+                                        {STILL_LIFE_ANGLES.map((a) => <option key={a} value={a}>{a}</option>)}
+                                      </select>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        <button type="button" disabled={idx === 0} onClick={() => { const seq=[...activeSeq];[seq[idx-1],seq[idx]]=[seq[idx],seq[idx-1]]; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '14px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx===0?0.2:1, display:'flex', alignItems:'center', justifyContent:'center' }}>▲</button>
+                                        <button type="button" disabled={idx >= activeSeq.length - 1} onClick={() => { const seq=[...activeSeq];[seq[idx],seq[idx+1]]=[seq[idx+1],seq[idx]]; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '14px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx>=activeSeq.length-1?0.2:1, display:'flex', alignItems:'center', justifyContent:'center' }}>▼</button>
+                                      </div>
+                                      <button type="button" onClick={() => { const seq=[...activeSeq]; seq.splice(idx,1); setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '18px', fontSize: '13px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <button type="button" onClick={() => { const seq=[...activeSeq, 'front']; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ fontSize: '12px', color: '#0071e3', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>+ Add angle</button>
+                                  {hasCustom && (
+                                    <button type="button" onClick={() => { const n={...stillLifeAngleSequences}; delete n[cat.id]; setStillLifeAngleSequences(n) }} style={{ fontSize: '12px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>Reset to default</button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
