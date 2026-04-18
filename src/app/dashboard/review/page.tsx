@@ -1508,36 +1508,65 @@ function ExportPanel({
             )}
           </div>
 
-          {/* Output structure preview */}
+          {/* Output structure preview — uses real naming template + real cluster data */}
           {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (
             <div className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-3 py-3 text-[0.72rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
-              <p className="text-[var(--text3)] mb-1">Output structure:</p>
+              <p className="text-[var(--text3)] mb-1">Output structure preview:</p>
               {selectedMarketplaces.slice(0, 2).map((m) => {
-                const rule = MARKETPLACE_RULES[m]
-                const folderN = rule.name.replace(/\s+/g, '_')
+                const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
+                const template = rule.naming_template || namingTemplate || '{BRAND}_{SEQ}_{VIEW}'
+                const mpFolder = rule.name.replace(/\s+/g, '_')
+                const brandCode = activeBrand?.brand_code ?? 'BRAND'
+                const supplierCode = activeBrand?.supplier_code ?? ''
+                const season = activeBrand?.season ?? ''
                 return (
-                  <div key={m} className="mb-1">
-                    <span className="text-[var(--accent)]">{folderN}/</span>
+                  <div key={m} className="mb-2">
+                    <span className="text-[var(--accent)]">{mpFolder}/</span>
                     {flatExport ? (
                       <>
-                        {confirmedClusters.slice(0, 3).map((c) => (
-                          <div key={c.id} className="pl-3 text-[var(--text3)]">└─ {c.sku || 'SKU'}_FRONT.jpg</div>
-                        ))}
-                        {confirmedClusters.length > 3 && <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 3} more)</div>}
+                        {confirmedClusters.slice(0, 3).map((c, ci) => {
+                          const firstView = c.images[0]?.viewLabel ?? 'front'
+                          const filename = applyNamingTemplate(template, {
+                            brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color,
+                            view: firstView, index: 1, supplierCode, season,
+                            styleNumber: c.styleNumber, colourCode: c.colourCode,
+                          }) + '.jpg'
+                          return <div key={c.id} className="pl-3 text-[var(--text3)]">└─ {filename}</div>
+                        })}
+                        {confirmedClusters.length > 3 && (
+                          <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 3} more files)</div>
+                        )}
                       </>
                     ) : (
                       <>
-                        {confirmedClusters.slice(0, 2).map((c) => (
-                          <div key={c.id} className="pl-3 text-[var(--text3)]">
-                            └─ {c.sku}/{c.sku}_FRONT_01.jpg …
-                          </div>
-                        ))}
-                        {confirmedClusters.length > 2 && <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more SKUs)</div>}
+                        {confirmedClusters.slice(0, 2).map((c, ci) => {
+                          const folderName = applyNamingTemplate(
+                            template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, '').replace(/_{ANGLE}/g, '').replace(/_{ANGLE_NUMBER}/g, ''),
+                            { brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color, view: '', index: 0, supplierCode, season, styleNumber: c.styleNumber, colourCode: c.colourCode }
+                          ).replace(/_+$/, '') || `${brandCode}_${String(ci + 1).padStart(3, '0')}`
+                          const firstView = c.images[0]?.viewLabel ?? 'front'
+                          const firstFile = applyNamingTemplate(template, {
+                            brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color,
+                            view: firstView, index: 1, supplierCode, season,
+                            styleNumber: c.styleNumber, colourCode: c.colourCode,
+                          }) + '.jpg'
+                          return (
+                            <div key={c.id} className="pl-3 text-[var(--text3)]">
+                              └─ <span className="text-[var(--text2)]">{folderName}/</span>{firstFile} …
+                            </div>
+                          )
+                        })}
+                        {confirmedClusters.length > 2 && (
+                          <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more folders)</div>
+                        )}
                       </>
                     )}
                   </div>
                 )
               })}
+              {selectedMarketplaces.length > 2 && (
+                <p className="text-[var(--text3)] mt-1">+ {selectedMarketplaces.length - 2} more marketplace{selectedMarketplaces.length - 2 !== 1 ? 's' : ''}</p>
+              )}
             </div>
           )}
 
