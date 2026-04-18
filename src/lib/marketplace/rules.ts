@@ -22,8 +22,8 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
     quality: 100,
     max_file_size_kb: 2000,
     background_color: '#FFFFFF',
-    naming_template: '{BRAND}_{SKU}_{COLOR}_{VIEW}',
-    naming_locked: false,
+    naming_template: '{SKU}_{INDEX}',
+    naming_locked: true,
   },
   'david-jones': {
     id: 'david-jones',
@@ -68,5 +68,5 @@ export function applyNamingTemplate(
     .replace('{SKU}', (vars.sku ?? 'SKU').toUpperCase())
     .replace('{COLOR}', (vars.color ?? 'CLR').toUpperCase().replace(/\s+/g, '-'))
     .replace('{VIEW}', (vars.view ?? 'FRONT').toUpperCase())
-    .replace('{INDEX}', String(vars.index ?? 1).padStart(2, '0'))
+    .replace('{INDEX}', String(vars.index ?? 1))
 }

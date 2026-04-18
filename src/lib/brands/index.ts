@@ -76,7 +76,7 @@ export const DEFAULT_NAMING_TEMPLATE = '{BRAND}_{SEQ}_{VIEW}'
 //   {COLOUR_CODE}   — numeric colour code per cluster (e.g. 062)
 //   {VIEW}          — angle label (e.g. FRONT, BACK, SIDE)
 //   {ANGLE}         — alias for {VIEW}
-//   {INDEX}         — image index within cluster, zero-padded (e.g. 01)
+//   {INDEX}         — image position within cluster, unpadded (e.g. 1, 2, 3)
 //   {ANGLE_NUMBER}  — alias for {INDEX}
 //   {SEASON}        — season code set on the brand (e.g. SS25)
 //   {CUSTOM_TEXT}   — fixed text string stored in the naming preset
@@ -99,7 +99,7 @@ export function applyNamingTemplate(
   const seq = String(vars.seq).padStart(3, '0')
   const sku = (vars.sku?.trim() || seq).toUpperCase()
   const view = vars.view.toUpperCase().replace(/-/g, '_')
-  const idx = String(vars.index).padStart(2, '0')
+  const idx = String(vars.index)
   const brand = vars.brand.toUpperCase()
   const color = (vars.color || '').toUpperCase()
   return (
