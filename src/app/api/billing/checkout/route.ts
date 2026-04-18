@@ -92,6 +92,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Cancel any existing active subscriptions so we don't end up with
+    // multiple subs firing conflicting webhook events.
+    const existing = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 10 })
+    await Promise.all(existing.data.map(sub => stripe.subscriptions.cancel(sub.id)))
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
