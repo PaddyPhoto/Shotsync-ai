@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET)
 
-    console.error('[webhook]', JSON.stringify({ type: event.type, meta: (event.data.object as Record<string, unknown>).metadata ?? null }))
+    console.error('[webhook]', JSON.stringify({ type: event.type, meta: (event.data.object as unknown as Record<string, unknown>).metadata ?? null }))
 
     // Use service role — webhook has no user session, verified by Stripe signature instead
     const { createServiceClient } = await import('@/lib/supabase/server')
