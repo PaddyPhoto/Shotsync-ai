@@ -273,11 +273,29 @@ export default function UploadPage() {
           </div>
         )}
 
-        <div className="mb-7">
-          <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
+        {/* Page header with decorative angle pills */}
+        <div style={{ marginBottom: '28px', borderRadius: '18px', background: 'linear-gradient(135deg, rgba(0,0,0,0.03) 0%, rgba(48,209,88,0.05) 50%, rgba(0,113,227,0.05) 100%)', border: '0.5px solid rgba(0,0,0,0.07)', padding: '24px 28px', position: 'relative', overflow: 'hidden' }}>
+          {/* Decorative floating pills */}
+          <div style={{ position: 'absolute', top: '16px', right: '24px', display: 'flex', gap: '6px', flexWrap: 'wrap', maxWidth: '340px', justifyContent: 'flex-end', pointerEvents: 'none' }}>
+            {[
+              { label: 'Front',       bg: 'rgba(48,209,88,0.12)',  color: '#1a8a35'  },
+              { label: 'Back',        bg: 'rgba(0,122,255,0.10)',  color: '#005fc4'  },
+              { label: 'Side',        bg: 'rgba(255,159,10,0.12)', color: '#c27800'  },
+              { label: 'Full-length', bg: 'rgba(175,82,222,0.10)', color: '#7b2fa8'  },
+              { label: 'Detail',      bg: 'rgba(255,59,48,0.10)',  color: '#c41c00'  },
+              { label: 'Mood',        bg: 'rgba(255,55,95,0.10)',  color: '#b8003c'  },
+              { label: 'Front 3/4',   bg: 'rgba(48,209,88,0.08)',  color: '#1a8a35'  },
+              { label: 'Back 3/4',    bg: 'rgba(0,122,255,0.08)',  color: '#005fc4'  },
+            ].map(({ label, bg, color }) => (
+              <span key={label} style={{ fontSize: '11px', fontWeight: 500, padding: '3px 9px', borderRadius: '20px', background: bg, color, letterSpacing: '-.1px', whiteSpace: 'nowrap' }}>
+                {label}
+              </span>
+            ))}
+          </div>
+          <h1 style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '5px' }}>
             New Upload
           </h1>
-          <p className="text-[0.88rem] text-[var(--text2)] mt-[6px]">
+          <p style={{ fontSize: '14px', color: '#6e6e73', maxWidth: '420px', lineHeight: 1.5 }}>
             Upload your shoot batch — images are clustered and organised automatically in your browser.
           </p>
         </div>
@@ -318,34 +336,72 @@ export default function UploadPage() {
               <div className="card-body flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-3">
                   {([
-                    { id: 'on-model', label: 'On-Model', desc: 'Clothing worn by a model — front, back, side, full-length, mood', icon: (
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <circle cx="10" cy="5" r="2.5"/>
-                        <path d="M6 20v-6l-2-4h12l-2 4v6" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M8 20v-5M12 20v-5" strokeLinecap="round"/>
-                      </svg>
-                    )},
-                    { id: 'still-life', label: 'Still Life', desc: 'Accessories & products shot without a model', icon: (
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="3" y="7" width="14" height="10" rx="1.5"/>
-                        <path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/>
-                        <circle cx="10" cy="12" r="1.5"/>
-                      </svg>
-                    )},
-                  ] as { id: ShootType; label: string; desc: string; icon: React.ReactNode }[]).map(({ id, label, desc, icon }) => (
+                    {
+                      id: 'on-model', label: 'On-Model',
+                      desc: 'Clothing worn by a model — front, back, side, full-length, mood',
+                      pills: ['Front', 'Back', 'Side', 'Full-length', 'Mood'],
+                      pillColors: [
+                        { bg: 'rgba(48,209,88,0.12)', color: '#1a8a35' },
+                        { bg: 'rgba(0,122,255,0.10)', color: '#005fc4' },
+                        { bg: 'rgba(255,159,10,0.12)', color: '#c27800' },
+                        { bg: 'rgba(175,82,222,0.10)', color: '#7b2fa8' },
+                        { bg: 'rgba(255,55,95,0.10)', color: '#b8003c' },
+                      ],
+                      icon: (
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <circle cx="10" cy="5" r="2.5"/>
+                          <path d="M6 20v-6l-2-4h12l-2 4v6" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M8 20v-5M12 20v-5" strokeLinecap="round"/>
+                        </svg>
+                      ),
+                      accent: '#30d158', accentBg: 'rgba(48,209,88,0.10)',
+                    },
+                    {
+                      id: 'still-life', label: 'Still Life',
+                      desc: 'Accessories & products shot without a model',
+                      pills: ['Front', 'Back', 'Side', 'Detail'],
+                      pillColors: [
+                        { bg: 'rgba(48,209,88,0.12)', color: '#1a8a35' },
+                        { bg: 'rgba(0,122,255,0.10)', color: '#005fc4' },
+                        { bg: 'rgba(255,159,10,0.12)', color: '#c27800' },
+                        { bg: 'rgba(255,59,48,0.10)', color: '#c41c00' },
+                      ],
+                      icon: (
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="7" width="14" height="10" rx="1.5"/>
+                          <path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/>
+                          <circle cx="10" cy="12" r="1.5"/>
+                        </svg>
+                      ),
+                      accent: '#0071e3', accentBg: 'rgba(0,113,227,0.10)',
+                    },
+                  ] as { id: ShootType; label: string; desc: string; pills: string[]; pillColors: {bg:string;color:string}[]; icon: React.ReactNode; accent: string; accentBg: string }[]).map(({ id, label, desc, pills, pillColors, icon, accent, accentBg }) => (
                     <button
                       key={id}
                       type="button"
                       onClick={() => { setShootType(id); if (id === 'on-model') { setAccessoryCategory(null); setStillLifeType(null) } }}
-                      className={`flex flex-col items-start gap-2 p-4 rounded-sm border text-left transition-all ${
-                        shootType === id
-                          ? 'border-[var(--accent)] bg-[rgba(74,158,255,0.06)] text-[var(--text)]'
-                          : 'border-[var(--line2)] bg-[var(--bg3)] text-[var(--text2)] hover:border-[var(--line)] hover:text-[var(--text)]'
-                      }`}
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px',
+                        padding: '16px', borderRadius: '12px', textAlign: 'left',
+                        border: shootType === id ? `1.5px solid ${accent}` : '1px solid rgba(0,0,0,0.08)',
+                        background: shootType === id ? accentBg : 'rgba(0,0,0,0.02)',
+                        transition: 'all 0.15s', cursor: 'pointer',
+                      }}
                     >
-                      <span className={shootType === id ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}>{icon}</span>
-                      <span className="text-[0.85rem] font-semibold">{label}</span>
-                      <span className="text-[0.72rem] text-[var(--text3)] leading-snug">{desc}</span>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: shootType === id ? accentBg : 'rgba(0,0,0,0.05)', color: shootType === id ? accent : '#aeaeb2', transition: 'all 0.15s' }}>
+                        {icon}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '3px' }}>{label}</p>
+                        <p style={{ fontSize: '12px', color: '#6e6e73', lineHeight: 1.4 }}>{desc}</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {pills.map((pill, i) => (
+                          <span key={pill} style={{ fontSize: '11px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: pillColors[i]?.bg, color: pillColors[i]?.color }}>
+                            {pill}
+                          </span>
+                        ))}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -382,7 +438,7 @@ export default function UploadPage() {
                       </button>
                     )}
                   </div>
-                  <div className="flex gap-2 mb-4">
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap' }}>
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                       <button
                         key={n}
@@ -395,11 +451,13 @@ export default function UploadPage() {
                             setAngleSequence(seq.slice(0, n))
                           }
                         }}
-                        className={`w-[40px] h-[40px] rounded-sm border text-[0.85rem] font-medium transition-all ${
-                          imagesPerLook === n
-                            ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.1)] text-[var(--accent)]'
-                            : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)] hover:text-[var(--text)] bg-[var(--bg3)]'
-                        }`}
+                        style={{
+                          width: '40px', height: '40px', borderRadius: '10px', border: 'none',
+                          fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+                          background: imagesPerLook === n ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
+                          color: imagesPerLook === n ? '#f5f5f7' : '#6e6e73',
+                          boxShadow: imagesPerLook === n ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                        }}
                       >
                         {n}
                       </button>
@@ -409,48 +467,68 @@ export default function UploadPage() {
                   {/* Angle sequence editor — on-model only */}
                   {shootType === 'on-model' && (
                     <div>
-                      <p className="text-[0.72rem] text-[var(--text3)] mb-2">Shoot sequence — set the order your photographer shoots each angle</p>
-                      <div className="flex flex-col gap-[6px]">
-                        {angleSequence.slice(0, imagesPerLook).map((angle, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <span className="w-5 text-[0.7rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
-                            <select
-                              value={angle}
-                              onChange={(e) => {
-                                const seq = [...angleSequence]
-                                seq[idx] = e.target.value
-                                setAngleSequence(seq)
-                              }}
-                              className="flex-1 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-2 py-[5px] text-[0.78rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
-                            >
-                              {ALL_ON_MODEL_ANGLES.map((a) => (
-                                <option key={a} value={a}>{a}</option>
-                              ))}
-                            </select>
-                            <div className="flex flex-col gap-[2px]">
-                              <button
-                                type="button"
-                                disabled={idx === 0}
-                                onClick={() => {
+                      <p className="text-[0.72rem] text-[var(--text3)] mb-3">Shoot sequence — set the order your photographer shoots each angle</p>
+                      <div className="flex flex-col gap-[5px]">
+                        {angleSequence.slice(0, imagesPerLook).map((angle, idx) => {
+                          const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = {
+                            'front':       { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', dot: '#30d158' },
+                            'back':        { bg: 'rgba(0,122,255,0.09)',  color: '#005fc4', dot: '#0071e3' },
+                            'side':        { bg: 'rgba(255,159,10,0.10)', color: '#c27800', dot: '#ff9f0a' },
+                            'full-length': { bg: 'rgba(175,82,222,0.10)', color: '#7b2fa8', dot: '#af52de' },
+                            'detail':      { bg: 'rgba(255,59,48,0.09)',  color: '#c41c00', dot: '#ff3b30' },
+                            'mood':        { bg: 'rgba(255,55,95,0.09)',  color: '#b8003c', dot: '#ff375f' },
+                            'front-3/4':   { bg: 'rgba(48,209,88,0.07)',  color: '#1a8a35', dot: '#30d158' },
+                            'back-3/4':    { bg: 'rgba(0,122,255,0.07)',  color: '#005fc4', dot: '#0071e3' },
+                          }
+                          const style = ANGLE_STYLE[angle] ?? { bg: 'rgba(0,0,0,0.05)', color: '#6e6e73', dot: '#aeaeb2' }
+                          return (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ width: '18px', fontSize: '11px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{idx + 1}</span>
+                              {/* Colored dot showing current angle */}
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: style.dot, flexShrink: 0 }} />
+                              <select
+                                value={angle}
+                                onChange={(e) => {
                                   const seq = [...angleSequence]
-                                  ;[seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]
+                                  seq[idx] = e.target.value
                                   setAngleSequence(seq)
                                 }}
-                                className="w-5 h-4 flex items-center justify-center text-[0.6rem] text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20"
-                              >▲</button>
-                              <button
-                                type="button"
-                                disabled={idx >= imagesPerLook - 1}
-                                onClick={() => {
-                                  const seq = [...angleSequence]
-                                  ;[seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]
-                                  setAngleSequence(seq)
+                                style={{
+                                  flex: 1, background: style.bg, border: `1px solid ${style.color}30`,
+                                  borderRadius: '8px', padding: '5px 10px',
+                                  fontSize: '13px', fontWeight: 500, color: style.color,
+                                  outline: 'none', cursor: 'pointer', appearance: 'auto',
                                 }}
-                                className="w-5 h-4 flex items-center justify-center text-[0.6rem] text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20"
-                              >▼</button>
+                              >
+                                {ALL_ON_MODEL_ANGLES.map((a) => (
+                                  <option key={a} value={a}>{a}</option>
+                                ))}
+                              </select>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => {
+                                    const seq = [...angleSequence]
+                                    ;[seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]
+                                    setAngleSequence(seq)
+                                  }}
+                                  style={{ width: '20px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.2 : 1 }}
+                                >▲</button>
+                                <button
+                                  type="button"
+                                  disabled={idx >= imagesPerLook - 1}
+                                  onClick={() => {
+                                    const seq = [...angleSequence]
+                                    ;[seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]
+                                    setAngleSequence(seq)
+                                  }}
+                                  style={{ width: '20px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx >= imagesPerLook - 1 ? 0.2 : 1 }}
+                                >▼</button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   )}
@@ -585,23 +663,34 @@ export default function UploadPage() {
                   onDragOver={(e) => { e.preventDefault(); setIsDraggingOver(true) }}
                   onDragLeave={() => setIsDraggingOver(false)}
                   onDrop={onDrop}
-                  className={`border-2 border-dashed rounded-md transition-all duration-150 ${
-                    isDraggingOver
-                      ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.05)]'
-                      : files.length > 0 ? 'border-[var(--line2)] bg-[var(--bg3)]' : 'border-[var(--line2)] hover:border-[var(--line)] bg-[var(--bg3)]'
-                  }`}
+                  style={{
+                    borderRadius: '14px',
+                    border: isDraggingOver ? '2px dashed #30d158' : '2px dashed rgba(0,0,0,0.10)',
+                    background: isDraggingOver ? 'rgba(48,209,88,0.04)' : 'rgba(0,0,0,0.02)',
+                    transition: 'all 0.15s',
+                  }}
                 >
                   {files.length === 0 ? (
-                    <div onClick={() => inputRef.current?.click()} className="py-12 flex flex-col items-center gap-3 cursor-pointer">
-                      <div className="w-12 h-12 rounded-full bg-[var(--bg4)] border border-[var(--line2)] flex items-center justify-center">
-                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--text3)" strokeWidth="1.5">
-                          <path d="M11 16V6M7 10l4-4 4 4" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M4 18h14" strokeLinecap="round"/>
-                        </svg>
+                    <div onClick={() => inputRef.current?.click()} className="py-12 flex flex-col items-center gap-4 cursor-pointer">
+                      <div style={{ position: 'relative' }}>
+                        <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(48,209,88,0.15), rgba(0,113,227,0.15))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.5">
+                            <path d="M12 17V7M8 11l4-4 4 4" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M5 20h14" strokeLinecap="round"/>
+                          </svg>
+                        </div>
+                        {/* Small decorative image squares */}
+                        <div style={{ position: 'absolute', top: '-6px', right: '-10px', width: '20px', height: '20px', borderRadius: '5px', background: 'rgba(48,209,88,0.15)', border: '1px solid rgba(48,209,88,0.3)' }} />
+                        <div style={{ position: 'absolute', bottom: '-4px', left: '-10px', width: '16px', height: '16px', borderRadius: '4px', background: 'rgba(0,113,227,0.12)', border: '1px solid rgba(0,113,227,0.2)' }} />
                       </div>
                       <div className="text-center">
-                        <p className="text-[0.88rem] font-medium text-[var(--text)]">Drop images here</p>
-                        <p className="text-[0.78rem] text-[var(--text3)] mt-1">or click to browse · JPG, PNG · 500–1000+ supported</p>
+                        <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Drop images here</p>
+                        <p style={{ fontSize: '13px', color: '#aeaeb2' }}>or click to browse · JPG, PNG, HEIC · 500–1000+ images supported</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {['JPG', 'PNG', 'WebP', 'HEIC'].map((fmt) => (
+                          <span key={fmt} style={{ fontSize: '11px', fontWeight: 500, padding: '2px 8px', borderRadius: '20px', background: 'rgba(0,0,0,0.05)', color: '#6e6e73' }}>{fmt}</span>
+                        ))}
                       </div>
                     </div>
                   ) : (

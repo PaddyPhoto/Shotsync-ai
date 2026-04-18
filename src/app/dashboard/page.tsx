@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<LifetimeStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [orgName, setOrgName] = useState<string | null>(null)
-  const { activeBrand } = useBrand()
+  const { activeBrand, brands, isLoading: brandsLoading } = useBrand()
   const { rules } = useMarketplaceRules()
   const { clusters, isReady } = useSession((s) => ({ clusters: s.clusters, isReady: s.isReady }))
 
@@ -94,6 +94,8 @@ export default function DashboardPage() {
     return 'Good evening'
   })()
 
+  const noBrands = !brandsLoading && brands.length === 0
+
   return (
     <div>
       <Topbar
@@ -117,6 +119,46 @@ export default function DashboardPage() {
         <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>
           {loading ? 'Loading…' : `${jobs.length} recent jobs\u00a0·\u00a0${warningClusters.length} clusters need attention`}
         </p>
+
+        {/* Brand setup prompt — shown only when no brands exist */}
+        {noBrands && (
+          <div style={{
+            marginBottom: '20px',
+            borderRadius: '18px',
+            border: '0.5px solid rgba(0,113,227,0.2)',
+            background: 'linear-gradient(135deg, rgba(0,113,227,0.05) 0%, rgba(48,209,88,0.05) 100%)',
+            padding: '28px 32px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '24px',
+          }}>
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '14px', background: '#1d1d1f',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="1.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '17px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.3px', marginBottom: '4px' }}>
+                Start by setting up your brand
+              </p>
+              <p style={{ fontSize: '14px', color: '#6e6e73', letterSpacing: '-.1px' }}>
+                Brands organise your shoots, naming rules, and exports. You need at least one before uploading images.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/settings?tab=brands"
+              className="btn btn-primary"
+              style={{ flexShrink: 0, fontSize: '15px', padding: '9px 20px' }}
+            >
+              Set up brand
+            </Link>
+          </div>
+        )}
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '20px' }}>

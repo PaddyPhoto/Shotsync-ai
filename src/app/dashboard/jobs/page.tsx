@@ -16,10 +16,20 @@ interface JobRecord {
   brands?: { name: string; brand_code: string; logo_color: string } | null
 }
 
+const STATUS_MAP: Record<string, { bg: string; color: string; label: string }> = {
+  completed:  { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', label: 'Completed'  },
+  complete:   { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', label: 'Completed'  },
+  processing: { bg: 'rgba(0,122,255,0.08)',  color: '#005fc4', label: 'Processing' },
+  review:     { bg: 'rgba(255,159,10,0.10)', color: '#c27800', label: 'Needs Review' },
+  failed:     { bg: 'rgba(255,59,48,0.08)',  color: '#c41c00', label: 'Failed'     },
+  error:      { bg: 'rgba(255,59,48,0.08)',  color: '#c41c00', label: 'Error'      },
+}
+
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const { activeBrand } = useBrand()
 
   const fetchJobs = (token?: string) => {
@@ -41,11 +51,11 @@ export default function JobsPage() {
       fetchJobs(session?.access_token)
     ).catch(() => setJobs([]))
       .finally(() => setLoading(false))
-  }, [activeBrand?.id])
+  }, [activeBrand?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDelete = async (jobId: string) => {
-    if (!confirm('Delete this job from history?')) return
     setDeletingId(jobId)
+    setConfirmDeleteId(null)
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const { data: { session } } = await createClient().auth.getSession()
@@ -64,12 +74,12 @@ export default function JobsPage() {
       <Topbar
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Job History' },
+          { label: 'All Jobs' },
         ]}
         actions={
           <Link href="/dashboard/upload" className="btn btn-primary">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M7 12V4M4 7l3-3 3 3" strokeLinecap="round"/>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12l7-7 7 7"/>
             </svg>
             New Upload
           </Link>
@@ -77,100 +87,162 @@ export default function JobsPage() {
       />
 
       <div className="p-7">
-        <div className="mb-7">
-          <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
-            Job History
+        <div className="mb-6">
+          <h1 style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '3px' }}>
+            All Jobs
           </h1>
           {!loading && (
-            <p className="text-[0.88rem] text-[var(--text2)] mt-[6px]">
-              {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} saved
+            <p style={{ fontSize: '14px', color: '#aeaeb2' }}>
+              {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} — click any row to open
             </p>
           )}
         </div>
 
         {loading ? (
-          <div className="text-[0.85rem] text-[var(--text3)]">Loading…</div>
+          <div style={{ fontSize: '14px', color: '#aeaeb2' }}>Loading…</div>
         ) : jobs.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-12 h-12 bg-[var(--bg2)] rounded-md flex items-center justify-center mx-auto mb-4">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--text3)" strokeWidth="1.5">
+          <div style={{ textAlign: 'center', padding: '64px 0' }}>
+            <div style={{ width: '48px', height: '48px', background: 'rgba(0,0,0,0.04)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#aeaeb2" strokeWidth="1.5">
                 <rect x="2" y="2" width="7" height="9" rx="1.5"/>
                 <rect x="11" y="2" width="7" height="7" rx="1.5"/>
                 <rect x="11" y="11" width="7" height="7" rx="1.5"/>
                 <rect x="2" y="13" width="7" height="5" rx="1.5"/>
               </svg>
             </div>
-            <p className="text-[0.88rem] text-[var(--text2)] font-medium">No jobs yet</p>
-            <p className="text-[0.78rem] text-[var(--text3)] mt-1">
-              Completed exports will appear here.
-            </p>
-            <Link href="/dashboard/upload" className="btn btn-primary mt-4 inline-flex">
-              Start a shoot
-            </Link>
+            <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>No jobs yet</p>
+            <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '16px' }}>Completed jobs will appear here.</p>
+            <Link href="/dashboard/upload" className="btn btn-primary">Start a shoot</Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
-            {jobs.map((job) => (
-              <div
-                key={job.id}
-                className="flex items-center gap-[14px] bg-[var(--bg2)] border border-[var(--line)] rounded-md px-[18px] py-[14px]"
-              >
-                {/* Brand colour dot or generic icon */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {jobs.map((job) => {
+              const chip = STATUS_MAP[job.status] ?? STATUS_MAP.completed
+              const isDeleting = deletingId === job.id
+              const isConfirming = confirmDeleteId === job.id
+
+              return (
                 <div
-                  className="w-10 h-10 rounded-sm flex items-center justify-center flex-shrink-0"
-                  style={{ background: job.brands?.logo_color ? `${job.brands.logo_color}22` : 'var(--bg3)' }}
+                  key={job.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    background: 'rgba(255,255,255,0.8)',
+                    border: '0.5px solid rgba(0,0,0,0.08)',
+                    borderRadius: '14px',
+                    padding: '0',
+                    backdropFilter: 'blur(8px)',
+                    overflow: 'hidden',
+                  }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-                    stroke={job.brands?.logo_color ?? 'var(--text3)'} strokeWidth="1.5">
-                    <rect x="2" y="2" width="6" height="8" rx="1"/>
-                    <rect x="10" y="2" width="6" height="6" rx="1"/>
-                    <rect x="10" y="10" width="6" height="6" rx="1"/>
-                    <rect x="2" y="12" width="6" height="4" rx="1"/>
-                  </svg>
-                </div>
+                  {/* Clickable main area */}
+                  <Link
+                    href={`/dashboard/jobs/${job.id}`}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      padding: '14px 18px',
+                      textDecoration: 'none',
+                      minWidth: 0,
+                    }}
+                    className="group"
+                  >
+                    {/* Brand colour icon */}
+                    <div style={{
+                      width: '38px', height: '38px', borderRadius: '10px', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: job.brands?.logo_color ? `${job.brands.logo_color}22` : 'rgba(0,0,0,0.04)',
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 18 18" fill="none"
+                        stroke={job.brands?.logo_color ?? '#aeaeb2'} strokeWidth="1.5">
+                        <rect x="2" y="2" width="6" height="8" rx="1"/>
+                        <rect x="10" y="2" width="6" height="6" rx="1"/>
+                        <rect x="10" y="10" width="6" height="6" rx="1"/>
+                        <rect x="2" y="12" width="6" height="4" rx="1"/>
+                      </svg>
+                    </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-[0.88rem] font-medium text-[var(--text)] truncate">{job.job_name}</p>
-                  <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">
-                    {job.image_count} images · {job.cluster_count} clusters
-                    {job.brands && <> · <span className="text-[var(--text2)]">{job.brands.name}</span></>}
-                  </p>
-                </div>
+                    {/* Name + meta */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {job.job_name}
+                      </p>
+                      <p style={{ fontSize: '13px', color: '#aeaeb2', marginTop: '2px' }}>
+                        {job.image_count} images · {job.cluster_count} clusters
+                        {job.brands && <> · <span style={{ color: '#6e6e73' }}>{job.brands.name}</span></>}
+                        {job.marketplaces?.length > 0 && <> · {job.marketplaces.length} marketplace{job.marketplaces.length !== 1 ? 's' : ''}</>}
+                      </p>
+                    </div>
 
-                <div className="flex-shrink-0 text-right">
-                  <p className="text-[0.75rem] text-[var(--text3)]">
-                    {new Date(job.created_at).toLocaleDateString('en-AU', {
-                      day: 'numeric', month: 'short', year: 'numeric',
-                    })}
-                  </p>
-                  {job.marketplaces.length > 0 && (
-                    <p className="text-[0.72rem] text-[var(--text3)] mt-[2px]">
-                      {job.marketplaces.length} marketplace{job.marketplaces.length !== 1 ? 's' : ''}
+                    {/* Date */}
+                    <p style={{ fontSize: '13px', color: '#aeaeb2', flexShrink: 0 }}>
+                      {new Date(job.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
-                  )}
-                </div>
 
-                <span className="chip chip-ready flex-shrink-0">Exported</span>
+                    {/* Status chip */}
+                    <span style={{
+                      flexShrink: 0,
+                      fontSize: '12px', fontWeight: 500,
+                      padding: '3px 9px', borderRadius: '6px',
+                      background: chip.bg, color: chip.color,
+                      letterSpacing: '-.1px',
+                    }}>
+                      {chip.label}
+                    </span>
 
-                <button
-                  onClick={() => handleDelete(job.id)}
-                  disabled={deletingId === job.id}
-                  className="flex-shrink-0 p-1.5 rounded text-[var(--text3)] hover:text-[var(--accent3)] hover:bg-[rgba(232,122,122,0.08)] transition-colors disabled:opacity-40"
-                  title="Delete job"
-                >
-                  {deletingId === job.id ? (
-                    <div className="w-[14px] h-[14px] border border-current border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M2 3.5h10M5.5 3.5V2.5h3v1M5 3.5l.5 8M9 3.5l-.5 8" strokeLinecap="round" strokeLinejoin="round"/>
+                    {/* Chevron */}
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#aeaeb2" strokeWidth="1.5" style={{ flexShrink: 0, transition: 'transform 0.15s' }} className="group-hover:translate-x-[2px]">
+                      <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                  )}
-                </button>
-              </div>
-            ))}
+                  </Link>
+
+                  {/* Delete zone — separated so it doesn't navigate */}
+                  <div style={{ padding: '0 14px 0 0', flexShrink: 0 }}>
+                    {isConfirming ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '12px', color: '#ff3b30' }}>Delete?</span>
+                        <button
+                          onClick={() => handleDelete(job.id)}
+                          style={{ fontSize: '12px', fontWeight: 500, color: '#fff', background: '#ff3b30', border: 'none', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer' }}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          style={{ fontSize: '12px', color: '#6e6e73', background: 'transparent', border: 'none', padding: '3px 4px', cursor: 'pointer' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(job.id)}
+                        disabled={isDeleting}
+                        title="Delete job"
+                        style={{ padding: '6px', borderRadius: '6px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: isDeleting ? 0.4 : 1 }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,59,48,0.08)'; (e.currentTarget as HTMLElement).style.color = '#ff3b30' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#aeaeb2' }}
+                      >
+                        {isDeleting ? (
+                          <div style={{ width: '14px', height: '14px', border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                        ) : (
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M2 3.5h10M5.5 3.5V2.5h3v1M5 3.5l.5 8M9 3.5l-.5 8" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 }

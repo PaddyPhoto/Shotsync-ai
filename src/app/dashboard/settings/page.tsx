@@ -114,6 +114,7 @@ function SettingsInner() {
   }
 
   const { rules, updateRule, resetRule, resetAll, saved } = useMarketplaceRules()
+  const [confirmResetAll, setConfirmResetAll] = useState(false)
 
   const [orgRole, setOrgRole] = useState<string | null>(null)
   const canSeeBilling = !orgRole || orgRole === 'owner' || orgRole === 'admin'
@@ -685,15 +686,31 @@ function SettingsInner() {
                 Changes save automatically to your browser.
               </p>
               <div className="flex items-center gap-3">
-                {saved && (
+                {saved && !confirmResetAll && (
                   <span className="text-[0.75rem] text-[var(--accent2)] flex items-center gap-1">
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
                     Saved
                   </span>
                 )}
-                <button onClick={resetAll} className="btn btn-ghost btn-sm">
-                  Reset all to defaults
-                </button>
+                {confirmResetAll ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[0.75rem] text-[#ff3b30]">Reset all 4 rules to defaults?</span>
+                    <button
+                      onClick={() => { resetAll(); setConfirmResetAll(false) }}
+                      className="btn btn-sm"
+                      style={{ background: '#ff3b30', color: '#fff', borderColor: 'transparent' }}
+                    >
+                      Reset
+                    </button>
+                    <button onClick={() => setConfirmResetAll(false)} className="btn btn-ghost btn-sm">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setConfirmResetAll(true)} className="btn btn-ghost btn-sm">
+                    Reset all to defaults
+                  </button>
+                )}
               </div>
             </div>
 
