@@ -213,7 +213,7 @@ function SettingsInner() {
   }
 
   // Brands tab state
-  const { brands, setBrands, refreshBrands } = useBrand()
+  const { brands, setBrands, refreshBrands, activeBrand } = useBrand()
   const [brandModal, setBrandModal] = useState<'add' | 'edit' | null>(null)
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
   const [brandForm, setBrandForm] = useState({
@@ -946,14 +946,16 @@ function SettingsInner() {
                         className="text-[0.75rem] text-[var(--text2)] truncate"
                         style={{ fontFamily: 'var(--font-dm-mono)' }}
                       >
-                        {rule.naming_template
-                          .replace('{BRAND}', 'BRAND')
-                          .replace('{SKU}', 'TOP-BLK-001')
-                          .replace('{COLOR}', 'BLACK')
-                          .replace('{VIEW}', 'FRONT')
-                          .replace('{INDEX}', '01')
-                          .toUpperCase()}
-                        .{rule.file_format}
+                        {applyNamingTemplate(rule.naming_template, {
+                          brand: activeBrand?.brand_code ?? 'BRAND',
+                          sku: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001',
+                          color: 'BLACK',
+                          view: activeBrand?.on_model_angle_sequence?.[0] ?? 'front',
+                          seq: 1,
+                          index: 1,
+                          styleNumber: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001',
+                          colourCode: '001',
+                        })}.{rule.file_format}
                       </span>
                       <span className="text-[0.7rem] text-[var(--text3)] flex-shrink-0 ml-auto" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                         {rule.image_dimensions.width}×{rule.image_dimensions.height} · Q{rule.quality}
