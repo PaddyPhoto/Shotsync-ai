@@ -174,7 +174,11 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
         }
 
         // Pipeline job not found — try job_history (exported sessions are saved there)
-        const histRes = await fetch(`/api/jobs/history/${params.jobId}`)
+        const { createClient } = await import('@/lib/supabase/client')
+        const { data: { session } } = await createClient().auth.getSession()
+        const histRes = await fetch(`/api/jobs/history/${params.jobId}`, {
+          headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+        })
         if (histRes.ok) {
           const { data: histData } = await histRes.json()
           if (histData) {
