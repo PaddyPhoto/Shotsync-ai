@@ -109,24 +109,31 @@ function ReviewPage() {
       [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: true, open: true, error: undefined },
     }))
 
-    // Convert the hero (front) image to base64 so GPT-4o vision can see the garment.
-    // Uses the previewUrl (blob URL) which is valid as long as the session is in memory.
+    // Convert the hero (front) image to a compressed JPEG base64 for GPT-4o vision.
+    // Images are resized to max 1024px on the long edge and re-encoded at 0.7 quality
+    // to keep the payload well under Next.js/Vercel's 4MB body limit.
     let heroImage: string | undefined
     const heroImg = cluster.images.find((img) => img.viewLabel === 'front') ?? cluster.images[0]
     if (heroImg?.previewUrl) {
       try {
         heroImage = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = () => {
-            const result = reader.result as string
-            // strip "data:image/...;base64,"
-            resolve(result.split(',')[1])
-          }
-          reader.onerror = reject
-          // Fetch the blob URL and read it as a data URL
           fetch(heroImg.previewUrl)
             .then((r) => r.blob())
-            .then((blob) => reader.readAsDataURL(blob))
+            .then((blob) => {
+              const img = new Image()
+              img.onload = () => {
+                const MAX = 1024
+                const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+                const canvas = document.createElement('canvas')
+                canvas.width = Math.round(img.width * scale)
+                canvas.height = Math.round(img.height * scale)
+                canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+                resolve(dataUrl.split(',')[1])
+              }
+              img.onerror = reject
+              img.src = URL.createObjectURL(blob)
+            })
             .catch(reject)
         })
       } catch { /* proceed without image */ }
@@ -145,9 +152,14 @@ function ReviewPage() {
           heroImage,
         }),
       })
-      const data = await res.json()
+      // Read as text first — if the server returns a non-JSON error page (e.g. 413 "Request Entity
+      // Too Large") calling res.json() directly would throw a misleading SyntaxError.
+      const text = await res.text()
+      let data: Record<string, unknown> = {}
+      try { data = JSON.parse(text) } catch { /* non-JSON response */ }
+
       if (!res.ok) {
-        const errMsg = data.error ?? `Request failed (${res.status})`
+        const errMsg = (data.error as string) ?? `Server error ${res.status}`
         setClusterCopy((prev) => ({
           ...prev,
           [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: false, open: true, error: errMsg },
@@ -156,7 +168,7 @@ function ReviewPage() {
       }
       setClusterCopy((prev) => ({
         ...prev,
-        [cluster.id]: { title: data.title ?? '', description: data.description ?? '', bullets: data.bullets ?? [], loading: false, open: true, error: undefined },
+        [cluster.id]: { title: (data.title as string) ?? '', description: (data.description as string) ?? '', bullets: Array.isArray(data.bullets) ? data.bullets as string[] : [], loading: false, open: true, error: undefined },
       }))
       return true
     } catch (err) {
