@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
+import type { CloudConnections } from '@/lib/cloud/types'
 
 export interface Brand {
   id: string
@@ -16,6 +17,8 @@ export interface Brand {
   still_life_angle_sequences: Record<string, string[]>  // keyed by accessory category id
   naming_template: string
   gm_position: 'first' | 'last' | null
+  /** Cloud storage connections (Dropbox, Google Drive, S3) stored per brand */
+  cloud_connections: CloudConnections | null
   created_at: string
 }
 
@@ -143,6 +146,7 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
+    cloud_connections: null,
     created_at: new Date().toISOString(),
   },
   {
@@ -161,6 +165,7 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
+    cloud_connections: null,
     created_at: new Date().toISOString(),
   },
   {
@@ -179,6 +184,7 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
+    cloud_connections: null,
     created_at: new Date().toISOString(),
   },
 ]

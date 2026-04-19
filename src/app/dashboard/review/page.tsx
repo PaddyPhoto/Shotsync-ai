@@ -1213,8 +1213,9 @@ function ExportPanel({
   const folderRef = useRef<any>(null)
   const [folderName, setFolderName] = useState<string | null>(null)
   const [fsaSupported] = useState(() => typeof window !== 'undefined' && typeof (window as any).showDirectoryPicker === 'function')
-  const [exportMode, setExportMode] = useState<'zip' | 'folder'>('zip')
+  const [exportMode, setExportMode] = useState<'zip' | 'folder' | 'dropbox' | 'google-drive' | 's3'>('zip')
   const [flatExport, setFlatExport] = useState(false)
+  const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
   const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
   const confirmedClusters = clusters.filter((c) => c.confirmed)
@@ -1388,7 +1389,7 @@ function ExportPanel({
         await csvWritable.close()
       }
 
-    } else {
+    } else if (exportMode === 'zip') {
       // ── ZIP download: batch by 2 marketplaces when job exceeds safe memory limit ──
       const SAFE_OUTPUT_LIMIT = 1200
       const marketplacesPerBatch = sourceImageCount * selectedMarketplaces.length > SAFE_OUTPUT_LIMIT
@@ -1457,15 +1458,133 @@ function ExportPanel({
         // Let browser GC the old ZIP before starting the next batch
         if (batchIdx < batches.length - 1) await new Promise((r) => setTimeout(r, 800))
       }
+    } else if (exportMode === 'dropbox' || exportMode === 'google-drive' || exportMode === 's3') {
+      // ── Cloud export: upload directly to the configured cloud destination ────
+      const cloudLib = exportMode === 'dropbox'
+        ? await import('@/lib/cloud/dropbox')
+        : exportMode === 'google-drive'
+          ? await import('@/lib/cloud/google-drive')
+          : null
+
+      // For S3: get presigned PUT URLs from server
+      let s3PresignedUrls: Record<string, string> = {}
+      if (exportMode === 's3') {
+        const { createClient } = await import('@/lib/supabase/client')
+        const { data: { session } } = await createClient().auth.getSession()
+        const allKeys: string[] = []
+        for (const marketplace of selectedMarketplaces) {
+          const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
+          const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
+          const tasks = buildTasks(template)
+          for (const { cluster, seq, img, imgIdx } of tasks) {
+            const filename = applyNamingTemplate(template, {
+              brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
+              view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+              styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+            }) + '.jpg'
+            const mpFolder = rule.name.replace(/\s+/g, '_')
+            allKeys.push(`${mpFolder}/${filename}`)
+          }
+        }
+        const presignRes = await fetch('/api/integrations/s3/presign', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({ brandId: activeBrand?.id, keys: allKeys }),
+        })
+        if (presignRes.ok) {
+          const { urls } = await presignRes.json()
+          s3PresignedUrls = urls ?? {}
+        }
+      }
+
+      // Dropbox: get access token (may need refresh)
+      let dropboxToken = activeBrand?.cloud_connections?.dropbox?.access_token ?? ''
+      // Google Drive: get current token from in-memory session (set during chooser) or from stored token
+      let driveToken = ''
+      if (exportMode === 'google-drive') {
+        const { getCurrentGoogleToken } = await import('@/lib/cloud/google-drive')
+        driveToken = getCurrentGoogleToken() ?? activeBrand?.cloud_connections?.google_drive?.access_token ?? ''
+      }
+
+      // Create root folder in Dropbox/Drive named after the job
+      let dropboxRootPath = `/${jobName || 'ShotSync Export'}`
+      let driveRootFolderId: string | undefined
+      if (exportMode === 'dropbox' && cloudLib && 'ensureDropboxFolder' in cloudLib) {
+        await (cloudLib as typeof import('@/lib/cloud/dropbox')).ensureDropboxFolder(dropboxToken, dropboxRootPath)
+      } else if (exportMode === 'google-drive' && cloudLib && 'createDriveFolder' in cloudLib) {
+        driveRootFolderId = await (cloudLib as typeof import('@/lib/cloud/google-drive')).createDriveFolder(driveToken, jobName || 'ShotSync Export')
+      }
+
+      let cloudDone = 0
+      let cloudErrors = 0
+      const cloudTotal = confirmedClusters.reduce((s, c) => s + c.images.length, 0) * selectedMarketplaces.length
+      setCloudExportStatus({ done: 0, total: cloudTotal, errors: 0 })
+
+      for (const marketplace of selectedMarketplaces) {
+        const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
+        const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
+        const mpFolderName = rule.name.replace(/\s+/g, '_')
+
+        // Create per-marketplace subfolder
+        let driveMpFolderId: string | undefined
+        if (exportMode === 'dropbox' && cloudLib && 'ensureDropboxFolder' in cloudLib) {
+          await (cloudLib as typeof import('@/lib/cloud/dropbox')).ensureDropboxFolder(dropboxToken, `${dropboxRootPath}/${mpFolderName}`)
+        } else if (exportMode === 'google-drive' && cloudLib && 'createDriveFolder' in cloudLib) {
+          driveMpFolderId = await (cloudLib as typeof import('@/lib/cloud/google-drive')).createDriveFolder(driveToken, mpFolderName, driveRootFolderId)
+        }
+
+        const tasks = buildTasks(template)
+        for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+          await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx }) => {
+            try {
+              const buffer = await processImageOnCanvas(
+                img.file, rule.image_dimensions.width, rule.image_dimensions.height,
+                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
+              )
+              const filename = applyNamingTemplate(template, {
+                brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
+                view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+              }) + '.jpg'
+
+              if (exportMode === 'dropbox' && cloudLib && 'uploadToDropbox' in cloudLib) {
+                await (cloudLib as typeof import('@/lib/cloud/dropbox')).uploadToDropbox(
+                  dropboxToken, `${dropboxRootPath}/${mpFolderName}/${filename}`, buffer
+                )
+              } else if (exportMode === 'google-drive' && cloudLib && 'uploadToDrive' in cloudLib) {
+                await (cloudLib as typeof import('@/lib/cloud/google-drive')).uploadToDrive(
+                  driveToken, filename, buffer, driveMpFolderId
+                )
+              } else if (exportMode === 's3') {
+                const s3Key = `${mpFolderName}/${filename}`
+                const presignedUrl = s3PresignedUrls[s3Key]
+                if (presignedUrl) {
+                  const res = await fetch(presignedUrl, { method: 'PUT', body: buffer, headers: { 'Content-Type': 'image/jpeg' } })
+                  if (!res.ok) throw new Error(`S3 PUT failed: ${res.status}`)
+                }
+              }
+            } catch {
+              cloudErrors++
+            }
+            cloudDone++
+            setCloudExportStatus({ done: cloudDone, total: cloudTotal, errors: cloudErrors })
+            doneCount++
+            setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
+          }))
+        }
+      }
     }
 
     recordExport()
 
-    // Save job to history (best-effort — don't block or fail export)
+    // Save job to history + persist session to IndexedDB (best-effort — don't block export)
     import('@/lib/supabase/client').then(({ createClient }) =>
       createClient().auth.getSession()
-    ).then(({ data: { session } }) =>
-      fetch('/api/jobs/history', {
+    ).then(async ({ data: { session } }) => {
+      const res = await fetch('/api/jobs/history', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1479,7 +1598,16 @@ function ExportPanel({
           brand_id: activeBrand?.id ?? null,
         }),
       })
-    ).catch(() => { /* non-critical */ })
+      if (res.ok) {
+        const { data: historyRecord } = await res.json()
+        if (historyRecord?.id) {
+          // Persist full session so the job can be reopened without re-uploading
+          import('@/lib/session-store').then(({ saveSession }) =>
+            saveSession(historyRecord.id, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null)
+          ).catch(() => { /* non-critical */ })
+        }
+      }
+    }).catch(() => { /* non-critical */ })
 
     setIsExporting(false)
     setDone(true)
@@ -1522,14 +1650,17 @@ function ExportPanel({
           {/* Output mode */}
           <div>
             <p className="text-[0.75rem] text-[var(--text2)] mb-2 font-medium">Output</p>
-            <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
+            <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px] flex-wrap">
               {([
                 ['zip', 'Download ZIP'],
                 ['folder', 'Save to Folder'],
+                ...(activeBrand?.cloud_connections?.dropbox ? [['dropbox', 'Dropbox']] : []),
+                ...(activeBrand?.cloud_connections?.google_drive ? [['google-drive', 'Google Drive']] : []),
+                ...(activeBrand?.cloud_connections?.s3 ? [['s3', 'AWS S3']] : []),
               ] as [string, string][]).map(([id, label]) => (
                 <button
                   key={id}
-                  onClick={() => setExportMode(id as 'zip' | 'folder')}
+                  onClick={() => setExportMode(id as typeof exportMode)}
                   className={`px-3 py-[5px] rounded-[4px] text-[0.78rem] font-medium transition-all ${exportMode === id ? 'bg-[var(--bg)] text-[var(--text)]' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}
                 >
                   {label}
@@ -1539,7 +1670,23 @@ function ExportPanel({
             {exportMode === 'folder' && (
               <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">Chrome and Edge only — not supported in Safari or Firefox</p>
             )}
-            {exportMode === 'zip' && <div className="mb-3" />}
+            {exportMode === 'dropbox' && (
+              <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">
+                Files will be uploaded to <span className="font-medium">{activeBrand?.cloud_connections?.dropbox?.account_email}</span> on Dropbox
+              </p>
+            )}
+            {exportMode === 'google-drive' && (
+              <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">
+                Files will be uploaded to <span className="font-medium">{activeBrand?.cloud_connections?.google_drive?.email}</span> on Google Drive
+              </p>
+            )}
+            {exportMode === 's3' && (
+              <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">
+                Files will be uploaded to <span className="font-medium">{activeBrand?.cloud_connections?.s3?.bucket}</span>
+                {activeBrand?.cloud_connections?.s3?.prefix ? `/${activeBrand.cloud_connections.s3.prefix}` : ''}
+              </p>
+            )}
+            {(exportMode === 'zip' || exportMode === 'folder') && <div className="mb-3" />}
 
             {/* Flat export toggle */}
             <label className="flex items-center gap-2 cursor-pointer mb-3">
@@ -1566,6 +1713,16 @@ function ExportPanel({
                 ) : (
                   <span className="text-[0.75rem] text-[var(--text3)]">{fsaSupported ? 'No folder selected' : 'Requires Chrome/Edge'}</span>
                 )}
+              </div>
+            )}
+
+            {/* Cloud export progress */}
+            {cloudExportStatus && (exportMode === 'dropbox' || exportMode === 'google-drive' || exportMode === 's3') && (
+              <div className="mt-2 px-3 py-2 rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
+                <p className="text-[0.75rem] text-[var(--text2)]">
+                  Uploading {cloudExportStatus.done} / {cloudExportStatus.total} files
+                  {cloudExportStatus.errors > 0 && <span className="text-[var(--accent3)] ml-1">· {cloudExportStatus.errors} failed</span>}
+                </p>
               </div>
             )}
           </div>
@@ -1751,7 +1908,13 @@ function ExportPanel({
             disabled={isExporting || !confirmedClusters.length || !selectedMarketplaces.length || (exportMode === 'folder' && !folderRef.current)}
             className="btn btn-primary"
           >
-            {isExporting ? 'Exporting…' : exportMode === 'zip' ? 'Download ZIP' : 'Save to Folder'}
+            {isExporting
+              ? 'Exporting…'
+              : exportMode === 'zip' ? 'Download ZIP'
+              : exportMode === 'folder' ? 'Save to Folder'
+              : exportMode === 'dropbox' ? 'Upload to Dropbox'
+              : exportMode === 'google-drive' ? 'Upload to Drive'
+              : 'Upload to S3'}
           </button>
         </div>
       </div>

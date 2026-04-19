@@ -16,6 +16,19 @@ interface JobRecord {
   brands?: { name: string; brand_code: string; logo_color: string } | null
 }
 
+// IDB session IDs are loaded lazily — only after jobs are fetched
+function useStoredSessions(jobIds: string[]): Set<string> {
+  const [stored, setStored] = useState<Set<string>>(new Set())
+  useEffect(() => {
+    if (jobIds.length === 0) return
+    import('@/lib/session-store').then(async ({ hasSession }) => {
+      const checks = await Promise.all(jobIds.map(async (id) => ({ id, has: await hasSession(id) })))
+      setStored(new Set(checks.filter((c) => c.has).map((c) => c.id)))
+    }).catch(() => { /* IDB unavailable */ })
+  }, [jobIds.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
+  return stored
+}
+
 const STATUS_MAP: Record<string, { bg: string; color: string; label: string }> = {
   completed:  { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', label: 'Completed'  },
   complete:   { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', label: 'Completed'  },
@@ -31,6 +44,7 @@ export default function JobsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const { activeBrand } = useBrand()
+  const storedSessions = useStoredSessions(jobs.map((j) => j.id))
 
   const fetchJobs = (token?: string) => {
     const url = activeBrand?.id
@@ -181,6 +195,19 @@ export default function JobsPage() {
                     <p style={{ fontSize: '13px', color: '#aeaeb2', flexShrink: 0 }}>
                       {new Date(job.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
+
+                    {/* Reopen badge — shown when an IndexedDB session exists for this job */}
+                    {storedSessions.has(job.id) && (
+                      <span style={{
+                        flexShrink: 0,
+                        fontSize: '12px', fontWeight: 500,
+                        padding: '3px 9px', borderRadius: '6px',
+                        background: 'rgba(0,122,255,0.08)', color: '#005fc4',
+                        letterSpacing: '-.1px',
+                      }}>
+                        Reopen
+                      </span>
+                    )}
 
                     {/* Status chip */}
                     <span style={{

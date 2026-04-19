@@ -1321,46 +1321,12 @@ function SettingsInner() {
 
       {/* ── Integrations ─────────────────────────────────────────────────── */}
       {tab === 'integrations' && (
-        <div className="p-7 pt-0 flex flex-col gap-4 max-w-[760px]">
-          <div className="card">
-            <div className="card-head">
-              <span className="card-title">Marketplace Integrations</span>
-            </div>
-            <div className="card-body">
-              <p className="text-[0.82rem] text-[var(--text3)] mb-4">
-                Direct API integrations with marketplace partners are coming soon. Once enabled, ShotSync will push approved assets directly to each platform — no manual export required.
-              </p>
-              <div className="flex flex-col gap-3">
-                {[
-                  { name: 'Shopify', desc: 'Sync product images to your Shopify store on export.', available: true },
-                  { name: 'THE ICONIC', desc: 'Auto-deliver approved image sets to THE ICONIC Content Portal.' },
-                  { name: 'Myer', desc: 'Push product imagery directly to the Myer supplier portal.' },
-                  { name: 'David Jones', desc: 'Deliver approved assets to David Jones via their content API.' },
-                ].map((mp) => (
-                  <div
-                    key={mp.name}
-                    className="flex items-center justify-between px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)]"
-                  >
-                    <div>
-                      <p className="text-[0.85rem] font-medium text-[var(--text)]">{mp.name}</p>
-                      <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">{mp.desc}</p>
-                    </div>
-                    {'available' in mp && mp.available ? (
-                      <button
-                        onClick={() => setTab('shopify')}
-                        className="chip chip-done text-[0.7rem] ml-4 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                      >
-                        Available ↗
-                      </button>
-                    ) : (
-                      <span className="chip chip-uploading text-[0.7rem] ml-4 flex-shrink-0">Coming soon</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <IntegrationsTab
+          brands={brands}
+          activeBrand={activeBrand ?? null}
+          refreshBrands={refreshBrands}
+          onShopifyClick={() => setTab('shopify')}
+        />
       )}
 
       {/* ── Brand Modal ───────────────────────────────────────────────────── */}
@@ -1770,6 +1736,320 @@ function SettingsRow({ label, sub, children }: { label: string; sub: string; chi
         <p className="text-[0.7rem] text-[var(--text3)] mt-[2px]">{sub}</p>
       </div>
       {children}
+    </div>
+  )
+}
+
+// ── Integrations Tab ──────────────────────────────────────────────────────────
+
+function IntegrationsTab({
+  brands,
+  activeBrand,
+  refreshBrands,
+  onShopifyClick,
+}: {
+  brands: Brand[]
+  activeBrand: Brand | null
+  refreshBrands: () => void
+  onShopifyClick: () => void
+}) {
+  const [selectedBrandId, setSelectedBrandId] = useState(activeBrand?.id ?? brands[0]?.id ?? '')
+  const [s3Form, setS3Form] = useState({ bucket: '', region: 'ap-southeast-2', access_key_id: '', secret_access_key: '', prefix: '' })
+  const [s3Saving, setS3Saving] = useState(false)
+  const [s3Saved, setS3Saved] = useState(false)
+  const [s3Error, setS3Error] = useState('')
+  const [disconnecting, setDisconnecting] = useState<string | null>(null)
+
+  const selectedBrand = brands.find((b) => b.id === selectedBrandId) ?? activeBrand ?? brands[0] ?? null
+  const cc = selectedBrand?.cloud_connections ?? {}
+
+  // Populate S3 form when brand changes
+  useEffect(() => {
+    const s3 = (selectedBrand?.cloud_connections as Record<string, Record<string, string>> | null)?.s3
+    setS3Form({
+      bucket: s3?.bucket ?? '',
+      region: s3?.region ?? 'ap-southeast-2',
+      access_key_id: s3?.access_key_id ?? '',
+      secret_access_key: s3?.secret_access_key ? '••••••••••••••••' : '',
+      prefix: s3?.prefix ?? '',
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBrandId])
+
+  const saveS3 = async () => {
+    if (!selectedBrand) return
+    if (!s3Form.bucket || !s3Form.region || !s3Form.access_key_id) {
+      setS3Error('Bucket, region, and access key ID are required.')
+      return
+    }
+    setS3Saving(true)
+    setS3Error('')
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const existing = selectedBrand.cloud_connections ?? {}
+      const newS3: Record<string, string> = {
+        bucket: s3Form.bucket.trim(),
+        region: s3Form.region.trim(),
+        access_key_id: s3Form.access_key_id.trim(),
+        prefix: s3Form.prefix.trim(),
+      }
+      // Only update secret if it's not the placeholder
+      if (s3Form.secret_access_key && !s3Form.secret_access_key.startsWith('•')) {
+        newS3.secret_access_key = s3Form.secret_access_key.trim()
+      } else {
+        const existingSecret = (selectedBrand.cloud_connections as Record<string, Record<string, string>> | null)?.s3?.secret_access_key
+        if (existingSecret) newS3.secret_access_key = existingSecret
+      }
+      const res = await fetch(`/api/brands/${selectedBrand.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ cloud_connections: { ...existing, s3: newS3 } }),
+      })
+      if (res.ok) { setS3Saved(true); refreshBrands(); setTimeout(() => setS3Saved(false), 2000) }
+      else setS3Error('Failed to save. Check your credentials.')
+    } finally {
+      setS3Saving(false)
+    }
+  }
+
+  const disconnectProvider = async (provider: 'dropbox' | 'google_drive' | 's3') => {
+    if (!selectedBrand) return
+    setDisconnecting(provider)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const existing = { ...(selectedBrand.cloud_connections ?? {}) } as Record<string, unknown>
+      delete existing[provider]
+      await fetch(`/api/brands/${selectedBrand.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ cloud_connections: existing }),
+      })
+      refreshBrands()
+    } finally {
+      setDisconnecting(null)
+    }
+  }
+
+  const connectDropbox = () => {
+    if (!selectedBrand) return
+    import('@/lib/cloud/dropbox').then(({ getDropboxAuthUrl }) => {
+      window.location.href = getDropboxAuthUrl(selectedBrand.id)
+    })
+  }
+
+  const connectGoogle = () => {
+    if (!selectedBrand) return
+    import('@/lib/cloud/google-drive').then(({ getGoogleAuthUrl }) => {
+      window.location.href = getGoogleAuthUrl(selectedBrand.id)
+    })
+  }
+
+  const dropboxEnabled = !!process.env.NEXT_PUBLIC_DROPBOX_APP_KEY
+  const googleEnabled = !!(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && process.env.NEXT_PUBLIC_GOOGLE_API_KEY)
+
+  return (
+    <div className="p-7 pt-0 flex flex-col gap-4 max-w-[760px]">
+
+      {/* Brand selector */}
+      {brands.length > 1 && (
+        <div className="flex items-center gap-3">
+          <span className="text-[0.78rem] text-[var(--text3)]">Configure for:</span>
+          <select
+            className="input text-[0.82rem] py-[5px] w-auto"
+            value={selectedBrandId}
+            onChange={(e) => setSelectedBrandId(e.target.value)}
+          >
+            {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+        </div>
+      )}
+
+      {/* Cloud Storage */}
+      <div className="card">
+        <div className="card-head">
+          <span className="card-title">Cloud Storage</span>
+          <span className="text-[0.72rem] text-[var(--text3)]">Import images from & export directly to your cloud</span>
+        </div>
+        <div className="card-body flex flex-col gap-4">
+
+          {/* Dropbox */}
+          <div className="flex items-center justify-between py-3 border-b border-[var(--line)]">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-[7px] bg-[#0061ff] flex items-center justify-center flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 40 40" fill="white">
+                  <path d="M20 8.3L10 15l10 6.7 10-6.7zm-10 13.4L0 15l10-6.7 10 6.7zm10-6.7L20 21.7 30 28.4l10-6.7zm-10 13.4L0 21.7l10-6.7 10 6.7zM20 30.1l10-6.7 10 6.7-10 6.7z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-[0.85rem] font-medium text-[var(--text)]">Dropbox</p>
+                {(cc as Record<string, Record<string, string> | undefined>).dropbox?.account_email ? (
+                  <p className="text-[0.72rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).dropbox?.account_email}</p>
+                ) : (
+                  <p className="text-[0.72rem] text-[var(--text3)]">Browse and export to Dropbox folders</p>
+                )}
+              </div>
+            </div>
+            {(cc as Record<string, unknown>).dropbox ? (
+              <button
+                onClick={() => disconnectProvider('dropbox')}
+                disabled={disconnecting === 'dropbox'}
+                className="text-[0.75rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors"
+              >
+                {disconnecting === 'dropbox' ? 'Disconnecting…' : 'Disconnect'}
+              </button>
+            ) : (
+              <button
+                onClick={connectDropbox}
+                disabled={!dropboxEnabled}
+                className="btn btn-ghost text-[0.78rem]"
+                title={!dropboxEnabled ? 'Set NEXT_PUBLIC_DROPBOX_APP_KEY to enable' : ''}
+              >
+                {dropboxEnabled ? 'Connect' : 'Not configured'}
+              </button>
+            )}
+          </div>
+
+          {/* Google Drive */}
+          <div className="flex items-center justify-between py-3 border-b border-[var(--line)]">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-[7px] bg-white border border-[var(--line2)] flex items-center justify-center flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 87.3 78" fill="none">
+                  <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                  <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
+                  <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z" fill="#ea4335"/>
+                  <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                  <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684fc"/>
+                  <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-[0.85rem] font-medium text-[var(--text)]">Google Drive</p>
+                {(cc as Record<string, Record<string, string> | undefined>).google_drive?.email ? (
+                  <p className="text-[0.72rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).google_drive?.email}</p>
+                ) : (
+                  <p className="text-[0.72rem] text-[var(--text3)]">Browse and export to Google Drive folders</p>
+                )}
+              </div>
+            </div>
+            {(cc as Record<string, unknown>).google_drive ? (
+              <button
+                onClick={() => disconnectProvider('google_drive')}
+                disabled={disconnecting === 'google_drive'}
+                className="text-[0.75rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors"
+              >
+                {disconnecting === 'google_drive' ? 'Disconnecting…' : 'Disconnect'}
+              </button>
+            ) : (
+              <button
+                onClick={connectGoogle}
+                disabled={!googleEnabled}
+                className="btn btn-ghost text-[0.78rem]"
+                title={!googleEnabled ? 'Set NEXT_PUBLIC_GOOGLE_CLIENT_ID to enable' : ''}
+              >
+                {googleEnabled ? 'Connect' : 'Not configured'}
+              </button>
+            )}
+          </div>
+
+          {/* AWS S3 */}
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-[7px] bg-[#ff9900] flex items-center justify-center flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 80 80" fill="white">
+                  <path d="M40 0C17.9 0 0 17.9 0 40s17.9 40 40 40 40-17.9 40-40S62.1 0 40 0zm0 70C23.4 70 10 56.6 10 40S23.4 10 40 10s30 13.4 30 30-13.4 30-30 30z"/>
+                  <path d="M40 20c-11 0-20 9-20 20s9 20 20 20 20-9 20-20-9-20-20-20zm0 32c-6.6 0-12-5.4-12-12s5.4-12 12-12 12 5.4 12 12-5.4 12-12 12z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-[0.85rem] font-medium text-[var(--text)]">AWS S3</p>
+                {(cc as Record<string, Record<string, string> | undefined>).s3?.bucket ? (
+                  <p className="text-[0.72rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).s3?.bucket}</p>
+                ) : (
+                  <p className="text-[0.72rem] text-[var(--text3)]">Direct upload/download from your S3 bucket</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 ml-11">
+              <div className="col-span-2 grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[0.72rem] text-[var(--text3)] mb-1 block">Bucket name *</label>
+                  <input className="input text-[0.82rem]" placeholder="my-brand-assets" value={s3Form.bucket} onChange={(e) => setS3Form((f) => ({ ...f, bucket: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-[0.72rem] text-[var(--text3)] mb-1 block">Region *</label>
+                  <input className="input text-[0.82rem]" placeholder="ap-southeast-2" value={s3Form.region} onChange={(e) => setS3Form((f) => ({ ...f, region: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <label className="text-[0.72rem] text-[var(--text3)] mb-1 block">Access Key ID *</label>
+                <input className="input text-[0.82rem]" placeholder="AKIAIOSFODNN7EXAMPLE" value={s3Form.access_key_id} onChange={(e) => setS3Form((f) => ({ ...f, access_key_id: e.target.value }))} autoComplete="off" />
+              </div>
+              <div>
+                <label className="text-[0.72rem] text-[var(--text3)] mb-1 block">Secret Access Key *</label>
+                <input className="input text-[0.82rem]" type="password" placeholder="••••••••••••••••••••••••••••••••••••••••" value={s3Form.secret_access_key} onChange={(e) => setS3Form((f) => ({ ...f, secret_access_key: e.target.value }))} autoComplete="new-password" />
+              </div>
+              <div className="col-span-2">
+                <label className="text-[0.72rem] text-[var(--text3)] mb-1 block">Key prefix <span className="text-[var(--text3)]">(optional — e.g. shoots/)</span></label>
+                <input className="input text-[0.82rem]" placeholder="shoots/" value={s3Form.prefix} onChange={(e) => setS3Form((f) => ({ ...f, prefix: e.target.value }))} />
+              </div>
+              {s3Error && <p className="col-span-2 text-[0.75rem] text-[#ff3b30]">{s3Error}</p>}
+              <div className="col-span-2 flex items-center gap-3">
+                <button onClick={saveS3} disabled={s3Saving} className="btn btn-primary text-[0.78rem]">
+                  {s3Saving ? 'Saving…' : s3Saved ? 'Saved ✓' : 'Save S3 config'}
+                </button>
+                {!!(cc as Record<string, unknown>).s3 && (
+                  <button onClick={() => disconnectProvider('s3')} disabled={disconnecting === 's3'} className="text-[0.75rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">
+                    {disconnecting === 's3' ? 'Removing…' : 'Remove'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Marketplace Integrations */}
+      <div className="card">
+        <div className="card-head">
+          <span className="card-title">Marketplace Integrations</span>
+        </div>
+        <div className="card-body">
+          <p className="text-[0.82rem] text-[var(--text3)] mb-4">
+            Direct API integrations with marketplace partners are coming soon. Once enabled, ShotSync will push approved assets directly to each platform — no manual export required.
+          </p>
+          <div className="flex flex-col gap-3">
+            {[
+              { name: 'Shopify', desc: 'Sync product images to your Shopify store on export.', available: true },
+              { name: 'THE ICONIC', desc: 'Auto-deliver approved image sets to THE ICONIC Content Portal.' },
+              { name: 'Myer', desc: 'Push product imagery directly to the Myer supplier portal.' },
+              { name: 'David Jones', desc: 'Deliver approved assets to David Jones via their content API.' },
+            ].map((mp) => (
+              <div key={mp.name} className="flex items-center justify-between px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
+                <div>
+                  <p className="text-[0.85rem] font-medium text-[var(--text)]">{mp.name}</p>
+                  <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">{mp.desc}</p>
+                </div>
+                {'available' in mp && mp.available ? (
+                  <button onClick={onShopifyClick} className="chip chip-done text-[0.7rem] ml-4 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                    Available ↗
+                  </button>
+                ) : (
+                  <span className="chip chip-uploading text-[0.7rem] ml-4 flex-shrink-0">Coming soon</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

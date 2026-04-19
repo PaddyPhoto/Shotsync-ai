@@ -150,6 +150,108 @@ export default function UploadPage() {
   const [rejectedFiles, setRejectedFiles] = useState<{ name: string; reason: string }[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Cloud import state
+  const [cloudImporting, setCloudImporting] = useState<'dropbox' | 'google-drive' | 's3' | null>(null)
+  const [cloudImportError, setCloudImportError] = useState<string | null>(null)
+  const [s3Prefix, setS3Prefix] = useState('')
+  const [s3Files, setS3Files] = useState<{ id: string; name: string; downloadUrl: string; size: number }[]>([])
+  const [s3Folders, setS3Folders] = useState<{ key: string; name: string }[]>([])
+  const [s3BrowserOpen, setS3BrowserOpen] = useState(false)
+  const [s3Loading, setS3Loading] = useState(false)
+  const [s3Selected, setS3Selected] = useState<Set<string>>(new Set())
+
+  const importFromDropbox = async () => {
+    setCloudImportError(null)
+    setCloudImporting('dropbox')
+    try {
+      const { openDropboxChooser, downloadCloudFile } = await import('@/lib/cloud/dropbox')
+      const chosen = await openDropboxChooser()
+      if (chosen.length === 0) { setCloudImporting(null); return }
+      const downloaded: File[] = []
+      for (const cf of chosen) {
+        try { downloaded.push(await downloadCloudFile(cf)) } catch { /* skip */ }
+      }
+      if (downloaded.length > 0) acceptFiles(downloaded)
+      else setCloudImportError('Could not download any files. Check that the files are images.')
+    } catch (err) {
+      setCloudImportError(err instanceof Error ? err.message : 'Dropbox import failed.')
+    } finally {
+      setCloudImporting(null)
+    }
+  }
+
+  const importFromGoogleDrive = async () => {
+    setCloudImportError(null)
+    setCloudImporting('google-drive')
+    try {
+      const { openGoogleDrivePicker, downloadGoogleDriveFile } = await import('@/lib/cloud/google-drive')
+      const chosen = await openGoogleDrivePicker()
+      if (chosen.length === 0) { setCloudImporting(null); return }
+      const downloaded: File[] = []
+      for (const cf of chosen) {
+        try { downloaded.push(await downloadGoogleDriveFile(cf)) } catch { /* skip */ }
+      }
+      if (downloaded.length > 0) acceptFiles(downloaded)
+      else setCloudImportError('Could not download any files.')
+    } catch (err) {
+      setCloudImportError(err instanceof Error ? err.message : 'Google Drive import failed.')
+    } finally {
+      setCloudImporting(null)
+    }
+  }
+
+  const loadS3Folder = async (prefix = '') => {
+    if (!activeBrand?.id) return
+    setS3Loading(true)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const params = new URLSearchParams({ brandId: activeBrand.id, prefix })
+      const res = await fetch(`/api/integrations/s3/list?${params}`, {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
+      if (!res.ok) throw new Error('S3 list failed')
+      const { files: f, folders: d } = await res.json()
+      setS3Files(f ?? [])
+      setS3Folders(d ?? [])
+      setS3Prefix(prefix)
+      setS3Selected(new Set())
+    } catch (err) {
+      setCloudImportError(err instanceof Error ? err.message : 'Failed to list S3 files.')
+    } finally {
+      setS3Loading(false)
+    }
+  }
+
+  const importFromS3 = async () => {
+    if (s3Selected.size === 0) return
+    setCloudImportError(null)
+    setCloudImporting('s3')
+    try {
+      const selectedFiles = s3Files.filter((f) => s3Selected.has(f.id))
+      const downloaded: File[] = []
+      for (const sf of selectedFiles) {
+        try {
+          const res = await fetch(sf.downloadUrl)
+          if (!res.ok) continue
+          const blob = await res.blob()
+          downloaded.push(new File([blob], sf.name, { type: blob.type || 'image/jpeg' }))
+        } catch { /* skip */ }
+      }
+      if (downloaded.length > 0) {
+        acceptFiles(downloaded)
+        setS3BrowserOpen(false)
+        setS3Selected(new Set())
+      } else {
+        setCloudImportError('Could not download any selected files.')
+      }
+    } catch (err) {
+      setCloudImportError(err instanceof Error ? err.message : 'S3 import failed.')
+    } finally {
+      setCloudImporting(null)
+    }
+  }
+
   const MAX_FILE_SIZE_MB = 20
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
   const ALLOWED_EXT = /\.(jpe?g|png|webp|heic|heif)$/i
@@ -756,8 +858,178 @@ export default function UploadPage() {
                   )}
                   <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
                 </div>
+
+                {/* Cloud import */}
+                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                  <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '8px' }}>Or import from cloud</p>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {/* Dropbox */}
+                    <button
+                      onClick={importFromDropbox}
+                      disabled={!!cloudImporting}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 12px', borderRadius: '8px',
+                        background: cloudImporting === 'dropbox' ? '#0061ff' : 'rgba(0,97,255,0.08)',
+                        color: cloudImporting === 'dropbox' ? '#fff' : '#0061ff',
+                        border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 40 40" fill="currentColor">
+                        <path d="M20 8.3L10 15l10 6.7 10-6.7zm-10 13.4L0 15l10-6.7 10 6.7zm10-6.7L20 21.7 30 28.4l10-6.7zm-10 13.4L0 21.7l10-6.7 10 6.7zM20 30.1l10-6.7 10 6.7-10 6.7z"/>
+                      </svg>
+                      {cloudImporting === 'dropbox' ? 'Importing…' : 'Dropbox'}
+                    </button>
+
+                    {/* Google Drive */}
+                    <button
+                      onClick={importFromGoogleDrive}
+                      disabled={!!cloudImporting}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 12px', borderRadius: '8px',
+                        background: cloudImporting === 'google-drive' ? '#4285f4' : 'rgba(66,133,244,0.08)',
+                        color: cloudImporting === 'google-drive' ? '#fff' : '#4285f4',
+                        border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
+                        <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z"/>
+                        <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z"/>
+                        <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z"/>
+                        <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z"/>
+                        <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z"/>
+                        <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
+                      </svg>
+                      {cloudImporting === 'google-drive' ? 'Importing…' : 'Google Drive'}
+                    </button>
+
+                    {/* S3 */}
+                    {activeBrand?.cloud_connections?.s3?.bucket && (
+                      <button
+                        onClick={() => { setS3BrowserOpen(true); loadS3Folder(s3Prefix) }}
+                        disabled={!!cloudImporting}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          padding: '6px 12px', borderRadius: '8px',
+                          background: 'rgba(255,153,0,0.08)', color: '#b36b00',
+                          border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                        </svg>
+                        AWS S3 · {activeBrand.cloud_connections.s3.bucket}
+                      </button>
+                    )}
+                  </div>
+
+                  {cloudImportError && (
+                    <p style={{ fontSize: '12px', color: '#ff3b30', marginTop: '6px' }}>{cloudImportError}</p>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* S3 Browser Modal */}
+            {s3BrowserOpen && (
+              <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
+                <div style={{ background: 'var(--bg)', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '16px', width: '560px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f' }}>S3 Browser</p>
+                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>
+                        {activeBrand?.cloud_connections?.s3?.bucket}{s3Prefix ? ` / ${s3Prefix}` : ''}
+                      </p>
+                    </div>
+                    <button onClick={() => setS3BrowserOpen(false)} style={{ color: '#aeaeb2', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
+                  </div>
+
+                  <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
+                    {s3Loading ? (
+                      <div style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>Loading…</div>
+                    ) : (
+                      <>
+                        {s3Prefix && (
+                          <button
+                            onClick={() => loadS3Folder(s3Prefix.split('/').slice(0, -2).join('/') + (s3Prefix.includes('/') ? '/' : ''))}
+                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#005fc4', display: 'flex', alignItems: 'center', gap: '6px' }}
+                          >
+                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 3L5 7l4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            Back
+                          </button>
+                        )}
+                        {s3Folders.map((folder) => (
+                          <button
+                            key={folder.key}
+                            onClick={() => loadS3Folder(folder.key)}
+                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '8px' }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#aeaeb2" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            {folder.name}/
+                          </button>
+                        ))}
+                        {s3Files.map((file) => (
+                          <label
+                            key={file.id}
+                            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px', cursor: 'pointer', background: s3Selected.has(file.id) ? 'rgba(0,113,227,0.06)' : 'transparent' }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={s3Selected.has(file.id)}
+                              onChange={(e) => setS3Selected((prev) => {
+                                const next = new Set(prev)
+                                e.target.checked ? next.add(file.id) : next.delete(file.id)
+                                return next
+                              })}
+                              style={{ width: '14px', height: '14px', accentColor: '#0071e3', flexShrink: 0 }}
+                            />
+                            <span style={{ fontSize: '13px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                            <span style={{ fontSize: '11px', color: '#aeaeb2', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                          </label>
+                        ))}
+                        {s3Files.length === 0 && s3Folders.length === 0 && !s3Loading && (
+                          <p style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>No image files found in this location.</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: '12px', color: '#aeaeb2' }}>
+                      {s3Selected.size > 0 ? `${s3Selected.size} selected` : `${s3Files.length} files`}
+                      {s3Files.length === 0 && s3Folders.length > 0 ? '' : ''}
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {s3Files.length > 0 && (
+                        <button
+                          onClick={() => setS3Selected(s3Selected.size === s3Files.length ? new Set() : new Set(s3Files.map((f) => f.id)))}
+                          style={{ fontSize: '12px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                          {s3Selected.size === s3Files.length ? 'Deselect all' : 'Select all'}
+                        </button>
+                      )}
+                      <button
+                        onClick={importFromS3}
+                        disabled={s3Selected.size === 0 || cloudImporting === 's3'}
+                        style={{
+                          padding: '6px 14px', borderRadius: '8px',
+                          background: s3Selected.size > 0 ? '#1d1d1f' : 'rgba(0,0,0,0.08)',
+                          color: s3Selected.size > 0 ? '#f5f5f7' : '#aeaeb2',
+                          border: 'none', fontSize: '13px', fontWeight: 500,
+                          cursor: s3Selected.size > 0 ? 'pointer' : 'default',
+                        }}
+                      >
+                        {cloudImporting === 's3' ? 'Importing…' : `Import ${s3Selected.size > 0 ? s3Selected.size : ''} file${s3Selected.size !== 1 ? 's' : ''}`}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {files.length > 0 && (
               <div className="flex justify-end gap-3">

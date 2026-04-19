@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
 import { PipelineSteps } from '@/components/processing/PipelineSteps'
+import { useSession } from '@/store/session'
 import type { Job } from '@/types'
 
 const STEP_LABELS: Record<number, string> = {
@@ -21,6 +23,38 @@ const STEP_LABELS: Record<number, string> = {
 function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
   const isHistoryJob = (job as any)._source === 'history'
   const marketplaces: string[] = (job as any).marketplaces ?? []
+  const router = useRouter()
+  const { setSession } = useSession()
+  const [hasStoredSession, setHasStoredSession] = useState(false)
+  const [reopening, setReopening] = useState(false)
+  const [reopenError, setReopenError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isHistoryJob) return
+    import('@/lib/session-store').then(({ hasSession }) =>
+      hasSession(jobId).then(setHasStoredSession)
+    ).catch(() => { /* IDB unavailable */ })
+  }, [jobId, isHistoryJob])
+
+  const handleReopen = async () => {
+    setReopening(true)
+    setReopenError(null)
+    try {
+      const { loadSession } = await import('@/lib/session-store')
+      const result = await loadSession(jobId)
+      if (!result) {
+        setReopenError('Session data could not be loaded.')
+        return
+      }
+      setSession(result.jobName, result.clusters, result.marketplaces)
+      router.push('/dashboard/review')
+    } catch (err) {
+      console.error('Failed to reopen session:', err)
+      setReopenError('Failed to restore session.')
+    } finally {
+      setReopening(false)
+    }
+  }
 
   const header = (
     <Topbar
@@ -97,13 +131,54 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             </div>
           )}
 
-          {/* Info note */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', backdropFilter: 'blur(8px)' }}>
-            <p style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px' }}>Export record</p>
-            <p style={{ fontSize: '13px', color: '#aeaeb2', lineHeight: 1.6 }}>
-              This is a record of a completed export. The original images and cluster data from this session are no longer in memory — to re-export or review clusters, start a new upload with the same images.
-            </p>
-          </div>
+          {/* Session restore card or info note */}
+          {hasStoredSession ? (
+            <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', backdropFilter: 'blur(8px)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                <div>
+                  <p style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Session saved on this device</p>
+                  <p style={{ fontSize: '13px', color: '#aeaeb2', lineHeight: 1.5 }}>
+                    The original images and cluster data were saved locally. You can reopen this session to re-export or make changes.
+                  </p>
+                  {reopenError && (
+                    <p style={{ fontSize: '12px', color: '#ff3b30', marginTop: '6px' }}>{reopenError}</p>
+                  )}
+                </div>
+                <button
+                  onClick={handleReopen}
+                  disabled={reopening}
+                  style={{
+                    flexShrink: 0, padding: '8px 18px', borderRadius: '10px',
+                    background: '#1d1d1f', color: '#f5f5f7', border: 'none',
+                    fontSize: '13px', fontWeight: 500, cursor: reopening ? 'wait' : 'pointer',
+                    opacity: reopening ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '7px',
+                  }}
+                >
+                  {reopening ? (
+                    <>
+                      <div style={{ width: '12px', height: '12px', border: '1.5px solid rgba(245,245,247,0.4)', borderTopColor: '#f5f5f7', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                      Restoring…
+                    </>
+                  ) : (
+                    <>
+                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M1 7a6 6 0 1 0 6-6" strokeLinecap="round"/>
+                        <path d="M1 3v4h4" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Reopen Session
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', backdropFilter: 'blur(8px)' }}>
+              <p style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px' }}>Export record</p>
+              <p style={{ fontSize: '13px', color: '#aeaeb2', lineHeight: 1.6 }}>
+                This is a record of a completed export. The original images and cluster data from this session are no longer in memory — to re-export or review clusters, start a new upload with the same images.
+              </p>
+            </div>
+          )}
 
           {statsRow}
         </div>
