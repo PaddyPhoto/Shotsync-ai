@@ -166,14 +166,31 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
         if (data) {
           setJob(data)
           setLoading(false)
-
           // Stop polling for terminal states
-          if (data.status === 'complete' || data.status === 'completed' || data.status === 'error') {
+          if (data.status === 'complete' || data.status === 'error') {
             if (intervalRef.current) clearInterval(intervalRef.current)
           }
+          return
+        }
+
+        // Pipeline job not found — try job_history (exported sessions are saved there)
+        const histRes = await fetch(`/api/jobs/history/${params.jobId}`)
+        if (histRes.ok) {
+          const { data: histData } = await histRes.json()
+          if (histData) {
+            setJob(histData)
+            setLoading(false)
+            if (intervalRef.current) clearInterval(intervalRef.current)
+          }
+        } else {
+          // Nothing found in either table — stop spinning, show nothing
+          setLoading(false)
+          if (intervalRef.current) clearInterval(intervalRef.current)
         }
       } catch (err) {
         console.error('Failed to poll job:', err)
+        setLoading(false)
+        if (intervalRef.current) clearInterval(intervalRef.current)
       }
     }
 
@@ -191,8 +208,20 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
     )
   }
 
+  // Job not found in either table
+  if (!job) {
+    return (
+      <div>
+        <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'All Jobs', href: '/dashboard/jobs' }, { label: 'Job' }]} />
+        <div style={{ padding: '28px' }}>
+          <p style={{ fontSize: '14px', color: '#aeaeb2' }}>Job not found.</p>
+        </div>
+      </div>
+    )
+  }
+
   // Completed job — show hub view
-  if (job?.status === 'complete') {
+  if (job.status === 'complete') {
     return <CompletedJobView job={job} jobId={params.jobId} />
   }
 
