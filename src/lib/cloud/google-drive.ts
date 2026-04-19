@@ -242,7 +242,7 @@ export function getGoogleAuthUrl(brandId: string): string {
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: 'code',
-    scope: 'https://www.googleapis.com/auth/drive.file email profile',
+    scope: 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file email profile',
     access_type: 'offline',
     prompt: 'consent',
     state,

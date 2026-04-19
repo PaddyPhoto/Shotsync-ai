@@ -160,6 +160,16 @@ export default function UploadPage() {
   const [s3Loading, setS3Loading] = useState(false)
   const [s3Selected, setS3Selected] = useState<Set<string>>(new Set())
 
+  // Google Drive browser state
+  const [gdriveBrowserOpen, setGdriveBrowserOpen] = useState(false)
+  const [gdriveFiles, setGdriveFiles] = useState<{ id: string; name: string; downloadUrl: string; size: number; mimeType: string }[]>([])
+  const [gdriveFolders, setGdriveFolders] = useState<{ id: string; name: string }[]>([])
+  const [gdriveFolderStack, setGdriveFolderStack] = useState<{ id: string; name: string }[]>([])
+  const [gdriveLoading, setGdriveLoading] = useState(false)
+  const [gdriveSelected, setGdriveSelected] = useState<Set<string>>(new Set())
+  const [gdriveToken, setGdriveToken] = useState<string | null>(null)
+  const [gdriveError, setGdriveError] = useState<string | null>(null)
+
   const importFromDropbox = async () => {
     setCloudImportError(null)
     setCloudImporting('dropbox')
@@ -247,6 +257,74 @@ export default function UploadPage() {
       }
     } catch (err) {
       setCloudImportError(err instanceof Error ? err.message : 'S3 import failed.')
+    } finally {
+      setCloudImporting(null)
+    }
+  }
+
+  const loadGdriveFolder = async (folderId = 'root', folderName = 'My Drive', pushStack = false) => {
+    if (!activeBrand?.id) return
+    setGdriveLoading(true)
+    setGdriveError(null)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const params = new URLSearchParams({ brandId: activeBrand.id, folderId })
+      const res = await fetch(`/api/integrations/google/list?${params}`, {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
+      if (!res.ok) {
+        const { error } = await res.json()
+        throw new Error(error ?? 'Failed to list Google Drive files')
+      }
+      const { files: f, folders: d, accessToken } = await res.json()
+      setGdriveFiles(f ?? [])
+      setGdriveFolders(d ?? [])
+      setGdriveToken(accessToken)
+      setGdriveSelected(new Set())
+      if (pushStack) {
+        setGdriveFolderStack((prev) => [...prev, { id: folderId, name: folderName }])
+      }
+    } catch (err) {
+      setGdriveError(err instanceof Error ? err.message : 'Failed to list Google Drive files.')
+    } finally {
+      setGdriveLoading(false)
+    }
+  }
+
+  const gdriveGoBack = () => {
+    const newStack = gdriveFolderStack.slice(0, -1)
+    setGdriveFolderStack(newStack)
+    const parent = newStack[newStack.length - 1]
+    loadGdriveFolder(parent?.id ?? 'root', parent?.name ?? 'My Drive', false)
+  }
+
+  const importFromGdriveBrowser = async () => {
+    if (gdriveSelected.size === 0 || !gdriveToken) return
+    setCloudImportError(null)
+    setCloudImporting('google-drive')
+    try {
+      const selectedFiles = gdriveFiles.filter((f) => gdriveSelected.has(f.id))
+      const downloaded: File[] = []
+      for (const sf of selectedFiles) {
+        try {
+          const res = await fetch(sf.downloadUrl, {
+            headers: { Authorization: `Bearer ${gdriveToken}` },
+          })
+          if (!res.ok) continue
+          const blob = await res.blob()
+          downloaded.push(new File([blob], sf.name, { type: sf.mimeType || blob.type || 'image/jpeg' }))
+        } catch { /* skip */ }
+      }
+      if (downloaded.length > 0) {
+        acceptFiles(downloaded)
+        setGdriveBrowserOpen(false)
+        setGdriveSelected(new Set())
+      } else {
+        setGdriveError('Could not download any selected files.')
+      }
+    } catch (err) {
+      setGdriveError(err instanceof Error ? err.message : 'Google Drive import failed.')
     } finally {
       setCloudImporting(null)
     }
@@ -883,28 +961,51 @@ export default function UploadPage() {
                     </button>
 
                     {/* Google Drive */}
-                    <button
-                      onClick={importFromGoogleDrive}
-                      disabled={!!cloudImporting}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                        padding: '6px 12px', borderRadius: '8px',
-                        background: cloudImporting === 'google-drive' ? '#4285f4' : 'rgba(66,133,244,0.08)',
-                        color: cloudImporting === 'google-drive' ? '#fff' : '#4285f4',
-                        border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
-                        <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z"/>
-                        <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z"/>
-                        <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z"/>
-                        <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z"/>
-                        <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z"/>
-                        <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
-                      </svg>
-                      {cloudImporting === 'google-drive' ? 'Importing…' : 'Google Drive'}
-                    </button>
+                    {activeBrand?.cloud_connections?.google_drive ? (
+                      <button
+                        onClick={() => { setGdriveBrowserOpen(true); loadGdriveFolder('root', 'My Drive', false) }}
+                        disabled={!!cloudImporting}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          padding: '6px 12px', borderRadius: '8px',
+                          background: 'rgba(66,133,244,0.08)', color: '#4285f4',
+                          border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
+                          <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z"/>
+                          <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z"/>
+                          <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z"/>
+                          <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z"/>
+                          <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z"/>
+                          <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
+                        </svg>
+                        Google Drive · {(activeBrand.cloud_connections.google_drive as { email?: string }).email?.split('@')[0]}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={importFromGoogleDrive}
+                        disabled={!!cloudImporting}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          padding: '6px 12px', borderRadius: '8px',
+                          background: cloudImporting === 'google-drive' ? '#4285f4' : 'rgba(66,133,244,0.08)',
+                          color: cloudImporting === 'google-drive' ? '#fff' : '#4285f4',
+                          border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
+                          <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z"/>
+                          <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z"/>
+                          <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z"/>
+                          <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z"/>
+                          <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z"/>
+                          <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
+                        </svg>
+                        {cloudImporting === 'google-drive' ? 'Importing…' : 'Google Drive'}
+                      </button>
+                    )}
 
                     {/* S3 */}
                     {activeBrand?.cloud_connections?.s3?.bucket && (
@@ -1024,6 +1125,109 @@ export default function UploadPage() {
                         }}
                       >
                         {cloudImporting === 's3' ? 'Importing…' : `Import ${s3Selected.size > 0 ? s3Selected.size : ''} file${s3Selected.size !== 1 ? 's' : ''}`}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Google Drive Browser Modal */}
+            {gdriveBrowserOpen && (
+              <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
+                <div style={{ background: 'var(--bg)', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '16px', width: '560px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f' }}>Google Drive</p>
+                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>
+                        {gdriveFolderStack.length === 0 ? 'My Drive' : gdriveFolderStack.map((f) => f.name).join(' / ')}
+                      </p>
+                    </div>
+                    <button onClick={() => setGdriveBrowserOpen(false)} style={{ color: '#aeaeb2', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
+                  </div>
+
+                  <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
+                    {gdriveLoading ? (
+                      <div style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>Loading…</div>
+                    ) : gdriveError ? (
+                      <div style={{ padding: '32px', textAlign: 'center' }}>
+                        <p style={{ fontSize: '13px', color: '#ff3b30', marginBottom: '8px' }}>{gdriveError}</p>
+                        {gdriveError.includes('reconnect') && (
+                          <a href="/dashboard/settings?tab=integrations" style={{ fontSize: '12px', color: '#005fc4' }}>Go to Settings → Integrations</a>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        {gdriveFolderStack.length > 0 && (
+                          <button
+                            onClick={gdriveGoBack}
+                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#005fc4', display: 'flex', alignItems: 'center', gap: '6px' }}
+                          >
+                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 3L5 7l4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            Back
+                          </button>
+                        )}
+                        {gdriveFolders.map((folder) => (
+                          <button
+                            key={folder.id}
+                            onClick={() => loadGdriveFolder(folder.id, folder.name, true)}
+                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '8px' }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#aeaeb2" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            {folder.name}/
+                          </button>
+                        ))}
+                        {gdriveFiles.map((file) => (
+                          <label
+                            key={file.id}
+                            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px', cursor: 'pointer', background: gdriveSelected.has(file.id) ? 'rgba(66,133,244,0.06)' : 'transparent' }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={gdriveSelected.has(file.id)}
+                              onChange={(e) => setGdriveSelected((prev) => {
+                                const next = new Set(prev)
+                                e.target.checked ? next.add(file.id) : next.delete(file.id)
+                                return next
+                              })}
+                              style={{ width: '14px', height: '14px', accentColor: '#4285f4', flexShrink: 0 }}
+                            />
+                            <span style={{ fontSize: '13px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                            <span style={{ fontSize: '11px', color: '#aeaeb2', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                          </label>
+                        ))}
+                        {gdriveFiles.length === 0 && gdriveFolders.length === 0 && !gdriveLoading && (
+                          <p style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>No image files found in this location.</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: '12px', color: '#aeaeb2' }}>
+                      {gdriveSelected.size > 0 ? `${gdriveSelected.size} selected` : `${gdriveFiles.length} files`}
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {gdriveFiles.length > 0 && (
+                        <button
+                          onClick={() => setGdriveSelected(gdriveSelected.size === gdriveFiles.length ? new Set() : new Set(gdriveFiles.map((f) => f.id)))}
+                          style={{ fontSize: '12px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                          {gdriveSelected.size === gdriveFiles.length ? 'Deselect all' : 'Select all'}
+                        </button>
+                      )}
+                      <button
+                        onClick={importFromGdriveBrowser}
+                        disabled={gdriveSelected.size === 0 || cloudImporting === 'google-drive'}
+                        style={{
+                          padding: '6px 14px', borderRadius: '8px',
+                          background: gdriveSelected.size > 0 ? '#1d1d1f' : 'rgba(0,0,0,0.08)',
+                          color: gdriveSelected.size > 0 ? '#f5f5f7' : '#aeaeb2',
+                          border: 'none', fontSize: '13px', fontWeight: 500,
+                          cursor: gdriveSelected.size > 0 ? 'pointer' : 'default',
+                        }}
+                      >
+                        {cloudImporting === 'google-drive' ? 'Importing…' : `Import ${gdriveSelected.size > 0 ? gdriveSelected.size : ''} file${gdriveSelected.size !== 1 ? 's' : ''}`}
                       </button>
                     </div>
                   </div>
