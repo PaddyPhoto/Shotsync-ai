@@ -177,8 +177,25 @@ export async function saveSession(
   marketplaces: string[],
   brandId: string | null,
 ): Promise<void> {
-  const db = await openDB()
+  // Step 1: Read all file ArrayBuffers BEFORE opening the IDB transaction.
+  // IDB transactions auto-commit when there are no pending IDB requests — doing
+  // async file reads inside the transaction causes it to expire mid-write.
+  const fileBuffers = new Map<string, { name: string; type: string; data: ArrayBuffer }>()
+  for (const cluster of clusters) {
+    for (const img of cluster.images) {
+      try {
+        const buffer = await img.file.arrayBuffer()
+        fileBuffers.set(img.id, {
+          name: img.file.name,
+          type: img.file.type || 'image/jpeg',
+          data: buffer,
+        })
+      } catch { /* skip unreadable files */ }
+    }
+  }
 
+  // Step 2: Open the transaction and write everything without async gaps.
+  const db = await openDB()
   const tx = db.transaction(['sessions', 'clusters', 'files'], 'readwrite')
   const sessions = tx.objectStore('sessions')
   const clustersStore = tx.objectStore('clusters')
@@ -191,8 +208,7 @@ export async function saveSession(
 
   const totalImages = clusters.reduce((s, c) => s + c.images.length, 0)
 
-  // Write session header
-  const header: StoredSession = {
+  await idbPut(sessions, {
     id: jobId,
     jobName,
     savedAt: new Date().toISOString(),
@@ -200,12 +216,10 @@ export async function saveSession(
     brandId,
     clusterCount: clusters.length,
     imageCount: totalImages,
-  }
-  await idbPut(sessions, header)
+  } as StoredSession)
 
-  // Write clusters and files
   for (const cluster of clusters) {
-    const storedCluster: StoredCluster = {
+    await idbPut(clustersStore, {
       key: `${jobId}::${cluster.id}`,
       sessionId: jobId,
       clusterId: cluster.id,
@@ -224,25 +238,19 @@ export async function saveSession(
         viewLabel: img.viewLabel,
         viewConfidence: img.viewConfidence,
       })),
-    }
-    await idbPut(clustersStore, storedCluster)
+    } as StoredCluster)
 
-    // Store each image file as ArrayBuffer
     for (const img of cluster.images) {
-      try {
-        const buffer = await img.file.arrayBuffer()
-        const storedFile: StoredFile = {
-          key: `${jobId}::${img.id}`,
-          sessionId: jobId,
-          imageId: img.id,
-          name: img.file.name,
-          type: img.file.type || 'image/jpeg',
-          data: buffer,
-        }
-        await idbPut(filesStore, storedFile)
-      } catch {
-        // Skip files that can't be read (shouldn't happen with valid File objects)
-      }
+      const buf = fileBuffers.get(img.id)
+      if (!buf) continue
+      await idbPut(filesStore, {
+        key: `${jobId}::${img.id}`,
+        sessionId: jobId,
+        imageId: img.id,
+        name: buf.name,
+        type: buf.type,
+        data: buf.data,
+      } as StoredFile)
     }
   }
 
