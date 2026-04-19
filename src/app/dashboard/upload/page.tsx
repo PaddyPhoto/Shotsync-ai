@@ -1195,25 +1195,32 @@ export default function UploadPage() {
                             {folder.name}/
                           </button>
                         ))}
-                        {gdriveFiles.map((file) => (
-                          <label
-                            key={file.id}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px', cursor: 'pointer', background: gdriveSelected.has(file.id) ? 'rgba(66,133,244,0.06)' : 'transparent' }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={gdriveSelected.has(file.id)}
-                              onChange={(e) => setGdriveSelected((prev) => {
-                                const next = new Set(prev)
-                                e.target.checked ? next.add(file.id) : next.delete(file.id)
-                                return next
-                              })}
-                              style={{ width: '14px', height: '14px', accentColor: '#4285f4', flexShrink: 0 }}
-                            />
-                            <span style={{ fontSize: '13px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                            <span style={{ fontSize: '11px', color: '#aeaeb2', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
-                          </label>
-                        ))}
+                        {gdriveFiles.map((file) => {
+                          const tooLarge = file.size > 2.5 * 1024 * 1024
+                          return (
+                            <label
+                              key={file.id}
+                              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px', cursor: tooLarge ? 'not-allowed' : 'pointer', background: gdriveSelected.has(file.id) ? 'rgba(66,133,244,0.06)' : 'transparent', opacity: tooLarge ? 0.45 : 1 }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={gdriveSelected.has(file.id)}
+                                disabled={tooLarge}
+                                onChange={(e) => setGdriveSelected((prev) => {
+                                  const next = new Set(prev)
+                                  e.target.checked ? next.add(file.id) : next.delete(file.id)
+                                  return next
+                                })}
+                                style={{ width: '14px', height: '14px', accentColor: '#4285f4', flexShrink: 0 }}
+                              />
+                              <span style={{ fontSize: '13px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                              {tooLarge
+                                ? <span style={{ fontSize: '11px', color: '#ff3b30', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB · too large</span>
+                                : <span style={{ fontSize: '11px', color: '#aeaeb2', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                              }
+                            </label>
+                          )
+                        })}
                         {gdriveFiles.length === 0 && gdriveFolders.length === 0 && !gdriveLoading && (
                           <p style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>No image files found in this location.</p>
                         )}
@@ -1228,10 +1235,13 @@ export default function UploadPage() {
                     <div style={{ display: 'flex', gap: '8px' }}>
                       {gdriveFiles.length > 0 && (
                         <button
-                          onClick={() => setGdriveSelected(gdriveSelected.size === gdriveFiles.length ? new Set() : new Set(gdriveFiles.map((f) => f.id)))}
+                          onClick={() => {
+                            const eligible = gdriveFiles.filter((f) => f.size <= 2.5 * 1024 * 1024).map((f) => f.id)
+                            setGdriveSelected(gdriveSelected.size === eligible.length ? new Set() : new Set(eligible))
+                          }}
                           style={{ fontSize: '12px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
-                          {gdriveSelected.size === gdriveFiles.length ? 'Deselect all' : 'Select all'}
+                          {gdriveSelected.size === gdriveFiles.filter((f) => f.size <= 2.5 * 1024 * 1024).length ? 'Deselect all' : 'Select all'}
                         </button>
                       )}
                       <button
