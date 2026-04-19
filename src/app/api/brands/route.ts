@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await service
       .from('brands')
-      .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, created_at')
+      .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, cloud_connections, created_at')
       .eq('org_id', user.id)
       .order('created_at')
 
