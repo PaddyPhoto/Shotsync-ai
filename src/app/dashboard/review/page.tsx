@@ -1697,9 +1697,18 @@ function ExportPanel({
                 <p className="text-[0.75rem] text-[var(--text2)] font-medium">Shopify Direct Upload</p>
                 <span className="text-[0.65rem] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
               </div>
-              <p className="text-[0.72rem] text-[var(--text3)] mb-3">
-                Upload images directly to matching Shopify product listings by SKU.
-              </p>
+              {(() => {
+                const withCopy = confirmedClusters.filter((c) => clusterCopy[c.id]?.title).length
+                return (
+                  <p className="text-[0.72rem] text-[var(--text3)] mb-3">
+                    Uploads images directly to matching Shopify product listings by SKU.
+                    {withCopy > 0
+                      ? <> <span className="text-[var(--accent2)]">AI copy will also be written</span> for {withCopy} cluster{withCopy !== 1 ? 's' : ''} — title, description and bullet points.</>
+                      : <> Generate AI copy above to also push product descriptions automatically.</>
+                    }
+                  </p>
+                )
+              })()}
 
               {shopifyResults && (
                 <div className="bg-[var(--bg3)] rounded-sm p-3 mb-3 flex flex-col gap-[4px] max-h-[120px] overflow-y-auto">
