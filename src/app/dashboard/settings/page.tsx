@@ -1928,6 +1928,40 @@ function IntegrationsTab({
         </div>
       )}
 
+      {/* Marketplace Integrations */}
+      <div className="card">
+        <div className="card-head">
+          <span className="card-title">Marketplace Integrations</span>
+        </div>
+        <div className="card-body">
+          <p className="text-[0.82rem] text-[var(--text3)] mb-4">
+            Direct API integrations with marketplace partners are coming soon. Once enabled, ShotSync will push approved assets directly to each platform — no manual export required.
+          </p>
+          <div className="flex flex-col gap-3">
+            {[
+              { name: 'Shopify', desc: 'Sync product images to your Shopify store on export.', available: true },
+              { name: 'THE ICONIC', desc: 'Auto-deliver approved image sets to THE ICONIC Content Portal.' },
+              { name: 'Myer', desc: 'Push product imagery directly to the Myer supplier portal.' },
+              { name: 'David Jones', desc: 'Deliver approved assets to David Jones via their content API.' },
+            ].map((mp) => (
+              <div key={mp.name} className="flex items-center justify-between px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
+                <div>
+                  <p className="text-[0.85rem] font-medium text-[var(--text)]">{mp.name}</p>
+                  <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">{mp.desc}</p>
+                </div>
+                {'available' in mp && mp.available ? (
+                  <button onClick={onShopifyClick} className="chip chip-done text-[0.7rem] ml-4 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                    Available ↗
+                  </button>
+                ) : (
+                  <span className="chip chip-uploading text-[0.7rem] ml-4 flex-shrink-0">Coming soon</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Cloud Storage */}
       <div className="card">
         <div className="card-head">
@@ -2082,39 +2116,6 @@ function IntegrationsTab({
         </div>
       </div>
 
-      {/* Marketplace Integrations */}
-      <div className="card">
-        <div className="card-head">
-          <span className="card-title">Marketplace Integrations</span>
-        </div>
-        <div className="card-body">
-          <p className="text-[0.82rem] text-[var(--text3)] mb-4">
-            Direct API integrations with marketplace partners are coming soon. Once enabled, ShotSync will push approved assets directly to each platform — no manual export required.
-          </p>
-          <div className="flex flex-col gap-3">
-            {[
-              { name: 'Shopify', desc: 'Sync product images to your Shopify store on export.', available: true },
-              { name: 'THE ICONIC', desc: 'Auto-deliver approved image sets to THE ICONIC Content Portal.' },
-              { name: 'Myer', desc: 'Push product imagery directly to the Myer supplier portal.' },
-              { name: 'David Jones', desc: 'Deliver approved assets to David Jones via their content API.' },
-            ].map((mp) => (
-              <div key={mp.name} className="flex items-center justify-between px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
-                <div>
-                  <p className="text-[0.85rem] font-medium text-[var(--text)]">{mp.name}</p>
-                  <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">{mp.desc}</p>
-                </div>
-                {'available' in mp && mp.available ? (
-                  <button onClick={onShopifyClick} className="chip chip-done text-[0.7rem] ml-4 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
-                    Available ↗
-                  </button>
-                ) : (
-                  <span className="chip chip-uploading text-[0.7rem] ml-4 flex-shrink-0">Coming soon</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
