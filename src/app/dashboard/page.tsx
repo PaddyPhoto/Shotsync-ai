@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
 import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
@@ -47,7 +48,10 @@ export default function DashboardPage() {
   const [orgName, setOrgName] = useState<string | null>(null)
   const { activeBrand, brands, isLoading: brandsLoading } = useBrand()
   const { rules } = useMarketplaceRules()
-  const { clusters, isReady } = useSession((s) => ({ clusters: s.clusters, isReady: s.isReady }))
+  const { clusters, isReady, jobName: sessionJobName } = useSession((s) => ({ clusters: s.clusters, isReady: s.isReady, jobName: s.jobName }))
+  const setSession = useSession((s) => s.setSession)
+  const [draftSession, setDraftSession] = useState<{ jobName: string; clusterCount: number; imageCount: number; savedAt: string } | null>(null)
+  const [draftLoading, setDraftLoading] = useState(false)
 
   useEffect(() => {
     import('@/lib/supabase/client').then(({ createClient }) =>
@@ -81,6 +85,37 @@ export default function DashboardPage() {
       .catch(() => setJobs([]))
       .finally(() => setLoading(false))
   }, [activeBrand?.id])
+
+  // Check IDB for a saved draft session (unfinished job from a previous browser session)
+  useEffect(() => {
+    if (isReady && clusters.length > 0) return // in-memory session takes priority
+    import('@/lib/session-store').then(({ listSessions }) =>
+      listSessions()
+    ).then((sessions) => {
+      const draft = sessions.find((s) => s.id === 'draft')
+      setDraftSession(draft ? {
+        jobName: draft.jobName,
+        clusterCount: draft.clusterCount,
+        imageCount: draft.imageCount,
+        savedAt: draft.savedAt,
+      } : null)
+    }).catch(() => {})
+  }, [isReady, clusters.length])
+
+  const router = useRouter()
+
+  const handleResumeDraft = async () => {
+    setDraftLoading(true)
+    try {
+      const { loadSession } = await import('@/lib/session-store')
+      const result = await loadSession('draft')
+      if (!result) { setDraftSession(null); return }
+      setSession(result.jobName, result.clusters, result.marketplaces)
+      router.push('/dashboard/review')
+    } catch { /* ignore */ } finally {
+      setDraftLoading(false)
+    }
+  }
 
   const marketplaceNames = Object.keys(rules)
   const processingJob = jobs.find((j) => j.status === 'processing')
@@ -308,49 +343,68 @@ export default function DashboardPage() {
         {/* Row 2: Active pipeline + Cluster review */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
 
-          {/* Active pipeline */}
+          {/* Active session */}
           <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
-                {processingJob ? `Active pipeline — ${processingJob.job_name}` : 'Active pipeline'}
+                {isReady && clusters.length > 0 ? `Active session — ${sessionJobName || 'Current shoot'}` : draftSession ? `Unfinished session — ${draftSession.jobName}` : 'Active session'}
               </span>
-              {processingJob && (
-                <span style={{ fontSize: '13px', color: '#aeaeb2', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', display: 'inline-block', animation: 'blink 1.4s infinite' }} />
-                  Running
+              {isReady && clusters.length > 0 && (
+                <span style={{ fontSize: '12px', fontWeight: 500, color: '#005fc4', background: 'rgba(0,122,255,0.08)', padding: '3px 8px', borderRadius: '5px' }}>
+                  In progress
                 </span>
               )}
             </div>
-            <style>{`@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
-            <div style={{ padding: '8px 18px' }}>
-              {!processingJob ? (
-                <div style={{ padding: '20px 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '10px' }}>No active pipeline. Upload a new shoot to begin.</p>
-                  <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '13px', padding: '4px 10px' }}>New upload</Link>
+            <div style={{ padding: '20px 18px' }}>
+              {isReady && clusters.length > 0 ? (
+                // In-memory session active
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', gap: '20px' }}>
+                    <div>
+                      <p style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.5px' }}>{clusters.length}</p>
+                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>Clusters</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '22px', fontWeight: 600, color: '#1a8a35', letterSpacing: '-.5px' }}>{clusters.filter((c) => c.confirmed).length}</p>
+                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>Confirmed</p>
+                    </div>
+                    {warningClusters.length > 0 && (
+                      <div>
+                        <p style={{ fontSize: '22px', fontWeight: 600, color: '#c27800', letterSpacing: '-.5px' }}>{warningClusters.length}</p>
+                        <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>To review</p>
+                      </div>
+                    )}
+                  </div>
+                  <Link href="/dashboard/review" className="btn btn-primary" style={{ fontSize: '13px', alignSelf: 'flex-start' }}>
+                    Continue review →
+                  </Link>
+                </div>
+              ) : draftSession ? (
+                // Draft saved in IDB from a previous session
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', gap: '20px' }}>
+                    <div>
+                      <p style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.5px' }}>{draftSession.clusterCount}</p>
+                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>Clusters</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.5px' }}>{draftSession.imageCount}</p>
+                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>Images</p>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#aeaeb2' }}>
+                    Saved {new Date(draftSession.savedAt).toLocaleDateString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                  <button onClick={handleResumeDraft} disabled={draftLoading} className="btn btn-primary" style={{ fontSize: '13px', alignSelf: 'flex-start' }}>
+                    {draftLoading ? 'Loading…' : 'Resume session →'}
+                  </button>
                 </div>
               ) : (
-                PIPELINE_STEPS.map((step, i) => {
-                  // Simulated: steps 1-4 done, step 5 active, 6-7 pending
-                  const ACTIVE_STEP = 5
-                  const isDone   = i + 1 < ACTIVE_STEP
-                  const isActive = i + 1 === ACTIVE_STEP
-                  return (
-                    <div key={step} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 0', borderBottom: i < PIPELINE_STEPS.length - 1 ? '0.5px solid rgba(0,0,0,0.05)' : 'none' }}>
-                      <div style={{
-                        width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '11px', fontWeight: 500, flexShrink: 0,
-                        background: isDone ? 'rgba(48,209,88,0.12)' : isActive ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
-                        color:      isDone ? '#1a8a35'              : isActive ? '#f5f5f7' : '#aeaeb2',
-                      }}>
-                        {isDone ? '✓' : i + 1}
-                      </div>
-                      <span style={{ fontSize: '14px', color: isDone || isActive ? '#1d1d1f' : '#aeaeb2', flex: 1, letterSpacing: '-.1px', fontWeight: isDone || isActive ? 500 : 400 }}>{step}</span>
-                      <span style={{ fontSize: '13px', color: isDone ? '#aeaeb2' : isActive ? '#1d1d1f' : '#aeaeb2' }}>
-                        {isDone ? ['0.8s','12.4s','3.2s','2.1s'][i] ?? '—' : '—'}
-                      </span>
-                    </div>
-                  )
-                })
+                // Nothing active
+                <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                  <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '10px' }}>No active session. Upload a new shoot to begin.</p>
+                  <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '13px', padding: '4px 10px' }}>New upload</Link>
+                </div>
               )}
             </div>
           </div>

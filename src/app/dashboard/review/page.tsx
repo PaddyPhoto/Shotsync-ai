@@ -1602,8 +1602,12 @@ function ExportPanel({
         const { data: historyRecord } = await res.json()
         if (historyRecord?.id) {
           // Persist full session so the job can be reopened without re-uploading
-          import('@/lib/session-store').then(({ saveSession }) =>
-            saveSession(historyRecord.id, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null)
+          // and remove the draft (job is now complete)
+          import('@/lib/session-store').then(({ saveSession, deleteSession }) =>
+            Promise.all([
+              saveSession(historyRecord.id, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null),
+              deleteSession('draft'),
+            ])
           ).catch(() => { /* non-critical */ })
         }
       }

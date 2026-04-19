@@ -411,6 +411,12 @@ export default function UploadPage() {
     const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
 
     setSession(name, clusters, marketplaces)
+
+    // Save draft to IDB so the session survives browser close
+    import('@/lib/session-store').then(({ saveSession }) =>
+      saveSession('draft', name, clusters, marketplaces, activeBrand?.id ?? null)
+    ).catch(() => { /* non-critical */ })
+
     router.push('/dashboard/review')
   }
 
