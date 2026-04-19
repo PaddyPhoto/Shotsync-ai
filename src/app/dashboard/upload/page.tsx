@@ -169,6 +169,7 @@ export default function UploadPage() {
   const [gdriveSelected, setGdriveSelected] = useState<Set<string>>(new Set())
   const [gdriveToken, setGdriveToken] = useState<string | null>(null)
   const [gdriveError, setGdriveError] = useState<string | null>(null)
+  const [gdriveDownloadProgress, setGdriveDownloadProgress] = useState<{ done: number; total: number } | null>(null)
 
   const importFromDropbox = async () => {
     setCloudImportError(null)
@@ -303,19 +304,35 @@ export default function UploadPage() {
     if (gdriveSelected.size === 0 || !gdriveToken) return
     setCloudImportError(null)
     setCloudImporting('google-drive')
+    const selectedFiles = gdriveFiles.filter((f) => gdriveSelected.has(f.id))
+    const total = selectedFiles.length
+    setGdriveDownloadProgress({ done: 0, total })
+
     try {
-      const selectedFiles = gdriveFiles.filter((f) => gdriveSelected.has(f.id))
+      const CONCURRENCY = 5
       const downloaded: File[] = []
-      for (const sf of selectedFiles) {
-        try {
-          const res = await fetch(sf.downloadUrl, {
-            headers: { Authorization: `Bearer ${gdriveToken}` },
+      let done = 0
+
+      // Process in parallel batches of 5
+      for (let i = 0; i < selectedFiles.length; i += CONCURRENCY) {
+        const batch = selectedFiles.slice(i, i + CONCURRENCY)
+        const results = await Promise.allSettled(
+          batch.map(async (sf) => {
+            const res = await fetch(sf.downloadUrl, {
+              headers: { Authorization: `Bearer ${gdriveToken}` },
+            })
+            if (!res.ok) throw new Error(`Failed: ${sf.name}`)
+            const blob = await res.blob()
+            return new File([blob], sf.name, { type: sf.mimeType || blob.type || 'image/jpeg' })
           })
-          if (!res.ok) continue
-          const blob = await res.blob()
-          downloaded.push(new File([blob], sf.name, { type: sf.mimeType || blob.type || 'image/jpeg' }))
-        } catch { /* skip */ }
+        )
+        for (const result of results) {
+          if (result.status === 'fulfilled') downloaded.push(result.value)
+        }
+        done += batch.length
+        setGdriveDownloadProgress({ done, total })
       }
+
       if (downloaded.length > 0) {
         acceptFiles(downloaded)
         setGdriveBrowserOpen(false)
@@ -327,6 +344,7 @@ export default function UploadPage() {
       setGdriveError(err instanceof Error ? err.message : 'Google Drive import failed.')
     } finally {
       setCloudImporting(null)
+      setGdriveDownloadProgress(null)
     }
   }
 
@@ -1227,7 +1245,9 @@ export default function UploadPage() {
                           cursor: gdriveSelected.size > 0 ? 'pointer' : 'default',
                         }}
                       >
-                        {cloudImporting === 'google-drive' ? 'Importing…' : `Import ${gdriveSelected.size > 0 ? gdriveSelected.size : ''} file${gdriveSelected.size !== 1 ? 's' : ''}`}
+                        {gdriveDownloadProgress
+                          ? `Downloading ${gdriveDownloadProgress.done} of ${gdriveDownloadProgress.total}…`
+                          : `Import ${gdriveSelected.size > 0 ? gdriveSelected.size : ''} file${gdriveSelected.size !== 1 ? 's' : ''}`}
                       </button>
                     </div>
                   </div>
