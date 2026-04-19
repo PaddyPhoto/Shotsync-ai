@@ -1196,7 +1196,7 @@ export default function UploadPage() {
                           </button>
                         ))}
                         {gdriveFiles.map((file) => {
-                          const tooLarge = file.size > 2.5 * 1024 * 1024
+                          const tooLarge = file.size > 3 * 1024 * 1024
                           return (
                             <label
                               key={file.id}
@@ -1236,12 +1236,12 @@ export default function UploadPage() {
                       {gdriveFiles.length > 0 && (
                         <button
                           onClick={() => {
-                            const eligible = gdriveFiles.filter((f) => f.size <= 2.5 * 1024 * 1024).map((f) => f.id)
+                            const eligible = gdriveFiles.filter((f) => f.size <= 3 * 1024 * 1024).map((f) => f.id)
                             setGdriveSelected(gdriveSelected.size === eligible.length ? new Set() : new Set(eligible))
                           }}
                           style={{ fontSize: '12px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
-                          {gdriveSelected.size === gdriveFiles.filter((f) => f.size <= 2.5 * 1024 * 1024).length ? 'Deselect all' : 'Select all'}
+                          {gdriveSelected.size === gdriveFiles.filter((f) => f.size <= 3 * 1024 * 1024).length ? 'Deselect all' : 'Select all'}
                         </button>
                       )}
                       <button
