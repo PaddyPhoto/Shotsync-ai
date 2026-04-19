@@ -1759,6 +1759,19 @@ function IntegrationsTab({
   const [s3Saved, setS3Saved] = useState(false)
   const [s3Error, setS3Error] = useState('')
   const [disconnecting, setDisconnecting] = useState<string | null>(null)
+  const [connectModal, setConnectModal] = useState<null | 'google_drive' | 'dropbox'>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const intSearchParams = useSearchParams()
+
+  useEffect(() => {
+    const connected = intSearchParams.get('cloud_connected')
+    if (connected) {
+      const name = connected === 'google_drive' ? 'Google Drive' : connected === 'dropbox' ? 'Dropbox' : connected
+      setToast(`${name} connected successfully`)
+      const t = setTimeout(() => setToast(null), 4000)
+      return () => clearTimeout(t)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedBrand = brands.find((b) => b.id === selectedBrandId) ?? activeBrand ?? brands[0] ?? null
   const cc = selectedBrand?.cloud_connections ?? {}
@@ -1838,25 +1851,68 @@ function IntegrationsTab({
     }
   }
 
-  const connectDropbox = () => {
-    if (!selectedBrand) return
-    import('@/lib/cloud/dropbox').then(({ getDropboxAuthUrl }) => {
-      window.location.href = getDropboxAuthUrl(selectedBrand.id)
-    })
-  }
+  const connectDropbox = () => { if (selectedBrand) setConnectModal('dropbox') }
+  const connectGoogle = () => { if (selectedBrand) setConnectModal('google_drive') }
 
-  const connectGoogle = () => {
-    if (!selectedBrand) return
-    import('@/lib/cloud/google-drive').then(({ getGoogleAuthUrl }) => {
-      window.location.href = getGoogleAuthUrl(selectedBrand.id)
-    })
+  const doConnect = () => {
+    if (!selectedBrand || !connectModal) return
+    const modal = connectModal
+    setConnectModal(null)
+    if (modal === 'google_drive') {
+      import('@/lib/cloud/google-drive').then(({ getGoogleAuthUrl }) => {
+        window.location.href = getGoogleAuthUrl(selectedBrand.id)
+      })
+    } else {
+      import('@/lib/cloud/dropbox').then(({ getDropboxAuthUrl }) => {
+        window.location.href = getDropboxAuthUrl(selectedBrand.id)
+      })
+    }
   }
 
   const dropboxEnabled = !!process.env.NEXT_PUBLIC_DROPBOX_APP_KEY
   const googleEnabled = !!(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && process.env.NEXT_PUBLIC_GOOGLE_API_KEY)
 
+  const modalMeta = connectModal === 'google_drive'
+    ? { label: 'Google Drive', cta: 'Continue to Google', perms: ['Browse your Drive folders to select source images', 'Export finished images to any Drive folder you choose', 'Create folders to organise your exports'] }
+    : connectModal === 'dropbox'
+    ? { label: 'Dropbox', cta: 'Continue to Dropbox', perms: ['Browse your Dropbox folders to select source images', 'Export finished images to any Dropbox folder you choose', 'Create folders to organise your exports'] }
+    : null
+
   return (
     <div className="p-7 pt-0 flex flex-col gap-4 max-w-[760px]">
+
+      {/* Success toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-[10px] bg-[#1dc44a] text-white text-[0.82rem] font-medium shadow-lg animate-fade-in">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(255,255,255,0.25)"/><path d="M4.5 8l2.5 2.5 4.5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          {toast}
+        </div>
+      )}
+
+      {/* Pre-connect modal */}
+      {connectModal && modalMeta && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setConnectModal(null)}>
+          <div className="bg-[var(--bg2)] border border-[var(--line)] rounded-[14px] shadow-2xl w-full max-w-[400px] mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-[1rem] font-semibold text-[var(--text)] mb-1">Connect {modalMeta.label}</h3>
+            <p className="text-[0.78rem] text-[var(--text3)] mb-4">
+              You&apos;ll be redirected to {connectModal === 'google_drive' ? 'Google' : 'Dropbox'} to sign in and approve access. ShotSync will be able to:
+            </p>
+            <ul className="flex flex-col gap-2 mb-5">
+              {modalMeta.perms.map((p) => (
+                <li key={p} className="flex items-start gap-2 text-[0.78rem] text-[var(--text2)]">
+                  <svg className="mt-[2px] flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="var(--accent)"/><path d="M4 7l2.2 2.2 3.8-4.4" stroke="black" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  {p}
+                </li>
+              ))}
+            </ul>
+            <p className="text-[0.72rem] text-[var(--text3)] mb-5">You can disconnect at any time from this page.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setConnectModal(null)} className="btn btn-ghost text-[0.82rem]">Cancel</button>
+              <button onClick={doConnect} className="btn btn-primary text-[0.82rem]">{modalMeta.cta} →</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Brand selector */}
       {brands.length > 1 && (
@@ -1889,7 +1945,10 @@ function IntegrationsTab({
                 </svg>
               </div>
               <div>
-                <p className="text-[0.85rem] font-medium text-[var(--text)]">Dropbox</p>
+                <p className="text-[0.85rem] font-medium text-[var(--text)] flex items-center gap-1.5">
+                  Dropbox
+                  <HelpTooltip position="right" width={260} content="Import source images directly from your Dropbox folders, and export finished images to any Dropbox folder you choose. You can disconnect at any time." />
+                </p>
                 {(cc as Record<string, Record<string, string> | undefined>).dropbox?.account_email ? (
                   <p className="text-[0.72rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).dropbox?.account_email}</p>
                 ) : (
@@ -1931,7 +1990,10 @@ function IntegrationsTab({
                 </svg>
               </div>
               <div>
-                <p className="text-[0.85rem] font-medium text-[var(--text)]">Google Drive</p>
+                <p className="text-[0.85rem] font-medium text-[var(--text)] flex items-center gap-1.5">
+                  Google Drive
+                  <HelpTooltip position="right" width={270} content="Import source images from your Google Drive, and export finished images directly to any Drive folder. ShotSync only requests access to files it creates or you explicitly select." />
+                </p>
                 {(cc as Record<string, Record<string, string> | undefined>).google_drive?.email ? (
                   <p className="text-[0.72rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).google_drive?.email}</p>
                 ) : (
@@ -1969,7 +2031,10 @@ function IntegrationsTab({
                 </svg>
               </div>
               <div>
-                <p className="text-[0.85rem] font-medium text-[var(--text)]">AWS S3</p>
+                <p className="text-[0.85rem] font-medium text-[var(--text)] flex items-center gap-1.5">
+                  AWS S3
+                  <HelpTooltip position="right" width={270} content="Connect your own S3 bucket to import raw images and export finished files. Credentials are stored securely per brand and your AWS keys never leave the server." />
+                </p>
                 {(cc as Record<string, Record<string, string> | undefined>).s3?.bucket ? (
                   <p className="text-[0.72rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).s3?.bucket}</p>
                 ) : (
