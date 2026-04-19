@@ -31,13 +31,15 @@ export async function GET(req: NextRequest) {
 
     if (!brand) return NextResponse.json({ error: 'Brand not found' }, { status: 404 })
 
-    const { data: membership } = await service
-      .from('org_members')
-      .select('org_id')
-      .eq('user_id', user.id)
-      .eq('org_id', brand.org_id)
-      .single()
-    if (!membership) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (brand.org_id !== user.id) {
+      const { data: membership } = await service
+        .from('org_members')
+        .select('org_id')
+        .eq('user_id', user.id)
+        .eq('org_id', brand.org_id)
+        .single()
+      if (!membership) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const connections = brand.cloud_connections as Record<string, unknown> | null
     const s3Config = connections?.s3 as {
