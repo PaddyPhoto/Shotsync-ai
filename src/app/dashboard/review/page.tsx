@@ -78,10 +78,10 @@ function ReviewPage() {
   const [detectingCategories, setDetectingCategories] = useState<Set<string>>(new Set())
 
   const [clusterCopy, setClusterCopy] = useState<Record<string, {
-    title: string; description: string; bullets: string[]; loading: boolean; open: boolean
+    title: string; description: string; bullets: string[]; loading: boolean; open: boolean; error?: string
   }>>({})
   const [generatingAll, setGeneratingAll] = useState(false)
-  const [generateAllProgress, setGenerateAllProgress] = useState({ done: 0, total: 0 })
+  const [generateAllProgress, setGenerateAllProgress] = useState({ done: 0, total: 0, failed: 0 })
 
   const COPY_LIMIT = 200
 
@@ -89,20 +89,24 @@ function ReviewPage() {
     const targets = clusters.filter((c) => !clusterCopy[c.id]?.title).slice(0, COPY_LIMIT)
     if (targets.length === 0) return
     setGeneratingAll(true)
-    setGenerateAllProgress({ done: 0, total: targets.length })
+    setGenerateAllProgress({ done: 0, total: targets.length, failed: 0 })
+    let failed = 0
     for (let i = 0; i < targets.length; i++) {
-      await generateCopy(targets[i])
-      setGenerateAllProgress({ done: i + 1, total: targets.length })
+      const ok = await generateCopy(targets[i])
+      if (!ok) failed++
+      setGenerateAllProgress({ done: i + 1, total: targets.length, failed })
+      // Small gap between requests to avoid hitting OpenAI RPM limits
+      if (i < targets.length - 1) await new Promise((r) => setTimeout(r, 500))
     }
     setGeneratingAll(false)
-    setGenerateAllProgress({ done: 0, total: 0 })
+    setGenerateAllProgress({ done: 0, total: 0, failed: 0 })
   }
 
-  const generateCopy = async (cluster: SessionCluster) => {
+  const generateCopy = async (cluster: SessionCluster): Promise<boolean> => {
     const angles = [...new Set(cluster.images.map((img) => img.viewLabel).filter(Boolean))]
     setClusterCopy((prev) => ({
       ...prev,
-      [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: true, open: true },
+      [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: true, open: true, error: undefined },
     }))
 
     // Convert the hero (front) image to base64 so GPT-4o vision can see the garment.
@@ -142,15 +146,26 @@ function ReviewPage() {
         }),
       })
       const data = await res.json()
+      if (!res.ok) {
+        const errMsg = data.error ?? `Request failed (${res.status})`
+        setClusterCopy((prev) => ({
+          ...prev,
+          [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: false, open: true, error: errMsg },
+        }))
+        return false
+      }
       setClusterCopy((prev) => ({
         ...prev,
-        [cluster.id]: { title: data.title ?? '', description: data.description ?? '', bullets: data.bullets ?? [], loading: false, open: true },
+        [cluster.id]: { title: data.title ?? '', description: data.description ?? '', bullets: data.bullets ?? [], loading: false, open: true, error: undefined },
       }))
-    } catch {
+      return true
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Network error'
       setClusterCopy((prev) => ({
         ...prev,
-        [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: false, open: true },
+        [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: false, open: true, error: errMsg },
       }))
+      return false
     }
   }
 
@@ -514,7 +529,7 @@ function ReviewPage() {
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
               {generatingAll
-                ? `Generating ${generateAllProgress.done}/${generateAllProgress.total}…`
+                ? `Generating ${generateAllProgress.done}/${generateAllProgress.total}…${generateAllProgress.failed > 0 ? ` (${generateAllProgress.failed} failed)` : ''}`
                 : `Generate all copy${clusters.length > COPY_LIMIT ? ` (first ${COPY_LIMIT})` : ''}`}
             </button>
             <button
@@ -1047,6 +1062,19 @@ function ReviewPage() {
                                   <circle cx="6.5" cy="6.5" r="4.5" strokeDasharray="18 8"/>
                                 </svg>
                                 <span className="text-[0.72rem] text-[var(--text3)]">Generating copy…</span>
+                              </div>
+                            ) : copy?.error ? (
+                              <div className="flex flex-col gap-2 py-2">
+                                <p className="text-[0.72rem] text-[#ff3b30]">Failed: {copy.error}</p>
+                                <button
+                                  onClick={() => generateCopy(cluster)}
+                                  className="btn btn-ghost btn-sm self-start gap-[6px]"
+                                >
+                                  <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" width="10" height="10" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M10.5 2A5.5 5.5 0 1 0 10.5 10"/><path d="M10.5 5V2H7.5"/>
+                                  </svg>
+                                  Retry
+                                </button>
                               </div>
                             ) : copy?.title ? (
                               <>
