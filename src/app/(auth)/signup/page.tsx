@@ -1,12 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { type PlanId } from '@/lib/plans'
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const planParam = (searchParams.get('plan') ?? 'free') as PlanId
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [brandName, setBrandName] = useState('')
@@ -33,7 +37,6 @@ export default function SignupPage() {
       }
 
       if (!data.session) {
-        // Email confirmation required
         setError('Check your email for a confirmation link before signing in.')
         setLoading(false)
         return
@@ -45,13 +48,32 @@ export default function SignupPage() {
         headers: { Authorization: `Bearer ${data.session.access_token}` },
       }).catch(() => {})
 
-      // Session created — hard navigate so middleware picks up the new cookie
+      // If a paid plan was selected from the landing page, go straight to Stripe checkout
+      if (planParam && planParam !== 'free') {
+        const res = await fetch('/api/billing/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${data.session.access_token}`,
+          },
+          body: JSON.stringify({ planId: planParam }),
+        })
+        const json = await res.json()
+        if (json.url) {
+          window.location.href = json.url
+          return
+        }
+      }
+
+      // Free plan or checkout failed — go to dashboard
       window.location.href = '/dashboard'
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)
     }
   }
+
+  const planLabel = planParam !== 'free' ? ` — ${planParam.charAt(0).toUpperCase() + planParam.slice(1)} plan` : ''
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center px-4">
@@ -74,7 +96,7 @@ export default function SignupPage() {
               <h1 className="text-[1.2rem] font-[700] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
                 Create account
               </h1>
-              <p className="text-[0.82rem] text-[var(--text2)] mt-1">Start your free trial</p>
+              <p className="text-[0.82rem] text-[var(--text2)] mt-1">Start your free trial{planLabel}</p>
             </div>
           </div>
           <div className="card-body pt-4">
@@ -129,5 +151,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   )
 }
