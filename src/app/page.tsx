@@ -33,6 +33,7 @@ function Orb({ color, size, top, left, speed }: {
 
 export default function LandingPage() {
   const [annual, setAnnual] = useState(true)
+  const [demoOpen, setDemoOpen] = useState(false)
 
   // Supabase may send #access_token=... to the site root when the callback
   // URL isn't matched. Detect and forward to the proper callback handler.
@@ -149,10 +150,10 @@ export default function LandingPage() {
               Get started free
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </Link>
-            <a href="#demo" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.08)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <button onClick={() => setDemoOpen(true)} style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', border: '0.5px solid rgba(0,0,0,0.08)', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style={{ color: '#1d1d1f' }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
               Watch demo
-            </a>
+            </button>
           </div>
 
           {/* Stats bar */}
@@ -569,10 +570,10 @@ export default function LandingPage() {
               <Link href="/signup" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none' }}>
                 Get started free
               </Link>
-              <a href="#demo" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', border: '0.5px solid rgba(255,255,255,0.15)' }}>
+              <button onClick={() => setDemoOpen(true)} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', border: '0.5px solid rgba(255,255,255,0.15)', cursor: 'pointer' }}>
                 <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 Watch demo
-              </a>
+              </button>
             </div>
           </div>
         </section>
@@ -601,6 +602,50 @@ export default function LandingPage() {
         </footer>
 
       </div>
+
+      {/* ── DEMO MODAL ── */}
+      {demoOpen && (
+        <div
+          onClick={() => setDemoOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              width: '90vw', maxWidth: '1280px',
+              aspectRatio: '16/9',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
+            }}
+          >
+            <iframe
+              src="/onboarding.html"
+              style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+              allow="autoplay"
+            />
+            <button
+              onClick={() => setDemoOpen(false)}
+              style={{
+                position: 'absolute', top: '16px', right: '16px',
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: 'rgba(0,0,0,0.6)', border: '0.5px solid rgba(255,255,255,0.15)',
+                color: '#fff', fontSize: '18px', lineHeight: 1,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 10,
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </>
   )
 }

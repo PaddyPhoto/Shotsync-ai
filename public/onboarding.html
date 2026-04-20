@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShotSync.ai — Quick Tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ===================== RESET & BASE ===================== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #080808;
+    --s1:       #111111;
+    --s2:       #161616;
+    --s3:       #1c1c1c;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.12);
+    --accent:   #e8d97a;
+    --accent2:  #c9bb55;
+    --text:     #f5f5f5;
+    --muted:    #888888;
+    --muted2:   #555555;
+    --green:    #30d158;
+    --blue:     #0071e3;
+    --red:      #ff3b30;
+    --orange:   #ff9500;
+    --amber:    #ffb340;
+    --purple:   #bf5af2;
+  }
+
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===================== LAYOUT ===================== */
+  #app {
+    position: relative;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Skip link */
+  #skip-link {
+    position: fixed;
+    top: 24px; right: 28px;
+    z-index: 100;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+  #skip-link:hover { color: var(--text); }
+
+  /* ===================== SLIDES ===================== */
+  .slides-container {
+    position: relative;
+    width: 100%; height: 100%;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px 100px;
+    opacity: 0;
+    transform: translateX(60px);
+    pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(0.4,0,0.2,1),
+                transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    will-change: opacity, transform;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+
+  .slide.exiting {
+    opacity: 0;
+    transform: translateX(-60px);
+    pointer-events: none;
+  }
+
+  /* ===================== SLIDE CONTENT COMMON ===================== */
+  .slide-inner {
+    width: 100%;
+    max-width: 860px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .slide-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    opacity: 0.9;
+  }
+
+  .slide-title {
+    font-size: clamp(26px, 3.5vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+
+  .slide-sub {
+    font-size: clamp(14px, 1.5vw, 17px);
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.65;
+    max-width: 580px;
+    margin-bottom: 40px;
+  }
+
+  .key-point {
+    margin-top: 24px;
+    padding: 14px 22px;
+    background: rgba(232,217,122,0.07);
+    border: 1px solid rgba(232,217,122,0.2);
+    border-radius: 10px;
+    font-size: 13.5px;
+    color: var(--accent);
+    text-align: center;
+    max-width: 620px;
+    line-height: 1.6;
+  }
+
+  /* ===================== BUTTONS ===================== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: all 0.2s;
+    letter-spacing: -0.01em;
+  }
+  .btn-accent {
+    background: var(--accent);
+    color: #080808;
+  }
+  .btn-accent:hover {
+    background: #f0e48a;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(232,217,122,0.25);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+  }
+  .btn-ghost:hover {
+    background: var(--s2);
+    color: var(--text);
+    border-color: rgba(255,255,255,0.18);
+  }
+
+  /* ===================== NAVIGATION ===================== */
+  #nav {
+    position: fixed;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 50;
+  }
+
+  .nav-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: var(--s1);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 16px;
+  }
+  .nav-btn:hover { background: var(--s2); border-color: rgba(255,255,255,0.2); }
+  .nav-btn:disabled { opacity: 0.25; cursor: default; }
+
+  #dots {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted2);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .dot.active {
+    background: var(--accent);
+    width: 22px;
+    border-radius: 3px;
+  }
+  .dot:hover:not(.active) { background: var(--muted); }
+
+  /* ===================== SLIDE 1 — WELCOME ===================== */
+  #slide-1 { overflow: hidden; }
+
+  /* Animated background */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+  .bg-glow {
+    position: absolute;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(232,217,122,0.06) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulseGlow 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
+  }
+
+  .logo-mark {
+    width: 72px; height: 72px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #e8d97a, #c9b84a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; font-weight: 800;
+    color: #080808;
+    letter-spacing: -0.04em;
+    margin-bottom: 24px;
+    box-shadow: 0 0 0 1px rgba(232,217,122,0.3), 0 20px 60px rgba(232,217,122,0.2);
+    position: relative;
+    z-index: 1;
+  }
+
+  .wordmark {
+    font-size: clamp(36px, 5vw, 58px);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    color: var(--text);
+    margin-bottom: 16px;
+    position: relative; z-index: 1;
+  }
+  .wordmark span { color: var(--accent); }
+
+  .welcome-sub {
+    font-size: clamp(14px, 1.6vw, 18px);
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.65;
+    max-width: 500px;
+    margin-bottom: 40px;
+    position: relative; z-index: 1;
+  }
+
+  /* ===================== SLIDE 2 — PIPELINE ===================== */
+  .pipeline-steps {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin: 8px 0 4px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pipeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s, transform 0.5s;
+    flex: 1;
+    max-width: 140px;
+  }
+  .pipeline-step.visible { opacity: 1; transform: translateY(0); }
+
+  .step-connector {
+    display: flex;
+    align-items: center;
+    padding-top: 24px;
+  }
+  .connector-line {
+    width: 40px; height: 2px;
+    background: var(--border2);
+    position: relative;
+    overflow: hidden;
+  }
+  .connector-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s ease;
+  }
+  .connector-line.filled .connector-fill { transform: scaleX(1); }
+
+  .step-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: var(--s2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    transition: all 0.4s;
+  }
+  .pipeline-step.visible .step-icon {
+    border-color: rgba(232,217,122,0.25);
+    background: rgba(232,217,122,0.06);
+  }
+
+  .step-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    transition: color 0.4s;
+  }
+  .pipeline-step.visible .step-label { color: var(--accent); }
+
+  .step-desc {
+    font-size: 11.5px;
+    color: var(--muted2);
+    text-align: center;
+    line-height: 1.5;
+    max-width: 110px;
+    transition: color 0.4s;
+  }
+  .pipeline-step.visible .step-desc { color: var(--muted); }
+
+  /* ===================== SLIDE 3 — BRAND SETUP ===================== */
+  .form-mockup {
+    width: 100%;
+    max-width: 480px;
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .form-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .form-header-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: rgba(232,217,122,0.1);
+    border: 1px solid rgba(232,217,122,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .form-header-text { font-size: 15px; font-weight: 600; color: var(--text); }
+  .form-header-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  .form-row { display: flex; flex-direction: column; gap: 6px; }
+  .form-row-h { display: flex; gap: 14px; }
+  .form-row-h .form-row { flex: 1; }
+
+  .form-label {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+
+  .form-input {
+    height: 38px;
+    border-radius: 8px;
+    background: var(--s2);
+    border: 1px solid var(--border2);
+    padding: 0 12px;
+    font-size: 13.5px;
+    color: var(--text);
+    display: flex; align-items: center;
+  }
+  .form-input.accent-border { border-color: rgba(232,217,122,0.35); }
+
+  .naming-preview {
+    background: rgba(232,217,122,0.05);
+    border: 1px dashed rgba(232,217,122,0.25);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 12px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .naming-preview::before {
+    content: '→';
+    opacity: 0.6;
+  }
+
+  .images-counter {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .counter-btn {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--s2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .counter-val {
+    width: 36px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* ===================== SLIDE 4 — UPLOAD ===================== */
+  .upload-zone {
+    width: 100%;
+    max-width: 500px;
+    height: 180px;
+    border: 2px dashed rgba(232,217,122,0.3);
+    border-radius: 14px;
+    background: rgba(232,217,122,0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-icon { font-size: 36px; opacity: 0.7; }
+  .upload-text { font-size: 14px; color: var(--muted); }
+  .upload-text strong { color: var(--accent); }
+  .upload-hint { font-size: 11.5px; color: var(--muted2); }
+
+  /* Floating files animation */
+  .file-chip {
+    position: absolute;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: var(--s2);
+    border: 1px solid var(--border2);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+    animation: floatIn 0s both;
+    opacity: 0;
+  }
+  .file-chip::before { content: '🖼'; font-size: 13px; }
+
+  @keyframes floatIn {
+    from { opacity: 0; transform: translateY(-30px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .cloud-sources {
+    display: flex; gap: 10px; margin-top: 8px;
+  }
+
+  .source-btn {
+    flex: 1;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: var(--s1);
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .source-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  /* ===================== SLIDE 5 — AI PROCESSING ===================== */
+  .ai-canvas {
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .thumb-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .thumb {
+    width: 44px; height: 44px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cluster-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .cluster-row.show { opacity: 1; transform: translateY(0); }
+
+  .cluster-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cluster-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--s2);
+  }
+
+  .cluster-thumbs {
+    display: grid;
+    grid-template-columns: repeat(2, 38px);
+    gap: 4px;
+  }
+
+  .cluster-thumb {
+    width: 38px; height: 38px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+  }
+
+  .ai-steps-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-step-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--s2);
+    border: 1px solid var(--border);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.4s;
+  }
+  .ai-step-pill.done {
+    border-color: rgba(48,209,88,0.3);
+    background: rgba(48,209,88,0.07);
+    color: var(--green);
+  }
+  .ai-step-pill .pill-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .progress-bar-wrap {
+    width: 100%;
+    max-width: 400px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--s2);
+    overflow: hidden;
+    align-self: center;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--green), var(--accent));
+    width: 0%;
+    transition: width 2s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-bar-fill.run { width: 100%; }
+
+  /* ===================== SLIDE 6 — CLUSTER REVIEW ===================== */
+  .clusters-grid {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 720px;
+    justify-content: center;
+  }
+
+  .cluster-card {
+    flex: 1;
+    min-width: 0;
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 220px;
+  }
+  .cluster-card.unconfirmed { border-color: rgba(255,179,64,0.3); }
+
+  .cluster-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cluster-num { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+  .badge {
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .badge-green { background: rgba(48,209,88,0.15); color: var(--green); }
+  .badge-amber { background: rgba(255,179,64,0.15); color: var(--amber); }
+
+  .card-thumbs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  .card-thumb {
+    aspect-ratio: 1;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .angle-pills {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .angle-pill {
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .pill-green { background: rgba(48,209,88,0.15); color: var(--green); }
+  .pill-blue { background: rgba(0,113,227,0.2); color: #4da6ff; }
+  .pill-orange { background: rgba(255,149,0,0.15); color: var(--orange); }
+  .pill-red { background: rgba(255,59,48,0.15); color: var(--red); }
+
+  .sku-field {
+    height: 30px;
+    border-radius: 6px;
+    background: var(--s2);
+    border: 1px solid var(--border);
+    padding: 0 10px;
+    font-size: 11.5px;
+    color: var(--muted);
+    display: flex; align-items: center;
+    font-family: monospace;
+  }
+
+  /* ===================== SLIDE 7 — EXPORT ===================== */
+  .export-cards {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 780px;
+    justify-content: center;
+  }
+
+  .export-card {
+    flex: 1;
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    transition: border-color 0.3s, background 0.3s;
+    max-width: 185px;
+  }
+  .export-card.highlighted {
+    border-color: rgba(232,217,122,0.3);
+    background: rgba(232,217,122,0.04);
+  }
+
+  .export-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+
+  .export-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .export-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .export-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: rgba(232,217,122,0.12);
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ===================== SLIDE 8 — ALL JOBS ===================== */
+  .jobs-list {
+    width: 100%;
+    max-width: 600px;
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .jobs-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .jobs-header-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .jobs-count { font-size: 11.5px; color: var(--muted); }
+
+  .job-row {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .job-row:last-child { border-bottom: none; }
+
+  .job-thumb {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .job-info { flex: 1; min-width: 0; }
+  .job-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .job-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .job-clusters {
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .badge-blue { background: rgba(0,113,227,0.18); color: #4da6ff; }
+
+  /* ===================== SLIDE 9 — READY ===================== */
+  .checkmark-wrap {
+    position: relative;
+    width: 80px; height: 80px;
+    margin-bottom: 24px;
+  }
+
+  .check-circle {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 2.5px solid var(--green);
+    position: relative;
+    animation: drawCircle 0.6s ease forwards;
+  }
+
+  @keyframes drawCircle {
+    from { opacity: 0; transform: scale(0.7); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .check-svg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .check-svg svg {
+    width: 36px; height: 36px;
+    overflow: visible;
+  }
+
+  .check-path {
+    stroke: var(--green);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    stroke-dasharray: 50;
+    stroke-dashoffset: 50;
+    animation: drawCheck 0.5s 0.5s ease forwards;
+  }
+
+  @keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .check-glow {
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(48,209,88,0.15) 0%, transparent 70%);
+    animation: checkGlow 1s 0.8s ease forwards;
+    opacity: 0;
+  }
+  @keyframes checkGlow {
+    to { opacity: 1; }
+  }
+
+  .recap-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 36px;
+    align-self: center;
+  }
+
+  .recap-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .recap-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(48,209,88,0.12);
+    border: 1px solid rgba(48,209,88,0.3);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green);
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .watch-again {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: color 0.2s;
+  }
+  .watch-again:hover { color: var(--text); }
+
+  /* ===================== COLOUR PALETTE FOR THUMBS ===================== */
+  .c1 { background: #2d5a8e; }
+  .c2 { background: #8e2d5a; }
+  .c3 { background: #5a8e2d; }
+  .c4 { background: #8e6b2d; }
+  .c5 { background: #2d8e8e; }
+  .c6 { background: #6b2d8e; }
+  .c7 { background: #8e2d2d; }
+  .c8 { background: #4a6741; }
+  .c9 { background: #674a41; }
+  .c10 { background: #41674a; }
+  .c11 { background: #414167; }
+  .c12 { background: #674167; }
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width: 1100px) {
+    .export-cards { flex-wrap: wrap; }
+    .export-card { max-width: calc(50% - 5px); }
+    .clusters-grid { flex-wrap: wrap; }
+    .cluster-card { max-width: calc(50% - 6px); }
+  }
+  @media (max-width: 720px) {
+    .pipeline-steps { flex-wrap: wrap; justify-content: center; gap: 16px; }
+    .step-connector { display: none; }
+    .cloud-sources { flex-direction: column; }
+  }
+
+  /* ===================== TRANSITION UTILITIES ===================== */
+  .fade-in-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .fade-in-up.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Skip link -->
+  <a id="skip-link" href="https://www.shotsync.ai/dashboard">Skip to app →</a>
+
+  <div class="slides-container" id="slides">
+
+    <!-- ===== SLIDE 1: WELCOME ===== -->
+    <div class="slide active" id="slide-1">
+      <div class="bg-grid"></div>
+      <div class="bg-glow"></div>
+      <div class="slide-inner" style="position:relative;z-index:1;align-items:center;">
+        <div class="logo-mark">S</div>
+        <div class="wordmark">Shot<span>Sync</span>.ai</div>
+        <p class="welcome-sub">The AI-powered post-production platform built for fashion photographers and studios.</p>
+        <h1 class="slide-title" style="font-size:clamp(22px,2.8vw,34px);margin-bottom:8px;opacity:0.72;font-weight:400;letter-spacing:-0.02em;">From shoot to export in minutes</h1>
+        <div style="height:36px;"></div>
+        <button class="btn btn-accent" onclick="goToSlide(1)">Start tour &nbsp;→</button>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 2: THE PIPELINE ===== -->
+    <div class="slide" id="slide-2">
+      <div class="slide-inner">
+        <div class="slide-tag">Overview</div>
+        <h2 class="slide-title">A complete post-production pipeline</h2>
+        <p class="slide-sub">Five steps. Fully automated where it counts. You stay in control.</p>
+
+        <div class="pipeline-steps" id="pipeline-steps">
+          <!-- Upload -->
+          <div class="pipeline-step" id="ps-0">
+            <div class="step-icon">☁️</div>
+            <div class="step-label">Upload</div>
+            <div class="step-desc">Drag & drop or import from cloud storage</div>
+          </div>
+          <div class="step-connector"><div class="connector-line" id="cl-0"><div class="connector-fill"></div></div></div>
+          <!-- AI Cluster -->
+          <div class="pipeline-step" id="ps-1">
+            <div class="step-icon">🤖</div>
+            <div class="step-label">AI Cluster</div>
+            <div class="step-desc">Images grouped by product, angles detected</div>
+          </div>
+          <div class="step-connector"><div class="connector-line" id="cl-1"><div class="connector-fill"></div></div></div>
+          <!-- Review -->
+          <div class="pipeline-step" id="ps-2">
+            <div class="step-icon">✅</div>
+            <div class="step-label">Review</div>
+            <div class="step-desc">Confirm clusters, assign SKUs, reorder</div>
+          </div>
+          <div class="step-connector"><div class="connector-line" id="cl-2"><div class="connector-fill"></div></div></div>
+          <!-- Export -->
+          <div class="pipeline-step" id="ps-3">
+            <div class="step-icon">📦</div>
+            <div class="step-label">Export</div>
+            <div class="step-desc">ZIP, Drive, Dropbox, or Shopify listings</div>
+          </div>
+          <div class="step-connector"><div class="connector-line" id="cl-3"><div class="connector-fill"></div></div></div>
+          <!-- Done -->
+          <div class="pipeline-step" id="ps-4">
+            <div class="step-icon">🎉</div>
+            <div class="step-label">Done</div>
+            <div class="step-desc">Full history. Re-export any time.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 3: BRAND SETUP ===== -->
+    <div class="slide" id="slide-3">
+      <div class="slide-inner">
+        <div class="slide-tag">Step 1</div>
+        <h2 class="slide-title">Start with your brand</h2>
+        <p class="slide-sub">Configure your naming convention once — every export follows it automatically.</p>
+
+        <div class="form-mockup">
+          <div class="form-header">
+            <div class="form-header-icon">🏷</div>
+            <div>
+              <div class="form-header-text">New Brand</div>
+              <div class="form-header-sub">Brand configuration</div>
+            </div>
+          </div>
+
+          <div class="form-row-h">
+            <div class="form-row">
+              <div class="form-label">Brand Name</div>
+              <div class="form-input">Fashion Brand Co.</div>
+            </div>
+            <div class="form-row" style="max-width:110px">
+              <div class="form-label">Brand Code</div>
+              <div class="form-input accent-border" style="color:var(--accent);font-weight:600;font-family:monospace;">FBC</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label">Naming Template</div>
+            <div class="form-input accent-border" style="font-family:monospace;font-size:12.5px;color:var(--accent);">{BRAND}_{SKU}_{VIEW}</div>
+            <div class="naming-preview">FBC_SKU-001_FRONT.jpg</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label">Images per Look</div>
+            <div class="images-counter">
+              <div class="counter-btn">−</div>
+              <div class="counter-val">4</div>
+              <div class="counter-btn">+</div>
+              <span style="font-size:12px;color:var(--muted);margin-left:6px;">shots per cluster</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="key-point">Set it once — every export follows your naming convention automatically.</div>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 4: UPLOAD ===== -->
+    <div class="slide" id="slide-4">
+      <div class="slide-inner">
+        <div class="slide-tag">Step 2</div>
+        <h2 class="slide-title">Upload your shoot</h2>
+        <p class="slide-sub">Drop files directly or pull from wherever your images already live.</p>
+
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-icon">📁</div>
+          <div class="upload-text"><strong>Drop images here</strong></div>
+          <div class="upload-hint">JPG, TIFF, RAW · Up to 2GB per batch</div>
+          <!-- Animated file chips will be injected here by JS -->
+        </div>
+
+        <div style="margin-top:16px;width:100%;max-width:500px;">
+          <div style="font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:10px;">or import from</div>
+          <div class="cloud-sources">
+            <div class="source-btn">
+              <div class="source-dot" style="background:var(--blue);"></div>
+              Google Drive
+            </div>
+            <div class="source-btn">
+              <div class="source-dot" style="background:#1e7ce8;"></div>
+              Dropbox
+            </div>
+            <div class="source-btn">
+              <div class="source-dot" style="background:var(--orange);"></div>
+              AWS S3
+            </div>
+          </div>
+        </div>
+
+        <div class="key-point">Import directly from your cloud storage — no re-downloading needed.</div>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 5: AI PROCESSING ===== -->
+    <div class="slide" id="slide-5">
+      <div class="slide-inner">
+        <div class="slide-tag">Step 3</div>
+        <h2 class="slide-title">AI does the heavy lifting</h2>
+        <p class="slide-sub">Upload completes — sit back while the pipeline runs.</p>
+
+        <div class="ai-canvas">
+          <!-- Initial scattered thumbnails -->
+          <div class="thumb-grid" id="thumb-grid">
+            <div class="thumb c1" style="border-color:rgba(45,90,142,0.4)"></div>
+            <div class="thumb c2" style="border-color:rgba(142,45,90,0.4)"></div>
+            <div class="thumb c1" style="border-color:rgba(45,90,142,0.4)"></div>
+            <div class="thumb c3" style="border-color:rgba(90,142,45,0.4)"></div>
+            <div class="thumb c2" style="border-color:rgba(142,45,90,0.4)"></div>
+            <div class="thumb c3" style="border-color:rgba(90,142,45,0.4)"></div>
+            <div class="thumb c1" style="border-color:rgba(45,90,142,0.4)"></div>
+            <div class="thumb c3" style="border-color:rgba(90,142,45,0.4)"></div>
+            <div class="thumb c2" style="border-color:rgba(142,45,90,0.4)"></div>
+            <div class="thumb c2" style="border-color:rgba(142,45,90,0.4)"></div>
+            <div class="thumb c1" style="border-color:rgba(45,90,142,0.4)"></div>
+            <div class="thumb c3" style="border-color:rgba(90,142,45,0.4)"></div>
+          </div>
+
+          <!-- Clustered result (hidden initially) -->
+          <div class="cluster-row" id="cluster-row">
+            <div class="cluster-group">
+              <div class="cluster-label" style="color:#4a8fd4;">Look A</div>
+              <div class="cluster-thumbs">
+                <div class="cluster-thumb c1"></div>
+                <div class="cluster-thumb c1" style="opacity:0.85"></div>
+                <div class="cluster-thumb c1" style="opacity:0.7"></div>
+                <div class="cluster-thumb c1" style="opacity:0.55"></div>
+              </div>
+            </div>
+            <div class="cluster-group">
+              <div class="cluster-label" style="color:#c46896;">Look B</div>
+              <div class="cluster-thumbs">
+                <div class="cluster-thumb c2"></div>
+                <div class="cluster-thumb c2" style="opacity:0.85"></div>
+                <div class="cluster-thumb c2" style="opacity:0.7"></div>
+                <div class="cluster-thumb c2" style="opacity:0.55"></div>
+              </div>
+            </div>
+            <div class="cluster-group">
+              <div class="cluster-label" style="color:#7aba5a;">Look C</div>
+              <div class="cluster-thumbs">
+                <div class="cluster-thumb c3"></div>
+                <div class="cluster-thumb c3" style="opacity:0.85"></div>
+                <div class="cluster-thumb c3" style="opacity:0.7"></div>
+                <div class="cluster-thumb c3" style="opacity:0.55"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI step pills -->
+          <div class="ai-steps-row">
+            <div class="ai-step-pill" id="aip-0"><div class="pill-dot"></div>Clustering</div>
+            <div style="color:var(--muted2);font-size:12px;">→</div>
+            <div class="ai-step-pill" id="aip-1"><div class="pill-dot"></div>Angle Detection</div>
+            <div style="color:var(--muted2);font-size:12px;">→</div>
+            <div class="ai-step-pill" id="aip-2"><div class="pill-dot"></div>Naming</div>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="ai-progress"></div>
+          </div>
+        </div>
+
+        <div class="key-point">Automatically groups images by product and identifies every shot angle.</div>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 6: CLUSTER REVIEW ===== -->
+    <div class="slide" id="slide-6">
+      <div class="slide-inner">
+        <div class="slide-tag">Step 4</div>
+        <h2 class="slide-title">Review and confirm your clusters</h2>
+        <p class="slide-sub">AI does the grouping — you do the final call.</p>
+
+        <div class="clusters-grid">
+          <!-- Cluster 1: confirmed -->
+          <div class="cluster-card">
+            <div class="cluster-card-header">
+              <div class="cluster-num">Cluster 1 · Look A</div>
+              <div class="badge badge-green">Confirmed</div>
+            </div>
+            <div class="card-thumbs">
+              <div class="card-thumb c1"></div>
+              <div class="card-thumb c1" style="opacity:0.85"></div>
+              <div class="card-thumb c1" style="opacity:0.7"></div>
+              <div class="card-thumb c1" style="opacity:0.55"></div>
+            </div>
+            <div class="angle-pills">
+              <div class="angle-pill pill-green">Front</div>
+              <div class="angle-pill pill-blue">Back</div>
+              <div class="angle-pill pill-orange">Side</div>
+              <div class="angle-pill pill-red">Detail</div>
+            </div>
+            <div class="sku-field">SKU-001</div>
+          </div>
+
+          <!-- Cluster 2: confirmed -->
+          <div class="cluster-card">
+            <div class="cluster-card-header">
+              <div class="cluster-num">Cluster 2 · Look B</div>
+              <div class="badge badge-green">Confirmed</div>
+            </div>
+            <div class="card-thumbs">
+              <div class="card-thumb c2"></div>
+              <div class="card-thumb c2" style="opacity:0.85"></div>
+              <div class="card-thumb c2" style="opacity:0.7"></div>
+              <div class="card-thumb c2" style="opacity:0.55"></div>
+            </div>
+            <div class="angle-pills">
+              <div class="angle-pill pill-green">Front</div>
+              <div class="angle-pill pill-blue">Back</div>
+              <div class="angle-pill pill-orange">Side</div>
+            </div>
+            <div class="sku-field">SKU-002</div>
+          </div>
+
+          <!-- Cluster 3: unconfirmed -->
+          <div class="cluster-card unconfirmed">
+            <div class="cluster-card-header">
+              <div class="cluster-num">Cluster 3 · Look C</div>
+              <div class="badge badge-amber">Unconfirmed</div>
+            </div>
+            <div class="card-thumbs">
+              <div class="card-thumb c3"></div>
+              <div class="card-thumb c3" style="opacity:0.85"></div>
+              <div class="card-thumb c3" style="opacity:0.7"></div>
+              <div class="card-thumb c3" style="opacity:0.55"></div>
+            </div>
+            <div class="angle-pills">
+              <div class="angle-pill pill-green">Front</div>
+              <div class="angle-pill pill-blue">Back</div>
+            </div>
+            <div class="sku-field" style="color:var(--amber);border-color:rgba(255,179,64,0.25);">SKU-003 ·&nbsp;<span style="opacity:0.7;">needs review</span></div>
+          </div>
+        </div>
+
+        <div class="key-point">Edit, merge, or split clusters. Assign SKUs. Confirm when ready.</div>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 7: EXPORT ===== -->
+    <div class="slide" id="slide-7">
+      <div class="slide-inner">
+        <div class="slide-tag">Step 5</div>
+        <h2 class="slide-title">Export your way</h2>
+        <p class="slide-sub">One click to send your processed shoot anywhere it needs to go.</p>
+
+        <div class="export-cards">
+          <!-- ZIP -->
+          <div class="export-card">
+            <div class="export-icon" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);">📦</div>
+            <div class="export-name">ZIP Download</div>
+            <div class="export-desc">Renamed files, folder structure included</div>
+          </div>
+          <!-- Folder -->
+          <div class="export-card">
+            <div class="export-icon" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);">🗂</div>
+            <div class="export-name">Folder Export</div>
+            <div class="export-desc">Organised by cluster and shot angle</div>
+          </div>
+          <!-- Google Drive -->
+          <div class="export-card">
+            <div class="export-icon" style="background:rgba(0,113,227,0.1);border:1px solid rgba(0,113,227,0.2);">
+              <svg width="22" height="20" viewBox="0 0 24 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 0L0 12.5L4.5 21L12 8.5L7.5 0Z" fill="#4285F4"/>
+                <path d="M16.5 0L12 8.5L19.5 21L24 12.5L16.5 0Z" fill="#FBBC05"/>
+                <path d="M4.5 21H19.5L24 12.5H0L4.5 21Z" fill="#34A853"/>
+              </svg>
+            </div>
+            <div class="export-name">Google Drive</div>
+            <div class="export-desc">Direct upload to your Drive folder</div>
+          </div>
+          <!-- Shopify -->
+          <div class="export-card highlighted">
+            <div class="export-icon" style="background:rgba(232,217,122,0.1);border:1px solid rgba(232,217,122,0.25);">🛍</div>
+            <div class="export-name">Shopify</div>
+            <div class="export-desc">Draft listings with images, SKU, colour &amp; AI copy</div>
+            <div class="export-tag">Auto Listings</div>
+          </div>
+        </div>
+
+        <div class="key-point">One click to export to any destination. Shopify listings created as drafts for your team to price and publish.</div>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 8: ALL JOBS ===== -->
+    <div class="slide" id="slide-8">
+      <div class="slide-inner">
+        <div class="slide-tag">History</div>
+        <h2 class="slide-title">Every shoot, always accessible</h2>
+        <p class="slide-sub">Nothing disappears. Reopen any job and re-export without re-uploading.</p>
+
+        <div class="jobs-list">
+          <div class="jobs-header">
+            <div class="jobs-header-title">All Jobs</div>
+            <div class="jobs-count">3 sessions</div>
+          </div>
+
+          <!-- Job 1 -->
+          <div class="job-row">
+            <div class="job-thumb c4"></div>
+            <div class="job-info">
+              <div class="job-name">SS25 Campaign — Outerwear</div>
+              <div class="job-meta">Apr 17 2025 · 8 clusters · FBC</div>
+            </div>
+            <div class="job-clusters">48 images</div>
+            <div class="badge badge-green" style="margin-left:12px;">Exported</div>
+          </div>
+
+          <!-- Job 2 — with Reopen -->
+          <div class="job-row">
+            <div class="job-thumb c5"></div>
+            <div class="job-info">
+              <div class="job-name">Pre-Fall Knitwear Studio</div>
+              <div class="job-meta">Apr 12 2025 · 12 clusters · FBC</div>
+            </div>
+            <div class="job-clusters">64 images</div>
+            <div class="badge badge-blue" style="margin-left:12px;cursor:pointer;">Reopen</div>
+          </div>
+
+          <!-- Job 3 -->
+          <div class="job-row">
+            <div class="job-thumb c6"></div>
+            <div class="job-info">
+              <div class="job-name">Resort Collection Lookbook</div>
+              <div class="job-meta">Mar 28 2025 · 6 clusters · FBC</div>
+            </div>
+            <div class="job-clusters">32 images</div>
+            <div class="badge badge-green" style="margin-left:12px;">Exported</div>
+          </div>
+        </div>
+
+        <div class="key-point">Full session history. Reopen any completed job to re-export without re-uploading.</div>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 9: YOU'RE READY ===== -->
+    <div class="slide" id="slide-9">
+      <div class="slide-inner" style="align-items:center;">
+        <div class="checkmark-wrap" id="checkmark-wrap">
+          <div class="check-circle" id="check-circle"></div>
+          <div class="check-glow"></div>
+          <div class="check-svg">
+            <svg viewBox="0 0 36 36">
+              <polyline class="check-path" points="6,19 14,27 30,10"/>
+            </svg>
+          </div>
+        </div>
+
+        <h2 class="slide-title">You're all set</h2>
+        <p class="slide-sub" style="margin-bottom:28px;">Everything you need to go from raw shoot to published products — faster than ever.</p>
+
+        <ul class="recap-list">
+          <li class="recap-item">
+            <div class="recap-check">✓</div>
+            Upload from camera or cloud
+          </li>
+          <li class="recap-item">
+            <div class="recap-check">✓</div>
+            AI processes and clusters in seconds
+          </li>
+          <li class="recap-item">
+            <div class="recap-check">✓</div>
+            Export to any destination — including Shopify
+          </li>
+        </ul>
+
+        <a href="https://www.shotsync.ai/dashboard" class="btn btn-accent" style="font-size:16px;padding:15px 34px;">
+          Open ShotSync &nbsp;→
+        </a>
+        <button class="watch-again" id="watch-again-btn">Watch again</button>
+      </div>
+    </div>
+
+  </div><!-- /slides-container -->
+
+  <!-- Navigation -->
+  <div id="nav">
+    <button class="nav-btn" id="prev-btn" onclick="prevSlide()" disabled>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <div id="dots"></div>
+
+    <button class="nav-btn" id="next-btn" onclick="nextSlide()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M5 2L10 7L5 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+  /* ============================================================
+     SLIDE ENGINE
+  ============================================================ */
+  const TOTAL = 9;
+  let current = 0;
+  let transitioning = false;
+
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsEl = document.getElementById('dots');
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+
+  /* Build dots */
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goToSlide(i));
+    dotsEl.appendChild(d);
+  }
+
+  function updateDots() {
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === TOTAL - 1;
+  }
+
+  function goToSlide(index, instant = false) {
+    if (transitioning || index === current || index < 0 || index >= TOTAL) return;
+    transitioning = true;
+
+    const prev = slides[current];
+    const next = slides[index];
+
+    const direction = index > current ? 1 : -1;
+
+    // Exiting
+    prev.classList.add('exiting');
+
+    // Entering
+    next.style.transform = `translateX(${direction * 60}px)`;
+    next.style.opacity = '0';
+    next.style.transition = 'none';
+    next.classList.add('active');
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        next.style.transition = '';
+        next.style.transform = '';
+        next.style.opacity = '';
+      });
+    });
+
+    setTimeout(() => {
+      prev.classList.remove('active', 'exiting');
+      transitioning = false;
+      current = index;
+      updateDots();
+      onSlideEnter(current);
+    }, 520);
+  }
+
+  function nextSlide() { goToSlide(current + 1); }
+  function prevSlide() { goToSlide(current - 1); }
+
+  /* Keyboard navigation */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextSlide();
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevSlide();
+  });
+
+  /* Watch again */
+  document.getElementById('watch-again-btn').addEventListener('click', () => {
+    goToSlide(0);
+  });
+
+  /* ============================================================
+     SLIDE-SPECIFIC ANIMATIONS
+  ============================================================ */
+  let slide5Ran = false;
+  let slide2Ran = false;
+
+  /* --- Slide 2: Pipeline step reveal --- */
+  function animatePipeline() {
+    const steps = document.querySelectorAll('.pipeline-step');
+    const connectors = document.querySelectorAll('.connector-line');
+
+    // Reset
+    steps.forEach(s => s.classList.remove('visible'));
+    connectors.forEach(c => c.classList.remove('filled'));
+
+    steps.forEach((step, i) => {
+      setTimeout(() => {
+        step.classList.add('visible');
+        if (i < connectors.length) {
+          setTimeout(() => connectors[i].classList.add('filled'), 200);
+        }
+      }, i * 380);
+    });
+  }
+
+  /* --- Slide 4: Upload zone file chips --- */
+  function animateUpload() {
+    const zone = document.getElementById('upload-zone');
+    // Clear old chips
+    zone.querySelectorAll('.file-chip').forEach(c => c.remove());
+
+    const files = [
+      'IMG_4721.jpg', 'IMG_4722.jpg', 'IMG_4730.jpg',
+      'IMG_4741.jpg', 'IMG_4755.jpg', 'IMG_4760.jpg'
+    ];
+    const positions = [
+      { top:'18%', left:'8%' }, { top:'60%', left:'12%' },
+      { top:'30%', right:'10%' }, { top:'65%', right:'8%' },
+      { top:'12%', left:'42%' }, { top:'72%', left:'48%' }
+    ];
+
+    files.forEach((name, i) => {
+      setTimeout(() => {
+        const chip = document.createElement('div');
+        chip.className = 'file-chip';
+        chip.textContent = name;
+        Object.assign(chip.style, positions[i], {
+          position: 'absolute',
+          animationName: 'floatIn',
+          animationDuration: '0.4s',
+          animationDelay: '0s',
+          animationFillMode: 'forwards'
+        });
+        zone.appendChild(chip);
+      }, i * 250);
+    });
+  }
+
+  /* --- Slide 5: AI clustering animation --- */
+  function animateAI() {
+    const grid = document.getElementById('thumb-grid');
+    const clusterRow = document.getElementById('cluster-row');
+    const pills = document.querySelectorAll('.ai-step-pill');
+    const progressBar = document.getElementById('ai-progress');
+
+    // Reset
+    grid.style.opacity = '1';
+    grid.style.transform = 'none';
+    grid.style.transition = 'none';
+    clusterRow.classList.remove('show');
+    pills.forEach(p => p.classList.remove('done'));
+    progressBar.classList.remove('run');
+
+    // Phase 1: Show scattered thumbs
+    setTimeout(() => {
+      pills[0].classList.add('done'); // Clustering starts
+      progressBar.classList.add('run');
+    }, 300);
+
+    // Phase 2: Fade out grid
+    setTimeout(() => {
+      grid.style.transition = 'opacity 0.5s, transform 0.5s';
+      grid.style.opacity = '0';
+      grid.style.transform = 'scale(0.95)';
+      pills[1].classList.add('done');
+    }, 1800);
+
+    // Phase 3: Show clusters
+    setTimeout(() => {
+      clusterRow.classList.add('show');
+      pills[2].classList.add('done');
+    }, 2400);
+  }
+
+  /* --- Slide 9: Checkmark --- */
+  function triggerCheckmark() {
+    const circle = document.getElementById('check-circle');
+    const wrap = document.getElementById('checkmark-wrap');
+    // Re-trigger animations by cloning
+    const clone = wrap.cloneNode(true);
+    wrap.parentNode.replaceChild(clone, wrap);
+  }
+
+  /* onSlideEnter — called after each slide transition */
+  function onSlideEnter(idx) {
+    if (idx === 1) animatePipeline();
+    if (idx === 3) setTimeout(() => animateUpload(), 80);
+    if (idx === 4) animateAI();
+    if (idx === 8) triggerCheckmark();
+  }
+
+  /* Initial state */
+  updateDots();
+  onSlideEnter(0);
+
+</script>
+</body>
+</html>
