@@ -1257,16 +1257,18 @@ function ExportPanel({
 
       // Build base64 images for each cluster (use original files, Shopify handles resizing)
       const clusters = await Promise.all(confirmedClusters.map(async (cluster) => {
-        const images = await Promise.all(cluster.images.map(async (img, i) => {
+        const images = await Promise.all(cluster.images.map(async (img) => {
           const buf = await img.file.arrayBuffer()
           const bytes = new Uint8Array(buf)
           let binary = ''
           for (let j = 0; j < bytes.byteLength; j++) binary += String.fromCharCode(bytes[j])
-          return { filename: img.filename, base64: btoa(binary), position: i + 1 }
+          return { filename: img.filename, base64: btoa(binary) }
         }))
         const copy = clusterCopy[cluster.id]
         return {
           sku: cluster.sku || cluster.label,
+          productName: cluster.productName || cluster.sku || cluster.label,
+          color: cluster.color || '',
           images,
           ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
         }
@@ -1278,7 +1280,7 @@ function ExportPanel({
           'Content-Type': 'application/json',
           ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
-        body: JSON.stringify({ brand_id: activeBrand.id, clusters, replace: true }),
+        body: JSON.stringify({ brand_id: activeBrand.id, vendor: activeBrand.name, clusters }),
       })
       const { data } = await res.json()
       setShopifyResults(data?.results ?? [])
@@ -1851,22 +1853,19 @@ function ExportPanel({
             </div>
           )}
 
-          {/* Shopify direct upload */}
+          {/* Shopify — create draft products */}
           {activeBrand?.shopify_store_url && (
             <div className="border-t border-[var(--line)] pt-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[0.75rem] text-[var(--text2)] font-medium">Shopify Direct Upload</p>
+                <p className="text-[0.75rem] text-[var(--text2)] font-medium">Shopify</p>
                 <span className="text-[0.65rem] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
               </div>
               {(() => {
                 const withCopy = confirmedClusters.filter((c) => clusterCopy[c.id]?.title).length
                 return (
                   <p className="text-[0.72rem] text-[var(--text3)] mb-3">
-                    Uploads images directly to matching Shopify product listings by SKU.
-                    {withCopy > 0
-                      ? <> <span className="text-[var(--accent2)]">AI copy will also be written</span> for {withCopy} cluster{withCopy !== 1 ? 's' : ''} — title, description and bullet points.</>
-                      : <> Generate AI copy above to also push product descriptions automatically.</>
-                    }
+                    Creates a new draft product listing in Shopify for each confirmed cluster — images, SKU and colour included. Your team can then set pricing and publish.
+                    {withCopy > 0 && <> <span className="text-[var(--accent2)]">AI-generated copy</span> will be added to {withCopy} listing{withCopy !== 1 ? 's' : ''}.</>}
                   </p>
                 )
               })()}
@@ -1876,8 +1875,8 @@ function ExportPanel({
                   {shopifyResults.map((r) => (
                     <div key={r.sku} className="flex items-center justify-between text-[0.72rem]">
                       <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-mono)' }}>{r.sku}</span>
-                      <span className={r.status === 'uploaded' ? 'text-[var(--accent2)]' : 'text-[var(--accent3)]'}>
-                        {r.status === 'uploaded' ? `✓ ${r.uploaded} uploaded` : r.status}
+                      <span className={r.status === 'created' ? 'text-[var(--accent2)]' : 'text-[#ff3b30]'}>
+                        {r.status === 'created' ? '✓ Draft created' : '✗ Failed'}
                       </span>
                     </div>
                   ))}
@@ -1892,12 +1891,12 @@ function ExportPanel({
                 {shopifyUploading ? (
                   <>
                     <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-                    Uploading to Shopify…
+                    Creating drafts…
                   </>
                 ) : (
                   <>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
-                    Upload to Shopify
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+                    Create {confirmedClusters.length} draft{confirmedClusters.length !== 1 ? 's' : ''} in Shopify
                   </>
                 )}
               </button>
