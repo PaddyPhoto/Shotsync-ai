@@ -159,11 +159,18 @@ export function BrandOnboardingModal() {
       style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)' }}
     >
       <div
-        style={{ background: '#fff', borderRadius: '22px', width: '100%', maxWidth: '540px', margin: '16px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.22)' }}
+        style={{ position: 'relative', background: '#fff', borderRadius: '22px', width: '100%', maxWidth: '540px', margin: '16px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.22)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div style={{ padding: '28px 32px 22px', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
+          <button
+            onClick={() => setVisible(false)}
+            style={{ position: 'absolute', top: '18px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#aeaeb2', fontSize: '20px', lineHeight: 1, padding: '4px' }}
+            aria-label="Close"
+          >
+            ×
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#1d1d1f', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8">
