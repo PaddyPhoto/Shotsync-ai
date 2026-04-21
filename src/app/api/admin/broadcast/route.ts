@@ -235,7 +235,7 @@ export async function POST(req: NextRequest) {
     const preview = body.preview ?? false
     const extraEmails: string[] = (body.extraEmails ?? [])
       .map((e: string) => e.trim().toLowerCase())
-      .filter((e: string) => e.includes('@') && e !== ADMIN_EMAIL)
+      .filter((e: string) => e.includes('@'))
 
     // Get all users from auth
     const { data: { users }, error } = await service.auth.admin.listUsers({ perPage: 1000 })
