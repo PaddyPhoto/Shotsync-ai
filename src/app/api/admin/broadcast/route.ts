@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
     // Send in batches of 50 (Resend batch limit)
     const BATCH = 50
     let sent = 0
-    const failed: string[] = []
+    const failed: { email: string; reason: string }[] = []
 
     for (let i = 0; i < emails.length; i += BATCH) {
       const batch = emails.slice(i, i + BATCH)
@@ -282,8 +282,12 @@ export async function POST(req: NextRequest) {
         )
       )
       results.forEach((r: PromiseSettledResult<unknown>, idx: number) => {
-        if (r.status === 'fulfilled') sent++
-        else failed.push(batch[idx])
+        if (r.status === 'fulfilled') {
+          sent++
+        } else {
+          const reason = r.status === 'rejected' && r.reason instanceof Error ? r.reason.message : 'Unknown error'
+          failed.push({ email: batch[idx], reason })
+        }
       })
     }
 
