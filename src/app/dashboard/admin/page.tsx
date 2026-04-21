@@ -16,7 +16,7 @@ export default function AdminPage() {
   const [extraEmailsRaw, setExtraEmailsRaw] = useState('')
   const [preview, setPreview] = useState<{ count: number; emails: string[]; subject: string } | null>(null)
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<{ sent: number; failed: number; total: number } | null>(null)
+  const [result, setResult] = useState<{ sent: number; failed: number; failedEmails: string[]; total: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
 
@@ -188,6 +188,14 @@ export default function AdminPage() {
                 <p className="text-[0.8rem] text-[var(--text2)]">
                   ✓ {result.sent} sent · {result.failed} failed · {result.total} total
                 </p>
+                {result.failedEmails.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-[0.75rem] text-[var(--accent3)] font-[500] mb-1">Failed to send:</p>
+                    {result.failedEmails.map(e => (
+                      <p key={e} className="text-[0.73rem] text-[var(--accent3)] font-mono">{e}</p>
+                    ))}
+                  </div>
+                )}
                 <button
                   className="btn mt-3"
                   onClick={() => { setResult(null); setPreview(null) }}

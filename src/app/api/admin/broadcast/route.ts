@@ -275,6 +275,9 @@ export async function POST(req: NextRequest) {
             replyTo: 'hello@shotsync.ai',
             subject,
             html: getEdmHtml(`${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`),
+          }).then((r) => {
+            if (r.error) throw new Error(r.error.message)
+            return r
           })
         )
       )
@@ -284,7 +287,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    return NextResponse.json({ sent, failed: failed.length, total: emails.length })
+    return NextResponse.json({ sent, failed: failed.length, failedEmails: failed, total: emails.length })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Broadcast failed'
     return NextResponse.json({ error: message }, { status: 500 })
