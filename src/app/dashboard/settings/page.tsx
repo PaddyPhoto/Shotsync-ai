@@ -166,7 +166,7 @@ function SettingsInner() {
   }
 
   // Team tab state
-  const [teamMembers, setTeamMembers] = useState<{ user_id: string; role: string; joined_at: string }[]>([])
+  const [teamMembers, setTeamMembers] = useState<{ user_id: string; email: string; role: string; joined_at: string }[]>([])
   const [pendingInvites, setPendingInvites] = useState<{ id: string; email: string; role: string; expires_at: string }[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<'member' | 'admin'>('member')
@@ -1256,7 +1256,7 @@ function SettingsInner() {
                   <tbody>
                     {teamMembers.map((m) => (
                       <tr key={m.user_id} className="border-b border-[var(--line)] last:border-0">
-                        <td className="px-4 py-[10px] text-[0.8rem] text-[var(--text)] font-mono truncate max-w-[200px]">{m.user_id.slice(0, 8)}…</td>
+                        <td className="px-4 py-[10px] text-[0.8rem] text-[var(--text)] truncate max-w-[200px]">{m.email || m.user_id.slice(0, 8) + '…'}</td>
                         <td className="px-4 py-[10px]">
                           <span className={`chip ${m.role === 'owner' ? 'chip-ready' : m.role === 'admin' ? 'chip-review' : 'chip-uploading'}`}>
                             {m.role}

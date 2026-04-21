@@ -30,7 +30,12 @@ export async function GET(request: NextRequest) {
     .order('joined_at')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ data: data ?? [] })
+
+  const { data: usersData } = await service.auth.admin.listUsers({ perPage: 1000 })
+  const emailMap = Object.fromEntries((usersData?.users ?? []).map((u: { id: string; email?: string }) => [u.id, u.email ?? '']))
+
+  const enriched = (data ?? []).map((m: { user_id: string; role: string; joined_at: string }) => ({ ...m, email: emailMap[m.user_id] ?? '' }))
+  return NextResponse.json({ data: enriched })
 }
 
 // DELETE /api/orgs/members — remove a member (admin only)
