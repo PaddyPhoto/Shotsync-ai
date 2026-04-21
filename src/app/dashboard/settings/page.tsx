@@ -495,24 +495,6 @@ function SettingsInner() {
                 </div>
               </div>
 
-              {/* Sign out */}
-              <div className="flex items-center justify-between py-[14px] border-t border-[var(--line)] mt-2">
-                <div>
-                  <p className="text-[0.85rem] font-medium text-[var(--text)]">Account</p>
-                  <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">Sign out of ShotSync</p>
-                </div>
-                <button
-                  onClick={async () => {
-                    const { createClient } = await import('@/lib/supabase/client')
-                    await createClient().auth.signOut()
-                    window.location.href = '/'
-                  }}
-                  className="btn btn-ghost btn-sm"
-                  style={{ color: 'var(--accent3)' }}
-                >
-                  Sign out
-                </button>
-              </div>
             </div>
           </div>
           </div>

@@ -265,6 +265,29 @@ export function Sidebar() {
         </button>
       </div>
 
+      {/* Sign Out */}
+      <div className="px-[10px] pb-[4px]">
+        <button
+          onClick={async () => {
+            const { createClient } = await import('@/lib/supabase/client')
+            await createClient().auth.signOut()
+            window.location.href = '/'
+          }}
+          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[15px] w-full transition-all duration-150"
+          style={{ color: '#aeaeb2' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.color = '#1d1d1f' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#aeaeb2' }}
+        >
+          <span className="w-[14px] h-[14px] flex-shrink-0 opacity-60">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M6 3H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
+              <path d="M11 5l3 3-3 3M14 8H7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+          Sign out
+        </button>
+      </div>
+
       {/* Plan indicator — hidden from members */}
       {canSeeBilling && (
         <div className="mt-auto p-[10px]" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
