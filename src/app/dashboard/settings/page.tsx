@@ -90,6 +90,15 @@ function SettingsInner() {
       return () => timers.forEach(clearTimeout)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    import('@/lib/supabase/client').then(({ createClient }) =>
+      createClient().auth.getSession()
+    ).then(({ data: { session } }) => {
+      if (session?.user.email === 'photoworkssydney@gmail.com') setIsAdmin(true)
+    })
+  }, [])
+
   const { clusters, jobName, isReady } = useSession()
   const confirmedClusters = clusters.filter((c) => c.confirmed)
   const [portalLoading, setPortalLoading] = useState(false)
@@ -424,20 +433,33 @@ function SettingsInner() {
         </div>
 
         {/* Tabs */}
-        <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px] mb-6">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`px-[14px] py-[6px] rounded-[5px] text-[0.8rem] font-medium transition-all duration-150 ${
-                tab === t.id
-                  ? 'bg-[var(--bg)] text-[var(--text)]'
-                  : 'text-[var(--text2)] hover:text-[var(--text)]'
-              }`}
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`px-[14px] py-[6px] rounded-[5px] text-[0.8rem] font-medium transition-all duration-150 ${
+                  tab === t.id
+                    ? 'bg-[var(--bg)] text-[var(--text)]'
+                    : 'text-[var(--text2)] hover:text-[var(--text)]'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {isAdmin && (
+            <a
+              href="/dashboard/admin"
+              className="inline-flex items-center gap-[6px] px-[12px] py-[6px] rounded-[5px] text-[0.78rem] font-medium text-[var(--text3)] hover:text-[var(--text)] border border-[var(--line)] hover:border-[var(--line2)] transition-all"
             >
-              {t.label}
-            </button>
-          ))}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
+              Admin
+            </a>
+          )}
         </div>
 
         {/* ── General ───────────────────────────────────────────────────────── */}
