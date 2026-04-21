@@ -464,6 +464,7 @@ function SettingsInner() {
 
         {/* ── General ───────────────────────────────────────────────────────── */}
         {tab === 'general' && (
+          <div className="flex flex-col gap-4 max-w-[760px]">
           <div className="card">
             <div className="card-head">
               <span className="card-title">General Settings</span>
@@ -513,6 +514,7 @@ function SettingsInner() {
                 </button>
               </div>
             </div>
+          </div>
           </div>
         )}
 
