@@ -230,17 +230,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const body = await req.json() as { subject?: string; preview?: boolean }
+    const body = await req.json() as { subject?: string; preview?: boolean; extraEmails?: string[] }
     const subject = body.subject || 'ShotSync.ai is live — post-production on autopilot'
     const preview = body.preview ?? false
+    const extraEmails: string[] = (body.extraEmails ?? [])
+      .map((e: string) => e.trim().toLowerCase())
+      .filter((e: string) => e.includes('@') && e !== ADMIN_EMAIL)
 
     // Get all users from auth
     const { data: { users }, error } = await service.auth.admin.listUsers({ perPage: 1000 })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    const emails = users
+    const userEmails = users
       .map((u: { email?: string }) => u.email)
       .filter((e: string | undefined): e is string => !!e && e !== ADMIN_EMAIL)
+
+    // Merge and deduplicate
+    const emails = [...new Set([...userEmails, ...extraEmails])]
 
     if (preview) {
       return NextResponse.json({ count: emails.length, emails: emails.slice(0, 5), subject })

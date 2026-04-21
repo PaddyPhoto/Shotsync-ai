@@ -13,6 +13,7 @@ export default function AdminPage() {
   const [session, setSession] = useState<Session | null>(null)
 
   const [subject, setSubject] = useState("ShotSync.ai is live — post-production on autopilot")
+  const [extraEmailsRaw, setExtraEmailsRaw] = useState('')
   const [preview, setPreview] = useState<{ count: number; emails: string[]; subject: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ sent: number; failed: number; total: number } | null>(null)
@@ -33,6 +34,11 @@ export default function AdminPage() {
 
   const token = session.access_token
 
+  const extraEmails = extraEmailsRaw
+    .split(/[\n,]+/)
+    .map(e => e.trim().toLowerCase())
+    .filter(e => e.includes('@'))
+
   async function loadPreview() {
     setLoading(true)
     setError(null)
@@ -42,7 +48,7 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ subject, preview: true }),
+        body: JSON.stringify({ subject, preview: true, extraEmails }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error)
@@ -61,7 +67,7 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ subject, preview: false }),
+        body: JSON.stringify({ subject, preview: false, extraEmails }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error)
@@ -97,6 +103,23 @@ export default function AdminPage() {
                 onChange={e => setSubject(e.target.value)}
                 placeholder="Email subject..."
               />
+            </div>
+
+            <div>
+              <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">
+                Additional recipients
+                <span className="text-[var(--text3)] font-normal ml-1">(comma or newline separated — merged with all app users)</span>
+              </label>
+              <textarea
+                className="input"
+                style={{ minHeight: '90px', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.78rem' }}
+                value={extraEmailsRaw}
+                onChange={e => setExtraEmailsRaw(e.target.value)}
+                placeholder="jane@example.com, john@example.com"
+              />
+              {extraEmails.length > 0 && (
+                <p className="text-[0.72rem] text-[var(--text3)] mt-1">{extraEmails.length} extra address{extraEmails.length !== 1 ? 'es' : ''} added</p>
+              )}
             </div>
 
             {error && (
