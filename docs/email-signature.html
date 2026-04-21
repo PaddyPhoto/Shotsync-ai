@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShotSync Email Signature</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f5f5f7; font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; padding: 40px 24px; }
+
+  .instructions {
+    max-width: 600px;
+    margin: 0 auto 32px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .instructions h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 12px;
+  }
+
+  .instructions ol {
+    padding-left: 18px;
+    color: #6e6e73;
+    font-size: 13px;
+    line-height: 1.9;
+  }
+
+  .instructions ol li span {
+    font-family: monospace;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 12px;
+    color: #1d1d1f;
+  }
+
+  .copy-btn {
+    display: inline-block;
+    margin-top: 16px;
+    background: #1d1d1f;
+    color: #f5f5f7;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: -0.2px;
+  }
+
+  .copy-btn:hover { background: #333; }
+  .copy-btn.copied { background: #30d158; color: #fff; }
+
+  .preview-label {
+    max-width: 600px;
+    margin: 0 auto 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #aeaeb2;
+  }
+
+  .signature-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    padding: 28px;
+  }
+</style>
+</head>
+<body>
+
+<div class="instructions">
+  <h2>How to install in Gmail</h2>
+  <ol>
+    <li>Click <strong>Copy signature</strong> below</li>
+    <li>Open Gmail → <span>Settings (gear icon)</span> → <span>See all settings</span></li>
+    <li>Go to the <span>General</span> tab → scroll to <span>Signature</span></li>
+    <li>Click <span>Create new</span>, give it a name (e.g. "ShotSync")</li>
+    <li>Click inside the signature text box and paste <span>⌘V</span></li>
+    <li>Scroll down and click <span>Save Changes</span></li>
+  </ol>
+  <button class="copy-btn" onclick="copySignature()">Copy signature</button>
+</div>
+
+<div class="preview-label">Preview</div>
+
+<div class="signature-wrapper">
+  <!-- ═══════════════════════════════════════════
+       SIGNATURE — this is what gets copied
+  ══════════════════════════════════════════════ -->
+  <div id="signature">
+    <table cellpadding="0" cellspacing="0" border="0" style="font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">
+      <tr>
+        <!-- Logo -->
+        <td style="padding-right:18px;vertical-align:middle;">
+          <img src="https://shotsync.ai/icon.png" width="52" height="52" alt="ShotSync" style="border-radius:13px;display:block;">
+        </td>
+        <!-- Vertical divider -->
+        <td style="width:1px;background:#e8e8ed;padding:0;vertical-align:middle;">
+          <div style="width:1px;height:64px;background:#e8e8ed;"></div>
+        </td>
+        <!-- Info -->
+        <td style="padding-left:18px;vertical-align:middle;">
+
+          <!-- Wordmark -->
+          <div style="font-size:17px;font-weight:600;letter-spacing:-0.4px;color:#1d1d1f;line-height:1;margin-bottom:3px;">
+            Shot<span style="color:#6e6e73;">Sync</span><span style="font-size:10px;font-weight:500;color:#aeaeb2;letter-spacing:0.02em;margin-left:6px;vertical-align:middle;">.ai</span>
+          </div>
+
+          <!-- Tagline -->
+          <div style="font-size:11px;color:#aeaeb2;letter-spacing:-0.1px;margin-bottom:10px;">
+            Post-production on autopilot
+          </div>
+
+          <!-- Name -->
+          <div style="font-size:13px;font-weight:600;color:#1d1d1f;margin-bottom:5px;letter-spacing:-0.2px;">
+            Team ShotSync
+          </div>
+
+          <!-- Contact -->
+          <div style="font-size:12px;color:#6e6e73;letter-spacing:-0.1px;margin-bottom:8px;">
+            <a href="mailto:hello@shotsync.ai" style="color:#6e6e73;text-decoration:none;">hello@shotsync.ai</a>
+            <span style="color:#d1d1d6;margin:0 5px;">&middot;</span>
+            <a href="https://shotsync.ai" style="color:#007aff;text-decoration:none;font-weight:500;">shotsync.ai</a>
+            <span style="color:#d1d1d6;margin:0 5px;">&middot;</span>
+            Sydney, Australia
+          </div>
+
+          <!-- Instagram -->
+          <a href="https://www.instagram.com/shotsync.ai/" style="display:inline-block;text-decoration:none;">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="vertical-align:middle;padding-right:6px;">
+                  <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#f9a825 0%,#e53935 45%,#8e24aa 100%);text-align:center;line-height:22px;font-size:12px;color:#fff;font-weight:700;font-family:Arial,sans-serif;">
+                    &#9426;
+                  </div>
+                </td>
+                <td style="vertical-align:middle;">
+                  <span style="font-size:12px;color:#6e6e73;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">@shotsync.ai</span>
+                </td>
+              </tr>
+            </table>
+          </a>
+
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<script>
+function copySignature() {
+  const sig = document.getElementById('signature')
+  const range = document.createRange()
+  range.selectNode(sig)
+  window.getSelection().removeAllRanges()
+  window.getSelection().addRange(range)
+  document.execCommand('copy')
+  window.getSelection().removeAllRanges()
+
+  const btn = document.querySelector('.copy-btn')
+  btn.textContent = 'Copied!'
+  btn.classList.add('copied')
+  setTimeout(() => {
+    btn.textContent = 'Copy signature'
+    btn.classList.remove('copied')
+  }, 2000)
+}
+</script>
+</body>
+</html>
