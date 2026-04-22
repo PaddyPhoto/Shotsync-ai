@@ -1337,15 +1337,26 @@ function ExportPanel({
           const img = cluster.images[i]
           setShopifyResults([...results, { sku: cluster.sku || cluster.label, status: 'uploading', message: `Processing image ${i + 1}/${cluster.images.length}…` }])
 
-          // Process to correct export dimensions (same pipeline as ZIP/folder export)
-          const buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality)
+          // Step 1: canvas resize
+          let buffer: ArrayBuffer
+          try {
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality)
+          } catch (e) {
+            throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
+          }
           const blob = new Blob([buffer], { type: 'image/jpeg' })
 
-          // Upload directly from browser to Supabase Storage — no Vercel body limit applies
+          // Step 2: browser → Supabase Storage
           const path = `${session?.user.id}/${Date.now()}-${cluster.id}-${i}.jpg`
-          const { error: uploadErr } = await supabase.storage
-            .from('shopify-temp')
-            .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
+          let uploadErr: { message: string } | null = null
+          try {
+            const res = await supabase.storage
+              .from('shopify-temp')
+              .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
+            uploadErr = res.error
+          } catch (e) {
+            throw new Error(`Storage threw: ${e instanceof Error ? e.message : e}`)
+          }
           if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`)
 
           tempPaths.push(path)
@@ -1353,39 +1364,43 @@ function ExportPanel({
           images.push({ src: publicUrl, filename: img.filename.replace(/\.[^.]+$/, '.jpg') })
         }
 
-        // Send only tiny URL list to our API route — Shopify fetches images directly from Supabase
+        // Step 3: send URL list to API route — Shopify fetches images directly from Supabase
         const copy = clusterCopy[cluster.id]
-        const res = await fetch('/api/shopify/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-          },
-          body: JSON.stringify({
-            brand_id: activeBrand.id,
-            vendor: activeBrand.name,
-            clusters: [{
-              sku: cluster.sku || cluster.label,
-              productName: cluster.productName || cluster.sku || cluster.label,
-              color: cluster.color || '',
-              images,
-              ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
-            }],
-            tempPaths,
-          }),
-        })
+        let apiRes: Response
+        try {
+          apiRes = await fetch('/api/shopify/upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+            },
+            body: JSON.stringify({
+              brand_id: activeBrand.id,
+              vendor: activeBrand.name,
+              clusters: [{
+                sku: cluster.sku || cluster.label,
+                productName: cluster.productName || cluster.sku || cluster.label,
+                color: cluster.color || '',
+                images,
+                ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
+              }],
+              tempPaths,
+            }),
+          })
+        } catch (e) {
+          throw new Error(`API fetch failed: ${e instanceof Error ? e.message : e}`)
+        }
 
-        const contentType = res.headers.get('content-type') ?? ''
-        if (!res.ok || !contentType.includes('application/json')) {
-          const text = await res.text().catch(() => '')
+        const contentType = apiRes.headers.get('content-type') ?? ''
+        if (!apiRes.ok || !contentType.includes('application/json')) {
+          const text = await apiRes.text().catch(() => '')
           const msg = contentType.includes('application/json')
-            ? (JSON.parse(text).error ?? `HTTP ${res.status}`)
-            : `HTTP ${res.status}`
+            ? (JSON.parse(text).error ?? `HTTP ${apiRes.status}`)
+            : `HTTP ${apiRes.status}: ${text.slice(0, 120)}`
           results.push({ sku: cluster.sku || cluster.label, status: 'error', message: msg })
-          // Clean up temp files on error (API route won't have cleaned them)
           await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
         } else {
-          const { data } = await res.json()
+          const { data } = await apiRes.json()
           results.push(...(data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))
         }
       } catch (err) {
