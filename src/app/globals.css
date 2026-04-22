@@ -152,6 +152,10 @@ img { display: block; }
   .btn-sm {
     @apply py-[4px] px-[10px] text-[13px];
   }
+  .btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
 
   /* Card */
   .card {

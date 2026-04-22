@@ -904,6 +904,7 @@ function ReviewPage() {
                           if (val) { updateClusterSku(cluster.id, val); confirmCluster(cluster.id) }
                         }}
                         disabled={!(skuInput[cluster.id] ?? cluster.sku).trim()}
+                        title={!(skuInput[cluster.id] ?? cluster.sku).trim() ? 'Enter a SKU first' : undefined}
                         className="btn btn-primary btn-sm flex-shrink-0"
                       >
                         Confirm
