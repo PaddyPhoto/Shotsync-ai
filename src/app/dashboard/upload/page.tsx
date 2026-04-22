@@ -50,6 +50,27 @@ export default function UploadPage() {
   // Whether the user has dismissed the "resume session" banner
   const [resumeDismissed, setResumeDismissed] = useState(false)
   const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed
+  const [parkingJob, setParkingJob] = useState(false)
+
+  async function handleParkAndStartNew() {
+    if (!existingSession.clusters.length) return
+    setParkingJob(true)
+    try {
+      const { parkJob } = await import('@/lib/session-store')
+      await parkJob(
+        existingSession.jobName || 'Untitled Job',
+        existingSession.clusters,
+        existingSession.marketplaces,
+        activeBrand?.id ?? null,
+      )
+    } catch { /* non-critical */ }
+    resetSession()
+    setResumeDismissed(true)
+    setFiles([])
+    setStep('config')
+    setJobName('')
+    setParkingJob(false)
+  }
 
   const importStyleList = useCallback(async (file: File) => {
     try {
@@ -453,32 +474,62 @@ export default function UploadPage() {
 
       <div className="p-7">
 
-        {/* Resume session banner */}
+        {/* Active job banner */}
         {hasSession && (
-          <div className="mb-6 flex items-center gap-4 px-4 py-3 rounded-md border border-[var(--accent)] bg-[rgba(232,217,122,0.06)]">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-              <circle cx="8" cy="8" r="7"/><path d="M8 5v3l2 2"/>
-            </svg>
-            <div className="flex-1 min-w-0">
-              <p className="text-[0.82rem] font-semibold text-[var(--text)]">
-                Session restored — {existingSession.clusters.length} clusters · {existingSession.clusters.reduce((s, c) => s + c.images.length, 0)} images
-              </p>
-              <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">
-                Your previous upload is still loaded. Starting a new upload will save this job automatically so you can resume it from the sidebar.
-              </p>
+          <div className="mb-6 rounded-[14px] border border-[rgba(0,0,0,0.08)] bg-[var(--bg3)] overflow-hidden">
+            <div className="flex items-start gap-3 px-5 py-4">
+              <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center flex-shrink-0 mt-[1px]" style={{ background: 'rgba(0,113,227,0.10)' }}>
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#0071e3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="3" width="12" height="10" rx="1.5"/>
+                  <path d="M10 3V2a2 2 0 0 0-4 0v1" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[0.88rem] font-semibold text-[var(--text)] leading-tight">
+                  {existingSession.jobName || 'Untitled Job'}
+                </p>
+                <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">
+                  {existingSession.clusters.length} clusters · {existingSession.clusters.reduce((s, c) => s + c.images.length, 0)} images · currently active
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-stretch border-t border-[rgba(0,0,0,0.06)]">
               <button
                 onClick={() => router.push('/dashboard/review')}
-                className="btn btn-primary btn-sm"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[0.8rem] font-medium transition-colors"
+                style={{ color: '#0071e3', borderRight: '0.5px solid rgba(0,0,0,0.06)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(0,113,227,0.05)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
               >
-                Back to Review
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 7h8M7 3l4 4-4 4"/>
+                </svg>
+                Continue this job
+              </button>
+              <button
+                onClick={handleParkAndStartNew}
+                disabled={parkingJob}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[0.8rem] font-medium transition-colors"
+                style={{ color: '#1d1d1f', borderRight: '0.5px solid rgba(0,0,0,0.06)' }}
+                onMouseEnter={e => { if (!parkingJob) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)' }}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
+              >
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 2h3v4H3zM8 2h3v4H8zM3 8h8v4H3z"/>
+                </svg>
+                {parkingJob ? 'Saving…' : 'Park & start new'}
               </button>
               <button
                 onClick={() => { resetSession(); setResumeDismissed(true); setFiles([]); setStep('config'); setJobName('') }}
-                className="btn btn-ghost btn-sm text-[var(--text3)]"
+                className="flex items-center justify-center gap-2 px-4 py-3 text-[0.8rem] font-medium transition-colors"
+                style={{ color: '#ff3b30' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,59,48,0.05)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
               >
-                Start fresh
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 2l10 10M12 2L2 12"/>
+                </svg>
+                Discard
               </button>
             </div>
           </div>
