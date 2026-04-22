@@ -14,6 +14,8 @@ import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
 import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rateLimit'
 
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   // 20 AI copy requests per minute per IP
   if (!rateLimit(getClientIp(req), 20, 60_000)) return rateLimitResponse()

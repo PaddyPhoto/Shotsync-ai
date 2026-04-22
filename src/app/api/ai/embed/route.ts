@@ -18,6 +18,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 const BATCH_SIZE = 8  // images per GPT vision call
 

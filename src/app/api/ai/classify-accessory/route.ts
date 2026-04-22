@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 const CATEGORY_OPTIONS = [
   { id: 'ghost-mannequin', label: 'Ghost Mannequin',      hint: 'Clothing on an invisible ghost mannequin' },

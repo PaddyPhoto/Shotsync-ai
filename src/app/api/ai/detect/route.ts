@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { ViewLabel } from '@/types'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 const AI_ENABLED = process.env.NEXT_PUBLIC_AI_DETECTION === 'true'
 

@@ -4,6 +4,8 @@ import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
 import { getOrgForUser } from '@/lib/supabase/getOrgForUser'
 
+export const maxDuration = 300
+
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient, getAuthUser } from '@/lib/supabase/server'
 import { ShopifyClient } from '@/lib/shopify/client'
 
+export const maxDuration = 60
+
 /**
  * POST /api/shopify/upload
  *
