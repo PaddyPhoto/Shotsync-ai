@@ -1392,16 +1392,22 @@ function ExportPanel({
         }
 
         const contentType = apiRes.headers.get('content-type') ?? ''
-        if (!apiRes.ok || !contentType.includes('application/json')) {
-          const text = await apiRes.text().catch(() => '')
-          const msg = contentType.includes('application/json')
-            ? (JSON.parse(text).error ?? `HTTP ${apiRes.status}`)
-            : `HTTP ${apiRes.status}: ${text.slice(0, 120)}`
+        const rawText = await apiRes.text().catch(() => '')
+        let parsed: { data?: { results?: { sku: string; status: string; adminUrl?: string; message?: string }[] } } | null = null
+        try {
+          parsed = JSON.parse(rawText)
+        } catch {
+          // rawText is not JSON — will be shown as error body below
+        }
+
+        if (!apiRes.ok || !parsed) {
+          const msg = parsed
+            ? (parsed.data?.results?.[0]?.message ?? `HTTP ${apiRes.status}`)
+            : `HTTP ${apiRes.status}: ${rawText.slice(0, 200)}`
           results.push({ sku: cluster.sku || cluster.label, status: 'error', message: msg })
           await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
         } else {
-          const { data } = await apiRes.json()
-          results.push(...(data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))
+          results.push(...(parsed.data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))
         }
       } catch (err) {
         results.push({ sku: cluster.sku || cluster.label, status: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
