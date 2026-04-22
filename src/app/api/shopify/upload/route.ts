@@ -7,25 +7,23 @@ export const maxDuration = 60
 /**
  * POST /api/shopify/upload
  *
- * Creates new Shopify product listings as drafts from confirmed clusters.
- * Each cluster becomes one product with a variant SKU and all its images.
- * Products are created in Draft status so the ecommerce coordinator can
- * review, set pricing, and publish.
+ * Creates Shopify draft product listings from confirmed clusters.
+ * Images are passed as public Supabase Storage URLs (uploaded directly
+ * from the browser — no image data passes through this function).
+ * Temp storage files are deleted after Shopify confirms each product.
  *
  * Body:
  * {
  *   brand_id: string
- *   vendor: string              // brand name shown on Shopify product
+ *   vendor?: string
  *   clusters: [{
  *     sku: string
  *     productName: string
  *     color: string
- *     images: [{
- *       filename: string
- *       base64: string          // base64-encoded image (no data: prefix)
- *     }]
+ *     images: [{ src: string; filename: string }]
  *     copy?: { title: string; description: string; bullets: string[] }
  *   }]
+ *   tempPaths: string[]   // Supabase Storage paths to delete after upload
  * }
  */
 export async function POST(req: NextRequest) {
@@ -35,16 +33,17 @@ export async function POST(req: NextRequest) {
   const service = createServiceClient()
 
   const body = await req.json()
-  const { brand_id, vendor = '', clusters } = body as {
+  const { brand_id, vendor = '', clusters, tempPaths = [] } = body as {
     brand_id: string
     vendor?: string
     clusters: {
       sku: string
       productName: string
       color: string
-      images: { filename: string; base64: string }[]
+      images: { src: string; filename: string }[]
       copy?: { title: string; description: string; bullets: string[] }
     }[]
+    tempPaths?: string[]
   }
 
   if (!brand_id || !Array.isArray(clusters) || clusters.length === 0) {
@@ -73,7 +72,6 @@ export async function POST(req: NextRequest) {
 
   for (const cluster of clusters) {
     try {
-      // Build body HTML from AI copy if available, otherwise empty
       let bodyHtml = ''
       if (cluster.copy?.description) {
         const bulletHtml = cluster.copy.bullets?.length
@@ -100,6 +98,11 @@ export async function POST(req: NextRequest) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       results.push({ sku: cluster.sku, status: 'error', message })
     }
+  }
+
+  // Clean up temp Supabase Storage files regardless of Shopify outcome
+  if (tempPaths.length > 0) {
+    await service.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
   }
 
   const created = results.filter((r) => r.status === 'created').length

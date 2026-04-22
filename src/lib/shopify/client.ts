@@ -21,7 +21,7 @@ export class ShopifyClient {
     vendor?: string
     color?: string
     bodyHtml?: string
-    images: { base64: string; filename: string }[]
+    images: { src: string; filename: string }[]
   }): Promise<{ id: string; adminUrl: string } | null> {
     const url = `${this.baseUrl}/products.json`
 
@@ -42,7 +42,7 @@ export class ShopifyClient {
         options,
         variants: [variant],
         images: opts.images.map((img, i) => ({
-          attachment: img.base64,
+          src: img.src,
           filename: img.filename,
           position: i + 1,
         })),

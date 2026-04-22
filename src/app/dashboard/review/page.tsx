@@ -1316,38 +1316,44 @@ function ExportPanel({
     setShopifyUploading(true)
     setShopifyResults(null)
 
-    const { data: { session } } = await import('@/lib/supabase/client').then(({ createClient }) => createClient().auth.getSession())
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+
+    // Use first available marketplace rule for export dimensions — same crop/quality as ZIP export
+    const firstRule = Object.values(marketplaceRules)[0] ?? Object.values(MARKETPLACE_RULES)[0]
+    const { width, height } = firstRule.image_dimensions
+    const bgColor = firstRule.background_color ?? '#ffffff'
+    const quality = (firstRule.quality ?? 100) / 100
+
     const results: { sku: string; status: string; adminUrl?: string; message?: string }[] = []
 
-    // Resize a File to max 1024px JPEG at 0.82 quality via canvas.
-    // Keeps each per-cluster request well under Vercel's 4.5MB body limit.
-    const resizeForShopify = (file: File): Promise<string> =>
-      new Promise((resolve, reject) => {
-        const url = URL.createObjectURL(file)
-        const img = new Image()
-        img.onload = () => {
-          const MAX = 1024
-          const scale = Math.min(1, MAX / Math.max(img.width, img.height))
-          const canvas = document.createElement('canvas')
-          canvas.width = Math.round(img.width * scale)
-          canvas.height = Math.round(img.height * scale)
-          canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
-          URL.revokeObjectURL(url)
-          resolve(canvas.toDataURL('image/jpeg', 0.82).split(',')[1])
-        }
-        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
-        img.src = url
-      })
-
-    // Upload one cluster at a time to keep each request well under the body size limit
     for (const cluster of confirmedClusters) {
+      const tempPaths: string[] = []
       try {
-        const images = await Promise.all(
-          cluster.images.map(async (img) => ({
-            filename: img.filename.replace(/\.[^.]+$/, '.jpg'),
-            base64: await resizeForShopify(img.file),
-          }))
-        )
+        const images: { src: string; filename: string }[] = []
+
+        for (let i = 0; i < cluster.images.length; i++) {
+          const img = cluster.images[i]
+          setShopifyResults([...results, { sku: cluster.sku || cluster.label, status: 'uploading', message: `Processing image ${i + 1}/${cluster.images.length}…` }])
+
+          // Process to correct export dimensions (same pipeline as ZIP/folder export)
+          const buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality)
+          const blob = new Blob([buffer], { type: 'image/jpeg' })
+
+          // Upload directly from browser to Supabase Storage — no Vercel body limit applies
+          const path = `${session?.user.id}/${Date.now()}-${cluster.id}-${i}.jpg`
+          const { error: uploadErr } = await supabase.storage
+            .from('shopify-temp')
+            .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
+          if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`)
+
+          tempPaths.push(path)
+          const { data: { publicUrl } } = supabase.storage.from('shopify-temp').getPublicUrl(path)
+          images.push({ src: publicUrl, filename: img.filename.replace(/\.[^.]+$/, '.jpg') })
+        }
+
+        // Send only tiny URL list to our API route — Shopify fetches images directly from Supabase
         const copy = clusterCopy[cluster.id]
         const res = await fetch('/api/shopify/upload', {
           method: 'POST',
@@ -1365,21 +1371,27 @@ function ExportPanel({
               images,
               ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
             }],
+            tempPaths,
           }),
         })
+
         const contentType = res.headers.get('content-type') ?? ''
         if (!res.ok || !contentType.includes('application/json')) {
           const text = await res.text().catch(() => '')
           const msg = contentType.includes('application/json')
             ? (JSON.parse(text).error ?? `HTTP ${res.status}`)
-            : `HTTP ${res.status}${text.includes('<!DOCTYPE') ? ' — request too large or server error' : ''}`
+            : `HTTP ${res.status}`
           results.push({ sku: cluster.sku || cluster.label, status: 'error', message: msg })
+          // Clean up temp files on error (API route won't have cleaned them)
+          await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
         } else {
           const { data } = await res.json()
           results.push(...(data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))
         }
       } catch (err) {
         results.push({ sku: cluster.sku || cluster.label, status: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+        // Clean up any temp files uploaded before the error
+        if (tempPaths.length) await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
       }
       setShopifyResults([...results])
     }
@@ -1973,8 +1985,8 @@ function ExportPanel({
                     <div key={r.sku} className="flex flex-col text-[0.72rem] gap-[1px]">
                       <div className="flex items-center justify-between">
                         <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-mono)' }}>{r.sku}</span>
-                        <span className={r.status === 'created' ? 'text-[var(--accent2)]' : 'text-[#ff3b30]'}>
-                          {r.status === 'created' ? '✓ Draft created' : '✗ Failed'}
+                        <span className={r.status === 'created' ? 'text-[var(--accent2)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
+                          {r.status === 'created' ? '✓ Draft created' : r.status === 'uploading' ? '↑ Uploading…' : '✗ Failed'}
                         </span>
                       </div>
                       {r.status !== 'created' && r.message && (
