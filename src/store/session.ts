@@ -58,6 +58,7 @@ interface SessionState {
   confirmCluster: (clusterId: string) => void
   setAllConfirmed: (confirmed: boolean) => void
   deleteCluster: (clusterId: string) => void
+  deleteConfirmedClusters: () => void
   deleteImages: (imageIds: string[]) => void
   reorderImages: (clusterId: string, fromIdx: number, toIdx: number, activeAngles: ViewLabel[]) => void
   relabelCluster: (clusterId: string, activeAngles: ViewLabel[]) => void
@@ -241,6 +242,11 @@ export const useSession = create<SessionState>((set, get) => ({
   deleteCluster: (clusterId) => set((state) => ({
     undoStack: [...state.undoStack.slice(-19), state.clusters],
     clusters: state.clusters.filter((c) => c.id !== clusterId),
+  })),
+
+  deleteConfirmedClusters: () => set((state) => ({
+    undoStack: [...state.undoStack.slice(-19), state.clusters],
+    clusters: state.clusters.filter((c) => !c.confirmed),
   })),
 
   deleteImages: (imageIds) => set((state) => {

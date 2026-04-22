@@ -51,7 +51,7 @@ function ReviewPage() {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
     moveImage, copyImageToCluster, mergeCluster, splitImages, reorderImages, relabelCluster,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
-    setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, undo, reset,
+    setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
   } = useSession()
 
   // Resolves the AccessoryCategory config for a cluster.
@@ -228,6 +228,7 @@ function ReviewPage() {
   const { rules: marketplaceRules } = useMarketplaceRules()
   const activeTemplate = activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
   const [showExportPanel, setShowExportPanel] = useState(false)
+  const [confirmDeleteConfirmed, setConfirmDeleteConfirmed] = useState(false)
 
   const getMissingViewsForCluster = (cluster: SessionCluster, marketplace: MarketplaceName) => {
     // Still life shoots have different angle requirements per category — don't apply clothing rules
@@ -541,6 +542,40 @@ function ReviewPage() {
                 </>
               )}
             </button>
+            {confirmedCount > 0 && (
+              confirmDeleteConfirmed ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      deleteConfirmedClusters()
+                      setConfirmDeleteConfirmed(false)
+                    }}
+                    className="btn btn-sm"
+                    style={{ background: 'rgba(255,59,48,0.1)', color: '#ff3b30', border: '0.5px solid rgba(255,59,48,0.25)' }}
+                  >
+                    Delete {confirmedCount} confirmed?
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteConfirmed(false)}
+                    className="btn btn-ghost btn-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDeleteConfirmed(true)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ color: 'var(--accent3)' }}
+                  title="Remove all confirmed clusters from this job"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 3h8M5 3V2h2v1M4 3v6h4V3"/>
+                  </svg>
+                  Delete confirmed
+                </button>
+              )
+            )}
             <button
               onClick={generateAllCopy}
               disabled={generatingAll}
