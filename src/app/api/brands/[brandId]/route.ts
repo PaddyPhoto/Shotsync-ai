@@ -62,6 +62,7 @@ export async function PATCH(
             .select('*', { count: 'exact', head: true })
             .eq('org_id', user.id)
             .not('shopify_access_token', 'is', null)
+            .neq('shopify_access_token', '')
           if ((shopifyCount ?? 0) >= shopifyLimit) {
             return NextResponse.json({
               error: `Your ${plan.name} plan supports up to ${shopifyLimit} Shopify store connection${shopifyLimit !== 1 ? 's' : ''}. Upgrade to add more.`
