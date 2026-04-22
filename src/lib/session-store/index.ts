@@ -61,6 +61,7 @@ interface StoredCluster {
   label: string
   category: string | null
   confirmed: boolean
+  exported: boolean
   images: StoredClusterImage[]
 }
 
@@ -231,6 +232,7 @@ export async function saveSession(
       label: cluster.label,
       category: cluster.category,
       confirmed: cluster.confirmed,
+      exported: cluster.exported ?? false,
       images: cluster.images.map((img) => ({
         id: img.id,
         filename: img.filename,
@@ -300,6 +302,7 @@ export async function loadSession(jobId: string): Promise<{
     label: sc.label,
     category: sc.category,
     confirmed: sc.confirmed,
+    exported: sc.exported ?? false,
     images: sc.images.map((imgMeta) => {
       const stored = fileMap.get(imgMeta.id)
       if (!stored) {

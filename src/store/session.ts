@@ -22,6 +22,7 @@ export interface SessionCluster {
   label: string
   category: string | null   // accessory category id e.g. 'bags', 'shoes' — null for on-model
   confirmed: boolean
+  exported: boolean
 }
 
 export interface StyleListEntry {
@@ -57,6 +58,7 @@ interface SessionState {
   setImageViewLabel: (imageId: string, clusterId: string, label: ViewLabel) => void
   confirmCluster: (clusterId: string) => void
   setAllConfirmed: (confirmed: boolean) => void
+  markClustersExported: (ids: string[]) => void
   deleteCluster: (clusterId: string) => void
   deleteConfirmedClusters: () => void
   deleteImages: (imageIds: string[]) => void
@@ -107,6 +109,7 @@ export const useSession = create<SessionState>((set, get) => ({
           styleNumber: c.styleNumber,
           label: c.label,
           confirmed: c.confirmed,
+          exported: c.exported,
           images: c.images.map((img) => ({
             id: img.id,
             filename: img.filename,
@@ -182,6 +185,7 @@ export const useSession = create<SessionState>((set, get) => ({
       label: `Cluster ${_nextClusterNum++}`,
       category: from.category, // inherit parent category — avoids re-selecting for accessories
       confirmed: false,
+      exported: false,
     }
     const clusters = state.clusters.map((c) =>
       c.id === fromClusterId ? { ...c, images: remaining } : c
@@ -238,6 +242,11 @@ export const useSession = create<SessionState>((set, get) => ({
   setAllConfirmed: (confirmed) => set((state) => ({
     clusters: state.clusters.map((c) => ({ ...c, confirmed })),
   })),
+
+  markClustersExported: (ids) => set((state) => {
+    const idSet = new Set(ids)
+    return { clusters: state.clusters.map((c) => idSet.has(c.id) ? { ...c, exported: true } : c) }
+  }),
 
   deleteCluster: (clusterId) => set((state) => ({
     undoStack: [...state.undoStack.slice(-19), state.clusters],

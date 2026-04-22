@@ -1280,6 +1280,7 @@ function ExportPanel({
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
   const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
+  const markClustersExported = useSession((s) => s.markClustersExported)
   const confirmedClusters = clusters.filter((c) => c.confirmed)
 
   const pickFolder = async () => {
@@ -1677,6 +1678,7 @@ function ExportPanel({
       }
     }).catch(() => { /* non-critical */ })
 
+    markClustersExported(confirmedClusters.map((c) => c.id))
     setIsExporting(false)
     setDone(true)
     setTimeout(() => onClose(), 1500)

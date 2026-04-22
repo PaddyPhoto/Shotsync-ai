@@ -222,6 +222,7 @@ export async function processFiles(
       label: shootType === 'still-life' ? `Product ${lookNumber}` : `Look ${lookNumber}`,
       category: stillLifeCategory ?? null,
       confirmed: false,
+      exported: false,
     })
   }
 

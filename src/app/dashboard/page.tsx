@@ -119,8 +119,9 @@ export default function DashboardPage() {
 
   const marketplaceNames = Object.keys(rules)
   const processingJob = jobs.find((j) => j.status === 'processing')
+  const unexportedClusters = clusters.filter((c) => !c.exported)
   const warningClusters = clusters.filter((c) => !c.confirmed)
-  const previewClusters = clusters.slice(0, 3)
+  const previewClusters = unexportedClusters.slice(0, 3)
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -152,7 +153,7 @@ export default function DashboardPage() {
           {greeting}{orgName ? `, ${orgName}` : ''}.
         </h1>
         <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '24px', letterSpacing: '-.1px' }}>
-          {loading ? 'Loading…' : `${jobs.length} recent jobs\u00a0·\u00a0${warningClusters.length} clusters need attention`}
+          {loading ? 'Loading…' : `${jobs.length} recent jobs\u00a0·\u00a0${unexportedClusters.filter(c => !c.confirmed).length} clusters need attention`}
         </p>
 
         {/* Brand setup — full hero when no brands exist */}
@@ -347,25 +348,25 @@ export default function DashboardPage() {
           <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
-                {isReady && clusters.length > 0 ? `Active session — ${sessionJobName || 'Current shoot'}` : draftSession ? `Unfinished session — ${draftSession.jobName}` : 'Active session'}
+                {isReady && unexportedClusters.length > 0 ? `Active session — ${sessionJobName || 'Current shoot'}` : draftSession ? `Unfinished session — ${draftSession.jobName}` : 'Active session'}
               </span>
-              {isReady && clusters.length > 0 && (
+              {isReady && unexportedClusters.length > 0 && (
                 <span style={{ fontSize: '12px', fontWeight: 500, color: '#005fc4', background: 'rgba(0,122,255,0.08)', padding: '3px 8px', borderRadius: '5px' }}>
                   In progress
                 </span>
               )}
             </div>
             <div style={{ padding: '20px 18px' }}>
-              {isReady && clusters.length > 0 ? (
+              {isReady && unexportedClusters.length > 0 ? (
                 // In-memory session active
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div style={{ display: 'flex', gap: '20px' }}>
                     <div>
-                      <p style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.5px' }}>{clusters.length}</p>
-                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>Clusters</p>
+                      <p style={{ fontSize: '22px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.5px' }}>{unexportedClusters.length}</p>
+                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>Pending</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '22px', fontWeight: 600, color: '#1a8a35', letterSpacing: '-.5px' }}>{clusters.filter((c) => c.confirmed).length}</p>
+                      <p style={{ fontSize: '22px', fontWeight: 600, color: '#1a8a35', letterSpacing: '-.5px' }}>{unexportedClusters.filter((c) => c.confirmed).length}</p>
                       <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>Confirmed</p>
                     </div>
                     {warningClusters.length > 0 && (
@@ -413,7 +414,7 @@ export default function DashboardPage() {
           <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
-                {isReady && clusters.length > 0 ? `Cluster review — ${jobs[0]?.job_name ?? 'Current session'}` : 'Cluster review'}
+                {isReady && unexportedClusters.length > 0 ? `Cluster review — ${jobs[0]?.job_name ?? 'Current session'}` : 'Cluster review'}
               </span>
               {warningClusters.length > 0 && (
                 <span style={{ fontSize: '12px', fontWeight: 500, color: '#c27800', background: 'rgba(255,159,10,0.1)', padding: '3px 8px', borderRadius: '5px' }}>
@@ -422,7 +423,7 @@ export default function DashboardPage() {
               )}
             </div>
             <div style={{ padding: '16px 18px' }}>
-              {!isReady || clusters.length === 0 ? (
+              {!isReady || unexportedClusters.length === 0 ? (
                 <div style={{ padding: '20px 0', textAlign: 'center' }}>
                   <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '10px' }}>No active session. Upload a shoot to see clusters here.</p>
                   <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '13px', padding: '4px 10px' }}>New upload</Link>
@@ -484,7 +485,7 @@ export default function DashboardPage() {
                   })}
                 </div>
               )}
-              {isReady && clusters.length > 3 && (
+              {isReady && unexportedClusters.length > 3 && (
                 <Link href="/dashboard/review" style={{ display: 'block', textAlign: 'center', marginTop: '12px', fontSize: '14px', color: '#aeaeb2', textDecoration: 'none' }}>
                   +{clusters.length - 3} more clusters →
                 </Link>
