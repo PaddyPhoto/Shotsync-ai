@@ -7,7 +7,7 @@ import { PLANS } from '@/lib/plans'
 // Fixed-position orb — stays in viewport, drifts upward at `speed` rate as you scroll.
 // This creates true parallax: content scrolls at 1× while each orb drifts at a different speed.
 function Orb({ color, size, top, left, speed }: {
-  color: string; size: number; top: string; left: string; speed: number
+  color: string; size: string; top: string; left: string; speed: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -23,7 +23,7 @@ function Orb({ color, size, top, left, speed }: {
       width: size, height: size,
       background: color,
       borderRadius: '50%',
-      filter: 'blur(90px)',
+      filter: 'blur(120px)',
       pointerEvents: 'none',
       willChange: 'transform',
       zIndex: 0,
@@ -105,12 +105,12 @@ export default function LandingPage() {
       <div style={{ position: 'fixed', inset: 0, background: '#f5f5f7', zIndex: -1, pointerEvents: 'none' }} />
 
       {/* ── PARALLAX ORBS (fixed, drift upward at different speeds) ── */}
-      <Orb color="rgba(0,113,227,0.50)"  size={480} top="-5vh"  left="-8%"  speed={0.12} />
-      <Orb color="rgba(94,50,245,0.42)"  size={440} top="5vh"   left="62%"  speed={0.28} />
-      <Orb color="rgba(48,209,88,0.40)"  size={400} top="40vh"  left="5%"   speed={0.08} />
-      <Orb color="rgba(0,190,220,0.38)"  size={460} top="50vh"  left="58%"  speed={0.20} />
-      <Orb color="rgba(255,149,0,0.36)"  size={420} top="75vh"  left="12%"  speed={0.16} />
-      <Orb color="rgba(0,113,227,0.42)"  size={450} top="70vh"  left="55%"  speed={0.32} />
+      <Orb color="rgba(0,113,227,0.50)"  size="clamp(480px,38vw,900px)"  top="-5vh"  left="-8%"  speed={0.12} />
+      <Orb color="rgba(94,50,245,0.42)"  size="clamp(440px,36vw,860px)"  top="5vh"   left="62%"  speed={0.28} />
+      <Orb color="rgba(48,209,88,0.40)"  size="clamp(400px,34vw,820px)"  top="40vh"  left="5%"   speed={0.08} />
+      <Orb color="rgba(0,190,220,0.38)"  size="clamp(460px,37vw,880px)"  top="50vh"  left="58%"  speed={0.20} />
+      <Orb color="rgba(255,149,0,0.36)"  size="clamp(420px,35vw,840px)"  top="75vh"  left="12%"  speed={0.16} />
+      <Orb color="rgba(0,113,227,0.42)"  size="clamp(450px,36vw,860px)"  top="70vh"  left="55%"  speed={0.32} />
 
       <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh', color: '#1d1d1f', fontFamily: "-apple-system,'SF Pro Display','Helvetica Neue',sans-serif", WebkitFontSmoothing: 'antialiased', overflowX: 'hidden' }}>
 
