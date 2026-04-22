@@ -1312,19 +1312,34 @@ function ExportPanel({
   }
 
   const handleShopifyUpload = async () => {
+    console.log('[shopify v4] handleShopifyUpload called', { brandId: activeBrand?.id, clusters: confirmedClusters.length })
     if (!activeBrand?.id || !confirmedClusters.length) return
     setShopifyUploading(true)
     setShopifyResults(null)
 
-    const { createClient } = await import('@/lib/supabase/client')
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let supabase: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let session: any = null
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      supabase = createClient()
+      const { data } = await supabase.auth.getSession()
+      session = data.session
+      console.log('[shopify v4] session ok, user:', session?.user?.id)
+    } catch (e) {
+      console.error('[shopify v4] session error', e)
+      setShopifyResults([{ sku: 'auth', status: 'error', message: `Auth failed: ${e instanceof Error ? e.message : e}` }])
+      setShopifyUploading(false)
+      return
+    }
 
     // Use first available marketplace rule for export dimensions — same crop/quality as ZIP export
     const firstRule = Object.values(marketplaceRules)[0] ?? Object.values(MARKETPLACE_RULES)[0]
     const { width, height } = firstRule.image_dimensions
     const bgColor = firstRule.background_color ?? '#ffffff'
     const quality = (firstRule.quality ?? 100) / 100
+    console.log('[shopify v4] dimensions', { width, height, bgColor, quality })
 
     const results: { sku: string; status: string; adminUrl?: string; message?: string }[] = []
 
