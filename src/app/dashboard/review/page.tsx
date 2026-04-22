@@ -13,6 +13,7 @@ import { applyNamingTemplate } from '@/lib/brands'
 import { detectColourFromFilename } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
+import { ClusterTour, useClusterTour } from '@/components/onboarding/ClusterTour'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
@@ -76,6 +77,7 @@ function ReviewPage() {
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
   const [detectingCategories, setDetectingCategories] = useState<Set<string>>(new Set())
+  const { active: tourActive, startTour, stopTour } = useClusterTour()
 
   const [clusterCopy, setClusterCopy] = useState<Record<string, {
     title: string; description: string; bullets: string[]; loading: boolean; open: boolean; error?: string
@@ -545,6 +547,18 @@ function ReviewPage() {
                 : `Generate all copy${clusters.length > COPY_LIMIT ? ` (first ${COPY_LIMIT})` : ''}`}
             </button>
             <button
+              onClick={startTour}
+              className="btn btn-ghost btn-sm"
+              title="Show quick guide"
+            >
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="7" cy="7" r="6"/>
+                <path d="M7 10v-.5"/>
+                <path d="M7 8.5c0-1.5 2-1.5 2-3a2 2 0 1 0-4 0"/>
+              </svg>
+              Guide
+            </button>
+            <button
               onClick={() => setShowExportPanel(true)}
               className="btn btn-primary"
             >
@@ -557,6 +571,10 @@ function ReviewPage() {
           </div>
         }
       />
+
+      {tourActive && clusters.length > 0 && (
+        <ClusterTour onDismiss={stopTour} />
+      )}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar — cluster list */}
@@ -652,7 +670,7 @@ function ReviewPage() {
 
           {/* Cluster cards */}
           <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
-            {clusters.map((cluster) => {
+            {clusters.map((cluster, clusterIdx) => {
               const isDropTarget = dragOverCluster === cluster.id && draggingFromCluster !== cluster.id
               const currentSku = skuInput[cluster.id] ?? cluster.sku
 
@@ -660,6 +678,7 @@ function ReviewPage() {
                 <div
                   id={`cluster-${cluster.id}`}
                   key={cluster.id}
+                  data-tour={clusterIdx === 0 ? 'cluster-card' : undefined}
                   className={`bg-[var(--bg2)] rounded-md border transition-all duration-150 overflow-hidden ${
                     cluster.confirmed
                       ? 'border-[var(--accent2)]'
@@ -697,7 +716,7 @@ function ReviewPage() {
                             ))}
                           </select>
                     )}
-                    <div className="flex-1 flex flex-wrap gap-1">
+                    <div className="flex-1 flex flex-wrap gap-1" data-tour={clusterIdx === 0 ? 'angle-pills' : undefined}>
                       {(() => {
                         const activeLabels = new Set(cluster.images.map((i) => i.viewLabel))
                         const clusterDisabled = disabledAngles[cluster.id] ?? new Set()
@@ -734,7 +753,7 @@ function ReviewPage() {
                   </div>
 
                   {/* Image strip */}
-                  <div className="p-2 flex flex-wrap gap-1">
+                  <div className="p-2 flex flex-wrap gap-1" data-tour={clusterIdx === 0 ? 'cluster-images' : undefined}>
                     {cluster.images.map((img) => {
                       const isSelected = selectedImages.has(img.id)
                       const isDragging = draggingImageId === img.id
@@ -805,7 +824,7 @@ function ReviewPage() {
                   </div>
 
                   {/* SKU input + actions */}
-                  <div className="px-3 pt-[10px] pb-[6px] border-t border-[var(--line)] flex items-center gap-2">
+                  <div className="px-3 pt-[10px] pb-[6px] border-t border-[var(--line)] flex items-center gap-2" data-tour={clusterIdx === 0 ? 'confirm-btn' : undefined}>
                     <div className="flex-1 relative">
                       {styleList.length > 0 ? (
                         <>
@@ -1044,7 +1063,7 @@ function ReviewPage() {
                     const copy = clusterCopy[cluster.id]
                     const isOpen = copy?.open ?? false
                     return (
-                      <div className="border-t border-[var(--line)]">
+                      <div className="border-t border-[var(--line)]" data-tour={clusterIdx === 0 ? 'ai-copy' : undefined}>
                         {/* Toggle header */}
                         <button
                           className="w-full flex items-center gap-2 px-3 py-[8px] text-left hover:bg-[var(--bg3)] transition-colors"
