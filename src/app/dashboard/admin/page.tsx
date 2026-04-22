@@ -20,6 +20,13 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
 
+  // Plan override state
+  const [planEmail, setPlanEmail] = useState('')
+  const [planValue, setPlanValue] = useState('brand')
+  const [planLoading, setPlanLoading] = useState(false)
+  const [planResult, setPlanResult] = useState<{ orgName: string; previousPlan: string; newPlan: string; email: string } | null>(null)
+  const [planError, setPlanError] = useState<string | null>(null)
+
   useEffect(() => {
     createClient().auth.getSession().then(({ data: { session: s } }) => {
       if (!s || s.user.email !== ADMIN_EMAIL) {
@@ -81,11 +88,97 @@ export default function AdminPage() {
     }
   }
 
+  async function applyPlanOverride() {
+    setPlanLoading(true)
+    setPlanError(null)
+    setPlanResult(null)
+    try {
+      const res = await fetch('/api/admin/set-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: planEmail.trim(), plan: planValue }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      setPlanResult(json)
+    } catch (e) {
+      setPlanError(e instanceof Error ? e.message : 'Failed')
+    } finally {
+      setPlanLoading(false)
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar breadcrumbs={[{ label: 'Admin' }]} />
       <div style={{ padding: '32px', maxWidth: '640px' }}>
 
+        {/* Plan Override */}
+        <div className="card" style={{ marginBottom: '16px' }}>
+          <div className="card-head">
+            <div>
+              <h2 className="text-[1rem] font-[600] text-[var(--text)]">Plan Override</h2>
+              <p className="text-[0.8rem] text-[var(--text3)] mt-1">Manually set any user's plan — use for free trials, comps, or corrections.</p>
+            </div>
+          </div>
+          <div className="card-body flex flex-col gap-4">
+
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">User email</label>
+                <input
+                  className="input"
+                  type="email"
+                  value={planEmail}
+                  onChange={e => { setPlanEmail(e.target.value); setPlanResult(null); setPlanError(null) }}
+                  placeholder="customer@example.com"
+                />
+              </div>
+              <div>
+                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Plan</label>
+                <select
+                  className="input"
+                  value={planValue}
+                  onChange={e => { setPlanValue(e.target.value); setPlanResult(null) }}
+                  style={{ width: '130px' }}
+                >
+                  <option value="free">Free</option>
+                  <option value="starter">Starter</option>
+                  <option value="brand">Brand</option>
+                  <option value="scale">Scale</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
+            </div>
+
+            {planError && (
+              <p className="text-[0.78rem] text-[var(--accent3)] bg-[rgba(255,59,48,0.07)] rounded-[8px] px-3 py-2">{planError}</p>
+            )}
+
+            {planResult && (
+              <div style={{ background: 'rgba(48,209,88,0.08)', borderRadius: '10px', padding: '14px 16px', border: '0.5px solid rgba(48,209,88,0.2)' }}>
+                <p className="text-[0.85rem] font-[600] text-[var(--accent2)] mb-1">Plan updated</p>
+                <p className="text-[0.78rem] text-[var(--text2)]">
+                  <span className="font-mono">{planResult.email}</span> · <span className="font-[500]">{planResult.orgName}</span>
+                </p>
+                <p className="text-[0.75rem] text-[var(--text3)] mt-1">
+                  {planResult.previousPlan} → <span className="font-[600] text-[var(--text)]">{planResult.newPlan}</span>
+                </p>
+              </div>
+            )}
+
+            <button
+              className="btn btn-primary w-full justify-center"
+              onClick={applyPlanOverride}
+              disabled={planLoading || !planEmail.trim()}
+            >
+              {planLoading ? 'Applying…' : `Set to ${planValue} plan`}
+            </button>
+
+          </div>
+        </div>
+
+        {/* Broadcast EDM */}
         <div className="card" style={{ marginBottom: '16px' }}>
           <div className="card-head">
             <div>
