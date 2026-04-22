@@ -117,19 +117,32 @@ export function ClusterTour({ onDismiss }: { onDismiss: () => void }) {
   const sH    = rect.height + PAD * 2
 
   const TW  = 284
-  const TTH = 210 // approximate tooltip height
+  const TTH = 220 // approximate tooltip height
   const pos = STEPS[step].position
   const vw  = window.innerWidth
+  const vh  = window.innerHeight
+
+  // Auto-flip: if preferred position would clip, use the opposite side
+  const centreLeft = Math.max(12, Math.min(sLeft + sW / 2 - TW / 2, vw - TW - 12))
+  const fitsBelow  = sTop + sH + 14 + TTH < vh - 12
+  const fitsAbove  = sTop - TTH - 14 > 12
+
+  let resolvedPos = pos
+  if (pos === 'bottom' && !fitsBelow) resolvedPos = fitsAbove ? 'top' : 'bottom'
+  if (pos === 'top'    && !fitsAbove) resolvedPos = fitsBelow ? 'bottom' : 'top'
 
   let tt: React.CSSProperties = {}
-  if (pos === 'bottom') {
-    tt = { top: sTop + sH + 14, left: Math.max(12, Math.min(sLeft + sW / 2 - TW / 2, vw - TW - 12)) }
-  } else if (pos === 'top') {
-    tt = { top: Math.max(12, sTop - TTH - 14), left: Math.max(12, Math.min(sLeft + sW / 2 - TW / 2, vw - TW - 12)) }
-  } else if (pos === 'right') {
-    tt = { top: Math.max(12, sTop), left: Math.min(sLeft + sW + 14, vw - TW - 12) }
+  if (resolvedPos === 'bottom') {
+    // If still off-screen after flip attempt, clamp to viewport
+    const rawTop = sTop + sH + 14
+    tt = { top: Math.min(rawTop, vh - TTH - 12), left: centreLeft }
+  } else if (resolvedPos === 'top') {
+    const rawTop = sTop - TTH - 14
+    tt = { top: Math.max(12, rawTop), left: centreLeft }
+  } else if (resolvedPos === 'right') {
+    tt = { top: Math.max(12, Math.min(sTop, vh - TTH - 12)), left: Math.min(sLeft + sW + 14, vw - TW - 12) }
   } else {
-    tt = { top: Math.max(12, sTop), left: Math.max(12, sLeft - TW - 14) }
+    tt = { top: Math.max(12, Math.min(sTop, vh - TTH - 12)), left: Math.max(12, sLeft - TW - 14) }
   }
 
   const spotTransition = 'top 0.28s cubic-bezier(0.4,0,0.2,1), left 0.28s cubic-bezier(0.4,0,0.2,1), width 0.28s cubic-bezier(0.4,0,0.2,1), height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease'
