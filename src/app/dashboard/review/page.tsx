@@ -2010,7 +2010,7 @@ function ExportPanel({
                 const withCopy = confirmedClusters.filter((c) => clusterCopy[c.id]?.title).length
                 return (
                   <p className="text-[0.72rem] text-[var(--text3)] mb-3">
-                    Creates a new draft product listing in Shopify for each confirmed cluster — images, SKU and colour included. Your team can then set pricing and publish.
+                    {/* v4 */}Creates a new draft product listing in Shopify for each confirmed cluster — images, SKU and colour included. Your team can then set pricing and publish.
                     {withCopy > 0 && <> <span className="text-[var(--accent2)]">AI-generated copy</span> will be added to {withCopy} listing{withCopy !== 1 ? 's' : ''}.</>}
                   </p>
                 )

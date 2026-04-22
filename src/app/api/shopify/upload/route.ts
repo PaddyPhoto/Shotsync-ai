@@ -27,8 +27,13 @@ export const maxDuration = 60
  * }
  */
 export async function POST(req: NextRequest) {
+  console.log('[shopify-upload] POST received')
   const user = await getAuthUser(req)
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user) {
+    console.log('[shopify-upload] auth failed — no user')
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  console.log('[shopify-upload] authed as', user.id)
 
   const service = createServiceClient()
 
