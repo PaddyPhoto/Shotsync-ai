@@ -1319,20 +1319,21 @@ function ExportPanel({
     const { data: { session } } = await import('@/lib/supabase/client').then(({ createClient }) => createClient().auth.getSession())
     const results: { sku: string; status: string; adminUrl?: string; message?: string }[] = []
 
-    // Resize a File to max 2048px JPEG at 0.85 quality via canvas to stay under Vercel's 4.5MB body limit
+    // Resize a File to max 1024px JPEG at 0.82 quality via canvas.
+    // Keeps each per-cluster request well under Vercel's 4.5MB body limit.
     const resizeForShopify = (file: File): Promise<string> =>
       new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file)
         const img = new Image()
         img.onload = () => {
-          const MAX = 2048
+          const MAX = 1024
           const scale = Math.min(1, MAX / Math.max(img.width, img.height))
           const canvas = document.createElement('canvas')
           canvas.width = Math.round(img.width * scale)
           canvas.height = Math.round(img.height * scale)
           canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
           URL.revokeObjectURL(url)
-          resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1])
+          resolve(canvas.toDataURL('image/jpeg', 0.82).split(',')[1])
         }
         img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
         img.src = url
@@ -1366,9 +1367,13 @@ function ExportPanel({
             }],
           }),
         })
-        if (!res.ok) {
-          const { error } = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
-          results.push({ sku: cluster.sku || cluster.label, status: 'error', message: error ?? `HTTP ${res.status}` })
+        const contentType = res.headers.get('content-type') ?? ''
+        if (!res.ok || !contentType.includes('application/json')) {
+          const text = await res.text().catch(() => '')
+          const msg = contentType.includes('application/json')
+            ? (JSON.parse(text).error ?? `HTTP ${res.status}`)
+            : `HTTP ${res.status}${text.includes('<!DOCTYPE') ? ' — request too large or server error' : ''}`
+          results.push({ sku: cluster.sku || cluster.label, status: 'error', message: msg })
         } else {
           const { data } = await res.json()
           results.push(...(data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))

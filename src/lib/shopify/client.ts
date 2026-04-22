@@ -3,7 +3,7 @@ export class ShopifyClient {
   private headers: Record<string, string>
 
   constructor(shopDomain: string, accessToken: string) {
-    this.baseUrl = `https://${shopDomain}/admin/api/2024-01`
+    this.baseUrl = `https://${shopDomain}/admin/api/2025-01`
     this.headers = {
       'X-Shopify-Access-Token': accessToken,
       'Content-Type': 'application/json',
