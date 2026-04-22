@@ -1410,6 +1410,7 @@ function ExportPanel({
           results.push(...(parsed.data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))
         }
       } catch (err) {
+        console.error('[shopify-upload v3] outer catch —', cluster.sku || cluster.label, err)
         results.push({ sku: cluster.sku || cluster.label, status: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
         // Clean up any temp files uploaded before the error
         if (tempPaths.length) await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
