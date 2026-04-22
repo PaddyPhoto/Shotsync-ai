@@ -51,7 +51,7 @@ function ReviewPage() {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
     moveImage, copyImageToCluster, mergeCluster, splitImages, reorderImages, relabelCluster,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
-    setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, reset,
+    setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteImages, undo, reset,
   } = useSession()
 
   // Resolves the AccessoryCategory config for a cluster.
@@ -361,17 +361,25 @@ function ReviewPage() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName
+      const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        if (isTyping) return
+        e.preventDefault()
+        undo()
+        return
+      }
+
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedImages.size > 0) {
-        // Don't trigger if user is typing in an input
-        const tag = (e.target as HTMLElement).tagName
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        if (isTyping) return
         deleteImages(Array.from(selectedImages))
         setSelectedImages(new Set())
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedImages, deleteImages])
+  }, [selectedImages, deleteImages, undo])
 
   const confirmedCount = clusters.filter((c) => c.confirmed).length
 

@@ -61,6 +61,8 @@ interface SessionState {
   deleteImages: (imageIds: string[]) => void
   reorderImages: (clusterId: string, fromIdx: number, toIdx: number, activeAngles: ViewLabel[]) => void
   relabelCluster: (clusterId: string, activeAngles: ViewLabel[]) => void
+  undoStack: SessionCluster[][]
+  undo: () => void
   reset: () => void
 }
 
@@ -77,6 +79,7 @@ export const useSession = create<SessionState>((set, get) => ({
   shootType: 'on-model',
   accessoryCategory: null,
   isReady: false,
+  undoStack: [],
 
   setStyleList: (entries) => set({ styleList: entries }),
   setShootConfig: (shootType, accessoryCategory) => set({ shootType, accessoryCategory }),
@@ -236,6 +239,7 @@ export const useSession = create<SessionState>((set, get) => ({
   })),
 
   deleteCluster: (clusterId) => set((state) => ({
+    undoStack: [...state.undoStack.slice(-19), state.clusters],
     clusters: state.clusters.filter((c) => c.id !== clusterId),
   })),
 
@@ -244,7 +248,13 @@ export const useSession = create<SessionState>((set, get) => ({
     const clusters = state.clusters
       .map((c) => ({ ...c, images: c.images.filter((img) => !idSet.has(img.id)) }))
       .filter((c) => c.images.length > 0)
-    return { clusters }
+    return { undoStack: [...state.undoStack.slice(-19), state.clusters], clusters }
+  }),
+
+  undo: () => set((state) => {
+    if (state.undoStack.length === 0) return state
+    const previous = state.undoStack[state.undoStack.length - 1]
+    return { clusters: previous, undoStack: state.undoStack.slice(0, -1) }
   }),
 
   // reorderImages: moves one image to a new position within a cluster (drag-and-drop).
@@ -286,6 +296,6 @@ export const useSession = create<SessionState>((set, get) => ({
 
   reset: () => {
     try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
-    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], shootType: 'on-model', accessoryCategory: null, isReady: false })
+    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], shootType: 'on-model', accessoryCategory: null, isReady: false, undoStack: [] })
   },
 }))
