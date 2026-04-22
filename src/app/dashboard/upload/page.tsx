@@ -798,9 +798,9 @@ export default function UploadPage() {
                 {shootType === 'still-life' && (
                   <div className="border-t border-[var(--line)] pt-4">
                     <p className="text-[0.75rem] font-medium text-[var(--text2)] mb-1">Category</p>
-                    <p className="text-[0.7rem] text-[var(--text3)] mb-3">Select what you&apos;re shooting — each category uses its own angle sequence and image count.</p>
+                    <p className="text-[0.7rem] text-[var(--text3)] mb-3">Select what you&apos;re shooting. Accessory type is detected automatically by AI after clustering.</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {ACCESSORY_CATEGORIES.map((cat) => {
+                      {ACCESSORY_CATEGORIES.filter((cat) => cat.id === 'ghost-mannequin' || cat.id === 'accessories').map((cat) => {
                         const brandSeq = activeBrand?.still_life_angle_sequences?.[cat.id]
                         const effectiveSeq: string[] = brandSeq && brandSeq.length > 0 ? brandSeq : (cat.angles as string[])
                         const count = effectiveSeq.length
