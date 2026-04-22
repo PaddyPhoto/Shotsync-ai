@@ -1270,7 +1270,7 @@ function ExportPanel({
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
   const [done, setDone] = useState(false)
   const [shopifyUploading, setShopifyUploading] = useState(false)
-  const [shopifyResults, setShopifyResults] = useState<{ sku: string; status: string; uploaded: number }[] | null>(null)
+  const [shopifyResults, setShopifyResults] = useState<{ sku: string; status: string; adminUrl?: string; message?: string }[] | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const folderRef = useRef<any>(null)
   const [folderName, setFolderName] = useState<string | null>(null)
@@ -1315,43 +1315,71 @@ function ExportPanel({
     if (!activeBrand?.id || !confirmedClusters.length) return
     setShopifyUploading(true)
     setShopifyResults(null)
-    try {
-      const { data: { session } } = await import('@/lib/supabase/client').then(({ createClient }) => createClient().auth.getSession())
 
-      // Build base64 images for each cluster (use original files, Shopify handles resizing)
-      const clusters = await Promise.all(confirmedClusters.map(async (cluster) => {
-        const images = await Promise.all(cluster.images.map(async (img) => {
-          const buf = await img.file.arrayBuffer()
-          const bytes = new Uint8Array(buf)
-          let binary = ''
-          for (let j = 0; j < bytes.byteLength; j++) binary += String.fromCharCode(bytes[j])
-          return { filename: img.filename, base64: btoa(binary) }
-        }))
-        const copy = clusterCopy[cluster.id]
-        return {
-          sku: cluster.sku || cluster.label,
-          productName: cluster.productName || cluster.sku || cluster.label,
-          color: cluster.color || '',
-          images,
-          ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
+    const { data: { session } } = await import('@/lib/supabase/client').then(({ createClient }) => createClient().auth.getSession())
+    const results: { sku: string; status: string; adminUrl?: string; message?: string }[] = []
+
+    // Resize a File to max 2048px JPEG at 0.85 quality via canvas to stay under Vercel's 4.5MB body limit
+    const resizeForShopify = (file: File): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file)
+        const img = new Image()
+        img.onload = () => {
+          const MAX = 2048
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+          const canvas = document.createElement('canvas')
+          canvas.width = Math.round(img.width * scale)
+          canvas.height = Math.round(img.height * scale)
+          canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+          URL.revokeObjectURL(url)
+          resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1])
         }
-      }))
-
-      const res = await fetch('/api/shopify/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ brand_id: activeBrand.id, vendor: activeBrand.name, clusters }),
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
+        img.src = url
       })
-      const { data } = await res.json()
-      setShopifyResults(data?.results ?? [])
-    } catch {
-      setShopifyResults([])
-    } finally {
-      setShopifyUploading(false)
+
+    // Upload one cluster at a time to keep each request well under the body size limit
+    for (const cluster of confirmedClusters) {
+      try {
+        const images = await Promise.all(
+          cluster.images.map(async (img) => ({
+            filename: img.filename.replace(/\.[^.]+$/, '.jpg'),
+            base64: await resizeForShopify(img.file),
+          }))
+        )
+        const copy = clusterCopy[cluster.id]
+        const res = await fetch('/api/shopify/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({
+            brand_id: activeBrand.id,
+            vendor: activeBrand.name,
+            clusters: [{
+              sku: cluster.sku || cluster.label,
+              productName: cluster.productName || cluster.sku || cluster.label,
+              color: cluster.color || '',
+              images,
+              ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
+            }],
+          }),
+        })
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+          results.push({ sku: cluster.sku || cluster.label, status: 'error', message: error ?? `HTTP ${res.status}` })
+        } else {
+          const { data } = await res.json()
+          results.push(...(data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))
+        }
+      } catch (err) {
+        results.push({ sku: cluster.sku || cluster.label, status: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+      }
+      setShopifyResults([...results])
     }
+
+    setShopifyUploading(false)
   }
 
   const handleExport = async () => {
@@ -1937,11 +1965,16 @@ function ExportPanel({
               {shopifyResults && (
                 <div className="bg-[var(--bg3)] rounded-sm p-3 mb-3 flex flex-col gap-[4px] max-h-[120px] overflow-y-auto">
                   {shopifyResults.map((r) => (
-                    <div key={r.sku} className="flex items-center justify-between text-[0.72rem]">
-                      <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-mono)' }}>{r.sku}</span>
-                      <span className={r.status === 'created' ? 'text-[var(--accent2)]' : 'text-[#ff3b30]'}>
-                        {r.status === 'created' ? '✓ Draft created' : '✗ Failed'}
-                      </span>
+                    <div key={r.sku} className="flex flex-col text-[0.72rem] gap-[1px]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-mono)' }}>{r.sku}</span>
+                        <span className={r.status === 'created' ? 'text-[var(--accent2)]' : 'text-[#ff3b30]'}>
+                          {r.status === 'created' ? '✓ Draft created' : '✗ Failed'}
+                        </span>
+                      </div>
+                      {r.status !== 'created' && r.message && (
+                        <span className="text-[0.68rem] text-[#ff3b30] opacity-80">{r.message}</span>
+                      )}
                     </div>
                   ))}
                 </div>
