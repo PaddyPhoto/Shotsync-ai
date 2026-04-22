@@ -396,6 +396,19 @@ export default function UploadPage() {
       openUpgrade(`Your plan supports up to ${plan.limits.imagesPerJob} images per job. You selected ${files.length}.`)
       return
     }
+
+    // Auto-park the current session so it can be resumed from the sidebar
+    if (existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed) {
+      void import('@/lib/session-store').then(({ parkJob }) =>
+        parkJob(
+          existingSession.jobName || 'Untitled Job',
+          existingSession.clusters,
+          existingSession.marketplaces,
+          activeBrand?.id ?? null,
+        )
+      )
+    }
+
     setStep('processing')
     setProgress({ phase: 'Starting…', done: 0, total: files.length })
 
@@ -451,7 +464,7 @@ export default function UploadPage() {
                 Session restored — {existingSession.clusters.length} clusters · {existingSession.clusters.reduce((s, c) => s + c.images.length, 0)} images
               </p>
               <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">
-                Your previous upload is still loaded. Change settings or add images, then reprocess — or go straight to review.
+                Your previous upload is still loaded. Starting a new upload will save this job automatically so you can resume it from the sidebar.
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">

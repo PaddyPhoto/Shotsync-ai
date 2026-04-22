@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { cn } from '@/lib/utils'
 import { BrandSwitcher } from './BrandSwitcher'
 import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
 import { openWelcomeModal } from '@/components/onboarding/WelcomeModal'
+import type { SessionHeader } from '@/lib/session-store'
 
 interface NavItem {
   label: string
@@ -157,12 +158,73 @@ const PLAN_LABEL: Record<string, string> = { free: 'Free', pro: 'Pro', business:
 
 export function Sidebar() {
   const { planId, plan, usage } = usePlan()
-  const { isReady, clusters } = useSession((s) => ({ isReady: s.isReady, clusters: s.clusters }))
+  const { isReady, clusters, jobName, marketplaces, setSession } = useSession((s) => ({
+    isReady: s.isReady,
+    clusters: s.clusters,
+    jobName: s.jobName,
+    marketplaces: s.marketplaces,
+    setSession: s.setSession,
+  }))
   const hasSession = isReady && clusters.length > 0
   const exportsLimit = plan.limits.exportsPerMonth
   const exportsUsed = usage.exportsThisMonth
   const [orgName, setOrgName] = useState<string | null>(null)
   const [orgRole, setOrgRole] = useState<string | null>(null)
+  const [parkedJobs, setParkedJobs] = useState<SessionHeader[]>([])
+  const [resumingId, setResumingId] = useState<string | null>(null)
+  const router = useRouter()
+
+  const reloadParked = useCallback(async () => {
+    try {
+      const { listParkedJobs } = await import('@/lib/session-store')
+      setParkedJobs(await listParkedJobs())
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => {
+    reloadParked()
+    const onChanged = () => reloadParked()
+    window.addEventListener('shotsync:parked-changed', onChanged)
+    window.addEventListener('storage', (e) => { if (e.key === 'shotsync:parked-version') reloadParked() })
+    return () => window.removeEventListener('shotsync:parked-changed', onChanged)
+  }, [reloadParked])
+
+  async function handleResume(parkId: string) {
+    setResumingId(parkId)
+    try {
+      const { parkJob, resumeParkedJob } = await import('@/lib/session-store')
+      if (clusters.length > 0) {
+        await parkJob(jobName || 'Untitled Job', clusters, marketplaces, null)
+      }
+      const result = await resumeParkedJob(parkId)
+      if (result) {
+        setSession(result.jobName, result.clusters, result.marketplaces)
+        router.push('/dashboard/review')
+      }
+      await reloadParked()
+    } catch { /* silent */ } finally {
+      setResumingId(null)
+    }
+  }
+
+  async function handleDiscard(parkId: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    try {
+      const { deleteParkedJob } = await import('@/lib/session-store')
+      await deleteParkedJob(parkId)
+      await reloadParked()
+    } catch { /* silent */ }
+  }
+
+  function relativeTime(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 1) return 'just now'
+    if (m < 60) return `${m}m ago`
+    const h = Math.floor(m / 60)
+    if (h < 24) return `${h}h ago`
+    return `${Math.floor(h / 24)}d ago`
+  }
 
   useEffect(() => {
     import('@/lib/supabase/client').then(({ createClient }) =>
@@ -244,6 +306,45 @@ export function Sidebar() {
       </div>
 
       </Suspense>
+
+      {/* Parked Jobs */}
+      {parkedJobs.length > 0 && (
+        <div style={{ padding: '6px 10px 6px', borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
+          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+            Parked ({parkedJobs.length})
+          </p>
+          <div className="flex flex-col">
+            {parkedJobs.map((job) => (
+              <div key={job.id} style={{ position: 'relative' }}>
+                <button
+                  onClick={() => handleResume(job.id)}
+                  disabled={!!resumingId}
+                  className="flex flex-col items-start px-[10px] py-[5px] rounded-[8px] w-full text-left transition-all duration-150"
+                  style={{ paddingRight: '28px' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
+                >
+                  <span className="text-[13px] font-medium truncate w-full" style={{ color: '#1d1d1f', maxWidth: '148px', display: 'block' }}>
+                    {resumingId === job.id ? 'Resuming…' : job.jobName}
+                  </span>
+                  <span className="text-[11px]" style={{ color: '#aeaeb2' }}>
+                    {job.clusterCount} cluster{job.clusterCount !== 1 ? 's' : ''} · {relativeTime(job.savedAt)}
+                  </span>
+                </button>
+                <button
+                  onClick={(e) => handleDiscard(job.id, e)}
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#c7c7cc', padding: '4px', lineHeight: 1 }}
+                  title="Discard"
+                >
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M2 2l8 8M10 2L2 10"/>
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Guide */}
       <div className="px-[10px] pb-[6px]">

@@ -373,3 +373,66 @@ export async function listSessions(): Promise<SessionHeader[]> {
     return []
   }
 }
+
+// ── Parked jobs ───────────────────────────────────────────────────────────────
+
+const PARKED_VERSION_KEY = 'shotsync:parked-version'
+
+function bumpParkedVersion() {
+  try {
+    const v = parseInt(localStorage.getItem(PARKED_VERSION_KEY) ?? '0', 10)
+    localStorage.setItem(PARKED_VERSION_KEY, String(v + 1))
+    window.dispatchEvent(new CustomEvent('shotsync:parked-changed'))
+  } catch { /* ignore */ }
+}
+
+/**
+ * Park the current job so it can be resumed later.
+ * Saves to IDB under a `park::<uuid>` key and signals the sidebar to refresh.
+ */
+export async function parkJob(
+  jobName: string,
+  clusters: SessionCluster[],
+  marketplaces: string[],
+  brandId: string | null,
+): Promise<string> {
+  const id = `park::${crypto.randomUUID()}`
+  await saveSession(id, jobName, clusters, marketplaces, brandId)
+  bumpParkedVersion()
+  return id
+}
+
+/**
+ * List all parked jobs (IDB records with `park::` prefix), newest first.
+ */
+export async function listParkedJobs(): Promise<SessionHeader[]> {
+  const all = await listSessions()
+  return all
+    .filter((s) => s.id.startsWith('park::'))
+    .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
+}
+
+/**
+ * Load a parked job and remove it from the parked list.
+ * Returns null if the job is no longer in IDB.
+ */
+export async function resumeParkedJob(parkId: string): Promise<{
+  jobName: string
+  clusters: SessionCluster[]
+  marketplaces: string[]
+} | null> {
+  const result = await loadSession(parkId)
+  if (result) {
+    await deleteSession(parkId)
+    bumpParkedVersion()
+  }
+  return result
+}
+
+/**
+ * Permanently discard a parked job.
+ */
+export async function deleteParkedJob(parkId: string): Promise<void> {
+  await deleteSession(parkId)
+  bumpParkedVersion()
+}
