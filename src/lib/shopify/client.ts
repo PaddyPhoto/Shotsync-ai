@@ -3,7 +3,13 @@ export class ShopifyClient {
   private headers: Record<string, string>
 
   constructor(shopDomain: string, accessToken: string) {
-    this.baseUrl = `https://${shopDomain}/admin/api/2025-01`
+    // Normalise: strip protocol, trailing slashes/spaces, and any /admin path the user may have pasted
+    const cleanDomain = shopDomain
+      .trim()
+      .replace(/^https?:\/\//i, '')
+      .replace(/\/admin.*$/i, '')
+      .replace(/\/+$/, '')
+    this.baseUrl = `https://${cleanDomain}/admin/api/2025-01`
     this.headers = {
       'X-Shopify-Access-Token': accessToken,
       'Content-Type': 'application/json',
@@ -56,11 +62,20 @@ export class ShopifyClient {
     })
 
     if (!res.ok) {
-      console.error('Shopify createProduct failed:', await res.text())
+      const errText = await res.text().catch(() => '')
+      console.error('Shopify createProduct failed:', res.status, errText.slice(0, 300))
       return null
     }
 
-    const { product } = await res.json() as { product: { id: number } }
+    const rawText = await res.text().catch(() => '')
+    let json: { product: { id: number } }
+    try {
+      json = JSON.parse(rawText)
+    } catch {
+      console.error('Shopify createProduct: non-JSON 200 response', rawText.slice(0, 300))
+      return null
+    }
+    const { product } = json
     const shopDomain = this.baseUrl.split('/admin/')[0].replace('https://', '')
     return {
       id: String(product.id),
