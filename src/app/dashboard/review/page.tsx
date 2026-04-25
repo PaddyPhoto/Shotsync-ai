@@ -1233,6 +1233,7 @@ function ReviewPage() {
           namingTemplate={activeTemplate}
           clusterCopy={clusterCopy}
           onClose={() => setShowExportPanel(false)}
+          onStartNewJob={() => { reset(); router.push('/dashboard/upload') }}
         />
       )}
     </div>
@@ -1250,6 +1251,7 @@ function ExportPanel({
   namingTemplate,
   clusterCopy,
   onClose,
+  onStartNewJob,
 }: {
   jobName: string
   clusters: SessionCluster[]
@@ -1259,6 +1261,7 @@ function ExportPanel({
   namingTemplate: string
   clusterCopy: Record<string, { title: string; description: string; bullets: string[]; loading: boolean; open: boolean }>
   onClose: () => void
+  onStartNewJob: () => void
 }) {
   const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(
     marketplaces.length > 0 ? marketplaces : []
@@ -2034,6 +2037,15 @@ function ExportPanel({
                 </div>
               )}
 
+              {shopifyResults?.length && shopifyResults.every((r) => r.status === 'created') && (
+                <button
+                  onClick={onStartNewJob}
+                  className="btn btn-primary btn-sm w-full justify-center mb-2"
+                >
+                  Start new job
+                </button>
+              )}
+
               <button
                 onClick={handleShopifyUpload}
                 disabled={shopifyUploading || !confirmedClusters.length}
@@ -2047,7 +2059,7 @@ function ExportPanel({
                 ) : (
                   <>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
-                    Create {confirmedClusters.length} draft{confirmedClusters.length !== 1 ? 's' : ''} in Shopify [v4]
+                    Create {confirmedClusters.length} draft{confirmedClusters.length !== 1 ? 's' : ''} in Shopify
                   </>
                 )}
               </button>
@@ -2056,20 +2068,34 @@ function ExportPanel({
         </div>
 
         <div className="px-5 py-4 border-t border-[var(--line)] flex justify-end gap-2">
-          <button onClick={onClose} className="btn btn-ghost">Close</button>
-          <button
-            onClick={handleExport}
-            disabled={isExporting || !confirmedClusters.length || !selectedMarketplaces.length || (exportMode === 'folder' && !folderRef.current)}
-            className="btn btn-primary"
-          >
-            {isExporting
-              ? 'Exporting…'
-              : exportMode === 'zip' ? 'Download ZIP'
-              : exportMode === 'folder' ? 'Save to Folder'
-              : exportMode === 'dropbox' ? 'Upload to Dropbox'
-              : exportMode === 'google-drive' ? 'Upload to Drive'
-              : 'Upload to S3'}
-          </button>
+          {done ? (
+            <>
+              <button onClick={onClose} className="btn btn-ghost">Close</button>
+              <button
+                onClick={onStartNewJob}
+                className="btn btn-primary"
+              >
+                Start new job
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={onClose} className="btn btn-ghost">Close</button>
+              <button
+                onClick={handleExport}
+                disabled={isExporting || !confirmedClusters.length || !selectedMarketplaces.length || (exportMode === 'folder' && !folderRef.current)}
+                className="btn btn-primary"
+              >
+                {isExporting
+                  ? 'Exporting…'
+                  : exportMode === 'zip' ? 'Download ZIP'
+                  : exportMode === 'folder' ? 'Save to Folder'
+                  : exportMode === 'dropbox' ? 'Upload to Dropbox'
+                  : exportMode === 'google-drive' ? 'Upload to Drive'
+                  : 'Upload to S3'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
