@@ -1358,7 +1358,7 @@ function ExportPanel({
           // Step 1: canvas resize
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality)
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, firstRule.remove_background ?? false)
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -1502,7 +1502,7 @@ function ExportPanel({
             try {
               const buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
+                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, rule.remove_background ?? false,
               )
               const filename = applyNamingTemplate(template, {
                 brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
@@ -1692,7 +1692,7 @@ function ExportPanel({
             try {
               const buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
+                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, rule.remove_background ?? false,
               )
               const filename = applyNamingTemplate(template, {
                 brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
@@ -2117,11 +2117,19 @@ function ExportPanel({
 
 async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,
-  quality = 1.0, maxFileSizeKb = 0
+  quality = 1.0, maxFileSizeKb = 0, removeBg = false
 ): Promise<ArrayBuffer> {
+  // Optional AI background removal — dynamically imported so it only loads for Myer exports
+  let sourceBlob: Blob = file
+  if (removeBg) {
+    const { removeBackground } = await import('@imgly/background-removal')
+    sourceBlob = await removeBackground(file, { output: { format: 'image/png', quality: 1 } })
+  }
+
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file)
+    const url = URL.createObjectURL(sourceBlob)
     const img = new window.Image()
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image failed to load')) }
     img.onload = () => {
       const canvas = document.createElement('canvas')
       canvas.width = width

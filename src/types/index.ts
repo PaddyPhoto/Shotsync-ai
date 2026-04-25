@@ -91,6 +91,7 @@ export interface MarketplaceRule {
   background_color: string
   naming_template: string
   naming_locked?: boolean   // true = retailer-mandated format, cannot be overridden by user
+  remove_background?: boolean  // AI background removal before export
 }
 
 // ─── Export ───────────────────────────────────────────────────────────────────

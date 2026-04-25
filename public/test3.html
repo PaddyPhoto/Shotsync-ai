@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/></head>
+<body style="background:#080808;color:white;font-size:24px;padding:40px">
+<div id="status">Loading...</div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="scenes.jsx"></script>
+<script type="text/babel">
+  try {
+    const s = document.getElementById('status');
+    if (typeof Tutorial !== 'undefined' && typeof TOTAL_DURATION !== 'undefined') {
+      s.textContent = `scenes.jsx OK — Tutorial defined, TOTAL_DURATION=${TOTAL_DURATION}s. Rendering...`;
+      function App() {
+        return <Stage width={1920} height={1080} duration={TOTAL_DURATION} background="#080808" persistKey="test"><Tutorial/></Stage>;
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+    } else {
+      s.textContent = 'scenes.jsx loaded but Tutorial or TOTAL_DURATION not defined';
+    }
+  } catch(e) {
+    document.getElementById('status').textContent = 'Error: ' + e.message;
+    console.error(e);
+  }
+</script>
+<div id="root"></div>
+</body>
+</html>

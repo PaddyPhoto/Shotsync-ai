@@ -48,6 +48,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
     background_color: '#FFFFFF',
     naming_template: '{SKU}_{VIEW}_{INDEX}',
     naming_locked: false,
+    remove_background: true,
   },
 }
 

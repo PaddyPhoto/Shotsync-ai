@@ -860,6 +860,16 @@ function SettingsInner() {
                         </div>
                       </SettingsRow>
 
+                      {/* AI background removal */}
+                      <SettingsRow label="AI Background Removal" sub="Remove background during export, replacing it with the solid colour above. Required by Myer.">
+                        <button
+                          onClick={() => updateRule(id, { remove_background: !rule.remove_background })}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${rule.remove_background ? 'bg-[var(--accent2)]' : 'bg-[var(--line2)]'}`}
+                        >
+                          <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${rule.remove_background ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
+                        </button>
+                      </SettingsRow>
+
                       {/* Naming convention */}
                       <div className="col-span-2 py-[12px] border-t border-[var(--line)]">
                         <div className="flex items-center justify-between mb-2">

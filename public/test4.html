@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/></head>
+<body style="background:#080808;color:white;font-size:18px;padding:40px">
+<div id="status">Loading...</div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel">
+  // Intercept Babel errors before scenes.jsx loads
+  const origError = window.onerror;
+  window.onerror = function(msg, src, line, col, err) {
+    document.getElementById('status').textContent = 'JS Error: ' + msg + ' (line ' + line + ')';
+    return false;
+  };
+  document.getElementById('status').textContent = 'animations.jsx done, about to load scenes.jsx';
+</script>
+<script type="text/babel" src="scenes.jsx" 
+  data-plugins=""
+  onerror="document.getElementById('status').textContent='scenes.jsx XHR/compile failed'">
+</script>
+<script type="text/babel">
+  document.getElementById('status').textContent = 'scenes.jsx done! Tutorial=' + (typeof Tutorial);
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/></head>
+<body style="background:#080808;color:white;font-size:24px;padding:40px">
+<div id="status">Loading...</div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<script type="text/babel" src="animations.jsx"
+  onload="document.getElementById('status').textContent='animations.jsx loaded!'"
+  onerror="document.getElementById('status').textContent='FAIL: animations.jsx failed to load'">
+</script>
+<script type="text/babel">
+  try {
+    const s = document.getElementById('status');
+    if (typeof Stage !== 'undefined') {
+      s.textContent = 'animations.jsx OK — Stage is defined. Now loading scenes.jsx...';
+    } else {
+      s.textContent = 'animations.jsx loaded but Stage is NOT defined';
+    }
+  } catch(e) {
+    document.getElementById('status').textContent = 'Error: ' + e.message;
+  }
+</script>
+</body>
+</html>

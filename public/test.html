@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/></head>
+<body style="background:#080808;color:white;font-size:24px;padding:40px">
+<div id="status">Loading...</div>
+<script>
+  document.getElementById('status').textContent = 'Step 1: HTML loaded OK';
+</script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" 
+  onload="document.getElementById('status').textContent='Step 2: React loaded OK'"
+  onerror="document.getElementById('status').textContent='FAIL: React failed to load'">
+</script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+  onload="document.getElementById('status').textContent='Step 3: ReactDOM loaded OK'"
+  onerror="document.getElementById('status').textContent='FAIL: ReactDOM failed'">
+</script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+  onload="document.getElementById('status').textContent='Step 4: Babel loaded OK'"
+  onerror="document.getElementById('status').textContent='FAIL: Babel failed'">
+</script>
+<script type="text/babel">
+  const el = document.getElementById('status');
+  el.textContent = 'Step 5: Babel inline JSX works!';
+  ReactDOM.createRoot(document.getElementById('root')).render(<div style={{color:'lime',fontSize:32}}>React rendered!</div>);
+</script>
+<div id="root"></div>
+</body>
+</html>
