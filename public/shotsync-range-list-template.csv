@@ -1,11 +1,11 @@
-STYLE CODE,STYLE NAME,STYLE NUMBER,COLOUR,COLOUR CODE
-SS25-0042,Linen Relaxed Blazer,05324,Burgundy,062
-SS25-0043,Linen Relaxed Blazer,05324,Ivory,001
-SS25-0044,Linen Relaxed Blazer,05324,Navy,088
-SS25-0101,Wrap Midi Dress,07891,Sage Green,034
-SS25-0102,Wrap Midi Dress,07891,Blush,017
-SS25-0103,Wrap Midi Dress,07891,Black,099
-SS25-0201,Tailored Trouser,06432,Camel,045
-SS25-0202,Tailored Trouser,06432,Charcoal,077
-SS25-0301,Oversized Linen Shirt,08156,White,002
-SS25-0302,Oversized Linen Shirt,08156,Stone,041
+STYLE CODE,STYLE NAME,STYLE NUMBER,COLOUR,COLOUR CODE,COMPOSITION,CARE INSTRUCTIONS,FIT,RRP,SEASON,OCCASION,GENDER,CATEGORY,COUNTRY OF ORIGIN,SIZE RANGE
+SS25-0042,Linen Relaxed Blazer,05324,Burgundy,062,55% Linen 45% Viscose,Dry clean only,Relaxed,299.00,SS25,Workwear,Women's,Blazer,China,XS-XL
+SS25-0043,Linen Relaxed Blazer,05324,Ivory,001,55% Linen 45% Viscose,Dry clean only,Relaxed,299.00,SS25,Workwear,Women's,Blazer,China,XS-XL
+SS25-0044,Linen Relaxed Blazer,05324,Navy,088,55% Linen 45% Viscose,Dry clean only,Relaxed,299.00,SS25,Workwear,Women's,Blazer,China,XS-XL
+SS25-0101,Wrap Midi Dress,07891,Sage Green,034,100% Viscose,Hand wash cold. Do not tumble dry.,Relaxed,189.00,SS25,Casual,Women's,Dress,India,XS-XL
+SS25-0102,Wrap Midi Dress,07891,Blush,017,100% Viscose,Hand wash cold. Do not tumble dry.,Relaxed,189.00,SS25,Casual,Women's,Dress,India,XS-XL
+SS25-0103,Wrap Midi Dress,07891,Black,099,100% Viscose,Hand wash cold. Do not tumble dry.,Relaxed,189.00,SS25,Evening,Women's,Dress,India,XS-XL
+SS25-0201,Tailored Trouser,06432,Camel,045,68% Polyester 28% Viscose 4% Elastane,Machine wash cold. Hang dry.,Slim,229.00,SS25,Workwear,Women's,Trousers,China,6-18
+SS25-0202,Tailored Trouser,06432,Charcoal,077,68% Polyester 28% Viscose 4% Elastane,Machine wash cold. Hang dry.,Slim,229.00,SS25,Workwear,Women's,Trousers,China,6-18
+SS25-0301,Oversized Linen Shirt,08156,White,002,100% Linen,Machine wash cold. Tumble dry low.,Oversized,149.00,SS25,Casual,Women's,Shirt,Bangladesh,XS-XL
+SS25-0302,Oversized Linen Shirt,08156,Stone,041,100% Linen,Machine wash cold. Tumble dry low.,Oversized,149.00,SS25,Casual,Women's,Shirt,Bangladesh,XS-XL

@@ -31,6 +31,16 @@ export interface StyleListEntry {
   colour: string
   colourCode: string
   styleNumber: string
+  composition?: string
+  care?: string
+  fit?: string
+  rrp?: string
+  season?: string
+  occasion?: string
+  gender?: string
+  category?: string
+  origin?: string
+  sizeRange?: string
 }
 
 export type ShootType = 'on-model' | 'still-life'
@@ -42,14 +52,17 @@ interface SessionState {
   styleList: StyleListEntry[]
   shootType: ShootType
   accessoryCategory: string | null
+  imagesPerLook: number
+  angleSequence: ViewLabel[]
   isReady: boolean
-  setSession: (jobName: string, clusters: SessionCluster[], marketplaces?: string[]) => void
+  setSession: (jobName: string, clusters: SessionCluster[], marketplaces?: string[], imagesPerLook?: number, angleSequence?: ViewLabel[]) => void
   setStyleList: (entries: StyleListEntry[]) => void
   setShootConfig: (shootType: ShootType, accessoryCategory: string | null) => void
   moveImage: (imageId: string, toClusterId: string) => void
   copyImageToCluster: (imageId: string, toClusterId: string) => void
   mergeCluster: (fromId: string, toId: string) => void
   splitImages: (fromClusterId: string, imageIds: string[]) => void
+  splitAndReflow: (clusterId: string, atImageId: string) => void
   updateClusterSku: (clusterId: string, sku: string, productName?: string) => void
   updateClusterColor: (clusterId: string, color: string) => void
   updateClusterColourCode: (clusterId: string, colourCode: string) => void
@@ -81,16 +94,18 @@ export const useSession = create<SessionState>((set, get) => ({
   styleList: [],
   shootType: 'on-model',
   accessoryCategory: null,
+  imagesPerLook: 6,
+  angleSequence: [],
   isReady: false,
   undoStack: [],
 
   setStyleList: (entries) => set({ styleList: entries }),
   setShootConfig: (shootType, accessoryCategory) => set({ shootType, accessoryCategory }),
 
-  setSession: (jobName, clusters, marketplaces) => {
+  setSession: (jobName, clusters, marketplaces, imagesPerLook, angleSequence) => {
     _nextClusterNum = clusters.length + 1
     const mps = marketplaces ?? ['the-iconic']
-    set({ jobName, clusters, marketplaces: mps, isReady: true })
+    set({ jobName, clusters, marketplaces: mps, imagesPerLook: imagesPerLook ?? 6, angleSequence: angleSequence ?? [], isReady: true })
     // Persist a serialisable snapshot to sessionStorage so the review page can detect
     // whether a session exists when the user navigates back. File objects cannot be
     // serialised (they're binary + not cloneable via JSON), so only metadata and
@@ -309,8 +324,74 @@ export const useSession = create<SessionState>((set, get) => ({
     }),
   })),
 
+  // splitAndReflow: splits cluster at atImageId, then re-chunks ALL images from that
+  // point across every subsequent cluster using the stored imagesPerLook setting.
+  // One call fixes every cluster that was misaligned due to a missing shot upstream.
+  splitAndReflow: (clusterId, atImageId) => set((state) => {
+    const clusterIdx = state.clusters.findIndex((c) => c.id === clusterId)
+    if (clusterIdx === -1) return state
+    const cluster = state.clusters[clusterIdx]
+    const imageIdx = cluster.images.findIndex((img) => img.id === atImageId)
+    if (imageIdx <= 0) return state
+
+    const undoStack = [...state.undoStack.slice(-19), state.clusters]
+
+    // Images staying in the split cluster (keep in-order, re-label positionally)
+    const keepImages = cluster.images.slice(0, imageIdx)
+
+    // All images to reflow: overflow from split + every subsequent cluster in sequence order
+    const overflow = cluster.images.slice(imageIdx)
+    const trailing = state.clusters.slice(clusterIdx + 1).flatMap((c) => c.images)
+    const toReflow = [...overflow, ...trailing]
+
+    // Re-chunk by stored imagesPerLook
+    const ipl = state.imagesPerLook
+    const chunks: SessionImage[][] = []
+    for (let i = 0; i < toReflow.length; i += ipl) {
+      chunks.push(toReflow.slice(i, i + ipl))
+    }
+
+    // Positional angle order for relabelling
+    const angleOrder: ViewLabel[] = (state.angleSequence.length > 0 ? state.angleSequence : [
+      'front', 'back', 'side', 'detail', 'mood', 'full-length',
+    ]) as ViewLabel[]
+
+    const relabel = (imgs: SessionImage[]): SessionImage[] =>
+      imgs.map((img, i) => ({ ...img, viewLabel: angleOrder[i % angleOrder.length] ?? 'front' as ViewLabel, viewConfidence: 0.7 }))
+
+    // Build updated cluster for the split point
+    const updatedSplitCluster: SessionCluster = {
+      ...cluster,
+      images: relabel(keepImages),
+      confirmed: false,
+    }
+
+    // Build new clusters for reflowed chunks, reusing existing cluster metadata where available
+    const reflowedClusters: SessionCluster[] = chunks.map((chunk, i) => {
+      const existing = state.clusters[clusterIdx + 1 + i]
+      return existing
+        ? { ...existing, images: relabel(chunk), confirmed: false }
+        : {
+            id: `cluster-reflow-${Date.now()}-${i}`,
+            images: relabel(chunk),
+            sku: '', productName: '', color: '', colourCode: '', styleNumber: '',
+            label: `Look ${_nextClusterNum++}`,
+            category: null, confirmed: false, exported: false,
+          }
+    })
+
+    return {
+      undoStack,
+      clusters: [
+        ...state.clusters.slice(0, clusterIdx),
+        updatedSplitCluster,
+        ...reflowedClusters,
+      ],
+    }
+  }),
+
   reset: () => {
     try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
-    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], shootType: 'on-model', accessoryCategory: null, isReady: false, undoStack: [] })
+    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], shootType: 'on-model', accessoryCategory: null, imagesPerLook: 6, angleSequence: [], isReady: false, undoStack: [] })
   },
 }))

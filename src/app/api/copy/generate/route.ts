@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     } catch {}
   }
 
-  const { sku, productName, color, brandName, angles, heroImage } = await req.json()
+  const { sku, productName, color, brandName, angles, heroImage, composition, care, fit, rrp, season, occasion, gender, category, origin, sizeRange } = await req.json()
 
   const OpenAI = (await import('openai')).default
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -53,29 +53,52 @@ export async function POST(req: NextRequest) {
   const systemPrompt = `You are a fashion eCommerce copywriter for ANZ (Australian/New Zealand) brands.
 You write confident, editorial, direct copy for fashion-forward customers.
 When given an image, identify the garment type, style, and any visible details (cut, length, details, texture).
-Never invent details you cannot see. Keep copy grounded in what's actually visible.`
+Never invent details you cannot see. Keep copy grounded in what's actually visible.
+When fabric composition is provided, always state it accurately and verbatim — never guess or paraphrase it.`
+
+  const specLines = [
+    sku          && `- SKU: ${sku}`,
+    productName  && `- Product name: ${productName}`,
+    color        && `- Colour: ${color}`,
+    brand        && `- Brand: ${brand}`,
+    gender       && `- Gender: ${gender}`,
+    category     && `- Garment type: ${category}`,
+    season       && `- Season/Collection: ${season}`,
+    fit          && `- Fit: ${fit}`,
+    sizeRange    && `- Size range: ${sizeRange}`,
+    composition  && `- Fabric composition: ${composition}`,
+    care         && `- Care instructions: ${care}`,
+    origin       && `- Country of origin: ${origin}`,
+    occasion     && `- Occasion: ${occasion}`,
+    rrp          && `- RRP: $${rrp}`,
+    `- Available shots: ${angleList}`,
+  ].filter(Boolean).join('\n')
+
+  const factualNote = [
+    composition && `fabric composition ("${composition}")`,
+    care        && `care instructions ("${care}")`,
+    origin      && `country of origin ("${origin}")`,
+    fit         && `fit type ("${fit}")`,
+  ].filter(Boolean).join(', ')
 
   const userText = `Write product listing copy for this fashion item.
 
 Known details:
-${sku ? `- SKU: ${sku}` : ''}
-${productName ? `- Product name: ${productName}` : ''}
-${color ? `- Colour: ${color}` : ''}
-${brand ? `- Brand: ${brand}` : ''}
-- Available shots: ${angleList}
+${specLines}
 
 ${heroImage ? 'Use the image to identify the garment type and any visible style details.' : 'Use the product details above to write the copy.'}
+${factualNote ? `These are factual spec sheet values — use them verbatim, never rephrase: ${factualNote}.` : ''}
 
 Return ONLY valid JSON:
 {
   "title": "Concise product title max 80 chars — lead with garment type and key detail",
-  "description": "2-3 sentences. Describe what you see: garment type, silhouette, fabric feel, and occasion. No generic filler.",
+  "description": "2-3 sentences. Garment type, silhouette, fabric feel, and occasion. No generic filler.",
   "bullets": [
-    "Garment type and key style feature",
-    "Fit or silhouette detail",
-    "Fabric or material (if visible)",
-    "Styling suggestion or occasion",
-    "Care or sizing note"
+    "${category || 'Garment'} type and key style detail",
+    "${fit ? `Fit: ${fit} — ` : ''}silhouette and length",
+    "${composition ? `Fabric: ${composition}` : 'Fabric or material (if visible)'}",
+    "${occasion ? `Occasion: ${occasion}` : 'Styling suggestion or occasion'}",
+    "${care ? `Care: ${care}` : 'Care instructions'}"
   ]
 }`
 

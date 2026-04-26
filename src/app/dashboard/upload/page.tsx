@@ -83,6 +83,8 @@ export default function UploadPage() {
       // Auto-detect header row — find the row containing STYLE CODE or SKU
       let headerIdx = -1
       let skuCol = -1, nameCol = -1, colourCol = -1, colourCodeCol = -1, styleNumberCol = -1
+      let compositionCol = -1, careCol = -1, fitCol = -1, rrpCol = -1, seasonCol = -1
+      let occasionCol = -1, genderCol = -1, categoryCol = -1, originCol = -1, sizeRangeCol = -1
       for (let i = 0; i < Math.min(rows.length, 10); i++) {
         const row = rows[i].map((c) => String(c).toUpperCase().trim())
         const skuI = row.findIndex((c) => c.includes('STYLE CODE') || c === 'SKU' || c === 'STYLE')
@@ -93,6 +95,16 @@ export default function UploadPage() {
           colourCol = row.findIndex((c) => (c.includes('COLOUR') || c.includes('COLOR')) && !c.includes('CODE'))
           colourCodeCol = row.findIndex((c) => c.includes('COLOUR CODE') || c.includes('COLOR CODE'))
           styleNumberCol = row.findIndex((c) => c.includes('STYLE NUMBER') || c.includes('STYLE NO') || c.includes('STYLE #'))
+          compositionCol = row.findIndex((c) => c.includes('COMPOSITION') || c.includes('FABRIC') || c.includes('MATERIAL') || c.includes('FIBRE') || c.includes('FIBER') || c.includes('CONTENT'))
+          careCol = row.findIndex((c) => c.includes('CARE') || c.includes('WASH'))
+          fitCol = row.findIndex((c) => c === 'FIT' || c.includes('FIT TYPE') || c.includes('SILHOUETTE'))
+          rrpCol = row.findIndex((c) => c === 'RRP' || c.includes('RETAIL PRICE') || c === 'PRICE')
+          seasonCol = row.findIndex((c) => c.includes('SEASON') || c.includes('COLLECTION'))
+          occasionCol = row.findIndex((c) => c.includes('OCCASION'))
+          genderCol = row.findIndex((c) => c === 'GENDER' || c.includes('DEPARTMENT'))
+          categoryCol = row.findIndex((c) => c === 'CATEGORY' || c.includes('PRODUCT TYPE') || c.includes('GARMENT TYPE'))
+          originCol = row.findIndex((c) => c.includes('COUNTRY') || c.includes('ORIGIN') || c.includes('MADE IN'))
+          sizeRangeCol = row.findIndex((c) => c.includes('SIZE RANGE') || c === 'SIZES' || c.includes('AVAILABLE SIZES'))
           break
         }
       }
@@ -111,7 +123,21 @@ export default function UploadPage() {
         const colour = colourCol !== -1 ? String(row[colourCol] ?? '').trim() : ''
         const colourCode = colourCodeCol !== -1 ? String(row[colourCodeCol] ?? '').trim() : ''
         const styleNumber = styleNumberCol !== -1 ? String(row[styleNumberCol] ?? '').trim() : ''
-        entries.push({ sku, productName, colour, colourCode, styleNumber })
+        const composition = compositionCol !== -1 ? String(row[compositionCol] ?? '').trim() : undefined
+        const care = careCol !== -1 ? String(row[careCol] ?? '').trim() : undefined
+        const fit = fitCol !== -1 ? String(row[fitCol] ?? '').trim() : undefined
+        const rrp = rrpCol !== -1 ? String(row[rrpCol] ?? '').trim() : undefined
+        const season = seasonCol !== -1 ? String(row[seasonCol] ?? '').trim() : undefined
+        const occasion = occasionCol !== -1 ? String(row[occasionCol] ?? '').trim() : undefined
+        const gender = genderCol !== -1 ? String(row[genderCol] ?? '').trim() : undefined
+        const category = categoryCol !== -1 ? String(row[categoryCol] ?? '').trim() : undefined
+        const origin = originCol !== -1 ? String(row[originCol] ?? '').trim() : undefined
+        const sizeRange = sizeRangeCol !== -1 ? String(row[sizeRangeCol] ?? '').trim() : undefined
+        const extra = Object.fromEntries(
+          Object.entries({ composition, care, fit, rrp, season, occasion, gender, category, origin, sizeRange })
+            .filter(([, v]) => Boolean(v))
+        )
+        entries.push({ sku, productName, colour, colourCode, styleNumber, ...extra })
       }
 
       setStyleListLocal(entries)
@@ -444,7 +470,7 @@ export default function UploadPage() {
 
     const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
 
-    setSession(name, clusters, marketplaces)
+    setSession(name, clusters, marketplaces, imagesPerLook, (effectiveAngleSeq ?? []) as import('@/types').ViewLabel[])
 
     // Save draft to IDB so the session survives browser close
     import('@/lib/session-store').then(({ saveSession }) =>
@@ -887,6 +913,18 @@ export default function UploadPage() {
                     </button>
                   </div>
                 )}
+                <a
+                  href="/shotsync-range-list-template.csv"
+                  download="shotsync-range-list-template.csv"
+                  className="flex items-center gap-1.5 mt-2 text-[0.72rem] text-[var(--text3)] hover:text-[var(--accent)] transition-colors w-fit"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/>
+                    <path d="M8 2v7M5 9l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Download template CSV
+                </a>
                 <input
                   ref={styleListRef}
                   type="file"

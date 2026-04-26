@@ -49,7 +49,7 @@ function ReviewPage() {
   const { activeBrand } = useBrand()
   const {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
-    moveImage, copyImageToCluster, mergeCluster, splitImages, reorderImages, relabelCluster,
+    moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
     setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
   } = useSession()
@@ -76,6 +76,7 @@ function ReviewPage() {
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
+  const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
   const [detectingCategories, setDetectingCategories] = useState<Set<string>>(new Set())
   const { active: tourActive, startTour, stopTour } = useClusterTour()
 
@@ -141,6 +142,7 @@ function ReviewPage() {
       } catch { /* proceed without image */ }
     }
 
+    const styleEntry = styleList.find((e) => e.sku.toUpperCase() === cluster.sku.toUpperCase())
     try {
       const res = await fetch('/api/copy/generate', {
         method: 'POST',
@@ -152,6 +154,16 @@ function ReviewPage() {
           brandName: activeBrand?.name ?? '',
           angles,
           heroImage,
+          composition: styleEntry?.composition ?? '',
+          care: styleEntry?.care ?? '',
+          fit: styleEntry?.fit ?? '',
+          rrp: styleEntry?.rrp ?? '',
+          season: styleEntry?.season ?? '',
+          occasion: styleEntry?.occasion ?? '',
+          gender: styleEntry?.gender ?? '',
+          category: styleEntry?.category ?? '',
+          origin: styleEntry?.origin ?? '',
+          sizeRange: styleEntry?.sizeRange ?? '',
         }),
       })
       // Read as text first — if the server returns a non-JSON error page (e.g. 413 "Request Entity
@@ -797,7 +809,7 @@ function ReviewPage() {
 
                   {/* Image strip */}
                   <div className="p-2 flex flex-wrap gap-1" data-tour={clusterIdx === 0 ? 'cluster-images' : undefined}>
-                    {cluster.images.map((img) => {
+                    {cluster.images.map((img, imgPosIdx) => {
                       const isSelected = selectedImages.has(img.id)
                       const isDragging = draggingImageId === img.id
                       const isReorderTarget = dragOverImageId === img.id && draggingFromCluster === cluster.id
@@ -814,6 +826,19 @@ function ReviewPage() {
                           style={{ width: 'calc(33.333% - 3px)' }}
                           title={img.filename}
                         >
+                          {/* Split-and-reflow button — only on images after the first */}
+                          {imgPosIdx > 0 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); splitAndReflow(cluster.id, img.id) }}
+                              className="absolute -left-[1px] top-0 bottom-0 z-10 w-[18px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              title={`Split cluster here — this image starts a new look, all following clusters realign`}
+                            >
+                              <div className="w-[3px] h-full bg-[var(--accent)] rounded-full shadow-sm" />
+                              <div className="absolute -left-[1px] top-1/2 -translate-y-1/2 bg-[var(--accent)] text-white text-[8px] font-bold px-[3px] py-[1px] rounded-[3px] whitespace-nowrap leading-tight">
+                                split
+                              </div>
+                            </button>
+                          )}
                           {/* Image */}
                           <div
                             className={`aspect-[3/4] rounded-[3px] overflow-hidden relative border-2 transition-all cursor-pointer ${
@@ -1074,6 +1099,53 @@ function ReviewPage() {
                     </div>
                   </div>
 
+                  {/* Product details from style sheet — collapsible */}
+                  {(() => {
+                    const entry = styleList.find((e) => e.sku.toUpperCase() === cluster.sku.toUpperCase())
+                    const fields = entry ? [
+                      entry.composition && { label: 'Composition', value: entry.composition },
+                      entry.care        && { label: 'Care',        value: entry.care },
+                      entry.fit         && { label: 'Fit',         value: entry.fit },
+                      entry.sizeRange   && { label: 'Sizes',       value: entry.sizeRange },
+                      entry.gender      && { label: 'Gender',      value: entry.gender },
+                      entry.category    && { label: 'Category',    value: entry.category },
+                      entry.occasion    && { label: 'Occasion',    value: entry.occasion },
+                      entry.season      && { label: 'Season',      value: entry.season },
+                      entry.origin      && { label: 'Origin',      value: entry.origin },
+                      entry.rrp         && { label: 'RRP',         value: `$${entry.rrp}` },
+                    ].filter(Boolean) as { label: string; value: string }[] : []
+                    if (!fields.length) return null
+                    const key = `details-${cluster.id}`
+                    const open = expandedDetails.has(key)
+                    return (
+                      <div className="border-t border-[var(--line)]">
+                        <button
+                          className="w-full flex items-center justify-between px-3 py-[7px] text-left hover:bg-[var(--bg3)] transition-colors"
+                          onClick={() => setExpandedDetails((prev) => {
+                            const next = new Set(prev)
+                            next.has(key) ? next.delete(key) : next.add(key)
+                            return next
+                          })}
+                        >
+                          <span className="text-[0.72rem] text-[var(--text3)]">Product details</span>
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--text3)" strokeWidth="1.5" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+                            <path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                        {open && (
+                          <div className="px-3 pb-3 grid grid-cols-2 gap-x-4 gap-y-[5px]">
+                            {fields.map(({ label, value }) => (
+                              <div key={label} className="flex flex-col">
+                                <span className="text-[0.62rem] text-[var(--text3)] uppercase tracking-wide leading-tight">{label}</span>
+                                <span className="text-[0.72rem] text-[var(--text2)] leading-snug">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+
                   {/* Merge / split actions */}
                   <div className="px-3 pb-[10px] flex items-center gap-2">
                     <span className="text-[0.7rem] text-[var(--text3)]">{cluster.images.length} images</span>
@@ -1234,6 +1306,7 @@ function ReviewPage() {
           clusterCopy={clusterCopy}
           onClose={() => setShowExportPanel(false)}
           onStartNewJob={() => { reset(); router.push('/dashboard/upload') }}
+          onBackToDashboard={() => { reset(); router.push('/dashboard') }}
         />
       )}
     </div>
@@ -1252,6 +1325,7 @@ function ExportPanel({
   clusterCopy,
   onClose,
   onStartNewJob,
+  onBackToDashboard,
 }: {
   jobName: string
   clusters: SessionCluster[]
@@ -1262,6 +1336,7 @@ function ExportPanel({
   clusterCopy: Record<string, { title: string; description: string; bullets: string[]; loading: boolean; open: boolean }>
   onClose: () => void
   onStartNewJob: () => void
+  onBackToDashboard: () => void
 }) {
   const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(
     marketplaces.length > 0 ? marketplaces : []
@@ -1271,6 +1346,7 @@ function ExportPanel({
   const [templateSaved, setTemplateSaved] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
+  const [exportError, setExportError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [shopifyUploading, setShopifyUploading] = useState(false)
   const [shopifyResults, setShopifyResults] = useState<{ sku: string; status: string; adminUrl?: string; message?: string }[] | null>(null)
@@ -1358,7 +1434,7 @@ function ExportPanel({
           // Step 1: canvas resize
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, firstRule.remove_background ?? false)
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''))
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -1447,6 +1523,7 @@ function ExportPanel({
     }
     setIsExporting(true)
     setDone(false)
+    setExportError(null)
 
     const sourceImageCount = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
     const totalImages = sourceImageCount * selectedMarketplaces.length
@@ -1499,11 +1576,33 @@ function ExportPanel({
 
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
           await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
+            const useBgRemoval = (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+            let buffer: ArrayBuffer
             try {
-              const buffer = await processImageOnCanvas(
+              buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, rule.remove_background ?? false,
+                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, useBgRemoval,
               )
+            } catch (err) {
+              if (useBgRemoval) {
+                const msg = err instanceof Error ? err.message : String(err)
+              const stack = err instanceof Error && err.stack ? ` | ${err.stack.split('\n')[1]?.trim()}` : ''
+                console.error('[background-removal] failed, retrying without BG removal:', err)
+                setExportError(`AI background removal failed: "${msg}"${stack} — exporting without BG removal.`)
+                buffer = await processImageOnCanvas(
+                  img.file, rule.image_dimensions.width, rule.image_dimensions.height,
+                  rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false,
+                )
+              } else {
+                const msg = err instanceof Error ? err.message : String(err)
+                console.error(`Export failed: ${img.filename}`, err)
+                setExportError(`${img.filename}: ${msg}`)
+                doneCount++
+                setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
+                return
+              }
+            }
+            try {
               const filename = applyNamingTemplate(template, {
                 brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
                 view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
@@ -1515,7 +1614,9 @@ function ExportPanel({
               await writable.write(buffer)
               await writable.close()
             } catch (err) {
-              console.warn(`Export skipped: ${img.filename}`, err)
+              const msg = err instanceof Error ? err.message : String(err)
+              console.error(`Export failed: ${img.filename}`, err)
+              setExportError(`${img.filename}: ${msg}`)
             }
             doneCount++
             setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
@@ -1692,7 +1793,8 @@ function ExportPanel({
             try {
               const buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, rule.remove_background ?? false,
+                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
+                (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''),
               )
               const filename = applyNamingTemplate(template, {
                 brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
@@ -1766,7 +1868,6 @@ function ExportPanel({
     markClustersExported(confirmedClusters.map((c) => c.id))
     setIsExporting(false)
     setDone(true)
-    setTimeout(() => onClose(), 1500)
   }
 
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0
@@ -1996,9 +2097,20 @@ function ExportPanel({
           )}
 
           {done && (
-            <div className="flex items-center gap-2 text-[0.82rem] text-[var(--accent2)]">
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 7 5.5 10.5 11 3"/></svg>
-              Export complete!
+            <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(62,207,142,0.12)]">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--accent2)" strokeWidth="2.5"><polyline points="3 9 7 13 15 5"/></svg>
+              </div>
+              <div>
+                <p className="text-[0.95rem] font-semibold text-[var(--text)]" style={{ letterSpacing: '-.2px' }}>Job complete</p>
+                <p className="text-[0.78rem] text-[var(--text3)] mt-0.5">Images exported successfully. Start a new job or return to the dashboard.</p>
+              </div>
+            </div>
+          )}
+
+          {exportError && (
+            <div className="text-[0.75rem] text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-1">
+              <span className="font-medium">Export error:</span> {exportError}
             </div>
           )}
 
@@ -2070,7 +2182,7 @@ function ExportPanel({
         <div className="px-5 py-4 border-t border-[var(--line)] flex justify-end gap-2">
           {done ? (
             <>
-              <button onClick={onClose} className="btn btn-ghost">Close</button>
+              <button onClick={onBackToDashboard} className="btn btn-ghost">Back to dashboard</button>
               <button
                 onClick={onStartNewJob}
                 className="btn btn-primary"
@@ -2114,6 +2226,10 @@ function ExportPanel({
 // - imageSmoothingQuality = 'high' on all canvas contexts for sharpest output
 // - Optional file size cap: if maxFileSizeKb > 0, binary-searches JPEG quality
 //   downwards (up to 6 iterations) until the output fits within the cap
+
+// Views with plain/white backgrounds where AI removal makes sense.
+// Detail, mood, flat-lay, top-down, inside shots are excluded — complex backgrounds.
+const PLAIN_BG_VIEWS = new Set<string>(['front', 'back', 'side', 'mood', 'full-length', 'ghost-mannequin', 'front-3/4', 'back-3/4'])
 
 async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,
