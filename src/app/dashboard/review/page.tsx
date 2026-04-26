@@ -2238,11 +2238,46 @@ async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,
   quality = 1.0, maxFileSizeKb = 0, removeBg = false
 ): Promise<ArrayBuffer> {
-  // Optional AI background removal — dynamically imported so it only loads for Myer exports
+  // Optional background removal — server-side via Replicate BRIA RMBG 2.0,
+  // with @imgly browser fallback if the API route is not configured.
   let sourceBlob: Blob = file
   if (removeBg) {
-    const { removeBackground } = await import('@imgly/background-removal')
-    sourceBlob = await removeBackground(file, { output: { format: 'image/png', quality: 1 } })
+    try {
+      // Pre-compress to max 1500 px so the payload stays well under Vercel's body limit.
+      const compressed = await new Promise<Blob>((res, rej) => {
+        const url = URL.createObjectURL(file)
+        const img = new window.Image()
+        img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('load failed')) }
+        img.onload = () => {
+          const MAX = 1500
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+          const c = document.createElement('canvas')
+          c.width = Math.round(img.width * scale)
+          c.height = Math.round(img.height * scale)
+          c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height)
+          URL.revokeObjectURL(url)
+          c.toBlob((b) => b ? res(b) : rej(new Error('toBlob failed')), 'image/jpeg', 0.88)
+        }
+        img.src = url
+      })
+
+      const fd = new FormData()
+      fd.append('image', compressed, 'image.jpg')
+      const apiRes = await fetch('/api/remove-background', { method: 'POST', body: fd })
+
+      if (apiRes.ok) {
+        sourceBlob = await apiRes.blob()
+      } else if (apiRes.status === 503) {
+        // API not configured — fall back to browser model silently
+        throw new Error('not configured')
+      } else {
+        throw new Error(`API ${apiRes.status}`)
+      }
+    } catch (err) {
+      console.warn('[remove-bg] server API failed, falling back to @imgly:', err)
+      const { removeBackground } = await import('@imgly/background-removal')
+      sourceBlob = await removeBackground(file, { output: { format: 'image/png', quality: 1 } })
+    }
   }
 
   return new Promise((resolve, reject) => {
