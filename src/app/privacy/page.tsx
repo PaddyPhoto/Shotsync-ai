@@ -55,13 +55,16 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-[1rem] font-semibold text-[var(--text)] mb-3">5. Third-party services</h2>
-            <p>We use the following sub-processors:</p>
-            <ul className="flex flex-col gap-2 list-disc list-inside mt-2">
-              <li><strong>Supabase</strong> — database and authentication</li>
-              <li><strong>Stripe</strong> — payment processing</li>
-              <li><strong>Resend</strong> — transactional email</li>
-              <li><strong>Vercel</strong> — hosting and deployment</li>
+            <p>To operate the platform, we engage third-party service providers who may process your data on our behalf. We only share data necessary for each provider to perform their specific function. We do not authorise any provider to use your data for their own purposes.</p>
+            <ul className="flex flex-col gap-2 list-disc list-inside mt-3">
+              <li><strong>Cloud infrastructure and hosting</strong> — your account data, session data, and uploaded images are stored and served via cloud hosting providers. Data is stored in Australia where available.</li>
+              <li><strong>Payment processing</strong> — billing and subscription payments are handled by a PCI-compliant payment processor. We do not store card numbers or banking details.</li>
+              <li><strong>Transactional email</strong> — your email address is shared with an email delivery provider solely to send account and billing notifications.</li>
+              <li><strong>AI processing</strong> — where you use AI-powered features such as product copy generation or background removal, relevant product data and images may be transmitted to AI model providers to perform the requested processing. Images are not retained or used for model training.</li>
+              <li><strong>Error monitoring</strong> — anonymised error and performance data may be collected by an application monitoring service to help us identify and fix bugs. This may include browser type and general usage context.</li>
+              <li><strong>Analytics</strong> — we use a web analytics service to understand aggregate traffic patterns and feature usage. This data is anonymised and not linked to individual accounts.</li>
             </ul>
+            <p className="mt-3">A current list of our specific sub-processors is available on request by emailing <a href="mailto:hello@shotsync.ai" className="text-[var(--accent)] hover:underline">hello@shotsync.ai</a>.</p>
           </section>
 
           <section>
