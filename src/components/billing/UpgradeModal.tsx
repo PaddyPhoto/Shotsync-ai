@@ -78,7 +78,7 @@ export function UpgradeModal() {
               {upgradeReason || 'Unlock more with ShotSync'}
             </h2>
             <p className="text-[0.82rem] text-[var(--text3)] mt-1">
-              Choose a plan to continue
+              Start free for 30 days — no charge until your trial ends
             </p>
           </div>
           <button onClick={closeUpgrade} className="text-[var(--text3)] hover:text-[var(--text2)] transition-colors p-1 mt-1">
@@ -114,13 +114,18 @@ export function UpgradeModal() {
                   <p className="text-[0.78rem] text-[var(--text3)] mt-[2px]">{p.description}</p>
                 </div>
 
-                <div className="flex items-baseline gap-1">
+                <div>
                   {id === 'enterprise' ? (
                     <span className="text-[1.2rem] font-[700] text-[var(--text)]">Contact us</span>
                   ) : (
                     <>
-                      <span className="text-[1.6rem] font-[700] text-[var(--text)]">${p.priceAud}</span>
-                      <span className="text-[0.75rem] text-[var(--text3)]">AUD/month</span>
+                      <div className="inline-flex items-center gap-1.5 bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] text-[0.7rem] font-semibold px-2 py-[3px] rounded-full mb-2">
+                        30 days free
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-[1.6rem] font-[700] text-[var(--text)]">${p.priceAud}</span>
+                        <span className="text-[0.75rem] text-[var(--text3)]">AUD/month after trial</span>
+                      </div>
                     </>
                   )}
                 </div>
@@ -148,8 +153,10 @@ export function UpgradeModal() {
                       </svg>
                       {STRIPE_CONFIGURED ? 'Redirecting…' : 'Activating…'}
                     </>
+                  ) : id === 'enterprise' ? (
+                    'Contact us'
                   ) : (
-                    `Upgrade to ${p.name}`
+                    `Start free trial — ${p.name}`
                   )}
                 </button>
 
@@ -167,7 +174,7 @@ export function UpgradeModal() {
           <button onClick={closeUpgrade} className="text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
             Continue on Free
           </button>
-          <p className="text-[0.72rem] text-[var(--text3)]">Cancel anytime · No contracts</p>
+          <p className="text-[0.72rem] text-[var(--text3)]">30-day free trial · Cancel anytime · No contracts</p>
         </div>
       </div>
     </div>

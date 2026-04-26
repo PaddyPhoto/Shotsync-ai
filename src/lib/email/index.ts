@@ -115,6 +115,25 @@ export function paymentFailedEmail(email: string, planName: string) {
   }
 }
 
+export function trialEndingEmail(email: string, planName: string, priceAud: number) {
+  return {
+    from: FROM,
+    to: email,
+    replyTo: REPLY_TO,
+    subject: 'Your ShotSync free trial ends in 3 days',
+    html: baseTemplate(`
+      <p class="label">Trial Ending Soon</p>
+      <p>Hi there,</p>
+      <p>Your 30-day free trial of ShotSync <strong>${planName}</strong> ends in 3 days.</p>
+      <p>On that date your card will be charged <strong>$${priceAud} AUD/month</strong> and your subscription will continue automatically.</p>
+      <p>If you'd like to cancel before being charged, you can do so from your billing settings at any time.</p>
+      <a class="btn" href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://shotsync.ai'}/dashboard/settings?tab=billing">Manage subscription</a>
+      <p>If you have any questions just reply to this email — we're happy to help.</p>
+      <p>— The ShotSync team</p>
+    `),
+  }
+}
+
 export function adminNewSubscriberEmail(customerEmail: string, planName: string, priceAud: number, requiresOnboarding: boolean) {
   return {
     from: FROM,

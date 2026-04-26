@@ -104,7 +104,10 @@ export async function POST(req: NextRequest) {
       success_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=success`,
       cancel_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=cancelled`,
       metadata: { org_id: orgId, plan_id: planId, cancel_subs: existingSubIds },
-      subscription_data: { metadata: { org_id: orgId, plan_id: planId } },
+      subscription_data: {
+        trial_period_days: 30,
+        metadata: { org_id: orgId, plan_id: planId },
+      },
     })
 
     return NextResponse.json({ url: session.url })

@@ -1127,7 +1127,7 @@ function SettingsInner() {
                 </div>
                 {planId === 'free' && (
                   <button onClick={() => openUpgrade('Upgrade to unlock more')} className="btn btn-primary btn-sm">
-                    Upgrade Plan
+                    Start free trial
                   </button>
                 )}
               </div>

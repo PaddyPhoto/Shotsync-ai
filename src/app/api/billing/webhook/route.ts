@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PLANS, type PlanId } from '@/lib/plans'
-import { sendEmail, welcomePaidEmail, adminNewSubscriberEmail, paymentFailedEmail } from '@/lib/email'
+import { sendEmail, welcomePaidEmail, adminNewSubscriberEmail, paymentFailedEmail, trialEndingEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -129,6 +129,18 @@ export async function POST(req: NextRequest) {
           await service.from('orgs').update({
             stripe_subscription_status: 'canceled',
           }).eq('id', orgId)
+        }
+        break
+      }
+
+      case 'customer.subscription.trial_will_end': {
+        const sub = event.data.object as { metadata?: { org_id?: string }; items: { data: { price: { id: string } }[] } }
+        const orgId = sub.metadata?.org_id
+        const priceId = sub.items.data[0]?.price?.id
+        const planId = priceId ? priceIdToPlan(priceId) : null
+        if (orgId && planId) {
+          const email = await getOrgOwnerEmail(orgId, service)
+          if (email) sendEmail(trialEndingEmail(email, PLANS[planId].name, PLANS[planId].priceAud)).catch(() => {})
         }
         break
       }
