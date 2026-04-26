@@ -1356,6 +1356,7 @@ function ExportPanel({
   const [fsaSupported] = useState(() => typeof window !== 'undefined' && typeof (window as any).showDirectoryPicker === 'function')
   const [exportMode, setExportMode] = useState<'zip' | 'folder' | 'dropbox' | 'google-drive' | 's3'>('zip')
   const [flatExport, setFlatExport] = useState(false)
+  const [bgRemovalEnabled, setBgRemovalEnabled] = useState(true)
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
   const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
@@ -1539,6 +1540,40 @@ function ExportPanel({
     const season = ''
     const copyClusters = confirmedClusters.filter((c) => clusterCopy[c.id]?.title)
 
+    // ── Phase 0: parallel bg removal pre-pass ────────────────────────────────
+    // Runs all Replicate calls at up to 8 concurrent BEFORE the export loops,
+    // so the canvas compositing phase never blocks on individual API calls.
+    const bgRemovalCache = new Map<string, Blob>() // imageId → transparent PNG
+    const anyBgRemovalMarketplace = selectedMarketplaces.some(
+      (m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background
+    )
+    if (bgRemovalEnabled && anyBgRemovalMarketplace) {
+      const bgTasks = confirmedClusters.flatMap((c) =>
+        c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).map((img) => img)
+      )
+      if (bgTasks.length > 0) {
+        const BG_CONCURRENCY = 8
+        let bgDone = 0
+        setProgress({ done: 0, total: bgTasks.length, phase: `Removing backgrounds 0/${bgTasks.length}…` })
+        for (let i = 0; i < bgTasks.length; i += BG_CONCURRENCY) {
+          await Promise.all(bgTasks.slice(i, i + BG_CONCURRENCY).map(async (img) => {
+            try {
+              const compressed = await preCompressImage(img.file)
+              const fd = new FormData()
+              fd.append('image', compressed, 'image.jpg')
+              const res = await fetch('/api/remove-background', { method: 'POST', body: fd })
+              if (res.ok) bgRemovalCache.set(img.id, await res.blob())
+            } catch { /* cache miss — processImageOnCanvas falls back to @imgly */ }
+            bgDone++
+            setProgress({ done: bgDone, total: bgTasks.length, phase: `Removing backgrounds ${bgDone}/${bgTasks.length}…` })
+          }))
+        }
+        // Reset progress counter for the export phase
+        doneCount = 0
+        setProgress({ done: 0, total: totalImages, phase: 'Exporting…' })
+      }
+    }
+
     // Helper: build the task list for a marketplace (shared by both paths)
     type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }
     const buildTasks = (template: string): ExportTask[] => {
@@ -1579,17 +1614,19 @@ function ExportPanel({
 
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
           await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
-            const useBgRemoval = (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+            const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+            const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
             let buffer: ArrayBuffer
             try {
               buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, useBgRemoval,
+                rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
+                useBgRemoval && !preRemovedBlob, preRemovedBlob,
               )
             } catch (err) {
               if (useBgRemoval) {
                 const msg = err instanceof Error ? err.message : String(err)
-              const stack = err instanceof Error && err.stack ? ` | ${err.stack.split('\n')[1]?.trim()}` : ''
+                const stack = err instanceof Error && err.stack ? ` | ${err.stack.split('\n')[1]?.trim()}` : ''
                 console.error('[background-removal] failed, retrying without BG removal:', err)
                 setExportError(`AI background removal failed: "${msg}"${stack} — exporting without BG removal.`)
                 buffer = await processImageOnCanvas(
@@ -1667,9 +1704,12 @@ function ExportPanel({
           for (let i = 0; i < tasks.length; i += CONCURRENCY) {
             await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
               try {
+                const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+                const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
                 const buffer = await processImageOnCanvas(
                   img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                   rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
+                  useBgRemoval && !preRemovedBlob, preRemovedBlob,
                 )
                 const filename = applyNamingTemplate(template, {
                   brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
@@ -1794,10 +1834,12 @@ function ExportPanel({
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
           await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx }) => {
             try {
+              const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+              const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
               const buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                 rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''),
+                useBgRemoval && !preRemovedBlob, preRemovedBlob,
               )
               const filename = applyNamingTemplate(template, {
                 brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
@@ -1961,6 +2003,34 @@ function ExportPanel({
               </div>
               <span className="text-[0.78rem] text-[var(--text2)]">Flat export <span className="text-[var(--text3)]">— all images in one folder per marketplace</span></span>
             </label>
+
+            {/* Background removal toggle — only shown when a marketplace requires it */}
+            {selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background) && (() => {
+              const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
+              const estMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
+              return (
+                <label className="flex items-center gap-2 cursor-pointer mb-3">
+                  <div
+                    onClick={() => setBgRemovalEnabled((v) => !v)}
+                    className="relative w-[36px] h-[20px] rounded-full transition-colors cursor-pointer flex-shrink-0"
+                    style={{ background: bgRemovalEnabled ? 'var(--accent)' : 'var(--bg4)' }}
+                  >
+                    <span
+                      className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow transition-all duration-200"
+                      style={{ left: bgRemovalEnabled ? '18px' : '2px' }}
+                    />
+                  </div>
+                  <span className="text-[0.78rem] text-[var(--text2)]">
+                    Background removal
+                    <span className="text-[var(--text3)]">
+                      {bgRemovalEnabled
+                        ? ` — AI quality · ~${estMins} min for ${bgCount} images`
+                        : ' — off · faster export'}
+                    </span>
+                  </span>
+                </label>
+              )
+            })()}
 
             {exportMode === 'folder' && (
               <div className="flex items-center gap-2">
@@ -2234,41 +2304,44 @@ function ExportPanel({
 // Detail, mood, flat-lay, top-down, inside shots are excluded — complex backgrounds.
 const PLAIN_BG_VIEWS = new Set<string>(['front', 'back', 'side', 'mood', 'full-length', 'ghost-mannequin', 'front-3/4', 'back-3/4'])
 
+// Resize a File to max 1500 px JPEG — keeps Replicate payloads small
+async function preCompressImage(file: File): Promise<Blob> {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file)
+    const img = new window.Image()
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('load failed')) }
+    img.onload = () => {
+      const MAX = 1500
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+      const c = document.createElement('canvas')
+      c.width = Math.round(img.width * scale)
+      c.height = Math.round(img.height * scale)
+      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height)
+      URL.revokeObjectURL(url)
+      c.toBlob((b) => b ? res(b) : rej(new Error('toBlob failed')), 'image/jpeg', 0.88)
+    }
+    img.src = url
+  })
+}
+
 async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,
-  quality = 1.0, maxFileSizeKb = 0, removeBg = false
+  quality = 1.0, maxFileSizeKb = 0, removeBg = false,
+  preRemovedBgBlob?: Blob,  // transparent PNG already fetched from Replicate — skip API call
 ): Promise<ArrayBuffer> {
-  // Optional background removal — server-side via Replicate BRIA RMBG 2.0,
-  // with @imgly browser fallback if the API route is not configured.
+  // Background removal — use pre-fetched blob if available, otherwise call API with @imgly fallback
   let sourceBlob: Blob = file
-  if (removeBg) {
+  if (preRemovedBgBlob) {
+    sourceBlob = preRemovedBgBlob
+  } else if (removeBg) {
     try {
-      // Pre-compress to max 1500 px so the payload stays well under Vercel's body limit.
-      const compressed = await new Promise<Blob>((res, rej) => {
-        const url = URL.createObjectURL(file)
-        const img = new window.Image()
-        img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('load failed')) }
-        img.onload = () => {
-          const MAX = 1500
-          const scale = Math.min(1, MAX / Math.max(img.width, img.height))
-          const c = document.createElement('canvas')
-          c.width = Math.round(img.width * scale)
-          c.height = Math.round(img.height * scale)
-          c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height)
-          URL.revokeObjectURL(url)
-          c.toBlob((b) => b ? res(b) : rej(new Error('toBlob failed')), 'image/jpeg', 0.88)
-        }
-        img.src = url
-      })
-
+      const compressed = await preCompressImage(file)
       const fd = new FormData()
       fd.append('image', compressed, 'image.jpg')
       const apiRes = await fetch('/api/remove-background', { method: 'POST', body: fd })
-
       if (apiRes.ok) {
         sourceBlob = await apiRes.blob()
       } else if (apiRes.status === 503) {
-        // API not configured — fall back to browser model silently
         throw new Error('not configured')
       } else {
         throw new Error(`API ${apiRes.status}`)
