@@ -1916,41 +1916,65 @@ function ExportPanel({
   }
 
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0
+  const totalSourceImages = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
+  const hasBgRemoval = selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background)
+  const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
+  const estBgMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
+  const brandCode = activeBrand?.brand_code ?? 'BRAND'
+
+  // ── Shared toggle component ────────────────────────────────────────────────
+  const Toggle = ({ on, onToggle, label, sub }: { on: boolean; onToggle: () => void; label: string; sub?: string }) => (
+    <label className="flex items-center gap-3 cursor-pointer">
+      <div onClick={onToggle} className="relative w-[36px] h-[20px] rounded-full transition-colors cursor-pointer flex-shrink-0" style={{ background: on ? 'var(--accent)' : 'var(--bg4)' }}>
+        <span className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow transition-all duration-200" style={{ left: on ? '18px' : '2px' }} />
+      </div>
+      <span className="text-[0.82rem] text-[var(--text2)]">{label}{sub && <span className="text-[var(--text3)] ml-1">{sub}</span>}</span>
+    </label>
+  )
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
-      <div className="bg-[var(--bg)] border border-[var(--line2)] rounded-md w-[480px] shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--line)]">
-          <h2 className="text-[0.95rem] font-semibold text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
-            Export
-          </h2>
-          <button onClick={onClose} className="text-[var(--text3)] hover:text-[var(--text2)] p-1 transition-colors">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 2l10 10M12 2L2 12" strokeLinecap="round"/></svg>
-          </button>
-        </div>
+    <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg)]">
 
-        <div className="px-5 py-4 flex flex-col gap-4">
-          {confirmedClusters.length === 0 ? (
-            <p className="text-[0.82rem] text-[var(--accent3)]">Confirm at least one look to enable export. SKUs are optional — looks without one will use their label.</p>
-          ) : (
-            <p className="text-[0.82rem] text-[var(--text2)]">
-              <span className="text-[var(--accent2)] font-semibold">{confirmedClusters.length}</span> clusters ·{' '}
-              <span className="text-[var(--text)]">{confirmedClusters.reduce((s, c) => s + c.images.length, 0)}</span> images
-            </p>
-          )}
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div className="flex items-center gap-4 px-6 h-[56px] border-b border-[var(--line)] flex-shrink-0">
+        <button
+          onClick={onClose}
+          className="flex items-center gap-1.5 text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 2L4 7l5 5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Back to review
+        </button>
+        <div className="h-4 w-px bg-[var(--line2)]" />
+        <h1 className="text-[0.92rem] font-semibold text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
+          Export{jobName ? ` · ${jobName}` : ''}
+        </h1>
+        {confirmedClusters.length > 0 && (
+          <span className="text-[0.75rem] text-[var(--text3)]">
+            {confirmedClusters.length} clusters · {totalSourceImages} images
+          </span>
+        )}
+      </div>
 
-          {/* Marketplaces — editable here so users can fix missed selections */}
+      {/* ── Body ───────────────────────────────────────────────────────────── */}
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+
+        {/* Left column — options */}
+        <div
+          className="w-[380px] flex-shrink-0 border-r border-[var(--line)] overflow-y-auto flex flex-col gap-6 px-6 py-6 transition-opacity"
+          style={{ opacity: isExporting ? 0.4 : 1, pointerEvents: isExporting ? 'none' : 'auto' }}
+        >
+          {/* Marketplaces */}
           <div>
-            <p className="text-[0.75rem] text-[var(--text2)] mb-2 font-medium">Marketplaces</p>
+            <p className="text-[0.7rem] font-semibold text-[var(--text3)] uppercase tracking-wide mb-3">Marketplaces</p>
             {selectedMarketplaces.length === 0 && (
               <p className="text-[0.72rem] text-[var(--accent3)] mb-2">Select at least one marketplace to export.</p>
             )}
             <MarketplaceSelector selected={selectedMarketplaces} onChange={setSelectedMarketplaces} />
           </div>
 
-          {/* Output mode */}
+          {/* Output format */}
           <div>
-            <p className="text-[0.75rem] text-[var(--text2)] mb-2 font-medium">Output</p>
+            <p className="text-[0.7rem] font-semibold text-[var(--text3)] uppercase tracking-wide mb-3">Output format</p>
             <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px] flex-wrap">
               {([
                 ['zip', 'Download ZIP'],
@@ -1959,330 +1983,270 @@ function ExportPanel({
                 ...(activeBrand?.cloud_connections?.google_drive ? [['google-drive', 'Google Drive']] : []),
                 ...(activeBrand?.cloud_connections?.s3 ? [['s3', 'AWS S3']] : []),
               ] as [string, string][]).map(([id, label]) => (
-                <button
-                  key={id}
-                  onClick={() => setExportMode(id as typeof exportMode)}
-                  className={`px-3 py-[5px] rounded-[4px] text-[0.78rem] font-medium transition-all ${exportMode === id ? 'bg-[var(--bg)] text-[var(--text)]' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}
-                >
+                <button key={id} onClick={() => setExportMode(id as typeof exportMode)}
+                  className={`px-3 py-[5px] rounded-[4px] text-[0.78rem] font-medium transition-all ${exportMode === id ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
                   {label}
                 </button>
               ))}
             </div>
+            <div className="mt-2">
+              {exportMode === 'folder' && <p className="text-[0.72rem] text-[var(--text3)]">Chrome and Edge only — not supported in Safari or Firefox</p>}
+              {exportMode === 'dropbox' && <p className="text-[0.72rem] text-[var(--text3)]">Uploading to <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.dropbox?.account_email}</span></p>}
+              {exportMode === 'google-drive' && <p className="text-[0.72rem] text-[var(--text3)]">Uploading to <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.google_drive?.email}</span></p>}
+              {exportMode === 's3' && <p className="text-[0.72rem] text-[var(--text3)]">Uploading to <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.s3?.bucket}{activeBrand?.cloud_connections?.s3?.prefix ? `/${activeBrand.cloud_connections.s3.prefix}` : ''}</span></p>}
+            </div>
             {exportMode === 'folder' && (
-              <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">Chrome and Edge only — not supported in Safari or Firefox</p>
-            )}
-            {exportMode === 'dropbox' && (
-              <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">
-                Files will be uploaded to <span className="font-medium">{activeBrand?.cloud_connections?.dropbox?.account_email}</span> on Dropbox
-              </p>
-            )}
-            {exportMode === 'google-drive' && (
-              <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">
-                Files will be uploaded to <span className="font-medium">{activeBrand?.cloud_connections?.google_drive?.email}</span> on Google Drive
-              </p>
-            )}
-            {exportMode === 's3' && (
-              <p className="text-[0.7rem] text-[var(--text3)] mt-[5px] mb-3">
-                Files will be uploaded to <span className="font-medium">{activeBrand?.cloud_connections?.s3?.bucket}</span>
-                {activeBrand?.cloud_connections?.s3?.prefix ? `/${activeBrand.cloud_connections.s3.prefix}` : ''}
-              </p>
-            )}
-            {(exportMode === 'zip' || exportMode === 'folder') && <div className="mb-3" />}
-
-            {/* Flat export toggle */}
-            <label className="flex items-center gap-2 cursor-pointer mb-3">
-              <div
-                onClick={() => setFlatExport((v) => !v)}
-                className="relative w-[36px] h-[20px] rounded-full transition-colors cursor-pointer flex-shrink-0"
-                style={{ background: flatExport ? 'var(--accent)' : 'var(--bg4)' }}
-              >
-                <span
-                  className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow transition-all duration-200"
-                  style={{ left: flatExport ? '18px' : '2px' }}
-                />
-              </div>
-              <span className="text-[0.78rem] text-[var(--text2)]">Flat export <span className="text-[var(--text3)]">— all images in one folder per marketplace</span></span>
-            </label>
-
-            {/* Background removal toggle — only shown when a marketplace requires it */}
-            {selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background) && (() => {
-              const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
-              const estMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
-              return (
-                <label className="flex items-center gap-2 cursor-pointer mb-3">
-                  <div
-                    onClick={() => setBgRemovalEnabled((v) => !v)}
-                    className="relative w-[36px] h-[20px] rounded-full transition-colors cursor-pointer flex-shrink-0"
-                    style={{ background: bgRemovalEnabled ? 'var(--accent)' : 'var(--bg4)' }}
-                  >
-                    <span
-                      className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow transition-all duration-200"
-                      style={{ left: bgRemovalEnabled ? '18px' : '2px' }}
-                    />
-                  </div>
-                  <span className="text-[0.78rem] text-[var(--text2)]">
-                    Background removal
-                    <span className="text-[var(--text3)]">
-                      {bgRemovalEnabled
-                        ? ` — AI quality · ~${estMins} min for ${bgCount} images`
-                        : ' — off · faster export'}
-                    </span>
-                  </span>
-                </label>
-              )
-            })()}
-
-            {exportMode === 'folder' && (
-              <div className="flex items-center gap-2">
-                <button onClick={pickFolder} disabled={!fsaSupported} className="btn btn-ghost btn-sm">
-                  Choose folder
-                </button>
-                {folderName ? (
-                  <span className="text-[0.78rem] text-[var(--accent2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>/{folderName}</span>
-                ) : (
-                  <span className="text-[0.75rem] text-[var(--text3)]">{fsaSupported ? 'No folder selected' : 'Requires Chrome/Edge'}</span>
-                )}
-              </div>
-            )}
-
-            {/* Cloud export progress */}
-            {cloudExportStatus && (exportMode === 'dropbox' || exportMode === 'google-drive' || exportMode === 's3') && (
-              <div className="mt-2 px-3 py-2 rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
-                <p className="text-[0.75rem] text-[var(--text2)]">
-                  Uploading {cloudExportStatus.done} / {cloudExportStatus.total} files
-                  {cloudExportStatus.errors > 0 && <span className="text-[var(--accent3)] ml-1">· {cloudExportStatus.errors} failed</span>}
-                </p>
+              <div className="flex items-center gap-2 mt-3">
+                <button onClick={pickFolder} disabled={!fsaSupported} className="btn btn-ghost btn-sm">Choose folder</button>
+                {folderName
+                  ? <span className="text-[0.78rem] text-[var(--accent2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>/{folderName}</span>
+                  : <span className="text-[0.75rem] text-[var(--text3)]">{fsaSupported ? 'No folder selected' : 'Requires Chrome/Edge'}</span>
+                }
               </div>
             )}
           </div>
 
-          {/* Naming template — editable per-export, with save-as-default */}
+          {/* Options */}
+          <div className="flex flex-col gap-4">
+            <p className="text-[0.7rem] font-semibold text-[var(--text3)] uppercase tracking-wide">Options</p>
+            <Toggle on={flatExport} onToggle={() => setFlatExport(v => !v)}
+              label="Flat export" sub="— all images in one folder per marketplace" />
+            {hasBgRemoval && (
+              <Toggle on={bgRemovalEnabled} onToggle={() => setBgRemovalEnabled(v => !v)}
+                label="Background removal"
+                sub={bgRemovalEnabled ? `— AI quality · ~${estBgMins} min for ${bgCount} images` : '— off · faster export'} />
+            )}
+          </div>
+
+          {/* File naming */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-[0.75rem] text-[var(--text2)] font-medium">File Naming Template</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[0.7rem] font-semibold text-[var(--text3)] uppercase tracking-wide">File naming</p>
               {activeBrand && (
-                <button
-                  onClick={saveTemplateAsDefault}
-                  disabled={savingTemplate || localTemplate === namingTemplate}
-                  className="text-[0.7rem] text-[var(--accent)] hover:underline disabled:opacity-40 disabled:no-underline transition-opacity"
-                >
-                  {templateSaved ? '✓ Saved as default' : savingTemplate ? 'Saving…' : 'Save as default'}
+                <button onClick={saveTemplateAsDefault} disabled={savingTemplate || localTemplate === namingTemplate}
+                  className="text-[0.7rem] text-[var(--accent)] hover:underline disabled:opacity-40 disabled:no-underline transition-opacity">
+                  {templateSaved ? '✓ Saved' : savingTemplate ? 'Saving…' : 'Save as default'}
                 </button>
               )}
             </div>
-            <input
-              className="input w-full"
-              style={{ fontFamily: 'var(--font-dm-mono)', fontSize: '0.78rem' }}
-              value={localTemplate}
-              onChange={(e) => setLocalTemplate(e.target.value)}
-              placeholder="{BRAND}_{SEQ}_{VIEW}"
-            />
-            <p className="text-[0.68rem] text-[var(--text3)] mt-1">
-              Tokens: {['{BRAND}','{SKU}','{COLOR}','{VIEW}','{SEQ}','{INDEX}','{STYLE_NUMBER}','{COLOUR_CODE}'].map(t => (
-                <code key={t} className="mx-[2px]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{t}</code>
+            <input className="input w-full mb-2" style={{ fontFamily: 'var(--font-dm-mono)', fontSize: '0.82rem' }}
+              value={localTemplate} onChange={(e) => setLocalTemplate(e.target.value)} placeholder="{BRAND}_{SEQ}_{VIEW}" />
+            <p className="text-[0.68rem] text-[var(--text3)] leading-relaxed">
+              {['{BRAND}','{SKU}','{COLOR}','{VIEW}','{SEQ}','{INDEX}','{STYLE_NUMBER}','{COLOUR_CODE}'].map(t => (
+                <code key={t} className="mr-1" style={{ fontFamily: 'var(--font-dm-mono)' }}>{t}</code>
               ))}
             </p>
             {selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).naming_locked) && (
-              <div className="mt-2 flex flex-col gap-[3px]">
+              <div className="mt-2 flex flex-col gap-1">
                 {selectedMarketplaces.filter((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).naming_locked).map((m) => {
                   const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
                   return (
                     <p key={m} className="text-[0.68rem]" style={{ color: '#ff9f0a' }}>
-                      ⚠ {rule.name} uses a platform-mandated format (<code style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.naming_template}</code>) and ignores the template above.
+                      ⚠ {rule.name} uses <code style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.naming_template}</code> — ignores template above.
                     </p>
                   )
                 })}
               </div>
             )}
           </div>
+        </div>
 
-          {/* Output structure preview — uses localTemplate + real cluster data */}
-          {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (
-            <div className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-3 py-3 text-[0.72rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
-              <p className="text-[var(--text3)] mb-1">Output structure preview:</p>
-              {selectedMarketplaces.slice(0, 2).map((m) => {
-                const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
-                const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
-                const mpFolder = rule.name.replace(/\s+/g, '_')
-                const brandCode = activeBrand?.brand_code ?? 'BRAND'
-                return (
-                  <div key={m} className="mb-2">
-                    <span className="text-[var(--accent)]">{mpFolder}/</span>
-                    {flatExport ? (
-                      <>
-                        {confirmedClusters.slice(0, 3).map((c, ci) => {
-                          const firstView = c.images[0]?.viewLabel ?? 'front'
-                          const filename = applyNamingTemplate(template, {
-                            brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color,
-                            view: firstView, index: 1, supplierCode: '', season: '',
-                            styleNumber: c.styleNumber, colourCode: c.colourCode,
-                          }) + '.jpg'
-                          return <div key={c.id} className="pl-3 text-[var(--text3)]">└─ {filename}</div>
-                        })}
-                        {confirmedClusters.length > 3 && (
-                          <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 3} more files)</div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {confirmedClusters.slice(0, 2).map((c, ci) => {
-                          const fName = applyNamingTemplate(
-                            template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, '').replace(/_{ANGLE}/g, '').replace(/_{ANGLE_NUMBER}/g, ''),
-                            { brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color, view: '', index: 0, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }
-                          ).replace(/_+$/, '') || `${brandCode}_${String(ci + 1).padStart(3, '0')}`
-                          const firstView = c.images[0]?.viewLabel ?? 'front'
-                          const firstFile = applyNamingTemplate(template, {
-                            brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color,
-                            view: firstView, index: 1, supplierCode: '', season: '',
-                            styleNumber: c.styleNumber, colourCode: c.colourCode,
-                          }) + '.jpg'
-                          return (
-                            <div key={c.id} className="pl-3 text-[var(--text3)]">
-                              └─ <span className="text-[var(--text2)]">{fName}/</span>{firstFile} …
-                            </div>
-                          )
-                        })}
-                        {confirmedClusters.length > 2 && (
-                          <div className="pl-3 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more folders)</div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )
-              })}
-              {selectedMarketplaces.length > 2 && (
-                <p className="text-[var(--text3)] mt-1">+ {selectedMarketplaces.length - 2} more marketplace{selectedMarketplaces.length - 2 !== 1 ? 's' : ''}</p>
-              )}
-            </div>
-          )}
+        {/* Right column — summary / progress / done */}
+        <div className="flex-1 overflow-y-auto px-8 py-6">
 
-          {/* Progress */}
-          {isExporting && (
-            <div>
-              <div className="flex items-center justify-between text-[0.78rem] mb-1">
-                <span className="text-[var(--text2)]">{progress.phase}</span>
-                <span style={{ fontFamily: 'var(--font-dm-mono)', color: 'var(--accent)' }}>{pct}%</span>
-              </div>
-              <div className="h-[5px] bg-[var(--bg3)] rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-200" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--accent), var(--accent2))' }} />
-              </div>
-            </div>
-          )}
-
-          {done && (
-            <div className="flex flex-col items-center justify-center gap-3 py-6 text-center">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(62,207,142,0.12)]">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--accent2)" strokeWidth="2.5"><polyline points="3 9 7 13 15 5"/></svg>
+          {/* ── DONE STATE ───────────────────────────────────────────────── */}
+          {done ? (
+            <div className="flex flex-col items-center justify-center h-full gap-6 text-center max-w-[400px] mx-auto">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[rgba(62,207,142,0.12)]">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="var(--accent2)" strokeWidth="2.5"><polyline points="5 14 11 20 23 8"/></svg>
               </div>
               <div>
-                <p className="text-[0.95rem] font-semibold text-[var(--text)]" style={{ letterSpacing: '-.2px' }}>Job complete</p>
-                <p className="text-[0.78rem] text-[var(--text3)] mt-0.5">Images exported successfully. Start a new job or return to the dashboard.</p>
+                <p className="text-[1.4rem] font-semibold text-[var(--text)] leading-tight" style={{ fontFamily: 'var(--font-syne)', letterSpacing: '-.3px' }}>Job complete</p>
+                <p className="text-[0.85rem] text-[var(--text3)] mt-2">
+                  {totalSourceImages} images exported across {selectedMarketplaces.length} marketplace{selectedMarketplaces.length !== 1 ? 's' : ''}.
+                </p>
+              </div>
+              {exportError && (
+                <div className="text-[0.75rem] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-left w-full">
+                  <span className="font-medium">Note:</span> {exportError}
+                </div>
+              )}
+              <div className="flex gap-3 w-full justify-center">
+                <button onClick={onBackToDashboard} className="btn btn-ghost">Back to dashboard</button>
+                <button onClick={onStartNewJob} className="btn btn-primary">Start new job</button>
               </div>
             </div>
-          )}
 
-          {exportError && (
-            <div className="text-[0.75rem] text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-1">
-              <span className="font-medium">Export error:</span> {exportError}
-            </div>
-          )}
-
-          {/* Shopify — create draft products */}
-          {activeBrand?.shopify_store_url && (
-            <div className="border-t border-[var(--line)] pt-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[0.75rem] text-[var(--text2)] font-medium">Shopify</p>
-                <span className="text-[0.65rem] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
+          /* ── EXPORTING STATE ─────────────────────────────────────────── */
+          ) : isExporting ? (
+            <div className="flex flex-col gap-6 max-w-[560px]">
+              <div>
+                <p className="text-[0.72rem] text-[var(--text3)] uppercase tracking-wide font-semibold mb-1">In progress</p>
+                <p className="text-[1.1rem] font-semibold text-[var(--text)] leading-tight" style={{ fontFamily: 'var(--font-syne)' }}>{progress.phase}</p>
               </div>
-              {(() => {
-                const withCopy = confirmedClusters.filter((c) => clusterCopy[c.id]?.title).length
-                return (
-                  <p className="text-[0.72rem] text-[var(--text3)] mb-3">
-                    {/* v4 */}Creates a new draft product listing in Shopify for each confirmed cluster — images, SKU and colour included. Your team can then set pricing and publish.
-                    {withCopy > 0 && <> <span className="text-[var(--accent2)]">AI-generated copy</span> will be added to {withCopy} listing{withCopy !== 1 ? 's' : ''}.</>}
-                  </p>
-                )
-              })()}
+              <div>
+                <div className="flex justify-between text-[0.78rem] mb-2">
+                  <span className="text-[var(--text2)]">{progress.done} of {progress.total}</span>
+                  <span style={{ fontFamily: 'var(--font-dm-mono)', color: 'var(--accent)', fontWeight: 600 }}>{pct}%</span>
+                </div>
+                <div className="h-[8px] bg-[var(--bg3)] rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--accent), var(--accent2))' }} />
+                </div>
+              </div>
+              {cloudExportStatus && (exportMode === 'dropbox' || exportMode === 'google-drive' || exportMode === 's3') && (
+                <div className="px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)] text-[0.78rem] text-[var(--text2)]">
+                  Uploading {cloudExportStatus.done} / {cloudExportStatus.total} files
+                  {cloudExportStatus.errors > 0 && <span className="text-[var(--accent3)] ml-2">· {cloudExportStatus.errors} failed</span>}
+                </div>
+              )}
+              {exportError && (
+                <div className="text-[0.75rem] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                  <span className="font-medium">Warning:</span> {exportError}
+                </div>
+              )}
+            </div>
 
-              {shopifyResults && (
-                <div className="bg-[var(--bg3)] rounded-sm p-3 mb-3 flex flex-col gap-[4px] max-h-[120px] overflow-y-auto">
-                  {shopifyResults.map((r) => (
-                    <div key={r.sku} className="flex flex-col text-[0.72rem] gap-[1px]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-mono)' }}>{r.sku}</span>
-                        <span className={r.status === 'created' ? 'text-[var(--accent2)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
-                          {r.status === 'created' ? '✓ Draft created' : r.status === 'uploading' ? '↑ Uploading…' : '✗ Failed'}
-                        </span>
-                      </div>
-                      {r.status !== 'created' && r.message && (
-                        <span className="text-[0.68rem] text-[#ff3b30] opacity-80">{r.message}</span>
-                      )}
-                    </div>
-                  ))}
+          /* ── IDLE / CONFIGURE STATE ──────────────────────────────────── */
+          ) : (
+            <div className="flex flex-col gap-6 max-w-[640px]">
+
+              {/* Summary cards */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Clusters', value: confirmedClusters.length },
+                  { label: 'Images', value: totalSourceImages },
+                  { label: 'Marketplaces', value: selectedMarketplaces.length },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-3">
+                    <p className="text-[1.4rem] font-semibold text-[var(--text)] leading-none" style={{ fontFamily: 'var(--font-syne)' }}>{value}</p>
+                    <p className="text-[0.72rem] text-[var(--text3)] mt-1">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bg removal estimate badge */}
+              {hasBgRemoval && bgRemovalEnabled && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-sm border border-[var(--line2)] bg-[var(--bg3)] w-fit text-[0.75rem] text-[var(--text2)]">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.6"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 1.5" strokeLinecap="round"/></svg>
+                  Background removal enabled · est. <strong className="text-[var(--text)] ml-1">~{estBgMins} min</strong> &nbsp;for {bgCount} images
                 </div>
               )}
 
-              {shopifyResults?.length && shopifyResults.every((r) => r.status === 'created') && (
-                <button
-                  onClick={onStartNewJob}
-                  className="btn btn-primary btn-sm w-full justify-center mb-2"
-                >
-                  Start new job
-                </button>
+              {/* File structure preview */}
+              {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (
+                <div>
+                  <p className="text-[0.7rem] font-semibold text-[var(--text3)] uppercase tracking-wide mb-3">Output preview</p>
+                  <div className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-4 text-[0.75rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                    {selectedMarketplaces.slice(0, 3).map((m) => {
+                      const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
+                      const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
+                      const mpFolder = rule.name.replace(/\s+/g, '_')
+                      return (
+                        <div key={m} className="mb-3 last:mb-0">
+                          <span className="text-[var(--accent)] font-medium">{mpFolder}/</span>
+                          {flatExport ? (
+                            <>
+                              {confirmedClusters.slice(0, 2).map((c, ci) => (
+                                <div key={c.id} className="pl-4 text-[var(--text3)]">└─ {applyNamingTemplate(template, { brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color, view: c.images[0]?.viewLabel ?? 'front', index: 1, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }) + '.jpg'}</div>
+                              ))}
+                              {confirmedClusters.length > 2 && <div className="pl-4 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more…)</div>}
+                            </>
+                          ) : (
+                            <>
+                              {confirmedClusters.slice(0, 2).map((c, ci) => {
+                                const fName = applyNamingTemplate(
+                                  template.replace(/_{VIEW}/g,'').replace(/_{INDEX}/g,'').replace(/_{ANGLE}/g,'').replace(/_{ANGLE_NUMBER}/g,''),
+                                  { brand: brandCode, seq: ci+1, sku: c.sku, color: c.color, view: '', index: 0, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }
+                                ).replace(/_+$/, '') || `${brandCode}_${String(ci+1).padStart(3,'0')}`
+                                const firstFile = applyNamingTemplate(template, { brand: brandCode, seq: ci+1, sku: c.sku, color: c.color, view: c.images[0]?.viewLabel ?? 'front', index: 1, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }) + '.jpg'
+                                return <div key={c.id} className="pl-4 text-[var(--text3)]">└─ <span className="text-[var(--text2)]">{fName}/</span>{firstFile} …</div>
+                              })}
+                              {confirmedClusters.length > 2 && <div className="pl-4 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more folders…)</div>}
+                            </>
+                          )}
+                        </div>
+                      )
+                    })}
+                    {selectedMarketplaces.length > 3 && <p className="text-[var(--text3)] mt-2">+ {selectedMarketplaces.length - 3} more marketplace{selectedMarketplaces.length - 3 !== 1 ? 's' : ''}</p>}
+                  </div>
+                </div>
               )}
 
-              <button
-                onClick={handleShopifyUpload}
-                disabled={shopifyUploading || !confirmedClusters.length}
-                className="btn btn-ghost btn-sm w-full justify-center"
-              >
-                {shopifyUploading ? (
-                  <>
-                    <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-                    Creating drafts…
-                  </>
-                ) : (
-                  <>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
-                    Create {confirmedClusters.length} draft{confirmedClusters.length !== 1 ? 's' : ''} in Shopify
-                  </>
-                )}
-              </button>
+              {/* Shopify */}
+              {activeBrand?.shopify_store_url && (
+                <div>
+                  <p className="text-[0.7rem] font-semibold text-[var(--text3)] uppercase tracking-wide mb-3">Shopify</p>
+                  <div className="border border-[var(--line)] rounded-sm px-4 py-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[0.85rem] font-medium text-[var(--text)]">Create draft listings</p>
+                      <span className="text-[0.65rem] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
+                    </div>
+                    <p className="text-[0.78rem] text-[var(--text3)] mb-4">
+                      Creates a draft product in Shopify for each confirmed cluster — images, SKU, colour and AI copy included. Your team sets pricing and publishes.
+                      {(() => { const n = confirmedClusters.filter(c => clusterCopy[c.id]?.title).length; return n > 0 ? <> <span className="text-[var(--accent2)]">AI copy</span> ready for {n} listing{n !== 1 ? 's' : ''}.</> : null })()}
+                    </p>
+                    {shopifyResults && (
+                      <div className="bg-[var(--bg3)] rounded-sm p-3 mb-3 flex flex-col gap-1 max-h-[140px] overflow-y-auto">
+                        {shopifyResults.map((r) => (
+                          <div key={r.sku} className="flex items-center justify-between text-[0.75rem]">
+                            <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.sku}</span>
+                            <span className={r.status === 'created' ? 'text-[var(--accent2)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
+                              {r.status === 'created' ? '✓ Draft created' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button onClick={handleShopifyUpload} disabled={shopifyUploading || !confirmedClusters.length} className="btn btn-ghost btn-sm w-full justify-center">
+                      {shopifyUploading
+                        ? <><svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Creating drafts…</>
+                        : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>Create {confirmedClusters.length} draft{confirmedClusters.length !== 1 ? 's' : ''} in Shopify</>
+                      }
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {exportError && (
+                <div className="text-[0.75rem] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                  <span className="font-medium">Export error:</span> {exportError}
+                </div>
+              )}
             </div>
           )}
         </div>
-
-        <div className="px-5 py-4 border-t border-[var(--line)] flex justify-end gap-2">
-          {done ? (
-            <>
-              <button onClick={onBackToDashboard} className="btn btn-ghost">Back to dashboard</button>
-              <button
-                onClick={onStartNewJob}
-                className="btn btn-primary"
-              >
-                Start new job
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={onClose} className="btn btn-ghost">Close</button>
-              <button
-                onClick={handleExport}
-                disabled={isExporting || !confirmedClusters.length || !selectedMarketplaces.length || (exportMode === 'folder' && !folderRef.current)}
-                className="btn btn-primary"
-              >
-                {isExporting
-                  ? 'Exporting…'
-                  : exportMode === 'zip' ? 'Download ZIP'
-                  : exportMode === 'folder' ? 'Save to Folder'
-                  : exportMode === 'dropbox' ? 'Upload to Dropbox'
-                  : exportMode === 'google-drive' ? 'Upload to Drive'
-                  : 'Upload to S3'}
-              </button>
-            </>
-          )}
-        </div>
       </div>
+
+      {/* ── Footer CTA ─────────────────────────────────────────────────────── */}
+      {!done && (
+        <div className="border-t border-[var(--line)] px-6 py-4 flex items-center justify-between flex-shrink-0">
+          <p className="text-[0.75rem] text-[var(--text3)]">
+            {confirmedClusters.length === 0
+              ? 'Confirm at least one cluster to export'
+              : selectedMarketplaces.length === 0
+              ? 'Select at least one marketplace'
+              : `${totalSourceImages} images × ${selectedMarketplaces.length} marketplace${selectedMarketplaces.length !== 1 ? 's' : ''}`
+            }
+          </p>
+          <div className="flex items-center gap-3">
+            {!isExporting && <button onClick={onClose} className="btn btn-ghost">Cancel</button>}
+            <button
+              onClick={handleExport}
+              disabled={isExporting || !confirmedClusters.length || !selectedMarketplaces.length || (exportMode === 'folder' && !folderRef.current)}
+              className="btn btn-primary"
+            >
+              {isExporting
+                ? <><svg className="animate-spin mr-2" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Exporting…</>
+                : exportMode === 'zip' ? `Download ZIP`
+                : exportMode === 'folder' ? 'Save to Folder'
+                : exportMode === 'dropbox' ? 'Upload to Dropbox'
+                : exportMode === 'google-drive' ? 'Upload to Drive'
+                : 'Upload to S3'
+              }
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
