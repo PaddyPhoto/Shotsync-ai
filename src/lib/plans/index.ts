@@ -48,7 +48,8 @@ export const PLANS: Record<PlanId, Plan> = {
     highlights: [
       'Up to 3 exports/month',
       'Up to 25 images per export',
-      '1 marketplace export folder',
+      'Shopify export (ZIP / folder only)',
+      'ANZ marketplaces locked — Starter and above',
       '1 brand, 1 seat',
     ],
     forNote: 'Try the workflow before you commit',

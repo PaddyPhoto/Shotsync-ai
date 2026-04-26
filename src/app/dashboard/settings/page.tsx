@@ -1166,12 +1166,14 @@ function SettingsInner() {
                   </thead>
                   <tbody>
                     {[
-                      { feature: 'Images per month',  values: ['20', '500', '2,000', '10,000', 'Unlimited'] },
-                      { feature: 'Marketplaces',      values: ['1', '2', '4', '4', '4'] },
-                      { feature: 'Brands',            values: ['1', '1', '3', 'Unlimited', 'Unlimited'] },
-                      { feature: 'Seats',             values: ['1', '2', '5', 'Unlimited', 'Unlimited'] },
-                      { feature: 'Shopify sync',      values: ['—', '✓', '✓', '✓', '✓'] },
-                      { feature: 'Price (AUD/mo)',    values: ['Free', '$79', '$199', '$399', 'Contact us'] },
+                      { feature: 'Images per month',      values: ['25', '500', '2,000', '10,000', 'Unlimited'] },
+                      { feature: 'ANZ marketplaces',      values: ['—', '2', '4', '4', '4'] },
+                      { feature: 'Shopify export',        values: ['ZIP only', '✓', '✓', '✓', '✓'] },
+                      { feature: 'Brands',                values: ['1', '1', '3', 'Unlimited', 'Unlimited'] },
+                      { feature: 'Seats',                 values: ['1', '2', '5', '10', 'Unlimited'] },
+                      { feature: 'AI copywriting',        values: ['—', '—', '✓', '✓', '✓'] },
+                      { feature: 'Background removal',    values: ['—', 'Add-on', 'Add-on', 'Add-on', 'Add-on'] },
+                      { feature: 'Price (AUD/mo)',        values: ['Free', '$79', '$199', '$399', 'Contact us'] },
                     ].map((row) => (
                       <tr key={row.feature} className="hover:bg-[var(--bg3)] transition-colors">
                         <td className="px-3 py-[9px] text-[0.82rem] text-[var(--text2)] border-b border-[var(--line)]">{row.feature}</td>
@@ -1190,7 +1192,7 @@ function SettingsInner() {
               </div>
               <div className="px-3 py-3 border-t border-[var(--line)] flex justify-end">
                 <button onClick={() => openUpgrade('Upgrade to unlock more features')} className="btn btn-primary btn-sm">
-                  Upgrade Plan
+                  Start free trial
                 </button>
               </div>
             </div>
