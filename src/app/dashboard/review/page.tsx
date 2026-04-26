@@ -1934,6 +1934,8 @@ function ExportPanel({
 
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0
   const totalSourceImages = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
+  const ANZ_MARKETPLACES: MarketplaceName[] = ['the-iconic', 'myer', 'david-jones']
+  const lockedMarketplaces: MarketplaceName[] = plan.limits.marketplaces < 2 ? ANZ_MARKETPLACES : []
   const hasBgRemoval = selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background)
   const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
   const estBgMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
@@ -1988,7 +1990,18 @@ function ExportPanel({
               <p className="text-[0.72rem] text-[var(--accent3)]">Select at least one</p>
             )}
           </div>
-          <MarketplaceSelector selected={selectedMarketplaces} onChange={setSelectedMarketplaces} />
+          <MarketplaceSelector
+            selected={selectedMarketplaces}
+            lockedMarketplaces={lockedMarketplaces}
+            onLockedClick={() => openUpgrade('ANZ marketplace exports (The Iconic, Myer, David Jones) are available on the Starter plan and above.')}
+            onChange={(next) => {
+              if (next.length > selectedMarketplaces.length && plan.limits.marketplaces !== -1 && next.length > plan.limits.marketplaces) {
+                openUpgrade(`Your plan allows up to ${plan.limits.marketplaces} marketplace${plan.limits.marketplaces !== 1 ? 's' : ''}. Upgrade to select more.`)
+                return
+              }
+              setSelectedMarketplaces(next)
+            }}
+          />
         </div>
 
         {/* ── MIDDLE: Settings ───────────────────────────────────────────── */}

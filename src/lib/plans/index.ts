@@ -41,7 +41,7 @@ export const PLANS: Record<PlanId, Plan> = {
       brands: 1,
       seats: 1,
       shopifyStores: 0,
-      shopify: false,
+      shopify: true,
       aiCopy: false,
       bgRemoval: false,
     },

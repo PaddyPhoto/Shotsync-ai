@@ -6,6 +6,8 @@ import type { MarketplaceName } from '@/types'
 interface MarketplaceSelectorProps {
   selected: MarketplaceName[]
   onChange: (markets: MarketplaceName[]) => void
+  lockedMarketplaces?: MarketplaceName[]
+  onLockedClick?: () => void
 }
 
 const MARKETPLACE_DESCRIPTIONS: Record<MarketplaceName, string> = {
@@ -46,7 +48,7 @@ const MARKETPLACE_PALETTE: Record<MarketplaceName, { bgRest: string; bgSelected:
   },
 }
 
-export function MarketplaceSelector({ selected, onChange }: MarketplaceSelectorProps) {
+export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [], onLockedClick }: MarketplaceSelectorProps) {
   const toggle = (id: MarketplaceName) => {
     if (selected.includes(id)) {
       onChange(selected.filter((m) => m !== id))
@@ -60,7 +62,48 @@ export function MarketplaceSelector({ selected, onChange }: MarketplaceSelectorP
       {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[]).map((id) => {
         const rule = MARKETPLACE_RULES[id]
         const isSelected = selected.includes(id)
+        const isLocked = lockedMarketplaces.includes(id)
         const palette = MARKETPLACE_PALETTE[id]
+
+        if (isLocked) {
+          return (
+            <button
+              key={id}
+              onClick={onLockedClick}
+              style={{
+                position: 'relative',
+                background: 'var(--bg3)',
+                border: '1px solid var(--line)',
+                borderRadius: '12px',
+                padding: '16px',
+                cursor: 'pointer',
+                textAlign: 'left',
+                opacity: 0.5,
+                overflow: 'hidden',
+              }}
+            >
+              {/* Lock icon */}
+              <span style={{
+                position: 'absolute', top: '12px', right: '12px',
+                width: '18px', height: '18px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="1.5">
+                  <rect x="1.5" y="5" width="9" height="6.5" rx="1.5"/>
+                  <path d="M3.5 5V3.5a2.5 2.5 0 0 1 5 0V5" strokeLinecap="round"/>
+                </svg>
+              </span>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: palette.dot, marginBottom: '10px', opacity: 0.3 }} />
+              <p style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: 'var(--text2)' }}>
+                {rule.name}
+              </p>
+              <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '4px' }}>
+                {MARKETPLACE_DESCRIPTIONS[id]}
+              </p>
+              <p style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600 }}>Starter plan required ↑</p>
+            </button>
+          )
+        }
 
         return (
           <button
@@ -78,7 +121,6 @@ export function MarketplaceSelector({ selected, onChange }: MarketplaceSelectorP
               overflow: 'hidden',
             }}
           >
-            {/* Colored dot indicator */}
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: palette.dot, marginBottom: '10px', opacity: isSelected ? 1 : 0.5 }} />
 
             {isSelected && (
