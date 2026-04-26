@@ -56,7 +56,7 @@ export function MarketplaceSelector({ selected, onChange }: MarketplaceSelectorP
   }
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+    <div className="grid grid-cols-2 gap-3">
       {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[]).map((id) => {
         const rule = MARKETPLACE_RULES[id]
         const isSelected = selected.includes(id)
