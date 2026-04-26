@@ -1459,6 +1459,9 @@ function ExportPanel({
         }
 
         // Step 3: send URL list to API route — Shopify fetches images directly from Supabase
+        // Re-fetch session each cluster so we always send a fresh token — the initial
+        // session.access_token can expire mid-export on large jobs (50+ clusters).
+        const { data: { session: freshSession } } = await supabase.auth.getSession()
         const copy = clusterCopy[cluster.id]
         let apiRes: Response
         try {
@@ -1466,7 +1469,7 @@ function ExportPanel({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+              ...((freshSession?.access_token ?? session?.access_token) ? { Authorization: `Bearer ${freshSession?.access_token ?? session?.access_token}` } : {}),
             },
             body: JSON.stringify({
               brand_id: activeBrand.id,
