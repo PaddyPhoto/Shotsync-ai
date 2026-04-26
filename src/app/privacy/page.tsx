@@ -49,22 +49,28 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-[1rem] font-semibold text-[var(--text)] mb-3">4. Data storage and security</h2>
-            <p>Data is stored on Supabase infrastructure hosted in Australia. Uploaded images are stored temporarily for the duration of your session and export job, then deleted. We use industry-standard encryption in transit (TLS) and at rest.</p>
+            <h2 className="text-[1rem] font-semibold text-[var(--text)] mb-3">4. How your images are handled</h2>
+            <p><strong>Your product images never leave your device during normal use.</strong> ShotSync.ai processes images entirely within your browser — clustering, renaming, resizing, and export packaging all happen locally. Images are stored in your browser&apos;s local storage (IndexedDB) for the duration of your session and are never uploaded to our servers as part of the standard workflow.</p>
+            <p className="mt-3">There are two specific exceptions where image data temporarily leaves your device:</p>
+            <ul className="flex flex-col gap-2 list-disc list-inside mt-2">
+              <li><strong>Background removal</strong> — if you use the background removal feature, a compressed copy of the relevant image is transmitted to an AI processing provider to perform the removal. The image is processed and returned immediately and is not retained by the provider.</li>
+              <li><strong>Shopify draft creation</strong> — if you push draft listings directly to Shopify, processed images are temporarily uploaded to a private staging area to generate the required URLs for the Shopify API. These temporary files are deleted immediately after the Shopify upload completes.</li>
+            </ul>
+            <p className="mt-3">Account data (name, email, organisation, billing history) is stored securely in cloud infrastructure hosted in Australia. We use TLS encryption in transit and encryption at rest for all stored data.</p>
           </section>
 
           <section>
-            <h2 className="text-[1rem] font-semibold text-[var(--text)] mb-3">5. Third-party services</h2>
-            <p>To operate the platform, we engage third-party service providers who may process your data on our behalf. We only share data necessary for each provider to perform their specific function. We do not authorise any provider to use your data for their own purposes.</p>
+            <h2 className="text-[1rem] font-semibold text-[var(--text)] mb-3">5. Third-party service providers</h2>
+            <p>To operate the platform, we engage third-party service providers who process data on our behalf. We only share data necessary for each provider to perform their specific function and do not authorise any provider to use your data for their own purposes.</p>
             <ul className="flex flex-col gap-2 list-disc list-inside mt-3">
-              <li><strong>Cloud infrastructure and hosting</strong> — your account data, session data, and uploaded images are stored and served via cloud hosting providers. Data is stored in Australia where available.</li>
+              <li><strong>Cloud infrastructure and hosting</strong> — account data, session data, and application logs are stored and served via cloud hosting providers. Data is stored in Australia where available.</li>
               <li><strong>Payment processing</strong> — billing and subscription payments are handled by a PCI-compliant payment processor. We do not store card numbers or banking details.</li>
               <li><strong>Transactional email</strong> — your email address is shared with an email delivery provider solely to send account and billing notifications.</li>
-              <li><strong>AI processing</strong> — where you use AI-powered features such as product copy generation or background removal, relevant product data and images may be transmitted to AI model providers to perform the requested processing. Images are not retained or used for model training.</li>
-              <li><strong>Error monitoring</strong> — anonymised error and performance data may be collected by an application monitoring service to help us identify and fix bugs. This may include browser type and general usage context.</li>
-              <li><strong>Analytics</strong> — we use a web analytics service to understand aggregate traffic patterns and feature usage. This data is anonymised and not linked to individual accounts.</li>
+              <li><strong>AI processing</strong> — where you use AI-powered features (product copy generation, background removal), the minimum necessary data — such as product specifications or a single compressed image — is transmitted to an AI provider to perform the requested task. Images are not retained by the provider or used for model training.</li>
+              <li><strong>Error monitoring</strong> — anonymised error and performance data may be shared with an application monitoring service to help us identify and resolve bugs. This may include browser type and general usage context but does not include your images or brand assets.</li>
+              <li><strong>Analytics</strong> — anonymised traffic and feature usage data is collected by a web analytics service. This data is not linked to individual accounts and does not include image data.</li>
             </ul>
-            <p className="mt-3">A current list of our specific sub-processors is available on request by emailing <a href="mailto:hello@shotsync.ai" className="text-[var(--accent)] hover:underline">hello@shotsync.ai</a>.</p>
+            <p className="mt-3">A current list of our specific sub-processors is available on request — email <a href="mailto:hello@shotsync.ai" className="text-[var(--accent)] hover:underline">hello@shotsync.ai</a>.</p>
           </section>
 
           <section>
