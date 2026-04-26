@@ -1910,6 +1910,23 @@ function ExportPanel({
       }
     }).catch(() => { /* non-critical */ })
 
+    // Bill for background removal (fire-and-forget — must not block export completion)
+    if (bgRemovalEnabled && anyBgRemovalMarketplace && bgRemovalCache.size > 0) {
+      import('@/lib/supabase/client').then(({ createClient }) =>
+        createClient().auth.getSession()
+      ).then(({ data: { session } }) => {
+        if (!session?.access_token) return
+        fetch('/api/billing/bg-removal', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ count: bgRemovalCache.size, jobName }),
+        }).catch(() => { /* non-critical */ })
+      }).catch(() => { /* non-critical */ })
+    }
+
     markClustersExported(confirmedClusters.map((c) => c.id))
     setIsExporting(false)
     setDone(true)
@@ -1920,7 +1937,9 @@ function ExportPanel({
   const hasBgRemoval = selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background)
   const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
   const estBgMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
+  const bgCostAud = (bgCount * 0.25).toFixed(2)
   const brandCode = activeBrand?.brand_code ?? 'BRAND'
+  const canUseBgRemoval = plan.limits.bgRemoval
 
   // ── Shared toggle component ────────────────────────────────────────────────
   const Toggle = ({ on, onToggle, label, sub }: { on: boolean; onToggle: () => void; label: string; sub?: string }) => (
@@ -2018,9 +2037,27 @@ function ExportPanel({
               <Toggle on={flatExport} onToggle={() => setFlatExport(v => !v)}
                 label="Flat export" sub="All images in one folder per marketplace" />
               {hasBgRemoval && (
-                <Toggle on={bgRemovalEnabled} onToggle={() => setBgRemovalEnabled(v => !v)}
-                  label="Background removal"
-                  sub={bgRemovalEnabled ? `AI quality · ~${estBgMins} min for ${bgCount} images` : 'Off · faster export'} />
+                canUseBgRemoval ? (
+                  <Toggle on={bgRemovalEnabled} onToggle={() => setBgRemovalEnabled(v => !v)}
+                    label="Background removal"
+                    sub={bgRemovalEnabled
+                      ? `${bgCount} images · $${bgCostAud} AUD · billed on use`
+                      : 'Off · faster export'} />
+                ) : (
+                  <div className="flex items-center gap-3 opacity-50">
+                    <div className="relative w-[36px] h-[20px] rounded-full flex-shrink-0" style={{ background: 'var(--bg4)' }}>
+                      <span className="absolute top-[2px] left-[2px] w-[16px] h-[16px] rounded-full bg-white shadow" />
+                    </div>
+                    <span className="text-[0.82rem] text-[var(--text2)]">
+                      Background removal
+                      <span className="text-[var(--text3)] ml-1">— </span>
+                      <button onClick={() => openUpgrade('Background removal is available on Starter and above')}
+                        className="text-[0.78rem] text-[var(--accent)] hover:underline">
+                        Starter plan required
+                      </button>
+                    </span>
+                  </div>
+                )
               )}
             </div>
           </div>
@@ -2132,10 +2169,10 @@ function ExportPanel({
               </div>
 
               {/* BG removal estimate */}
-              {hasBgRemoval && bgRemovalEnabled && (
+              {hasBgRemoval && bgRemovalEnabled && canUseBgRemoval && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-sm border border-[var(--line2)] bg-[var(--bg3)] w-fit text-[0.75rem] text-[var(--text2)] flex-shrink-0">
                   <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.6"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 1.5" strokeLinecap="round"/></svg>
-                  Background removal · est. <strong className="text-[var(--text)] ml-1">~{estBgMins} min</strong>&nbsp;for {bgCount} images
+                  Background removal · {bgCount} images · est. <strong className="text-[var(--text)] mx-1">~{estBgMins} min</strong> · <strong className="text-[var(--text)] ml-1">${bgCostAud} AUD</strong>&nbsp;billed on use
                 </div>
               )}
 

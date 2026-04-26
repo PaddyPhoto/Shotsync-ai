@@ -11,6 +11,7 @@ export interface PlanLimits {
   shopifyStores: number      // -1 = unlimited, 0 = not included
   shopify: boolean
   aiCopy: boolean
+  bgRemoval: boolean         // background removal add-on (billed at $0.25 AUD/image)
 }
 
 export interface Plan {
@@ -42,6 +43,7 @@ export const PLANS: Record<PlanId, Plan> = {
       shopifyStores: 0,
       shopify: false,
       aiCopy: false,
+      bgRemoval: false,
     },
     highlights: [
       'Up to 3 exports/month',
@@ -67,6 +69,7 @@ export const PLANS: Record<PlanId, Plan> = {
       shopifyStores: 1,
       shopify: true,
       aiCopy: false,
+      bgRemoval: true,
     },
     highlights: [
       'Up to 500 images/month',
@@ -94,6 +97,7 @@ export const PLANS: Record<PlanId, Plan> = {
       shopifyStores: 1,
       shopify: true,
       aiCopy: true,
+      bgRemoval: true,
     },
     highlights: [
       'Up to 1,500 images/month',
@@ -124,6 +128,7 @@ export const PLANS: Record<PlanId, Plan> = {
       shopifyStores: 2,
       shopify: true,
       aiCopy: true,
+      bgRemoval: true,
     },
     highlights: [
       'Up to 5,000 images/month',
@@ -156,6 +161,7 @@ export const PLANS: Record<PlanId, Plan> = {
       shopifyStores: -1,
       shopify: true,
       aiCopy: true,
+      bgRemoval: true,
     },
     highlights: [
       'Unlimited everything',
