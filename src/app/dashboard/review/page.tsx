@@ -1574,7 +1574,7 @@ function ExportPanel({
         }
         if (bgPlanBlocked) {
           setIsExporting(false)
-          setProgress(null)
+          setProgress({ done: 0, total: 0, phase: '' })
           openUpgrade('Background removal is available on the Brand plan and above.')
           return
         }
