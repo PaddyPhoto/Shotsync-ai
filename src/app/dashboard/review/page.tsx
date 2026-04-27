@@ -1354,7 +1354,7 @@ function ExportPanel({
   const folderRef = useRef<any>(null)
   const [folderName, setFolderName] = useState<string | null>(null)
   const [fsaSupported] = useState(() => typeof window !== 'undefined' && typeof (window as any).showDirectoryPicker === 'function')
-  const [exportMode, setExportMode] = useState<'zip' | 'folder' | 'dropbox' | 'google-drive' | 's3'>('zip')
+  const [exportMode, setExportMode] = useState<'zip' | 'folder' | 'dropbox' | 'google-drive' | 's3'>('folder')
   const [flatExport, setFlatExport] = useState(false)
   const [bgRemovalEnabled, setBgRemovalEnabled] = useState(true)
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
@@ -2030,7 +2030,7 @@ function ExportPanel({
                 ...(activeBrand?.cloud_connections?.google_drive ? [['google-drive', 'Google Drive']] : []),
                 ...(activeBrand?.cloud_connections?.s3 ? [['s3', 'AWS S3']] : []),
               ] as [string, string][]).map(([id, label]) => (
-                <button key={id} onClick={() => setExportMode(id as typeof exportMode)}
+                <button key={id} onClick={() => { setExportMode(id as typeof exportMode); if (id === 'folder' && !folderRef.current && fsaSupported) pickFolder() }}
                   className={`w-full px-3 py-[6px] rounded-[4px] text-left text-[0.8rem] font-medium transition-all ${exportMode === id ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
                   {label}
                 </button>
