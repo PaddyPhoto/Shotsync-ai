@@ -1949,7 +1949,7 @@ function ExportPanel({
   const hasBgRemoval = selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background)
   const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
   const estBgMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
-  const bgCostAud = (bgCount * 0.25).toFixed(2)
+  const bgCostAud = (bgCount * 0.16).toFixed(2)
   const brandCode = activeBrand?.brand_code ?? 'BRAND'
   const canUseBgRemoval = plan.limits.bgRemoval
 

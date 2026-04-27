@@ -11,7 +11,7 @@ export interface PlanLimits {
   shopifyStores: number      // -1 = unlimited, 0 = not included
   shopify: boolean
   aiCopy: boolean
-  bgRemoval: boolean         // background removal add-on (billed at $0.25 AUD/image)
+  bgRemoval: boolean         // background removal add-on (billed at $0.16 AUD/image)
 }
 
 export interface Plan {
@@ -110,7 +110,7 @@ export const PLANS: Record<PlanId, Plan> = {
       'AI product listing copywriting',
       'Custom naming convention',
       'Priority processing',
-      'Background removal (+$0.25/image)',
+      'Background removal (+$0.16/image)',
       '30-day free trial',
     ],
     forNote: 'Mid-tier brands doing 100–200 SKUs/month',
@@ -142,7 +142,7 @@ export const PLANS: Record<PlanId, Plan> = {
       'AI product listing copywriting',
       'Custom naming convention',
       'API access',
-      'Background removal (+$0.25/image)',
+      'Background removal (+$0.16/image)',
       '30-day free trial',
     ],
     forNote: 'Growing brands doing 300–800 SKUs/month',

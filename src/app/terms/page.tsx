@@ -91,7 +91,7 @@ export default function TermsPage() {
               <li>Paid plans are billed monthly or annually in AUD including GST via Stripe.</li>
               <li>Annual plans are charged upfront and are non-refundable except where required by Australian Consumer Law.</li>
               <li>Monthly plans can be cancelled at any time; access continues until the end of the billing period.</li>
-              <li>Background removal is billed separately at $0.25 AUD per image, charged to your account at the end of each billing period.</li>
+              <li>Background removal is billed separately at $0.16 AUD per image, charged to your account at the end of each billing period.</li>
               <li>Early Access customers lock in their rate — price increases will not apply to active subscriptions.</li>
             </ul>
           </section>

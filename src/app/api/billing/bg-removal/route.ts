@@ -5,7 +5,7 @@
  * Creates a Stripe pending invoice item on the customer's account
  * so it appears on their next monthly invoice.
  *
- * Rate: $0.25 AUD per image (unit_amount: 25 cents AUD)
+ * Rate: $0.16 AUD per image (unit_amount: 16 cents AUD)
  *
  * Body: { count: number, jobName?: string }
  *
@@ -25,7 +25,7 @@ import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
-const AUD_CENTS_PER_IMAGE = 25 // $0.25 AUD
+const AUD_CENTS_PER_IMAGE = 16 // $0.16 AUD
 
 const STRIPE_CONFIGURED = !!(
   process.env.STRIPE_SECRET_KEY &&
@@ -89,8 +89,8 @@ export async function POST(req: NextRequest) {
         amount: count * AUD_CENTS_PER_IMAGE,
         currency: 'aud',
         description: jobName
-          ? `Background removal — ${count} image${count !== 1 ? 's' : ''} @ $0.25 AUD each (${jobName})`
-          : `Background removal — ${count} image${count !== 1 ? 's' : ''} @ $0.25 AUD each`,
+          ? `Background removal — ${count} image${count !== 1 ? 's' : ''} @ $0.16 AUD each (${jobName})`
+          : `Background removal — ${count} image${count !== 1 ? 's' : ''} @ $0.16 AUD each`,
       })
       stripeInvoiceItemId = item.id
     }
