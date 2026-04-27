@@ -477,6 +477,52 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ── PRIVACY TRUST ── */}
+        <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Built for brands with unreleased product imagery</p>
+          <h2 style={{ fontSize: 'clamp(28px,4vw,42px)', fontWeight: 500, letterSpacing: '-1.2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '560px', margin: '0 auto 16px' }}>Your images never leave your device.</h2>
+          <p style={{ fontSize: '17px', color: '#6e6e73', maxWidth: '460px', margin: '0 auto 48px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Everything — clustering, renaming, resizing, export packaging — runs entirely in your browser.</p>
+          <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '20px', overflow: 'hidden', maxWidth: '860px', margin: '0 auto' }}>
+            {[
+              {
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                ),
+                title: 'Processed on-device',
+                body: 'Images are handled entirely by your browser using IndexedDB and canvas. Nothing is uploaded to our servers as part of the standard workflow.',
+              },
+              {
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                  </svg>
+                ),
+                title: 'Never used to train AI',
+                body: "Your images and brand assets are never shared with third parties or used to train any AI model. What you upload stays yours.",
+              },
+              {
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                ),
+                title: 'Account data in Australia',
+                body: 'Your account information is stored on cloud infrastructure hosted in Australia, encrypted in transit and at rest.',
+              },
+            ].map(({ icon, title, body }) => (
+              <div key={title} style={{ background: '#fff', padding: '36px 32px', textAlign: 'left' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  {icon}
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', color: '#1d1d1f', marginBottom: '8px' }}>{title}</div>
+                <div style={{ fontSize: '13px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px' }}>{body}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* ── PRICING ── */}
         <section id="pricing" className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>

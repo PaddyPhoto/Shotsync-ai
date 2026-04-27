@@ -82,6 +82,81 @@ export function detectColourFromFilename(filename: string): string | null {
   return null
 }
 
+// ── SKU-based cluster boundary detection ─────────────────────────────────────
+// Extracts the "group key" from a filename by stripping trailing index numbers
+// and view keywords. Files sharing the same key belong to the same SKU cluster.
+//   "BRAND_SKU001_NAVY_01.jpg"  →  "brand_sku001_navy"
+//   "ABC123_FRONT.jpg"          →  "abc123"
+//   "IMG_0042.jpg"              →  null (too generic)
+
+const GROUP_KEY_VIEW_TOKENS = new Set([
+  'front','back','side','detail','mood','full','fl','gm','ghost','flatlay','flat',
+  'topdown','top','inside','f','b','s','d','m',
+  'f01','f02','f1','f2','b01','b02','b1','b2','s01','s02','d01','d02','m01','m1',
+  'fl01','fl02','gm01','gm1','a01','a02','hero','main',
+])
+
+function extractGroupKey(filename: string): string | null {
+  const base = filename.replace(/\.[^.]+$/, '').toLowerCase()
+  const parts = base.split(/[-_.\s]+/).filter(Boolean)
+  if (parts.length <= 1) return null
+
+  // Walk from the end, trimming trailing index numbers (≤4 digits) and view tokens
+  let end = parts.length
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (/^\d{1,4}$/.test(parts[i]) || GROUP_KEY_VIEW_TOKENS.has(parts[i])) {
+      end = i
+    } else {
+      break
+    }
+  }
+
+  const key = parts.slice(0, end).join('_')
+  return key.length >= 3 ? key : null
+}
+
+// Groups images by filename key, falling back to fixed-size chunking when
+// filenames don't carry a reliable SKU signal (e.g. generic camera roll names).
+function groupImagesByFilename(images: SessionImage[], imagesPerLook: number): SessionImage[][] {
+  const keys = images.map((img) => extractGroupKey(img.filename))
+  const meaningful = keys.filter((k): k is string => k !== null)
+  const uniqueKeys = new Set(meaningful)
+  const expectedGroups = Math.ceil(images.length / imagesPerLook)
+
+  // Only use key-based grouping when the filename keys are varied and meaningful.
+  // Too few unique keys = generic names like "IMG_XXXX". Too many = all unique (no structure).
+  const keysAreUseful =
+    meaningful.length >= images.length * 0.8 &&
+    uniqueKeys.size >= Math.max(2, expectedGroups * 0.4) &&
+    uniqueKeys.size <= expectedGroups * 4
+
+  if (!keysAreUseful) {
+    // Fixed-size chunking fallback — preserves existing behaviour
+    const groups: SessionImage[][] = []
+    for (let i = 0; i < images.length; i += imagesPerLook) {
+      groups.push(images.slice(i, i + imagesPerLook))
+    }
+    return groups
+  }
+
+  // Key-changed boundary detection: start a new cluster whenever the group key changes
+  const groups: SessionImage[][] = []
+  let current: SessionImage[] = []
+  let currentKey: string | null = null
+
+  for (let i = 0; i < images.length; i++) {
+    const key = keys[i]
+    if (current.length > 0 && key !== null && key !== currentKey) {
+      groups.push(current)
+      current = []
+    }
+    current.push(images[i])
+    if (current.length === 1) currentKey = key
+  }
+  if (current.length > 0) groups.push(current)
+  return groups
+}
+
 // ── Shot angle labels in display order ───────────────────────────────────────
 // Separate orders per shoot type so positional fallback never assigns
 // still-life-only angles (ghost-mannequin, flat-lay, etc.) to on-model images.
@@ -171,16 +246,17 @@ export async function processFiles(
   onProgress({ phase: 'Loading files…', done: total, total })
   await new Promise((r) => setTimeout(r, 0))
 
-  // Step 3: Group images into looks by sequential chunking.
-  // Photographers shoot all angles of one product, then move to the next —
-  // so splitting the sorted file list into consecutive groups of imagesPerLook
-  // is deterministic and matches camera roll order exactly.
+  // Step 3: Group images into looks.
+  // Primary strategy: detect SKU boundaries from filename prefixes (e.g. "BRAND_SKU001_NAVY_01.jpg").
+  // When filenames carry a consistent SKU key, a cluster ends wherever the key changes —
+  // this correctly handles looks with fewer shots than imagesPerLook without cascading errors.
+  // Fallback: fixed-size chunking (original behaviour) when filenames give no structural signal.
   onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
   await new Promise((r) => setTimeout(r, 0))
 
   const sortedGroups: [number, SessionImage[]][] = []
-  for (let i = 0; i < images.length; i += imagesPerLook) {
-    sortedGroups.push([sortedGroups.length, images.slice(i, i + imagesPerLook)])
+  for (const group of groupImagesByFilename(images, imagesPerLook)) {
+    sortedGroups.push([sortedGroups.length, group])
   }
 
   const clusters: SessionCluster[] = []
