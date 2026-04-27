@@ -586,7 +586,7 @@ export default function LandingPage() {
               <div style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.3px', marginBottom: '4px' }}>Enterprise</div>
               <div style={{ fontSize: '14px', color: '#6e6e73', letterSpacing: '-.1px' }}>Unlimited everything — custom contracts, SSO, SLA, dedicated CSM, and invoiced billing.</div>
             </div>
-            <a href="mailto:hello@shotsync.ai" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>Contact sales</a>
+            <a href="mailto:sales@shotsync.ai" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>Contact sales</a>
           </div>
         </section>
 
