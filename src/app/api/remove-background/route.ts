@@ -12,11 +12,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { PLANS } from '@/lib/plans'
+import type { PlanId } from '@/lib/plans'
 
 export const maxDuration = 60
 
 const PHOTOROOM_URL = 'https://sdk.photoroom.com/v1/segment'
 const REPLICATE_MODEL = 'https://api.replicate.com/v1/models/bria-ai/rmbg-2.0/predictions'
+
+const SUPABASE_CONFIGURED =
+  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
 
 export async function POST(req: NextRequest) {
   const hasPhotoRoom = !!process.env.PHOTOROOM_API_KEY
@@ -24,6 +30,33 @@ export async function POST(req: NextRequest) {
 
   if (!hasPhotoRoom && !hasReplicate) {
     return NextResponse.json({ error: 'Background removal not configured' }, { status: 503 })
+  }
+
+  // Plan gate — background removal requires Brand plan or above
+  if (SUPABASE_CONFIGURED) {
+    try {
+      const token = req.headers.get('authorization')?.replace('Bearer ', '')
+      if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+      const { createServiceClient } = await import('@/lib/supabase/server')
+      const { getOrgForUser } = await import('@/lib/supabase/getOrgForUser')
+      const service = createServiceClient()
+
+      const { data: { user } } = await service.auth.getUser(token)
+      if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+      const org = await getOrgForUser(service, user.id)
+      const plan = PLANS[((org?.plan ?? 'free') as PlanId)]
+      if (!plan.limits.bgRemoval) {
+        return NextResponse.json(
+          { error: 'Background removal requires Brand plan or above.' },
+          { status: 403 }
+        )
+      }
+    } catch (err) {
+      console.error('[remove-bg] plan check error:', err)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
   }
 
   try {

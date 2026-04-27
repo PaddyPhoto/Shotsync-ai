@@ -63,6 +63,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Enforce marketplace limit
+    const marketplaceLimit = plan.limits.marketplaces
+    if (marketplaceLimit !== -1 && marketplaces.length > marketplaceLimit) {
+      return NextResponse.json({
+        error: `Your ${plan.name} plan supports up to ${marketplaceLimit} marketplace${marketplaceLimit !== 1 ? 's' : ''} per export. Upgrade to select more.`
+      }, { status: 403 })
+    }
+
     const result = await runExport(job_id, marketplaces)
 
     // Increment monthly export counter
