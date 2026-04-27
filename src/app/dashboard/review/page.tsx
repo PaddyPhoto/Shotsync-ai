@@ -1554,19 +1554,29 @@ function ExportPanel({
       if (bgTasks.length > 0) {
         const BG_CONCURRENCY = 8
         let bgDone = 0
+        let bgPlanBlocked = false
         setProgress({ done: 0, total: bgTasks.length, phase: `Removing backgrounds 0/${bgTasks.length}…` })
         for (let i = 0; i < bgTasks.length; i += BG_CONCURRENCY) {
+          if (bgPlanBlocked) break
           await Promise.all(bgTasks.slice(i, i + BG_CONCURRENCY).map(async (img) => {
+            if (bgPlanBlocked) return
             try {
               const compressed = await preCompressImage(img.file)
               const fd = new FormData()
               fd.append('image', compressed, 'image.jpg')
               const res = await fetch('/api/remove-background', { method: 'POST', body: fd })
+              if (res.status === 403) { bgPlanBlocked = true; return }
               if (res.ok) bgRemovalCache.set(img.id, await res.blob())
             } catch { /* cache miss — processImageOnCanvas falls back to @imgly */ }
             bgDone++
             setProgress({ done: bgDone, total: bgTasks.length, phase: `Removing backgrounds ${bgDone}/${bgTasks.length}…` })
           }))
+        }
+        if (bgPlanBlocked) {
+          setIsExporting(false)
+          setProgress(null)
+          openUpgrade('Background removal is available on the Brand plan and above.')
+          return
         }
         // Reset progress counter for the export phase
         doneCount = 0
@@ -2359,12 +2369,15 @@ async function processImageOnCanvas(
       const apiRes = await fetch('/api/remove-background', { method: 'POST', body: fd })
       if (apiRes.ok) {
         sourceBlob = await apiRes.blob()
+      } else if (apiRes.status === 403) {
+        throw new Error('plan_upgrade_required')
       } else if (apiRes.status === 503) {
         throw new Error('not configured')
       } else {
         throw new Error(`API ${apiRes.status}`)
       }
     } catch (err) {
+      if (err instanceof Error && err.message === 'plan_upgrade_required') throw err
       console.warn('[remove-bg] server API failed, falling back to @imgly:', err)
       const { removeBackground } = await import('@imgly/background-removal')
       sourceBlob = await removeBackground(file, { output: { format: 'image/png', quality: 1 } })
