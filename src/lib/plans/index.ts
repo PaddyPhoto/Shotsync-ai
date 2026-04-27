@@ -141,7 +141,6 @@ export const PLANS: Record<PlanId, Plan> = {
       'Up to 5 Shopify store connections',
       'AI product listing copywriting',
       'Custom naming convention',
-      'API access',
       'Background removal (+$0.16/image)',
       '30-day free trial',
     ],
