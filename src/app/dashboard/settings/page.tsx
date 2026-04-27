@@ -1169,10 +1169,10 @@ function SettingsInner() {
                       { feature: 'Images per month',      values: ['25', '500', '2,000', '10,000', 'Unlimited'] },
                       { feature: 'ANZ marketplaces',      values: ['—', '2', '4', '4', '4'] },
                       { feature: 'Shopify export',        values: ['ZIP only', '✓', '✓', '✓', '✓'] },
-                      { feature: 'Brands',                values: ['1', '1', '3', 'Unlimited', 'Unlimited'] },
+                      { feature: 'Brands',                values: ['1', '1', '2', '5', 'Unlimited'] },
                       { feature: 'Seats',                 values: ['1', '2', '5', '10', 'Unlimited'] },
                       { feature: 'AI copywriting',        values: ['—', '—', '✓', '✓', '✓'] },
-                      { feature: 'Background removal',    values: ['—', 'Add-on', 'Add-on', 'Add-on', 'Add-on'] },
+                      { feature: 'Background removal',    values: ['—', '—', '+$0.16/img', '+$0.16/img', '+$0.16/img'] },
                       { feature: 'Price (AUD/mo)',        values: ['Free', '$79', '$199', '$399', 'Contact us'] },
                     ].map((row) => (
                       <tr key={row.feature} className="hover:bg-[var(--bg3)] transition-colors">
