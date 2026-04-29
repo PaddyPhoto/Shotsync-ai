@@ -134,6 +134,20 @@ export function trialEndingEmail(email: string, planName: string, priceAud: numb
   }
 }
 
+export function adminNewSignupEmail(customerEmail: string) {
+  return {
+    from: FROM,
+    to: ADMIN_EMAIL,
+    subject: `New signup — ${customerEmail}`,
+    html: baseTemplate(`
+      <p class="label">New Signup</p>
+      <p>A new user just created a ShotSync account.</p>
+      <p><strong>Email:</strong> ${customerEmail}</p>
+      <p style="font-size:13px;color:#aeaeb2;">They are on the Free plan.</p>
+    `),
+  }
+}
+
 export function adminNewSubscriberEmail(customerEmail: string, planName: string, priceAud: number, requiresOnboarding: boolean) {
   return {
     from: FROM,

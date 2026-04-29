@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sendEmail, welcomeFreeEmail } from '@/lib/email'
+import { sendEmail, welcomeFreeEmail, adminNewSignupEmail } from '@/lib/email'
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
     const user = await getAuthUser(req)
     if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    await sendEmail(welcomeFreeEmail(user.email))
+    await Promise.all([
+      sendEmail(welcomeFreeEmail(user.email)),
+      sendEmail(adminNewSignupEmail(user.email)),
+    ])
     return NextResponse.json({ ok: true })
   } catch (err) {
     // Non-fatal — don't block the user flow
