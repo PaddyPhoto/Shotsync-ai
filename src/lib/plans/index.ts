@@ -91,7 +91,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'For mid-tier brands doing 100–200 SKUs/month',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID ?? null,
     limits: {
-      imagesPerJob: 1500,
+      imagesPerJob: 3000,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 2,
@@ -102,7 +102,7 @@ export const PLANS: Record<PlanId, Plan> = {
       bgRemoval: true,
     },
     highlights: [
-      'Up to 1,500 images/month',
+      'Up to 3,000 images/month',
       '2 brands',
       'All 4 ANZ marketplaces',
       '5 seats',
@@ -123,7 +123,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'For fast-growing brands ramping up volume',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID ?? null,
     limits: {
-      imagesPerJob: 5000,
+      imagesPerJob: 6000,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 5,
@@ -134,7 +134,7 @@ export const PLANS: Record<PlanId, Plan> = {
       bgRemoval: true,
     },
     highlights: [
-      'Up to 5,000 images/month',
+      'Up to 6,000 images/month',
       '5 brands',
       'All 4 ANZ marketplaces',
       'Up to 10 seats',
