@@ -16,6 +16,7 @@ function SignupForm() {
   const [brandName, setBrandName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [agreed, setAgreed] = useState(false)
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -134,9 +135,24 @@ function SignupForm() {
                 />
               </div>
 
+              <label className="flex items-start gap-[10px] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-[2px] flex-shrink-0 accent-[var(--accent)]"
+                />
+                <span className="text-[0.75rem] text-[var(--text3)] leading-relaxed">
+                  I agree to the{' '}
+                  <Link href="/terms" target="_blank" className="text-[var(--accent)] hover:underline">Terms of Service</Link>
+                  {' '}and{' '}
+                  <Link href="/privacy" target="_blank" className="text-[var(--accent)] hover:underline">Privacy Policy</Link>
+                </span>
+              </label>
+
               {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
 
-              <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-1">
+              <button type="submit" disabled={loading || !agreed} className="btn btn-primary w-full justify-center mt-1">
                 {loading ? 'Creating account…' : 'Create account'}
               </button>
             </form>
