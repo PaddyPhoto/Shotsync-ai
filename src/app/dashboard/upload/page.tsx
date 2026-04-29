@@ -395,7 +395,7 @@ export default function UploadPage() {
     }
   }
 
-  const MAX_FILE_SIZE_MB = 20
+  const MAX_FILE_SIZE_MB = 25
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
   const ALLOWED_EXT = /\.(jpe?g|png|webp|heic|heif)$/i
 
@@ -1037,7 +1037,7 @@ export default function UploadPage() {
                                 {rejectedFiles.length} file{rejectedFiles.length > 1 ? 's' : ''} skipped
                               </p>
                               <p className="text-[0.73rem] text-[var(--text3)] mt-[2px]">
-                                Accepted formats: JPEG, PNG, WebP, HEIC · Max size: 20 MB per image
+                                Accepted formats: JPEG, PNG, WebP, HEIC · Max size: 25 MB per image
                               </p>
                               <ul className="mt-1 space-y-[2px]">
                                 {rejectedFiles.slice(0, 5).map((r, i) => (

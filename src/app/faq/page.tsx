@@ -50,7 +50,7 @@ const FAQS = [
     items: [
       {
         q: 'What image formats are accepted?',
-        a: 'JPEG, PNG, WebP, and HEIC/HEIF — up to 20 MB per image. TIFF and RAW files are not supported. Ask your photographer to export as high-quality JPEG before delivery.',
+        a: 'JPEG, PNG, WebP, and HEIC/HEIF — up to 25 MB per image. TIFF and RAW files are not supported. Ask your photographer to export as high-quality JPEG before delivery.',
       },
       {
         q: 'How many images can I upload per job?',
