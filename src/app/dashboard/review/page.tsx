@@ -852,6 +852,8 @@ function ReviewPage() {
                               src={img.previewUrl}
                               alt={img.filename}
                               className="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
                               draggable={false}
                             />
                             {/* Angle badge */}

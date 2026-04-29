@@ -201,6 +201,33 @@ function detectAngleFromFilename(filename: string): ViewLabel | null {
   return null
 }
 
+// ── Thumbnail generator ───────────────────────────────────────────────────────
+// Creates a compressed JPEG thumbnail (max 420px on longest edge) from a File.
+// Used for previews so the browser never decodes full-res images into GPU memory.
+// The original File is preserved on SessionImage for full-quality export.
+async function createThumbnail(file: File, maxPx = 420): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const src = URL.createObjectURL(file)
+    const img = new window.Image()
+    img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('load')) }
+    img.onload = () => {
+      URL.revokeObjectURL(src)
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+      const w = Math.round(img.width * scale)
+      const h = Math.round(img.height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      canvas.toBlob(
+        (blob) => blob ? resolve(URL.createObjectURL(blob)) : reject(new Error('toBlob')),
+        'image/jpeg', 0.72
+      )
+    }
+    img.src = src
+  })
+}
+
 // ── Main entry point ──────────────────────────────────────────────────────────
 
 export interface ProcessProgress {
@@ -226,16 +253,13 @@ export async function processFiles(
     a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
   )
 
-  // Step 2: Create session images with preview URLs and angle labels.
-  // Angle detection priority:
-  //   1. Filename keyword match (confidence 0.9)
-  //   2. Positional assignment (confidence 0.6) — resolved after clustering
+  // Step 2: Create session images. previewUrl starts empty — thumbnails generated next.
   const images: SessionImage[] = sorted.map((file, i) => {
     const detected = detectAngleFromFilename(file.name)
     return {
       id: `img-${i}-${file.name}`,
       file,
-      previewUrl: URL.createObjectURL(file),
+      previewUrl: '',
       filename: file.name,
       seqIndex: i,
       viewLabel: detected ?? 'unknown',
@@ -243,8 +267,26 @@ export async function processFiles(
     }
   })
 
-  onProgress({ phase: 'Loading files…', done: total, total })
-  await new Promise((r) => setTimeout(r, 0))
+  // Step 2b: Generate compressed thumbnails in batches of 8.
+  // Each thumbnail is ~30-60KB vs 10-25MB for the source file, preventing the
+  // browser from decoding hundreds of full-res images into GPU memory at once.
+  const THUMB_CONCURRENCY = 8
+  let thumbDone = 0
+  onProgress({ phase: 'Generating previews…', done: 0, total })
+  for (let i = 0; i < images.length; i += THUMB_CONCURRENCY) {
+    await Promise.all(
+      images.slice(i, i + THUMB_CONCURRENCY).map(async (img) => {
+        try {
+          img.previewUrl = await createThumbnail(img.file)
+        } catch {
+          img.previewUrl = URL.createObjectURL(img.file) // full-res fallback
+        }
+        thumbDone++
+        onProgress({ phase: 'Generating previews…', done: thumbDone, total })
+      })
+    )
+    await new Promise((r) => setTimeout(r, 0)) // yield to keep UI responsive
+  }
 
   // Step 3: Group images into looks.
   // Primary strategy: detect SKU boundaries from filename prefixes (e.g. "BRAND_SKU001_NAVY_01.jpg").
