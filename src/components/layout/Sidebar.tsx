@@ -57,6 +57,16 @@ const NAV_WORKFLOW: NavItem[] = [
     ),
   },
   {
+    label: 'Export',
+    href: '/dashboard/jobs/session/export',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M8 10V3M5 7l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M2 13h12" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
     label: 'All Jobs',
     href: '/dashboard/jobs',
     icon: (
@@ -104,7 +114,7 @@ const NAV_CONFIG: NavItem[] = [
   },
 ]
 
-function NavLink({ item }: { item: NavItem }) {
+function NavLink({ item, disabled }: { item: NavItem; disabled?: boolean }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [hrefPath, hrefQuery] = item.href.split('?')
@@ -114,18 +124,24 @@ function NavLink({ item }: { item: NavItem }) {
       ? pathname === hrefPath && searchParams.get('tab') === new URLSearchParams(hrefQuery).get('tab')
       : pathname.startsWith(hrefPath)
 
+  const isDisabled = disabled ?? item.disabled
+
   const baseClass = cn(
-    'flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[14px] transition-all duration-150 w-full border-0',
-    item.disabled
-      ? 'opacity-40 cursor-not-allowed text-[#6e6e73]'
+    'flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[14px] transition-all duration-150 w-full border-0',
+    isDisabled
+      ? 'opacity-35 cursor-not-allowed'
       : isActive
-      ? 'bg-[rgba(48,209,88,0.10)] text-[#1d1d1f] font-medium'
-      : 'text-[#6e6e73] hover:bg-[rgba(0,0,0,0.04)] hover:text-[#1d1d1f] font-normal'
+      ? 'font-medium'
+      : 'font-normal'
   )
+
+  const activeStyle = isActive && !isDisabled
+    ? { background: 'rgba(255,255,255,0.10)', color: 'var(--text)' }
+    : { color: 'var(--text3)' }
 
   const inner = (
     <>
-      <span className={cn('w-[16px] h-[16px] flex-shrink-0', isActive && !item.disabled ? 'opacity-100' : 'opacity-60')}>
+      <span className={cn('w-[15px] h-[15px] flex-shrink-0', isActive && !isDisabled ? 'opacity-90' : 'opacity-50')}>
         {item.icon}
       </span>
       <span className="flex-1">{item.label}</span>
@@ -143,18 +159,24 @@ function NavLink({ item }: { item: NavItem }) {
     </>
   )
 
-  if (item.disabled) {
-    return <span className={baseClass} title="No session active">{inner}</span>
+  if (isDisabled) {
+    return <span className={baseClass} style={{ color: 'var(--text3)' }}>{inner}</span>
   }
 
   return (
-    <Link href={item.href} className={baseClass}>
+    <Link href={item.href} className={baseClass} style={activeStyle}>
       {inner}
     </Link>
   )
 }
 
 const PLAN_LABEL: Record<string, string> = { free: 'Free', pro: 'Pro', business: 'Business' }
+
+const ANGLE_DOT: Record<string, string> = {
+  'front': '#30d158', 'back': '#0a84ff', 'side': '#ff9f0a',
+  'full-length': '#bf5af2', 'detail': '#ff453a', 'mood': '#ff375f',
+  'front-3/4': '#30d158', 'back-3/4': '#0a84ff',
+}
 
 export function Sidebar() {
   const { planId, plan, usage } = usePlan()
@@ -166,13 +188,17 @@ export function Sidebar() {
     setSession: s.setSession,
   }))
   const hasSession = isReady && clusters.length > 0
+  const confirmedCount = clusters.filter((c) => c.confirmed).length
   const exportsLimit = plan.limits.exportsPerMonth
   const exportsUsed = usage.exportsThisMonth
   const [orgName, setOrgName] = useState<string | null>(null)
   const [orgRole, setOrgRole] = useState<string | null>(null)
   const [parkedJobs, setParkedJobs] = useState<SessionHeader[]>([])
   const [resumingId, setResumingId] = useState<string | null>(null)
+  const pathname = usePathname()
   const router = useRouter()
+
+  const onReviewPage = pathname === '/dashboard/review'
 
   const reloadParked = useCallback(async () => {
     try {
@@ -242,171 +268,202 @@ export function Sidebar() {
 
   const canSeeBilling = !orgRole || orgRole === 'owner' || orgRole === 'admin'
 
+  const SL = { fontSize: '11px', fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--text3)', padding: '0 8px', marginBottom: '3px' }
+
   return (
-    <aside className="w-[200px] min-w-[200px] flex flex-col sticky top-0 h-screen overflow-hidden" style={{ background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: '0.5px solid rgba(0,0,0,0.08)' }}>
+    <aside className="w-[200px] min-w-[200px] flex flex-col sticky top-0 h-screen" style={{ background: '#1c1c1c', borderRight: '0.5px solid rgba(255,255,255,0.07)' }}>
 
       {/* Logo */}
-      <div className="flex items-center gap-[9px]" style={{ padding: '24px 20px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-        <img src="/icon.png" alt="ShotSync" className="w-[30px] h-[30px] rounded-[8px] flex-shrink-0" />
-        <div className="text-[17px] font-medium tracking-[-0.3px] text-[#1d1d1f]" style={{ fontFamily: "'Inter', sans-serif" }}>
-          Shot<span style={{ color: '#4e4e53' }}>Sync</span>
+      <div className="flex items-center gap-[9px]" style={{ padding: '20px 16px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
+        <img src="/icon.png" alt="ShotSync" className="w-[28px] h-[28px] rounded-[7px] flex-shrink-0" />
+        <div className="text-[16px] font-medium tracking-[-0.3px]" style={{ color: '#f0f0f0', fontFamily: "'Inter', sans-serif" }}>
+          Shot<span style={{ color: 'rgba(255,255,255,0.4)' }}>Sync</span>
         </div>
       </div>
 
       {/* Brand Switcher */}
       <BrandSwitcher />
 
-      <Suspense fallback={null}>
-      {/* Workspace */}
-      <div style={{ padding: '16px 10px 6px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#4e4e53', padding: '0 8px', marginBottom: '4px' }}>
-          Workspace
-        </p>
-        <nav className="flex flex-col gap-0">
-          {NAV_WORKSPACE.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
-        </nav>
-      </div>
+      {/* Scrollable nav area */}
+      <div className="flex-1 overflow-y-auto" style={{ padding: '10px 0 0' }}>
 
-      {/* Pipeline */}
-      <div style={{ padding: '10px 10px 6px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#4e4e53', padding: '0 8px', marginBottom: '4px' }}>
-          Pipeline
-        </p>
-        <nav className="flex flex-col gap-0">
-          {NAV_WORKFLOW.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
-        </nav>
-      </div>
-
-      {/* Configure */}
-      <div style={{ padding: '10px 10px 6px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#4e4e53', padding: '0 8px', marginBottom: '4px' }}>
-          Configure
-        </p>
-        <nav className="flex flex-col gap-0">
-          {NAV_CONFIG.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
-        </nav>
-      </div>
-
-      </Suspense>
-
-      {/* Parked Jobs */}
-      {parkedJobs.length > 0 && (
-        <div style={{ padding: '6px 10px 6px', borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
-          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#4e4e53', padding: '0 8px', marginBottom: '4px' }}>
-            Parked ({parkedJobs.length})
-          </p>
-          <div className="flex flex-col">
-            {parkedJobs.map((job) => (
-              <div key={job.id} style={{ position: 'relative' }}>
-                <button
-                  onClick={() => handleResume(job.id)}
-                  disabled={!!resumingId}
-                  className="flex flex-col items-start px-[10px] py-[5px] rounded-[8px] w-full text-left transition-all duration-150"
-                  style={{ paddingRight: '28px' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
-                >
-                  <span className="text-[14px] font-medium truncate w-full" style={{ color: '#1d1d1f', maxWidth: '148px', display: 'block' }}>
-                    {resumingId === job.id ? 'Resuming…' : job.jobName}
-                  </span>
-                  <span className="text-[12px]" style={{ color: '#4e4e53' }}>
-                    {job.clusterCount} cluster{job.clusterCount !== 1 ? 's' : ''} · {relativeTime(job.savedAt)}
-                  </span>
-                </button>
-                <button
-                  onClick={(e) => handleDiscard(job.id, e)}
-                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#c7c7cc', padding: '4px', lineHeight: 1 }}
-                  title="Discard"
-                >
-                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M2 2l8 8M10 2L2 10"/>
-                  </svg>
-                </button>
-              </div>
-            ))}
+        <Suspense fallback={null}>
+          {/* Workspace */}
+          <div style={{ padding: '0 10px 6px' }}>
+            <p style={SL}>Workspace</p>
+            <nav className="flex flex-col gap-0">
+              {NAV_WORKSPACE.map((item) => <NavLink key={item.href} item={item} />)}
+            </nav>
           </div>
+
+          {/* Pipeline */}
+          <div style={{ padding: '8px 10px 6px' }}>
+            <p style={SL}>Pipeline</p>
+            <nav className="flex flex-col gap-0">
+              {NAV_WORKFLOW.map((item) => (
+                <NavLink
+                  key={item.href}
+                  item={item}
+                  disabled={item.href.includes('session/export') ? !hasSession : item.disabled}
+                />
+              ))}
+            </nav>
+          </div>
+
+          {/* Configure */}
+          <div style={{ padding: '8px 10px 6px' }}>
+            <p style={SL}>Configure</p>
+            <nav className="flex flex-col gap-0">
+              {NAV_CONFIG.map((item) => <NavLink key={item.href} item={item} />)}
+            </nav>
+          </div>
+        </Suspense>
+
+        {/* Cluster list — visible on review page when session has clusters */}
+        {onReviewPage && hasSession && (
+          <div style={{ padding: '8px 10px 6px', borderTop: '0.5px solid rgba(255,255,255,0.06)', marginTop: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px', marginBottom: '4px' }}>
+              <p style={SL}>{clusters.length} Clusters</p>
+              <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{confirmedCount}/{clusters.length}</span>
+            </div>
+            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+              {clusters.map((c, i) => {
+                const dot = c.confirmed ? '#30d158' : 'rgba(255,255,255,0.2)'
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('shotsync:select-cluster', { detail: { id: c.id } }))
+                      setTimeout(() => document.getElementById(`cluster-${c.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+                    }}
+                    className="flex items-center gap-[8px] w-full text-left rounded-[7px] transition-all duration-150"
+                    style={{ padding: '5px 8px', color: 'var(--text3)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
+                  >
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, background: dot, border: c.confirmed ? 'none' : '1px solid rgba(255,255,255,0.25)' }} />
+                    <span style={{ fontSize: '13px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {c.sku || c.label || `Look ${i + 1}`}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{c.images.length} img</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Parked Jobs */}
+        {parkedJobs.length > 0 && (
+          <div style={{ padding: '8px 10px 6px', borderTop: '0.5px solid rgba(255,255,255,0.06)', marginTop: '4px' }}>
+            <p style={SL}>Parked ({parkedJobs.length})</p>
+            <div className="flex flex-col">
+              {parkedJobs.map((job) => (
+                <div key={job.id} style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => handleResume(job.id)}
+                    disabled={!!resumingId}
+                    className="flex flex-col items-start w-full text-left rounded-[7px] transition-all duration-150"
+                    style={{ padding: '5px 28px 5px 8px', color: 'var(--text3)' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
+                  >
+                    <span className="text-[13px] font-medium truncate w-full" style={{ color: 'var(--text)', maxWidth: '148px', display: 'block' }}>
+                      {resumingId === job.id ? 'Resuming…' : job.jobName}
+                    </span>
+                    <span className="text-[11px]" style={{ color: 'var(--text3)' }}>
+                      {job.clusterCount} cluster{job.clusterCount !== 1 ? 's' : ''} · {relativeTime(job.savedAt)}
+                    </span>
+                  </button>
+                  <button
+                    onClick={(e) => handleDiscard(job.id, e)}
+                    style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: '4px', lineHeight: 1 }}
+                    title="Discard"
+                  >
+                    <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M2 2l8 8M10 2L2 10"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Guide */}
+        <div style={{ padding: '8px 10px 0', borderTop: '0.5px solid rgba(255,255,255,0.06)', marginTop: '4px' }}>
+          <button
+            onClick={openWelcomeModal}
+            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[14px] w-full transition-all duration-150"
+            style={{ color: 'var(--text3)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
+          >
+            <span className="w-[14px] h-[14px] flex-shrink-0 opacity-50">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="8" cy="8" r="7"/>
+                <path d="M8 11v-1a2 2 0 1 0-2-2" strokeLinecap="round"/>
+                <circle cx="8" cy="12.5" r="0.5" fill="currentColor" stroke="none"/>
+              </svg>
+            </span>
+            Quick Guide
+          </button>
         </div>
-      )}
 
-      {/* Quick Guide */}
-      <div className="px-[10px] pb-[6px]">
-        <button
-          onClick={openWelcomeModal}
-          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[14px] w-full transition-all duration-150"
-          style={{ color: '#4e4e53' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.color = '#1d1d1f' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#4e4e53' }}
-        >
-          <span className="w-[14px] h-[14px] flex-shrink-0 opacity-60">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="8" cy="8" r="7"/>
-              <path d="M8 11v-1a2 2 0 1 0-2-2" strokeLinecap="round"/>
-              <circle cx="8" cy="12.5" r="0.5" fill="currentColor" stroke="none"/>
-            </svg>
-          </span>
-          Quick Guide
-        </button>
+        {/* Sign Out */}
+        <div style={{ padding: '2px 10px 8px' }}>
+          <button
+            onClick={async () => {
+              const { createClient } = await import('@/lib/supabase/client')
+              await createClient().auth.signOut()
+              window.location.href = '/'
+            }}
+            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[14px] w-full transition-all duration-150"
+            style={{ color: 'var(--text3)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
+          >
+            <span className="w-[14px] h-[14px] flex-shrink-0 opacity-50">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M6 3H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
+                <path d="M11 5l3 3-3 3M14 8H7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            Sign out
+          </button>
+        </div>
       </div>
 
-      {/* Sign Out */}
-      <div className="px-[10px] pb-[4px]">
-        <button
-          onClick={async () => {
-            const { createClient } = await import('@/lib/supabase/client')
-            await createClient().auth.signOut()
-            window.location.href = '/'
-          }}
-          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[14px] w-full transition-all duration-150"
-          style={{ color: '#4e4e53' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.color = '#1d1d1f' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#4e4e53' }}
-        >
-          <span className="w-[14px] h-[14px] flex-shrink-0 opacity-60">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M6 3H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
-              <path d="M11 5l3 3-3 3M14 8H7" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-          Sign out
-        </button>
-      </div>
-
-      {/* Plan indicator — hidden from members */}
+      {/* Plan indicator */}
       {canSeeBilling && (
-        <div className="mt-auto p-[10px]" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
+        <div style={{ padding: '10px', borderTop: '0.5px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
           <Link
             href="/dashboard/settings?tab=billing"
             className="flex items-center gap-[9px] px-[10px] py-[8px] rounded-[10px] transition-colors"
             style={{ cursor: 'pointer' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
           >
             <div
-              className="w-[30px] h-[30px] rounded-full flex items-center justify-center font-medium text-[13px] flex-shrink-0"
-              style={{ background: '#1d1d1f', color: '#f5f5f7', letterSpacing: '-0.3px' }}
+              className="w-[28px] h-[28px] rounded-full flex items-center justify-center font-medium text-[12px] flex-shrink-0"
+              style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--text)', letterSpacing: '-0.3px' }}
             >
               {orgName ? orgName[0].toUpperCase() : 'S'}
             </div>
             <div className="min-w-0">
-              <p className="text-[15px] font-medium truncate" style={{ color: '#1d1d1f', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
-              <p className="text-[13px] mt-[1px]" style={{ color: '#4e4e53' }}>
+              <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text)', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
+              <p className="text-[11px] mt-[1px]" style={{ color: 'var(--text3)' }}>
                 {PLAN_LABEL[planId] ?? planId} plan
               </p>
             </div>
           </Link>
           {exportsLimit !== -1 && (
-            <div className="mx-[10px] mt-[6px] h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+            <div className="mx-[10px] mt-[5px] h-[2px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{
                   width: `${Math.min(100, Math.round((exportsUsed / exportsLimit) * 100))}%`,
-                  background: exportsUsed >= exportsLimit ? '#ff3b30' : exportsUsed / exportsLimit >= 0.8 ? '#ff9f0a' : '#1d1d1f',
+                  background: exportsUsed >= exportsLimit ? '#ff453a' : exportsUsed / exportsLimit >= 0.8 ? '#ff9f0a' : 'rgba(255,255,255,0.4)',
                 }}
               />
             </div>

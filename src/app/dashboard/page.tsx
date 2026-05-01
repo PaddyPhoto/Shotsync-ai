@@ -26,9 +26,9 @@ interface LifetimeStats {
 }
 
 const STATUS_CHIP: Record<string, { bg: string; color: string; label: string }> = {
-  processing: { bg: 'rgba(0,122,255,0.08)',  color: '#005fc4', label: 'Processing' },
-  completed:  { bg: 'rgba(48,209,88,0.1)',   color: '#1a8a35', label: 'Ready'      },
-  failed:     { bg: 'rgba(255,59,48,0.08)',  color: '#c41c00', label: 'Failed'     },
+  processing: { bg: 'rgba(0,122,255,0.12)',  color: '#4da3ff', label: 'Processing' },
+  completed:  { bg: 'rgba(48,209,88,0.12)',  color: '#30d158', label: 'Ready'      },
+  failed:     { bg: 'rgba(255,59,48,0.12)',  color: '#ff453a', label: 'Failed'     },
 }
 
 const PIPELINE_STEPS = [
@@ -155,10 +155,10 @@ export default function DashboardPage() {
 
       <div style={{ padding: '20px 24px' }}>
         {/* Page title */}
-        <h1 style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '2px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', marginBottom: '2px' }}>
           {greeting}{orgName ? `, ${orgName}` : ''}.
         </h1>
-        <p style={{ fontSize: '14px', color: '#4e4e53', marginBottom: '16px', letterSpacing: '-.1px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--text3)', marginBottom: '16px', letterSpacing: '-.1px' }}>
           {loading ? 'Loading…' : `${jobs.length} recent jobs\u00a0·\u00a0${unexportedClusters.filter(c => !c.confirmed).length} clusters need attention`}
         </p>
 
@@ -231,7 +231,7 @@ export default function DashboardPage() {
                 href="/dashboard/brands"
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  background: '#f5f5f7', color: '#1d1d1f',
+                  background: '#f5f5f7', color: 'var(--text)',
                   fontSize: '16px', fontWeight: 600, letterSpacing: '-.2px',
                   padding: '11px 24px', borderRadius: '10px',
                   textDecoration: 'none', transition: 'background 0.15s',
@@ -257,9 +257,9 @@ export default function DashboardPage() {
             { label: 'Exports ready',    value: stats?.total_exports,  delta: 'completed jobs',  accent: '#ff9f0a' },
             { label: 'SKU match rate',   value: null,                  delta: 'last batch',      accent: '#af52de', display: clusters.length ? `${Math.round((clusters.filter(c => c.sku).length / clusters.length) * 100)}%` : '—' },
           ].map(({ label, value, delta, display, accent }) => (
-            <div key={label} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', padding: '12px 16px', backdropFilter: 'blur(8px)', borderTop: `3px solid ${accent}` }}>
-              <div style={{ fontSize: '13px', color: '#4e4e53', letterSpacing: '-.1px', marginBottom: '4px' }}>{label}</div>
-              <div style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', lineHeight: 1, marginBottom: '3px' }}>
+            <div key={label} style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: `3px solid ${accent}` }}>
+              <div style={{ fontSize: '13px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>{label}</div>
+              <div style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
                 {loading ? '—' : (display ?? (value ?? 0).toLocaleString())}
               </div>
               <div style={{ fontSize: '13px', color: accent, fontWeight: 500 }}>{delta}</div>
@@ -271,32 +271,32 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
 
           {/* Recent jobs */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
-            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Recent jobs</span>
+          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>Recent jobs</span>
               <Link href="/dashboard/jobs" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '14px' }}>View all</Link>
             </div>
             {loading ? (
-              <div style={{ padding: '16px 18px', fontSize: '15px', color: '#4e4e53' }}>Loading…</div>
+              <div style={{ padding: '16px 18px', fontSize: '15px', color: 'var(--text3)' }}>Loading…</div>
             ) : jobs.length === 0 ? (
               <div style={{ padding: '32px 18px', textAlign: 'center' }}>
-                <p style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>No jobs yet</p>
-                <p style={{ fontSize: '15px', color: '#4e4e53', marginBottom: '14px' }}>Upload your first shoot to get started.</p>
+                <p style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>No jobs yet</p>
+                <p style={{ fontSize: '15px', color: 'var(--text3)', marginBottom: '14px' }}>Upload your first shoot to get started.</p>
                 <Link href="/dashboard/upload" className="btn btn-primary" style={{ fontSize: '15px' }}>New upload</Link>
               </div>
             ) : (
               jobs.map((job) => {
                 const chip = STATUS_CHIP[job.status] ?? STATUS_CHIP.processing
                 return (
-                  <Link key={job.id} href={`/dashboard/jobs/${job.id}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', textDecoration: 'none', cursor: 'pointer' }}>
-                    <div style={{ width: '26px', height: '26px', background: 'rgba(0,0,0,0.04)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#4e4e53" strokeWidth="1.5" width="12" height="12">
+                  <Link key={job.id} href={`/dashboard/jobs/${job.id}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', borderBottom: '0.5px solid var(--line)', textDecoration: 'none', cursor: 'pointer' }}>
+                    <div style={{ width: '26px', height: '26px', background: 'var(--bg3)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" width="12" height="12">
                         <rect x="3" y="3" width="7" height="10" rx="1"/><rect x="14" y="3" width="7" height="6" rx="1"/><rect x="14" y="13" width="7" height="8" rx="1"/>
                       </svg>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.job_name}</div>
-                      <div style={{ fontSize: '13px', color: '#4e4e53', marginTop: '1px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.job_name}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text3)', marginTop: '1px' }}>
                         {job.image_count} images · {job.cluster_count} clusters · {new Date(job.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                       </div>
                     </div>
@@ -310,14 +310,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Marketplace coverage */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
-            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-              <span style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Marketplace coverage</span>
+          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)' }}>
+              <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>Marketplace coverage</span>
             </div>
             <div style={{ padding: '12px 16px' }}>
               {marketplaceNames.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                  <p style={{ fontSize: '14px', color: '#4e4e53', marginBottom: '8px' }}>No marketplaces configured yet.</p>
+                  <p style={{ fontSize: '14px', color: 'var(--text3)', marginBottom: '8px' }}>No marketplaces configured yet.</p>
                   <Link href="/dashboard/integrations" className="btn btn-ghost" style={{ fontSize: '14px', padding: '4px 10px' }}>Configure</Link>
                 </div>
               ) : (
@@ -331,12 +331,12 @@ export default function DashboardPage() {
                   return (
                     <div key={name} style={{ marginBottom: i < marketplaceNames.length - 1 ? '10px' : 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                        <span style={{ color: '#1d1d1f', fontWeight: 500 }}>{name}</span>
-                        <span style={{ color: '#4e4e53', fontSize: '13px' }}>
+                        <span style={{ color: 'var(--text)', fontWeight: 500 }}>{name}</span>
+                        <span style={{ color: 'var(--text3)', fontSize: '13px' }}>
                           {jobs.length === 0 ? 'No jobs yet' : `${exported} exported · ${displayPct}%`}
                         </span>
                       </div>
-                      <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '999px', height: '3px', overflow: 'hidden' }}>
+                      <div style={{ background: 'var(--bg4)', borderRadius: '999px', height: '3px', overflow: 'hidden' }}>
                         <div style={{ width: `${displayPct}%`, height: '100%', borderRadius: '999px', background: '#30d158', transition: 'width 0.4s ease' }} />
                       </div>
                     </div>
@@ -351,13 +351,13 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
 
           {/* Active session */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
-            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
+          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>
                 {isReady && unexportedClusters.length > 0 ? `Active session — ${sessionJobName || 'Current shoot'}` : draftSession ? `Unfinished session — ${draftSession.jobName}` : 'Active session'}
               </span>
               {isReady && unexportedClusters.length > 0 && (
-                <span style={{ fontSize: '14px', fontWeight: 500, color: '#005fc4', background: 'rgba(0,122,255,0.08)', padding: '3px 8px', borderRadius: '5px' }}>
+                <span style={{ fontSize: '14px', fontWeight: 500, color: '#4da3ff', background: 'rgba(0,122,255,0.12)', padding: '3px 8px', borderRadius: '5px' }}>
                   In progress
                 </span>
               )}
@@ -368,17 +368,17 @@ export default function DashboardPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div style={{ display: 'flex', gap: '20px' }}>
                     <div>
-                      <p style={{ fontSize: '20px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.5px' }}>{unexportedClusters.length}</p>
-                      <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>Pending</p>
+                      <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{unexportedClusters.length}</p>
+                      <p style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '2px' }}>Pending</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '20px', fontWeight: 600, color: '#1a8a35', letterSpacing: '-.5px' }}>{unexportedClusters.filter((c) => c.confirmed).length}</p>
-                      <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>Confirmed</p>
+                      <p style={{ fontSize: '20px', fontWeight: 600, color: '#30d158', letterSpacing: '-.5px' }}>{unexportedClusters.filter((c) => c.confirmed).length}</p>
+                      <p style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '2px' }}>Confirmed</p>
                     </div>
                     {warningClusters.length > 0 && (
                       <div>
-                        <p style={{ fontSize: '20px', fontWeight: 600, color: '#c27800', letterSpacing: '-.5px' }}>{warningClusters.length}</p>
-                        <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>To review</p>
+                        <p style={{ fontSize: '20px', fontWeight: 600, color: '#ff9f0a', letterSpacing: '-.5px' }}>{warningClusters.length}</p>
+                        <p style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '2px' }}>To review</p>
                       </div>
                     )}
                   </div>
@@ -391,15 +391,15 @@ export default function DashboardPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div style={{ display: 'flex', gap: '20px' }}>
                     <div>
-                      <p style={{ fontSize: '20px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.5px' }}>{draftSession.clusterCount}</p>
-                      <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>Clusters</p>
+                      <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{draftSession.clusterCount}</p>
+                      <p style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '2px' }}>Clusters</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '20px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.5px' }}>{draftSession.imageCount}</p>
-                      <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>Images</p>
+                      <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{draftSession.imageCount}</p>
+                      <p style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '2px' }}>Images</p>
                     </div>
                   </div>
-                  <p style={{ fontSize: '14px', color: '#4e4e53' }}>
+                  <p style={{ fontSize: '14px', color: 'var(--text3)' }}>
                     Saved {new Date(draftSession.savedAt).toLocaleDateString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
                   </p>
                   <button onClick={handleResumeDraft} disabled={draftLoading} className="btn btn-primary" style={{ fontSize: '14px', alignSelf: 'flex-start' }}>
@@ -409,7 +409,7 @@ export default function DashboardPage() {
               ) : (
                 // Nothing active
                 <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                  <p style={{ fontSize: '15px', color: '#4e4e53', marginBottom: '10px' }}>No active session. Upload a new shoot to begin.</p>
+                  <p style={{ fontSize: '15px', color: 'var(--text3)', marginBottom: '10px' }}>No active session. Upload a new shoot to begin.</p>
                   <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '14px', padding: '4px 10px' }}>New upload</Link>
                 </div>
               )}
@@ -417,13 +417,13 @@ export default function DashboardPage() {
           </div>
 
           {/* Cluster review */}
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', overflow: 'hidden', backdropFilter: 'blur(8px)' }}>
-            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>
+          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>
                 {isReady && unexportedClusters.length > 0 ? `Cluster review — ${jobs[0]?.job_name ?? 'Current session'}` : 'Cluster review'}
               </span>
               {warningClusters.length > 0 && (
-                <span style={{ fontSize: '14px', fontWeight: 500, color: '#c27800', background: 'rgba(255,159,10,0.1)', padding: '3px 8px', borderRadius: '5px' }}>
+                <span style={{ fontSize: '14px', fontWeight: 500, color: '#ff9f0a', background: 'rgba(255,159,10,0.12)', padding: '3px 8px', borderRadius: '5px' }}>
                   {warningClusters.length} unconfirmed
                 </span>
               )}
@@ -431,7 +431,7 @@ export default function DashboardPage() {
             <div style={{ padding: '12px 16px' }}>
               {!isReady || unexportedClusters.length === 0 ? (
                 <div style={{ padding: '14px 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: '14px', color: '#4e4e53', marginBottom: '8px' }}>No active session. Upload a shoot to see clusters here.</p>
+                  <p style={{ fontSize: '14px', color: 'var(--text3)', marginBottom: '8px' }}>No active session. Upload a shoot to see clusters here.</p>
                   <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '14px', padding: '4px 10px' }}>New upload</Link>
                 </div>
               ) : (
@@ -440,11 +440,11 @@ export default function DashboardPage() {
                     const hasWarning = !cluster.confirmed
                     return (
                       <Link key={cluster.id} href="/dashboard/review" style={{ textDecoration: 'none' }}>
-                        <div style={{ background: hasWarning ? 'rgba(255,159,10,0.03)' : 'rgba(0,0,0,0.03)', border: `0.5px solid ${hasWarning ? 'rgba(255,159,10,0.3)' : 'rgba(0,0,0,0.07)'}`, borderRadius: '10px', overflow: 'hidden', cursor: 'pointer' }}>
+                        <div style={{ background: hasWarning ? 'rgba(255,159,10,0.06)' : 'var(--bg3)', border: `0.5px solid ${hasWarning ? 'rgba(255,159,10,0.3)' : 'var(--line)'}`, borderRadius: '10px', overflow: 'hidden', cursor: 'pointer' }}>
                           {/* Image row */}
                           <div style={{ display: 'flex', gap: '1px' }}>
                             {cluster.images.slice(0, 4).map((img, i) => (
-                              <div key={img.id} style={{ flex: 1, aspectRatio: '3/4', position: 'relative', background: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                              <div key={img.id} style={{ flex: 1, aspectRatio: '3/4', position: 'relative', background: 'var(--bg4)', overflow: 'hidden' }}>
                                 {img.previewUrl ? (
                                   // eslint-disable-next-line @next/next/no-img-element
                                   <img src={img.previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -458,25 +458,25 @@ export default function DashboardPage() {
                             ))}
                             {/* Empty slots if fewer than 4 images */}
                             {Array.from({ length: Math.max(0, 4 - cluster.images.length) }).map((_, i) => (
-                              <div key={`empty-${i}`} style={{ flex: 1, aspectRatio: '3/4', background: 'rgba(0,0,0,0.03)', opacity: 0.25 }} />
+                              <div key={`empty-${i}`} style={{ flex: 1, aspectRatio: '3/4', background: 'var(--bg3)', opacity: 0.25 }} />
                             ))}
                           </div>
                           {/* Footer */}
                           <div style={{ padding: '8px 10px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', marginBottom: '2px' }}>{cluster.sku || 'No SKU'}</div>
-                            <div style={{ fontSize: '14px', color: '#4e4e53' }}>{cluster.productName || cluster.color || '—'}</div>
+                            <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', marginBottom: '2px' }}>{cluster.sku || 'No SKU'}</div>
+                            <div style={{ fontSize: '14px', color: 'var(--text3)' }}>{cluster.productName || cluster.color || '—'}</div>
                             {/* Shot pills */}
                             <div style={{ display: 'flex', gap: '3px', marginTop: '5px', flexWrap: 'wrap' }}>
                               {cluster.images.slice(0, 4).map((img) => {
                                 const lbl = img.viewLabel
                                 const pillStyles: Record<string, { bg: string; color: string; text: string }> = {
-                                  front:       { bg: 'rgba(48,209,88,0.12)',  color: '#1a8a35', text: 'Fr' },
-                                  back:        { bg: 'rgba(0,122,255,0.08)', color: '#005fc4', text: 'Bk' },
-                                  side:        { bg: 'rgba(255,159,10,0.1)', color: '#c27800', text: 'Sd' },
-                                  detail:      { bg: 'rgba(255,59,48,0.08)', color: '#c41c00', text: 'Dt' },
-                                  three_quarter:{ bg: 'rgba(48,209,88,0.08)', color: '#1a8a35', text: '¾' },
+                                  front:       { bg: 'rgba(48,209,88,0.12)',  color: '#30d158', text: 'Fr' },
+                                  back:        { bg: 'rgba(0,122,255,0.12)',  color: '#4da3ff', text: 'Bk' },
+                                  side:        { bg: 'rgba(255,159,10,0.12)', color: '#ff9f0a', text: 'Sd' },
+                                  detail:      { bg: 'rgba(255,59,48,0.12)',  color: '#ff453a', text: 'Dt' },
+                                  three_quarter:{ bg: 'rgba(48,209,88,0.10)', color: '#30d158', text: '¾' },
                                 }
-                                const p = pillStyles[lbl] ?? { bg: 'rgba(0,0,0,0.05)', color: '#4e4e53', text: lbl?.slice(0,2) ?? '?' }
+                                const p = pillStyles[lbl] ?? { bg: 'var(--bg3)', color: 'var(--text3)', text: lbl?.slice(0,2) ?? '?' }
                                 return (
                                   <span key={img.id} style={{ fontSize: '14px', fontWeight: 500, padding: '2px 5px', borderRadius: '4px', background: p.bg, color: p.color }}>
                                     {p.text}
@@ -492,7 +492,7 @@ export default function DashboardPage() {
                 </div>
               )}
               {isReady && unexportedClusters.length > 3 && (
-                <Link href="/dashboard/review" style={{ display: 'block', textAlign: 'center', marginTop: '12px', fontSize: '15px', color: '#4e4e53', textDecoration: 'none' }}>
+                <Link href="/dashboard/review" style={{ display: 'block', textAlign: 'center', marginTop: '12px', fontSize: '15px', color: 'var(--text3)', textDecoration: 'none' }}>
                   +{clusters.length - 3} more clusters →
                 </Link>
               )}

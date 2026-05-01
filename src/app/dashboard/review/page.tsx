@@ -392,6 +392,17 @@ function ReviewPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedImages, deleteImages, undo])
 
+  useEffect(() => {
+    const handleSelectCluster = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id
+      if (!id) return
+      setExpandedCluster(id)
+      setTimeout(() => document.getElementById(`cluster-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    }
+    window.addEventListener('shotsync:select-cluster', handleSelectCluster)
+    return () => window.removeEventListener('shotsync:select-cluster', handleSelectCluster)
+  }, [])
+
   const confirmedCount = clusters.filter((c) => c.confirmed).length
 
   // ── SKU input ──────────────────────────────────────────────────────────────
@@ -640,46 +651,7 @@ function ReviewPage() {
         <ClusterTour onDismiss={stopTour} />
       )}
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — cluster list */}
-        <div className="w-[220px] flex-shrink-0 border-r border-[var(--line)] flex flex-col bg-[var(--bg2)]">
-          <div className="px-3 pt-3 pb-2 border-b border-[var(--line)]">
-            <button
-              onClick={() => { reset(); router.push('/dashboard/upload') }}
-              className="btn btn-ghost btn-sm w-full justify-center"
-            >
-              New Upload
-            </button>
-          </div>
-          <div className="p-3 flex-1 overflow-y-auto">
-            <p className="text-[0.86rem] text-[var(--text3)] uppercase tracking-[0.08em] mb-2 px-1">
-              {clusters.length} clusters
-            </p>
-            {clusters.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => {
-                  setExpandedCluster(c.id)
-                  document.getElementById(`cluster-${c.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
-                className={`w-full flex items-center gap-2 px-2 py-[7px] rounded-sm text-left transition-all mb-[2px] ${
-                  expandedCluster === c.id
-                    ? 'bg-[rgba(232,217,122,0.08)] text-[var(--text)]'
-                    : 'hover:bg-[var(--bg3)] text-[var(--text2)]'
-                }`}
-              >
-                <div className={`w-[6px] h-[6px] rounded-full flex-shrink-0 ${c.confirmed ? 'bg-[var(--accent2)]' : 'bg-[var(--bg4)]'}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[0.78rem] truncate">{c.sku || c.label}</p>
-                  <p className="text-[0.83rem] text-[var(--text3)]">{c.images.length} img</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Main workspace */}
-        <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6">
           {/* Selection toolbar */}
           {/* Missing shots summary banner */}
           {(() => {
@@ -733,7 +705,7 @@ function ReviewPage() {
           )}
 
           {/* Cluster cards */}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] 2xl:grid-cols-[repeat(auto-fill,minmax(400px,1fr))] gap-5">
+          <div className="grid grid-cols-3 gap-5">
             {clusters.map((cluster, clusterIdx) => {
               const isDropTarget = dragOverCluster === cluster.id && draggingFromCluster !== cluster.id
               const currentSku = skuInput[cluster.id] ?? cluster.sku
@@ -1302,7 +1274,6 @@ function ReviewPage() {
               )
             })}
           </div>
-        </div>
       </div>
 
       {/* Export panel overlay */}

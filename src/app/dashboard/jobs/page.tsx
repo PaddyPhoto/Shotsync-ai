@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
+import { useSession } from '@/store/session'
 
 interface JobRecord {
   id: string
@@ -30,12 +32,12 @@ function useStoredSessions(jobIds: string[]): Set<string> {
 }
 
 const STATUS_MAP: Record<string, { bg: string; color: string; label: string }> = {
-  completed:  { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', label: 'Completed'  },
-  complete:   { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', label: 'Completed'  },
-  processing: { bg: 'rgba(0,122,255,0.08)',  color: '#005fc4', label: 'Processing' },
-  review:     { bg: 'rgba(255,159,10,0.10)', color: '#c27800', label: 'Needs Review' },
-  failed:     { bg: 'rgba(255,59,48,0.08)',  color: '#c41c00', label: 'Failed'     },
-  error:      { bg: 'rgba(255,59,48,0.08)',  color: '#c41c00', label: 'Error'      },
+  completed:  { bg: 'rgba(48,209,88,0.12)',  color: '#30d158', label: 'Completed'  },
+  complete:   { bg: 'rgba(48,209,88,0.12)',  color: '#30d158', label: 'Completed'  },
+  processing: { bg: 'rgba(0,122,255,0.12)',  color: '#4da3ff', label: 'Processing' },
+  review:     { bg: 'rgba(255,159,10,0.12)', color: '#ff9f0a', label: 'Needs Review' },
+  failed:     { bg: 'rgba(255,59,48,0.12)',  color: '#ff453a', label: 'Failed'     },
+  error:      { bg: 'rgba(255,59,48,0.12)',  color: '#ff453a', label: 'Error'      },
 }
 
 export default function JobsPage() {
@@ -43,8 +45,26 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const { activeBrand } = useBrand()
+  const [reopeningId, setReopeningId] = useState<string | null>(null)
+  const { activeBrand, isLoading: brandsLoading } = useBrand()
+  const { setSession } = useSession()
+  const router = useRouter()
   const storedSessions = useStoredSessions(jobs.map((j) => j.id))
+
+  const handleReopen = async (jobId: string) => {
+    setReopeningId(jobId)
+    try {
+      const { loadSession } = await import('@/lib/session-store')
+      const result = await loadSession(jobId)
+      if (!result) return
+      setSession(result.jobName, result.clusters, result.marketplaces)
+      router.push('/dashboard/review')
+    } catch (err) {
+      console.error('Failed to reopen session:', err)
+    } finally {
+      setReopeningId(null)
+    }
+  }
 
   const fetchJobs = (token?: string) => {
     const url = activeBrand?.id
@@ -58,6 +78,7 @@ export default function JobsPage() {
   }
 
   useEffect(() => {
+    if (brandsLoading) return
     setLoading(true)
     import('@/lib/supabase/client').then(({ createClient }) =>
       createClient().auth.getSession()
@@ -65,7 +86,7 @@ export default function JobsPage() {
       fetchJobs(session?.access_token)
     ).catch(() => setJobs([]))
       .finally(() => setLoading(false))
-  }, [activeBrand?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeBrand?.id, brandsLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDelete = async (jobId: string) => {
     setDeletingId(jobId)
@@ -102,30 +123,30 @@ export default function JobsPage() {
 
       <div className="p-7">
         <div className="mb-6">
-          <h1 style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '3px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', marginBottom: '3px' }}>
             All Jobs
           </h1>
           {!loading && (
-            <p style={{ fontSize: '14px', color: '#aeaeb2' }}>
+            <p style={{ fontSize: '15px', color: 'var(--text3)' }}>
               {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} — click any row to open
             </p>
           )}
         </div>
 
         {loading ? (
-          <div style={{ fontSize: '14px', color: '#aeaeb2' }}>Loading…</div>
+          <div style={{ fontSize: '15px', color: 'var(--text3)' }}>Loading…</div>
         ) : jobs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 0' }}>
-            <div style={{ width: '48px', height: '48px', background: 'rgba(0,0,0,0.04)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#aeaeb2" strokeWidth="1.5">
+            <div style={{ width: '48px', height: '48px', background: 'var(--bg3)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--text3)" strokeWidth="1.5">
                 <rect x="2" y="2" width="7" height="9" rx="1.5"/>
                 <rect x="11" y="2" width="7" height="7" rx="1.5"/>
                 <rect x="11" y="11" width="7" height="7" rx="1.5"/>
                 <rect x="2" y="13" width="7" height="5" rx="1.5"/>
               </svg>
             </div>
-            <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>No jobs yet</p>
-            <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '16px' }}>Completed jobs will appear here.</p>
+            <p style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>No jobs yet</p>
+            <p style={{ fontSize: '15px', color: 'var(--text3)', marginBottom: '16px' }}>Completed jobs will appear here.</p>
             <Link href="/dashboard/upload" className="btn btn-primary">Start a shoot</Link>
           </div>
         ) : (
@@ -142,11 +163,10 @@ export default function JobsPage() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '14px',
-                    background: 'rgba(255,255,255,0.8)',
-                    border: '0.5px solid rgba(0,0,0,0.08)',
+                    background: 'var(--bg2)',
+                    border: '0.5px solid var(--line)',
                     borderRadius: '14px',
                     padding: '0',
-                    backdropFilter: 'blur(8px)',
                     overflow: 'hidden',
                   }}
                 >
@@ -171,7 +191,7 @@ export default function JobsPage() {
                       background: job.brands?.logo_color ? `${job.brands.logo_color}22` : 'rgba(0,0,0,0.04)',
                     }}>
                       <svg width="16" height="16" viewBox="0 0 18 18" fill="none"
-                        stroke={job.brands?.logo_color ?? '#aeaeb2'} strokeWidth="1.5">
+                        stroke={job.brands?.logo_color ?? '#4e4e53'} strokeWidth="1.5">
                         <rect x="2" y="2" width="6" height="8" rx="1"/>
                         <rect x="10" y="2" width="6" height="6" rx="1"/>
                         <rect x="10" y="10" width="6" height="6" rx="1"/>
@@ -181,38 +201,25 @@ export default function JobsPage() {
 
                     {/* Name + meta */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {job.job_name}
                       </p>
-                      <p style={{ fontSize: '13px', color: '#aeaeb2', marginTop: '2px' }}>
+                      <p style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '2px' }}>
                         {job.image_count} images · {job.cluster_count} clusters
-                        {job.brands && <> · <span style={{ color: '#6e6e73' }}>{job.brands.name}</span></>}
+                        {job.brands && <> · <span style={{ color: 'var(--text3)' }}>{job.brands.name}</span></>}
                         {job.marketplaces?.length > 0 && <> · {job.marketplaces.length} marketplace{job.marketplaces.length !== 1 ? 's' : ''}</>}
                       </p>
                     </div>
 
                     {/* Date */}
-                    <p style={{ fontSize: '13px', color: '#aeaeb2', flexShrink: 0 }}>
+                    <p style={{ fontSize: '14px', color: 'var(--text3)', flexShrink: 0 }}>
                       {new Date(job.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
-
-                    {/* Reopen badge — shown when an IndexedDB session exists for this job */}
-                    {storedSessions.has(job.id) && (
-                      <span style={{
-                        flexShrink: 0,
-                        fontSize: '12px', fontWeight: 500,
-                        padding: '3px 9px', borderRadius: '6px',
-                        background: 'rgba(0,122,255,0.08)', color: '#005fc4',
-                        letterSpacing: '-.1px',
-                      }}>
-                        Reopen
-                      </span>
-                    )}
 
                     {/* Status chip */}
                     <span style={{
                       flexShrink: 0,
-                      fontSize: '12px', fontWeight: 500,
+                      fontSize: '14px', fontWeight: 500,
                       padding: '3px 9px', borderRadius: '6px',
                       background: chip.bg, color: chip.color,
                       letterSpacing: '-.1px',
@@ -221,25 +228,43 @@ export default function JobsPage() {
                     </span>
 
                     {/* Chevron */}
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#aeaeb2" strokeWidth="1.5" style={{ flexShrink: 0, transition: 'transform 0.15s' }} className="group-hover:translate-x-[2px]">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" strokeWidth="1.5" style={{ flexShrink: 0, transition: 'transform 0.15s' }} className="group-hover:translate-x-[2px]">
                       <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </Link>
+
+                  {/* Reopen button — outside Link so it doesn't also navigate to detail */}
+                  {storedSessions.has(job.id) && (
+                    <button
+                      onClick={() => handleReopen(job.id)}
+                      disabled={reopeningId === job.id}
+                      style={{
+                        flexShrink: 0,
+                        fontSize: '14px', fontWeight: 500,
+                        padding: '3px 9px', borderRadius: '6px',
+                        background: 'rgba(0,122,255,0.12)', color: '#4da3ff',
+                        border: 'none', cursor: 'pointer', letterSpacing: '-.1px',
+                        opacity: reopeningId === job.id ? 0.6 : 1,
+                      }}
+                    >
+                      {reopeningId === job.id ? 'Opening…' : 'Reopen'}
+                    </button>
+                  )}
 
                   {/* Delete zone — separated so it doesn't navigate */}
                   <div style={{ padding: '0 14px 0 0', flexShrink: 0 }}>
                     {isConfirming ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '12px', color: '#ff3b30' }}>Delete?</span>
+                        <span style={{ fontSize: '14px', color: '#ff3b30' }}>Delete?</span>
                         <button
                           onClick={() => handleDelete(job.id)}
-                          style={{ fontSize: '12px', fontWeight: 500, color: '#fff', background: '#ff3b30', border: 'none', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer' }}
+                          style={{ fontSize: '14px', fontWeight: 500, color: '#fff', background: '#ff3b30', border: 'none', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer' }}
                         >
                           Yes
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(null)}
-                          style={{ fontSize: '12px', color: '#6e6e73', background: 'transparent', border: 'none', padding: '3px 4px', cursor: 'pointer' }}
+                          style={{ fontSize: '14px', color: 'var(--text3)', background: 'transparent', border: 'none', padding: '3px 4px', cursor: 'pointer' }}
                         >
                           Cancel
                         </button>
@@ -249,9 +274,9 @@ export default function JobsPage() {
                         onClick={() => setConfirmDeleteId(job.id)}
                         disabled={isDeleting}
                         title="Delete job"
-                        style={{ padding: '6px', borderRadius: '6px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: isDeleting ? 0.4 : 1 }}
+                        style={{ padding: '6px', borderRadius: '6px', color: 'var(--text3)', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', opacity: isDeleting ? 0.4 : 1 }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,59,48,0.08)'; (e.currentTarget as HTMLElement).style.color = '#ff3b30' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#aeaeb2' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#4e4e53' }}
                       >
                         {isDeleting ? (
                           <div style={{ width: '14px', height: '14px', border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />

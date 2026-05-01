@@ -13,12 +13,21 @@ import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import type { MarketplaceName } from '@/types'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
 
-type Step = 'config' | 'files' | 'processing'
-
 interface ProcessProgress {
   phase: string
   done: number
   total: number
+}
+
+const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = {
+  'front':       { bg: 'rgba(48,209,88,0.12)',  color: '#30d158', dot: '#30d158' },
+  'back':        { bg: 'rgba(0,122,255,0.12)',   color: '#4da3ff', dot: '#4da3ff' },
+  'side':        { bg: 'rgba(255,159,10,0.13)',  color: '#ff9f0a', dot: '#ff9f0a' },
+  'full-length': { bg: 'rgba(175,82,222,0.12)',  color: '#bf5af2', dot: '#bf5af2' },
+  'detail':      { bg: 'rgba(255,59,48,0.12)',   color: '#ff453a', dot: '#ff453a' },
+  'mood':        { bg: 'rgba(255,55,95,0.12)',   color: '#ff375f', dot: '#ff375f' },
+  'front-3/4':   { bg: 'rgba(48,209,88,0.09)',   color: '#30d158', dot: '#30d158' },
+  'back-3/4':    { bg: 'rgba(0,122,255,0.09)',   color: '#4da3ff', dot: '#4da3ff' },
 }
 
 export default function UploadPage() {
@@ -43,14 +52,18 @@ export default function UploadPage() {
   const [accessoryCategory, setAccessoryCategory] = useState<string | null>(null)
   const [stillLifeType, setStillLifeType] = useState<string | null>(null)
 
-  const [step, setStep] = useState<Step>('config')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1)
   const [styleList, setStyleListLocal] = useState<StyleListEntry[]>([])
   const [styleListName, setStyleListName] = useState<string | null>(null)
   const styleListRef = useRef<HTMLInputElement>(null)
-  // Whether the user has dismissed the "resume session" banner
   const [resumeDismissed, setResumeDismissed] = useState(false)
   const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed
   const [parkingJob, setParkingJob] = useState(false)
+
+  // Drag state for angle reordering
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
 
   async function handleParkAndStartNew() {
     if (!existingSession.clusters.length) return
@@ -67,7 +80,7 @@ export default function UploadPage() {
     resetSession()
     setResumeDismissed(true)
     setFiles([])
-    setStep('config')
+    setActiveStep(1)
     setJobName('')
     setParkingJob(false)
   }
@@ -80,7 +93,6 @@ export default function UploadPage() {
       const ws = wb.Sheets[wb.SheetNames[0]]
       const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as string[][]
 
-      // Auto-detect header row — find the row containing STYLE CODE or SKU
       let headerIdx = -1
       let skuCol = -1, nameCol = -1, colourCol = -1, colourCodeCol = -1, styleNumberCol = -1
       let compositionCol = -1, careCol = -1, fitCol = -1, rrpCol = -1, seasonCol = -1
@@ -147,6 +159,7 @@ export default function UploadPage() {
       alert('Failed to read spreadsheet. Please use .xlsx or .csv format.')
     }
   }, [setStyleList])
+
   const [jobName, setJobName] = useState('')
   const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(['the-iconic'])
   const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
@@ -159,7 +172,6 @@ export default function UploadPage() {
     return base.slice(0, defaultImagesPerLook)
   })
 
-  // Sync when the active brand changes or shoot type changes
   useEffect(() => {
     const n = activeBrand?.images_per_look ?? 4
     setImagesPerLook(n)
@@ -171,7 +183,6 @@ export default function UploadPage() {
     setAngleSequence(seq.slice(0, n))
   }, [activeBrand?.id, shootType])
 
-  // Pre-populate form fields and file list from existing session on mount
   useEffect(() => {
     if (!existingSession.isReady || !existingSession.clusters.length) return
     if (existingSession.jobName) setJobName(existingSession.jobName)
@@ -182,13 +193,13 @@ export default function UploadPage() {
     }
     if (existingSession.marketplaces.length) setMarketplaces(existingSession.marketplaces as MarketplaceName[])
     if (existingSession.styleList.length) setStyleListLocal(existingSession.styleList)
-    // Reconstruct file list from in-memory cluster images (available as long as page wasn't refreshed)
     const existingFiles = existingSession.clusters.flatMap((c) => c.images.map((img) => img.file)).filter(Boolean)
     if (existingFiles.length) {
       setFiles(existingFiles)
-      setStep('files')
+      setActiveStep(4)
     }
-  }, []) // only on mount
+  }, [])
+
   const [files, setFiles] = useState<File[]>([])
   const imageGridRef = useRef<HTMLDivElement>(null)
 
@@ -197,7 +208,6 @@ export default function UploadPage() {
   const [rejectedFiles, setRejectedFiles] = useState<{ name: string; reason: string }[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Cloud import state
   const [cloudImporting, setCloudImporting] = useState<'dropbox' | 'google-drive' | 's3' | null>(null)
   const [cloudImportError, setCloudImportError] = useState<string | null>(null)
   const [s3Prefix, setS3Prefix] = useState('')
@@ -207,7 +217,6 @@ export default function UploadPage() {
   const [s3Loading, setS3Loading] = useState(false)
   const [s3Selected, setS3Selected] = useState<Set<string>>(new Set())
 
-  // Google Drive browser state
   const [gdriveBrowserOpen, setGdriveBrowserOpen] = useState(false)
   const [gdriveFiles, setGdriveFiles] = useState<{ id: string; name: string; downloadUrl: string; size: number; mimeType: string }[]>([])
   const [gdriveFolders, setGdriveFolders] = useState<{ id: string; name: string }[]>([])
@@ -360,7 +369,6 @@ export default function UploadPage() {
       const downloaded: File[] = []
       let done = 0
 
-      // Process in parallel batches of 5
       for (let i = 0; i < selectedFiles.length; i += CONCURRENCY) {
         const batch = selectedFiles.slice(i, i + CONCURRENCY)
         const results = await Promise.allSettled(
@@ -419,14 +427,13 @@ export default function UploadPage() {
     }
 
     setRejectedFiles(rejected)
-
     if (!accepted.length) return
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => f.name + f.size))
       const unique = accepted.filter((f) => !existing.has(f.name + f.size))
       return [...prev, ...unique]
     })
-    setStep('files')
+    setActiveStep(4)
     setTimeout(() => imageGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
   }, [])
 
@@ -444,7 +451,6 @@ export default function UploadPage() {
       return
     }
 
-    // Auto-park the current session so it can be resumed from the sidebar
     if (existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed) {
       void import('@/lib/session-store').then(({ parkJob }) =>
         parkJob(
@@ -456,7 +462,7 @@ export default function UploadPage() {
       )
     }
 
-    setStep('processing')
+    setIsProcessing(true)
     setProgress({ phase: 'Starting…', done: 0, total: files.length })
 
     const name = jobName || `Shoot – ${new Date().toLocaleDateString()}`
@@ -472,7 +478,6 @@ export default function UploadPage() {
 
     setSession(name, clusters, marketplaces, imagesPerLook, (effectiveAngleSeq ?? []) as import('@/types').ViewLabel[])
 
-    // Save draft to IDB so the session survives browser close
     import('@/lib/session-store').then(({ saveSession }) =>
       saveSession('draft', name, clusters, marketplaces, activeBrand?.id ?? null)
     ).catch(() => { /* non-critical */ })
@@ -482,52 +487,92 @@ export default function UploadPage() {
 
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0
 
-  return (
-    <div>
-      <Topbar
-        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'New Upload' }]}
-        actions={
-          step === 'files' ? (
-            <button onClick={handleProcess} className="btn btn-primary">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M7 1l4 4-4 4M3 5h8" strokeLinecap="round" strokeLinejoin="round"/>
+  // Step completion checks
+  const step1Done = jobName.trim().length > 0
+  const step2Done = true
+  const step3Done = marketplaces.length > 0
+  const step4Done = files.length > 0
+
+  const stepDone = [false, step1Done, step2Done, step3Done, step4Done]
+  const stepLabels = ['', 'Job details', 'Shoot setup', 'Marketplaces', 'Upload images']
+
+  function StepHeader({ n, isActive, isDone, isLocked, summary, onToggle }: {
+    n: number; isActive: boolean; isDone: boolean; isLocked: boolean; summary: string; onToggle: () => void
+  }) {
+    return (
+      <div
+        onClick={() => !isLocked && onToggle()}
+        style={{
+          padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          cursor: isLocked ? 'default' : 'pointer',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '11px', fontWeight: 700,
+            background: isDone ? '#30d158' : isActive ? 'var(--accent)' : 'var(--bg3)',
+            color: isDone || isActive ? '#fff' : 'var(--text3)',
+          }}>
+            {isDone && !isActive ? (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Process {files.length} Images
-            </button>
-          ) : null
-        }
-      />
+            ) : n}
+          </div>
+          <span style={{ fontSize: '14px', fontWeight: 500, color: isLocked ? 'var(--text3)' : 'var(--text)' }}>
+            {stepLabels[n]}
+          </span>
+          {!isActive && isDone && summary && (
+            <span style={{ fontSize: '13px', color: 'var(--text3)', marginLeft: '2px' }}>{summary}</span>
+          )}
+        </div>
+        {!isLocked && (
+          <svg
+            width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" strokeWidth="1.5"
+            style={{ transform: isActive ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+          >
+            <path d="M3 5l4 4 4-4" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </div>
+    )
+  }
 
-      <div className="p-7">
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'New Upload' }]} />
 
-        {/* Active job banner */}
+      <div style={{ padding: '28px', paddingBottom: files.length > 0 && !isProcessing ? '100px' : '28px', flex: 1 }}>
+
+        {/* Active session banner */}
         {hasSession && (
-          <div className="mb-6 rounded-[14px] border border-[rgba(0,0,0,0.08)] bg-[var(--bg3)] overflow-hidden">
-            <div className="flex items-start gap-3 px-5 py-4">
-              <div className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center flex-shrink-0 mt-[1px]" style={{ background: 'rgba(0,113,227,0.10)' }}>
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#0071e3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <div style={{ marginBottom: '20px', borderRadius: '14px', border: '0.5px solid var(--line)', background: 'var(--bg2)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '14px 16px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'rgba(0,122,255,0.12)' }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#4da3ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="3" width="12" height="10" rx="1.5"/>
-                  <path d="M10 3V2a2 2 0 0 0-4 0v1" strokeLinecap="round"/>
+                  <path d="M10 3V2a2 2 0 0 0-4 0v1"/>
                 </svg>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[0.88rem] font-semibold text-[var(--text)] leading-tight">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>
                   {existingSession.jobName || 'Untitled Job'}
                 </p>
-                <p className="text-[0.8rem] text-[var(--text3)] mt-[2px]">
+                <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
                   {existingSession.clusters.length} clusters · {existingSession.clusters.reduce((s, c) => s + c.images.length, 0)} images · currently active
                 </p>
               </div>
             </div>
-            <div className="flex items-stretch border-t border-[rgba(0,0,0,0.06)]">
+            <div style={{ display: 'flex', borderTop: '0.5px solid var(--line)' }}>
               <button
                 onClick={() => router.push('/dashboard/review')}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[0.8rem] font-medium transition-colors"
-                style={{ color: '#0071e3', borderRight: '0.5px solid rgba(0,0,0,0.06)' }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(0,113,227,0.05)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', fontSize: '12px', fontWeight: 500, color: 'var(--accent)', background: 'transparent', border: 'none', cursor: 'pointer', borderRight: '0.5px solid var(--line)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--accent-glow)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
               >
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 7h8M7 3l4 4-4 4"/>
                 </svg>
                 Continue this job
@@ -535,694 +580,729 @@ export default function UploadPage() {
               <button
                 onClick={handleParkAndStartNew}
                 disabled={parkingJob}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-[0.8rem] font-medium transition-colors"
-                style={{ color: '#1d1d1f', borderRight: '0.5px solid rgba(0,0,0,0.06)' }}
-                onMouseEnter={e => { if (!parkingJob) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)' }}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', fontSize: '12px', fontWeight: 500, color: 'var(--text2)', background: 'transparent', border: 'none', cursor: 'pointer', borderRight: '0.5px solid var(--line)' }}
+                onMouseEnter={e => { if (!parkingJob) (e.currentTarget as HTMLElement).style.background = 'var(--bg3)' }}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
               >
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 2h3v4H3zM8 2h3v4H8zM3 8h8v4H3z"/>
-                </svg>
                 {parkingJob ? 'Saving…' : 'Park & start new'}
               </button>
               <button
-                onClick={() => { resetSession(); setResumeDismissed(true); setFiles([]); setStep('config'); setJobName('') }}
-                className="flex items-center justify-center gap-2 px-4 py-3 text-[0.8rem] font-medium transition-colors"
-                style={{ color: '#ff3b30' }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,59,48,0.05)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
+                onClick={() => { resetSession(); setResumeDismissed(true); setFiles([]); setActiveStep(1); setJobName('') }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 14px', fontSize: '12px', fontWeight: 500, color: 'var(--accent3)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,59,48,0.07)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
               >
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 2l10 10M12 2L2 12"/>
-                </svg>
                 Discard
               </button>
             </div>
           </div>
         )}
 
-        {step !== 'processing' && (
+        {isProcessing ? (
+          /* Processing state */
+          <div style={{ maxWidth: '520px', margin: '48px auto 0' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(0,122,255,0.10)', border: '1px solid rgba(0,122,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="var(--accent)" strokeWidth="1.5" className="animate-spin" style={{ animationDuration: '2s' }}>
+                  <circle cx="14" cy="14" r="11" strokeDasharray="50 20" />
+                </svg>
+              </div>
+              <div style={{ textAlign: 'center', width: '100%' }}>
+                <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', marginBottom: '4px' }}>{progress.phase}</p>
+                <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '16px' }}>
+                  {progress.done > 0 && progress.total > 0 && `${progress.done} / ${progress.total} images`}
+                </p>
+                <div style={{ height: '6px', background: 'var(--bg3)', borderRadius: '99px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: '99px', transition: 'width 0.3s', width: `${pct}%`, background: 'linear-gradient(90deg, var(--accent), #30d158)' }} />
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--accent)', marginTop: '8px', fontFamily: 'var(--font-mono)' }}>{pct}%</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', width: '100%' }}>
+                {[
+                  { label: 'Loading', active: progress.phase.startsWith('Loading') || progress.phase.startsWith('Start') },
+                  { label: 'Grouping', active: progress.phase.startsWith('Group') },
+                  { label: 'Done', active: progress.phase.startsWith('Done') },
+                ].map((s) => (
+                  <div key={s.label} style={{ padding: '10px', borderRadius: '10px', border: `0.5px solid ${s.active ? 'var(--accent)' : 'var(--line)'}`, background: s.active ? 'var(--accent-glow)' : 'transparent', textAlign: 'center' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 500, color: s.active ? 'var(--accent)' : 'var(--text3)' }}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
           <>
-            {/* Config */}
-            <div className="card mb-6">
-              <div className="card-head"><span className="card-title">Job Details</span></div>
-              <div className="card-body flex flex-col gap-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[13px] text-[var(--text2)] mb-[6px] block">Shoot Name</label>
-                    <input className="input" placeholder="e.g. SS25 Studio Shoot" value={jobName} onChange={(e) => setJobName(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="text-[13px] text-[var(--text2)] mb-[6px] block">Brand</label>
-                    <div className="flex items-center gap-2 h-[35px] px-3 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm">
-                      {activeBrand ? (
-                        <>
-                          <div className="w-[18px] h-[18px] rounded-[3px] flex items-center justify-center text-[0.55rem] font-bold text-black flex-shrink-0" style={{ background: activeBrand.logo_color, fontFamily: 'var(--font-dm-mono)' }}>{activeBrand.brand_code}</div>
-                          <span className="text-[0.8rem] text-[var(--text)]">{activeBrand.name}</span>
-                        </>
-                      ) : (
-                        <span className="text-[0.8rem] text-[var(--text3)]">No brand selected</span>
-                      )}
-                    </div>
-                    <p className="text-[0.86rem] text-[var(--text3)] mt-[5px]">Switch brands from the sidebar</p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            {/* Shoot Type */}
-            <div className="card mb-6">
-              <div className="card-head"><span className="card-title">Shoot Type</span></div>
-              <div className="card-body flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {([
-                    {
-                      id: 'on-model', label: 'On-Model',
-                      desc: 'Clothing worn by a model — front, back, side, full-length, mood',
-                      pills: ['Front', 'Back', 'Side', 'Full-length', 'Mood'],
-                      pillColors: [
-                        { bg: 'rgba(48,209,88,0.12)', color: '#1a8a35' },
-                        { bg: 'rgba(0,122,255,0.10)', color: '#005fc4' },
-                        { bg: 'rgba(255,159,10,0.12)', color: '#c27800' },
-                        { bg: 'rgba(175,82,222,0.10)', color: '#7b2fa8' },
-                        { bg: 'rgba(255,55,95,0.10)', color: '#b8003c' },
-                      ],
-                      icon: (
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <circle cx="10" cy="5" r="2.5"/>
-                          <path d="M6 20v-6l-2-4h12l-2 4v6" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M8 20v-5M12 20v-5" strokeLinecap="round"/>
-                        </svg>
-                      ),
-                      accent: '#30d158', accentBg: 'rgba(48,209,88,0.10)',
-                    },
-                    {
-                      id: 'still-life', label: 'Still Life',
-                      desc: 'Accessories & products shot without a model',
-                      pills: ['Front', 'Back', 'Side', 'Detail'],
-                      pillColors: [
-                        { bg: 'rgba(48,209,88,0.12)', color: '#1a8a35' },
-                        { bg: 'rgba(0,122,255,0.10)', color: '#005fc4' },
-                        { bg: 'rgba(255,159,10,0.12)', color: '#c27800' },
-                        { bg: 'rgba(255,59,48,0.10)', color: '#c41c00' },
-                      ],
-                      icon: (
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <rect x="3" y="7" width="14" height="10" rx="1.5"/>
-                          <path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/>
-                          <circle cx="10" cy="12" r="1.5"/>
-                        </svg>
-                      ),
-                      accent: '#0071e3', accentBg: 'rgba(0,113,227,0.10)',
-                    },
-                  ] as { id: ShootType; label: string; desc: string; pills: string[]; pillColors: {bg:string;color:string}[]; icon: React.ReactNode; accent: string; accentBg: string }[]).map(({ id, label, desc, pills, pillColors, icon, accent, accentBg }) => (
+            {/* Step progress bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '20px' }}>
+              {([1, 2, 3, 4] as const).map((n) => {
+                const isActive = activeStep === n
+                const isDone = stepDone[n] && activeStep > n
+                const isLocked = n > activeStep && !stepDone[n - 1]
+                return (
+                  <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: n < 4 ? 1 : 'none' }}>
                     <button
-                      key={id}
-                      type="button"
-                      onClick={() => { setShootType(id); if (id === 'on-model') { setAccessoryCategory(null); setStillLifeType(null) } }}
-                      style={{
-                        display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px',
-                        padding: '16px', borderRadius: '12px', textAlign: 'left',
-                        border: shootType === id ? `1.5px solid ${accent}` : '1px solid rgba(0,0,0,0.08)',
-                        background: shootType === id ? accentBg : 'rgba(0,0,0,0.02)',
-                        transition: 'all 0.15s', cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: shootType === id ? accentBg : 'rgba(0,0,0,0.05)', color: shootType === id ? accent : '#4e4e53', transition: 'all 0.15s' }}>
-                        {icon}
-                      </div>
-                      <div>
-                        <p style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '3px' }}>{label}</p>
-                        <p style={{ fontSize: '14px', color: '#4e4e53', lineHeight: 1.4 }}>{desc}</p>
-                      </div>
-                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                        {pills.map((pill, i) => (
-                          <span key={pill} style={{ fontSize: '13px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: pillColors[i]?.bg, color: pillColors[i]?.color }}>
-                            {pill}
-                          </span>
-                        ))}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Images per look + angle sequence — on-model only */}
-                {shootType === 'on-model' && (
-                <div className="border-t border-[var(--line)] pt-4">
-                  <div className="flex items-center justify-between mb-[8px]">
-                    <label className="text-[0.78rem] text-[var(--text2)] flex items-center gap-1">
-                      Images per Look
-                      <HelpTooltip
-                        position="right"
-                        width={220}
-                        content={
-                          <span>
-                            How many images make up <strong>one complete product</strong>. ShotSync.ai splits your uploaded files into groups of this size — in the same order your camera roll produces them.<br /><br />
-                            <strong>Example:</strong> If every product has a Front, Back, Side, Detail and Mood shot, set this to 5.
-                          </span>
-                        }
-                      />
-                    </label>
-                    {activeBrand && defaultImagesPerLook !== imagesPerLook && (
-                      <button
-                        onClick={() => {
-                          const n = defaultImagesPerLook
-                          setImagesPerLook(n)
-                          const base = activeBrand?.on_model_angle_sequence?.length ? activeBrand.on_model_angle_sequence : ALL_ON_MODEL_ANGLES
-                          const seq = [...base]
-                          while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
-                          setAngleSequence(seq.slice(0, n))
-                        }}
-                        className="text-[0.78rem] text-[var(--accent)] hover:underline flex-shrink-0"
-                      >
-                        Reset to brand default ({defaultImagesPerLook})
-                      </button>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => {
-                          setImagesPerLook(n)
-                          const seq = [...angleSequence]
-                          while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
-                          setAngleSequence(seq.slice(0, n))
-                        }}
-                        style={{
-                          width: '40px', height: '40px', borderRadius: '10px', border: 'none',
-                          fontSize: '15px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
-                          background: imagesPerLook === n ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
-                          color: imagesPerLook === n ? '#f5f5f7' : '#4e4e53',
-                          boxShadow: imagesPerLook === n ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                        }}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Angle sequence editor */}
-                  <div>
-                      <p className="text-[13px] text-[var(--text3)] mb-3">Shoot sequence — set the order your photographer shoots each angle</p>
-                      <div className="flex flex-col gap-[5px]">
-                        {angleSequence.slice(0, imagesPerLook).map((angle, idx) => {
-                          const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = {
-                            'front':       { bg: 'rgba(48,209,88,0.10)',  color: '#1a8a35', dot: '#30d158' },
-                            'back':        { bg: 'rgba(0,122,255,0.09)',  color: '#005fc4', dot: '#0071e3' },
-                            'side':        { bg: 'rgba(255,159,10,0.10)', color: '#c27800', dot: '#ff9f0a' },
-                            'full-length': { bg: 'rgba(175,82,222,0.10)', color: '#7b2fa8', dot: '#af52de' },
-                            'detail':      { bg: 'rgba(255,59,48,0.09)',  color: '#c41c00', dot: '#ff3b30' },
-                            'mood':        { bg: 'rgba(255,55,95,0.09)',  color: '#b8003c', dot: '#ff375f' },
-                            'front-3/4':   { bg: 'rgba(48,209,88,0.07)',  color: '#1a8a35', dot: '#30d158' },
-                            'back-3/4':    { bg: 'rgba(0,122,255,0.07)',  color: '#005fc4', dot: '#0071e3' },
-                          }
-                          const style = ANGLE_STYLE[angle] ?? { bg: 'rgba(0,0,0,0.05)', color: '#4e4e53', dot: '#4e4e53' }
-                          return (
-                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ width: '18px', fontSize: '15px', color: '#4e4e53', textAlign: 'right', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{idx + 1}</span>
-                              {/* Colored dot showing current angle */}
-                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: style.dot, flexShrink: 0 }} />
-                              <select
-                                value={angle}
-                                onChange={(e) => {
-                                  const seq = [...angleSequence]
-                                  seq[idx] = e.target.value
-                                  setAngleSequence(seq)
-                                }}
-                                style={{
-                                  flex: 1, background: style.bg, border: `1px solid ${style.color}30`,
-                                  borderRadius: '8px', padding: '5px 10px',
-                                  fontSize: '14px', fontWeight: 500, color: style.color,
-                                  outline: 'none', cursor: 'pointer', appearance: 'auto',
-                                }}
-                              >
-                                {ALL_ON_MODEL_ANGLES.map((a) => (
-                                  <option key={a} value={a}>{a}</option>
-                                ))}
-                              </select>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <button
-                                  type="button"
-                                  disabled={idx === 0}
-                                  onClick={() => {
-                                    const seq = [...angleSequence]
-                                    ;[seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]
-                                    setAngleSequence(seq)
-                                  }}
-                                  style={{ width: '20px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#4e4e53', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.2 : 1 }}
-                                >▲</button>
-                                <button
-                                  type="button"
-                                  disabled={idx >= imagesPerLook - 1}
-                                  onClick={() => {
-                                    const seq = [...angleSequence]
-                                    ;[seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]
-                                    setAngleSequence(seq)
-                                  }}
-                                  style={{ width: '20px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#4e4e53', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx >= imagesPerLook - 1 ? 0.2 : 1 }}
-                                >▼</button>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Still life category picker */}
-                {shootType === 'still-life' && (
-                  <div className="border-t border-[var(--line)] pt-4">
-                    <p className="text-[0.8rem] font-medium text-[var(--text2)] mb-1">Category</p>
-                    <p className="text-[0.86rem] text-[var(--text3)] mb-3">Select what you&apos;re shooting. Accessory type is detected automatically by AI after clustering.</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {ACCESSORY_CATEGORIES.filter((cat) => cat.id === 'ghost-mannequin' || cat.id === 'accessories').map((cat) => {
-                        const brandSeq = activeBrand?.still_life_angle_sequences?.[cat.id]
-                        const effectiveSeq: string[] = brandSeq && brandSeq.length > 0 ? brandSeq : (cat.angles as string[])
-                        const count = effectiveSeq.length
-                        const isSelected = stillLifeType === cat.id
-                        return (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => {
-                              setStillLifeType(cat.id)
-                              setImagesPerLook(count)
-                            }}
-                            className={`flex flex-col items-start px-3 py-2 rounded-sm border text-left transition-all ${
-                              isSelected
-                                ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.07)]'
-                                : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)] bg-[var(--bg3)]'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between w-full mb-[3px]">
-                              <span className={`text-[0.78rem] font-medium ${isSelected ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`}>{cat.label}</span>
-                              <span className="text-[0.83rem] font-medium text-[var(--text3)] bg-[var(--bg4)] px-[6px] py-[1px] rounded-full">{count} shots</span>
-                            </div>
-                            <span className="text-[0.83rem] text-[var(--text3)]">{effectiveSeq.join(' · ')}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                    {!stillLifeType && (
-                      <p className="text-[0.84rem] text-[var(--text3)] mt-2">Select a category to set the correct angle sequence and image count.</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Style List Import */}
-            <div className="card mb-6">
-              <div className="card-head">
-                <span className="card-title flex items-center gap-1">
-                  Style List
-                  <HelpTooltip
-                    position="bottom"
-                    width={260}
-                    content={
-                      <span>
-                        Upload your brand's range sheet (.xlsx or .csv) to <strong>auto-fill SKU, colour, and product name</strong> on every cluster.<br /><br />
-                        Matching works by finding the SKU from your spreadsheet inside the image filename — so include the SKU when naming your shoot files (e.g. <code style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>NS27502_BLACK_FRONT.jpg</code>).
-                      </span>
-                    }
-                  />
-                </span>
-                {styleList.length > 0 && (
-                  <span className="text-[0.78rem] text-[var(--accent2)]">{styleList.length} styles imported</span>
-                )}
-              </div>
-              <div className="card-body">
-                {styleList.length === 0 ? (
-                  <div
-                    onClick={() => styleListRef.current?.click()}
-                    className="border border-dashed border-[var(--line2)] rounded-sm px-4 py-5 flex items-center gap-3 cursor-pointer hover:border-[var(--accent)] hover:bg-[rgba(74,158,255,0.03)] transition-all"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--text3)" strokeWidth="1.5">
-                      <path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/>
-                      <path d="M8 2v7M5 5l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <div>
-                      <p className="text-[0.8rem] text-[var(--text2)]">Import style list <span className="text-[var(--text3)]">· optional</span></p>
-                      <p className="text-[0.78rem] text-[var(--text3)] mt-[2px]">Upload your brand's range list (.xlsx or .csv) to auto-populate SKUs on clusters</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 px-3 py-2 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm">
-                      <p className="text-[0.78rem] text-[var(--text)]">{styleListName}</p>
-                      <p className="text-[0.86rem] text-[var(--text3)] mt-[2px]">
-                        {styleList.length} styles · {[...new Set(styleList.map(e => e.colour).filter(Boolean))].length} colours
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => { setStyleListLocal([]); setStyleList([]); setStyleListName(null) }}
-                      className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-                <a
-                  href="/shotsync-range-list-template.csv"
-                  download="shotsync-range-list-template.csv"
-                  className="flex items-center gap-1.5 mt-2 text-[0.78rem] text-[var(--text3)] hover:text-[var(--accent)] transition-colors w-fit"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/>
-                    <path d="M8 2v7M5 9l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Download template CSV
-                </a>
-                <input
-                  ref={styleListRef}
-                  type="file"
-                  accept=".xlsx,.xls,.csv"
-                  className="hidden"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) importStyleList(f) }}
-                />
-              </div>
-            </div>
-
-            {/* Marketplace */}
-            <div className="card mb-6">
-              <div className="card-head">
-                <span className="card-title">Target Marketplaces</span>
-                <span className="text-[0.78rem] text-[var(--text3)]">{marketplaces.length} selected</span>
-              </div>
-              <div className="card-body">
-                <MarketplaceSelector selected={marketplaces} onChange={setMarketplaces} />
-              </div>
-            </div>
-
-            {/* Drop zone */}
-            <div className="card mb-6">
-              <div className="card-head">
-                <span className="card-title">Images</span>
-                {files.length > 0 && <span className="text-[0.78rem] text-[var(--text2)]">{files.length} selected</span>}
-              </div>
-              <div className="card-body">
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setIsDraggingOver(true) }}
-                  onDragLeave={() => setIsDraggingOver(false)}
-                  onDrop={onDrop}
-                  style={{
-                    borderRadius: '14px',
-                    border: isDraggingOver ? '2px dashed #30d158' : '2px dashed rgba(0,0,0,0.10)',
-                    background: isDraggingOver ? 'rgba(48,209,88,0.04)' : 'rgba(0,0,0,0.02)',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {files.length === 0 ? (
-                    <div onClick={() => inputRef.current?.click()} className="py-12 flex flex-col items-center gap-4 cursor-pointer">
-                      <div style={{ position: 'relative' }}>
-                        <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(48,209,88,0.15), rgba(0,113,227,0.15))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.5">
-                            <path d="M12 17V7M8 11l4-4 4 4" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M5 20h14" strokeLinecap="round"/>
-                          </svg>
-                        </div>
-                        {/* Small decorative image squares */}
-                        <div style={{ position: 'absolute', top: '-6px', right: '-10px', width: '20px', height: '20px', borderRadius: '5px', background: 'rgba(48,209,88,0.15)', border: '1px solid rgba(48,209,88,0.3)' }} />
-                        <div style={{ position: 'absolute', bottom: '-4px', left: '-10px', width: '16px', height: '16px', borderRadius: '4px', background: 'rgba(0,113,227,0.12)', border: '1px solid rgba(0,113,227,0.2)' }} />
-                      </div>
-                      <div className="text-center">
-                        <p style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Drop images here</p>
-                        <p style={{ fontSize: '14px', color: '#4e4e53' }}>or click to browse · JPG, PNG, HEIC · 500–1000+ images supported</p>
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        {['JPG', 'PNG', 'WebP', 'HEIC'].map((fmt) => (
-                          <span key={fmt} style={{ fontSize: '15px', fontWeight: 500, padding: '2px 8px', borderRadius: '20px', background: 'rgba(0,0,0,0.05)', color: '#4e4e53' }}>{fmt}</span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-3" ref={imageGridRef}>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-[0.78rem] font-medium text-[var(--text2)]">{files.length} images queued</p>
-                        <div className="flex items-center gap-3">
-                          <button onClick={() => inputRef.current?.click()} className="text-[0.8rem] text-[var(--accent)] hover:underline">+ Add more</button>
-                          <button onClick={() => { setFiles([]); setStep('config') }} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors">Clear all</button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-[3px]">
-                        {files.slice(0, 80).map((f, i) => (
-                          <div key={i} className="aspect-square rounded-[3px] overflow-hidden bg-[var(--bg4)]">
-                            <img
-                              src={URL.createObjectURL(f)}
-                              alt={f.name}
-                              className="w-full h-full object-cover"
-                              onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
-                            />
-                          </div>
-                        ))}
-                        {files.length > 80 && (
-                          <div className="aspect-square rounded-[3px] bg-[var(--bg4)] flex items-center justify-center">
-                            <span className="text-[0.83rem] text-[var(--text3)]">+{files.length - 80}</span>
-                          </div>
-                        )}
-                      </div>
-                      {plan.limits.imagesPerMonth !== -1 && (usage.imagesThisMonth + files.length) > plan.limits.imagesPerMonth && (
-                        <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-sm bg-[rgba(232,122,122,0.08)] border border-[rgba(232,122,122,0.2)]">
-                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent3)" strokeWidth="1.5" className="flex-shrink-0">
-                            <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
-                            <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
-                          </svg>
-                          <p className="text-[0.78rem] text-[var(--accent3)]">
-                            {files.length} images selected — you have {Math.max(0, plan.limits.imagesPerMonth - usage.imagesThisMonth).toLocaleString()} remaining this month.{' '}
-                            <button onClick={() => openUpgrade(`Upgrade to process more images per month`)} className="underline hover:no-underline">Upgrade</button>
-                          </p>
-                        </div>
-                      )}
-                      {rejectedFiles.length > 0 && (
-                        <div className="mt-2 rounded-sm border border-[rgba(255,159,10,0.25)] bg-[rgba(255,159,10,0.06)] px-3 py-2">
-                          <div className="flex items-start gap-2">
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent4)" strokeWidth="1.5" className="flex-shrink-0 mt-[1px]">
-                              <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
-                              <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
-                            </svg>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[0.78rem] font-medium text-[var(--accent4)]">
-                                {rejectedFiles.length} file{rejectedFiles.length > 1 ? 's' : ''} skipped
-                              </p>
-                              <p className="text-[0.84rem] text-[var(--text3)] mt-[2px]">
-                                Accepted formats: JPEG, PNG, WebP, HEIC · Max size: 25 MB per image
-                              </p>
-                              <ul className="mt-1 space-y-[2px]">
-                                {rejectedFiles.slice(0, 5).map((r, i) => (
-                                  <li key={i} className="text-[0.78rem] text-[var(--text3)] truncate">
-                                    <span className="font-medium text-[var(--text2)]">{r.name}</span> — {r.reason}
-                                  </li>
-                                ))}
-                                {rejectedFiles.length > 5 && (
-                                  <li className="text-[0.78rem] text-[var(--text3)]">…and {rejectedFiles.length - 5} more</li>
-                                )}
-                              </ul>
-                            </div>
-                            <button onClick={() => setRejectedFiles([])} className="flex-shrink-0 text-[var(--text3)] hover:text-[var(--text)] transition-colors">
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <path d="M1 1l10 10M11 1L1 11" strokeLinecap="round"/>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
-                </div>
-
-                {/* Cloud import */}
-                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-                  <p style={{ fontSize: '14px', color: '#4e4e53', marginBottom: '8px' }}>Or import from cloud</p>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {/* Dropbox */}
-                    <button
-                      onClick={importFromDropbox}
-                      disabled={!!cloudImporting}
+                      onClick={() => !isLocked && setActiveStep(n)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
-                        padding: '6px 12px', borderRadius: '8px',
-                        background: cloudImporting === 'dropbox' ? '#0061ff' : 'rgba(0,97,255,0.08)',
-                        color: cloudImporting === 'dropbox' ? '#fff' : '#0061ff',
-                        border: 'none', fontSize: '14px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                        padding: '5px 10px', borderRadius: '20px', border: 'none', cursor: isLocked ? 'default' : 'pointer',
+                        background: isActive ? 'rgba(0,122,255,0.12)' : isDone ? 'rgba(48,209,88,0.10)' : 'var(--bg3)',
                         transition: 'all 0.15s',
                       }}
                     >
-                      <svg width="12" height="12" viewBox="0 0 40 40" fill="currentColor">
-                        <path d="M20 8.3L10 15l10 6.7 10-6.7zm-10 13.4L0 15l10-6.7 10 6.7zm10-6.7L20 21.7 30 28.4l10-6.7zm-10 13.4L0 21.7l10-6.7 10 6.7zM20 30.1l10-6.7 10 6.7-10 6.7z"/>
-                      </svg>
-                      {cloudImporting === 'dropbox' ? 'Importing…' : 'Dropbox'}
+                      <div style={{
+                        width: '16px', height: '16px', borderRadius: '50%', flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700,
+                        background: isActive ? 'var(--accent)' : isDone ? '#30d158' : 'var(--bg4)',
+                        color: isActive || isDone ? '#fff' : 'var(--text3)',
+                      }}>
+                        {isDone ? (
+                          <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M1.5 4l2 2L6.5 2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        ) : n}
+                      </div>
+                      <span style={{ fontSize: '12px', fontWeight: 500, color: isActive ? 'var(--accent)' : isDone ? '#30d158' : 'var(--text3)', whiteSpace: 'nowrap' }}>
+                        {stepLabels[n]}
+                      </span>
                     </button>
-
-                    {/* Google Drive */}
-                    {activeBrand?.cloud_connections?.google_drive ? (
-                      <button
-                        onClick={() => { setGdriveBrowserOpen(true); loadGdriveFolder('root', 'My Drive', false) }}
-                        disabled={!!cloudImporting}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '6px',
-                          padding: '6px 12px', borderRadius: '8px',
-                          background: 'rgba(66,133,244,0.08)', color: '#4285f4',
-                          border: 'none', fontSize: '14px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
-                        }}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
-                          <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z"/>
-                          <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z"/>
-                          <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z"/>
-                          <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z"/>
-                          <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z"/>
-                          <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
-                        </svg>
-                        Google Drive · {(activeBrand.cloud_connections.google_drive as { email?: string }).email?.split('@')[0]}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={importFromGoogleDrive}
-                        disabled={!!cloudImporting}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '6px',
-                          padding: '6px 12px', borderRadius: '8px',
-                          background: cloudImporting === 'google-drive' ? '#4285f4' : 'rgba(66,133,244,0.08)',
-                          color: cloudImporting === 'google-drive' ? '#fff' : '#4285f4',
-                          border: 'none', fontSize: '14px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
-                          <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z"/>
-                          <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z"/>
-                          <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z"/>
-                          <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z"/>
-                          <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z"/>
-                          <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
-                        </svg>
-                        {cloudImporting === 'google-drive' ? 'Importing…' : 'Google Drive'}
-                      </button>
-                    )}
-
-                    {/* S3 */}
-                    {activeBrand?.cloud_connections?.s3?.bucket && (
-                      <button
-                        onClick={() => { setS3BrowserOpen(true); loadS3Folder(s3Prefix) }}
-                        disabled={!!cloudImporting}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '6px',
-                          padding: '6px 12px', borderRadius: '8px',
-                          background: 'rgba(255,153,0,0.08)', color: '#b36b00',
-                          border: 'none', fontSize: '14px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
-                        }}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-                          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-                        </svg>
-                        AWS S3 · {activeBrand.cloud_connections.s3.bucket}
-                      </button>
+                    {n < 4 && (
+                      <div style={{ flex: 1, height: '1px', background: stepDone[n] ? 'rgba(48,209,88,0.3)' : 'var(--line)' }} />
                     )}
                   </div>
+                )
+              })}
+            </div>
 
-                  {cloudImportError && (
-                    <p style={{ fontSize: '14px', color: '#ff3b30', marginTop: '6px' }}>{cloudImportError}</p>
+            {/* Step 1: Job Details */}
+            {(() => {
+              const n = 1
+              const isActive = activeStep === n
+              const isDone = step1Done
+              return (
+                <div style={{ border: `0.5px solid ${isActive ? 'var(--accent)' : 'var(--line)'}`, borderRadius: '16px', marginBottom: '10px', overflow: 'hidden', background: 'var(--bg2)' }}>
+                  <StepHeader n={n} isActive={isActive} isDone={isDone} isLocked={false}
+                    summary={isDone ? `${jobName}${activeBrand ? ` · ${activeBrand.name}` : ''}` : ''}
+                    onToggle={() => setActiveStep(isActive ? (isDone ? (1 as 1) : (1 as 1)) : (1 as 1))}
+                  />
+                  {isActive && (
+                    <div style={{ padding: '0 18px 18px', borderTop: '0.5px solid var(--line)' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', paddingTop: '16px' }}>
+                        <div>
+                          <label style={{ fontSize: '13px', color: 'var(--text2)', display: 'block', marginBottom: '6px' }}>Shoot Name</label>
+                          <input
+                            className="input"
+                            placeholder="e.g. SS25 Studio Shoot"
+                            value={jobName}
+                            onChange={(e) => setJobName(e.target.value)}
+                            onBlur={() => { if (jobName.trim()) setActiveStep(2) }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' && jobName.trim()) setActiveStep(2) }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '13px', color: 'var(--text2)', display: 'block', marginBottom: '6px' }}>Brand</label>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '35px', padding: '0 12px', background: 'var(--bg3)', border: '0.5px solid var(--line2)', borderRadius: 'var(--r)' }}>
+                            {activeBrand ? (
+                              <>
+                                <div style={{ width: '18px', height: '18px', borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 700, color: '#000', flexShrink: 0, background: activeBrand.logo_color, fontFamily: 'var(--font-dm-mono)' }}>{activeBrand.brand_code}</div>
+                                <span style={{ fontSize: '13px', color: 'var(--text)' }}>{activeBrand.name}</span>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: '13px', color: 'var(--text3)' }}>No brand selected</span>
+                            )}
+                          </div>
+                          <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>Switch brands from the sidebar</p>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => { if (jobName.trim()) setActiveStep(2) }}
+                          disabled={!jobName.trim()}
+                          className="btn btn-primary btn-sm"
+                        >
+                          Continue
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 6h6M7 4l2 2-2 2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
-            </div>
+              )
+            })()}
+
+            {/* Step 2: Shoot Setup */}
+            {(() => {
+              const n = 2
+              const isActive = activeStep === n
+              const isDone = activeStep > n
+              const isLocked = activeStep < n && !step1Done
+              const summary = `${shootType === 'on-model' ? 'On-model' : 'Still life'} · ${imagesPerLook} images`
+              return (
+                <div style={{ border: `0.5px solid ${isActive ? 'var(--accent)' : 'var(--line)'}`, borderRadius: '16px', marginBottom: '10px', overflow: 'hidden', background: 'var(--bg2)', opacity: isLocked ? 0.5 : 1 }}>
+                  <StepHeader n={n} isActive={isActive} isDone={isDone} isLocked={isLocked}
+                    summary={summary}
+                    onToggle={() => setActiveStep(isActive ? (3 as 3) : (2 as 2))}
+                  />
+                  {isActive && (
+                    <div style={{ padding: '0 18px 18px', borderTop: '0.5px solid var(--line)' }}>
+                      {/* Shoot type */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', paddingTop: '16px', marginBottom: '16px' }}>
+                        {([
+                          {
+                            id: 'on-model', label: 'On-Model',
+                            desc: 'Clothing worn by a model',
+                            pills: ['Front', 'Back', 'Side', 'Full-length', 'Mood'],
+                            pillDots: ['#30d158', '#4da3ff', '#ff9f0a', '#bf5af2', '#ff375f'],
+                            accent: '#30d158', accentBg: 'rgba(48,209,88,0.10)',
+                            icon: (
+                              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <circle cx="10" cy="5" r="2.5"/>
+                                <path d="M6 20v-6l-2-4h12l-2 4v6M8 20v-5M12 20v-5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            ),
+                          },
+                          {
+                            id: 'still-life', label: 'Still Life',
+                            desc: 'Accessories & products',
+                            pills: ['Front', 'Back', 'Side', 'Detail'],
+                            pillDots: ['#30d158', '#4da3ff', '#ff9f0a', '#ff453a'],
+                            accent: '#4da3ff', accentBg: 'rgba(0,122,255,0.10)',
+                            icon: (
+                              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <rect x="3" y="7" width="14" height="10" rx="1.5"/>
+                                <path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/>
+                                <circle cx="10" cy="12" r="1.5"/>
+                              </svg>
+                            ),
+                          },
+                        ] as { id: ShootType; label: string; desc: string; pills: string[]; pillDots: string[]; accent: string; accentBg: string; icon: React.ReactNode }[]).map(({ id, label, desc, pills, pillDots, accent, accentBg, icon }) => (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => { setShootType(id); if (id === 'on-model') { setAccessoryCategory(null); setStillLifeType(null) } }}
+                            style={{
+                              display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px',
+                              padding: '14px', borderRadius: '12px', textAlign: 'left', cursor: 'pointer',
+                              border: shootType === id ? `1.5px solid ${accent}` : '0.5px solid var(--line2)',
+                              background: shootType === id ? accentBg : 'var(--bg3)',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            <div style={{ width: '32px', height: '32px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: shootType === id ? accentBg : 'var(--bg4)', color: shootType === id ? accent : 'var(--text3)', transition: 'all 0.15s' }}>
+                              {icon}
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.2px', marginBottom: '2px' }}>{label}</p>
+                              <p style={{ fontSize: '13px', color: 'var(--text3)', lineHeight: 1.4 }}>{desc}</p>
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              {pills.map((pill, i) => (
+                                <span key={pill} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: 'var(--bg4)', color: 'var(--text3)' }}>
+                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: pillDots[i], flexShrink: 0 }} />
+                                  {pill}
+                                </span>
+                              ))}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Still life category */}
+                      {shootType === 'still-life' && (
+                        <div style={{ borderTop: '0.5px solid var(--line)', paddingTop: '14px', marginBottom: '14px' }}>
+                          <p style={{ fontSize: '13px', color: 'var(--text2)', fontWeight: 500, marginBottom: '4px' }}>Category</p>
+                          <p style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '10px' }}>Select what you&apos;re shooting</p>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            {ACCESSORY_CATEGORIES.filter((cat) => cat.id === 'ghost-mannequin' || cat.id === 'accessories').map((cat) => {
+                              const brandSeq = activeBrand?.still_life_angle_sequences?.[cat.id]
+                              const effectiveSeq: string[] = brandSeq && brandSeq.length > 0 ? brandSeq : (cat.angles as string[])
+                              const count = effectiveSeq.length
+                              const isSelected = stillLifeType === cat.id
+                              return (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  onClick={() => { setStillLifeType(cat.id); setImagesPerLook(count) }}
+                                  style={{
+                                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '10px 12px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer',
+                                    border: isSelected ? '1.5px solid var(--accent)' : '0.5px solid var(--line2)',
+                                    background: isSelected ? 'var(--accent-glow)' : 'var(--bg3)',
+                                    transition: 'all 0.15s',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '3px' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: 500, color: isSelected ? 'var(--accent)' : 'var(--text)' }}>{cat.label}</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--text3)', background: 'var(--bg4)', padding: '1px 6px', borderRadius: '99px' }}>{count} shots</span>
+                                  </div>
+                                  <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{effectiveSeq.join(' · ')}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Images per look + angle sequence — on-model only */}
+                      {shootType === 'on-model' && (
+                        <div style={{ borderTop: '0.5px solid var(--line)', paddingTop: '14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <label style={{ fontSize: '13px', color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              Images per Look
+                              <HelpTooltip position="right" width={220} content={
+                                <span>How many images make up <strong>one complete product</strong>. ShotSync.ai splits your uploaded files into groups of this size.</span>
+                              } />
+                            </label>
+                            {activeBrand && defaultImagesPerLook !== imagesPerLook && (
+                              <button
+                                onClick={() => {
+                                  const n = defaultImagesPerLook
+                                  setImagesPerLook(n)
+                                  const base = activeBrand?.on_model_angle_sequence?.length ? activeBrand.on_model_angle_sequence : ALL_ON_MODEL_ANGLES
+                                  const seq = [...base]
+                                  while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
+                                  setAngleSequence(seq.slice(0, n))
+                                }}
+                                style={{ fontSize: '12px', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}
+                              >
+                                Reset to brand default ({defaultImagesPerLook})
+                              </button>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                onClick={() => {
+                                  setImagesPerLook(n)
+                                  const seq = [...angleSequence]
+                                  while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
+                                  setAngleSequence(seq.slice(0, n))
+                                }}
+                                style={{
+                                  width: '36px', height: '36px', borderRadius: '9px', border: 'none', cursor: 'pointer',
+                                  fontSize: '14px', fontWeight: 600, transition: 'all 0.15s',
+                                  background: imagesPerLook === n ? 'var(--text)' : 'var(--bg3)',
+                                  color: imagesPerLook === n ? 'var(--bg)' : 'var(--text3)',
+                                }}
+                              >{n}</button>
+                            ))}
+                          </div>
+
+                          {/* Drag-to-reorder angle sequence */}
+                          <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '8px' }}>Shoot sequence — drag to reorder</p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {angleSequence.slice(0, imagesPerLook).map((angle, idx) => {
+                              const st = ANGLE_STYLE[angle] ?? { bg: 'var(--bg3)', color: 'var(--text3)', dot: 'var(--text3)' }
+                              const isOver = dragOverIdx === idx && dragIdx !== null && dragIdx !== idx
+                              return (
+                                <div
+                                  key={idx}
+                                  draggable
+                                  onDragStart={() => setDragIdx(idx)}
+                                  onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx) }}
+                                  onDrop={() => {
+                                    if (dragIdx !== null && dragIdx !== idx) {
+                                      const seq = [...angleSequence]
+                                      const [item] = seq.splice(dragIdx, 1)
+                                      seq.splice(idx, 0, item)
+                                      setAngleSequence(seq)
+                                    }
+                                    setDragIdx(null)
+                                    setDragOverIdx(null)
+                                  }}
+                                  onDragEnd={() => { setDragIdx(null); setDragOverIdx(null) }}
+                                  style={{
+                                    display: 'flex', alignItems: 'center', gap: '8px',
+                                    padding: '6px 8px', borderRadius: '8px', cursor: 'grab',
+                                    background: isOver ? 'var(--accent-glow)' : dragIdx === idx ? 'var(--bg4)' : 'transparent',
+                                    border: `0.5px solid ${isOver ? 'var(--accent)' : 'transparent'}`,
+                                    transition: 'background 0.1s',
+                                    opacity: dragIdx === idx ? 0.5 : 1,
+                                  }}
+                                >
+                                  {/* Drag handle */}
+                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="var(--text3)" style={{ flexShrink: 0, cursor: 'grab' }}>
+                                    <rect x="2" y="2" width="2" height="2" rx="1"/><rect x="8" y="2" width="2" height="2" rx="1"/>
+                                    <rect x="2" y="5" width="2" height="2" rx="1"/><rect x="8" y="5" width="2" height="2" rx="1"/>
+                                    <rect x="2" y="8" width="2" height="2" rx="1"/><rect x="8" y="8" width="2" height="2" rx="1"/>
+                                  </svg>
+                                  <span style={{ width: '16px', fontSize: '12px', color: 'var(--text3)', textAlign: 'right', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{idx + 1}</span>
+                                  <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: st.dot, flexShrink: 0 }} />
+                                  <select
+                                    value={angle}
+                                    onChange={(e) => {
+                                      const seq = [...angleSequence]
+                                      seq[idx] = e.target.value
+                                      setAngleSequence(seq)
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                      flex: 1, background: st.bg, border: `0.5px solid ${st.dot}30`,
+                                      borderRadius: '7px', padding: '4px 8px',
+                                      fontSize: '13px', fontWeight: 500, color: st.color,
+                                      outline: 'none', cursor: 'pointer', appearance: 'auto',
+                                    }}
+                                  >
+                                    {ALL_ON_MODEL_ANGLES.map((a) => (
+                                      <option key={a} value={a}>{a}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <button onClick={() => setActiveStep(3)} className="btn btn-primary btn-sm">
+                          Continue
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 6h6M7 4l2 2-2 2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* Step 3: Marketplaces */}
+            {(() => {
+              const n = 3
+              const isActive = activeStep === n
+              const isDone = activeStep > n && step3Done
+              const isLocked = activeStep < n
+              const summary = marketplaces.length > 0 ? `${marketplaces.length} selected` : ''
+              return (
+                <div style={{ border: `0.5px solid ${isActive ? 'var(--accent)' : 'var(--line)'}`, borderRadius: '16px', marginBottom: '10px', overflow: 'hidden', background: 'var(--bg2)', opacity: isLocked ? 0.5 : 1 }}>
+                  <StepHeader n={n} isActive={isActive} isDone={isDone} isLocked={isLocked}
+                    summary={summary}
+                    onToggle={() => setActiveStep(isActive ? (4 as 4) : (3 as 3))}
+                  />
+                  {isActive && (
+                    <div style={{ padding: '0 18px 18px', borderTop: '0.5px solid var(--line)' }}>
+                      <div style={{ paddingTop: '16px' }}>
+                        <MarketplaceSelector selected={marketplaces} onChange={setMarketplaces} />
+                      </div>
+                      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <button onClick={() => setActiveStep(4)} className="btn btn-primary btn-sm" disabled={marketplaces.length === 0}>
+                          Continue
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 6h6M7 4l2 2-2 2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* Step 4: Upload Images */}
+            {(() => {
+              const n = 4
+              const isActive = activeStep === n
+              const isDone = step4Done
+              const isLocked = activeStep < n
+              const summary = files.length > 0 ? `${files.length} images` : ''
+              return (
+                <div style={{ border: `0.5px solid ${isActive ? 'var(--accent)' : 'var(--line)'}`, borderRadius: '16px', overflow: 'hidden', background: 'var(--bg2)', opacity: isLocked ? 0.5 : 1 }}>
+                  <StepHeader n={n} isActive={isActive} isDone={isDone} isLocked={isLocked}
+                    summary={summary}
+                    onToggle={() => !isLocked && setActiveStep(4)}
+                  />
+                  {isActive && (
+                    <div style={{ padding: '0 18px 18px', borderTop: '0.5px solid var(--line)' }}>
+                      <div style={{ paddingTop: '16px' }}>
+
+                        {/* Style list */}
+                        <div style={{ marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <label style={{ fontSize: '13px', color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              Style List
+                              <HelpTooltip position="bottom" width={260} content={
+                                <span>Upload your brand&apos;s range sheet (.xlsx or .csv) to <strong>auto-fill SKU, colour, and product name</strong> on every cluster.</span>
+                              } />
+                              <span style={{ fontSize: '12px', color: 'var(--text3)', marginLeft: '2px' }}>· optional</span>
+                            </label>
+                            {styleList.length > 0 && (
+                              <span style={{ fontSize: '12px', color: '#30d158' }}>{styleList.length} styles imported</span>
+                            )}
+                          </div>
+                          {styleList.length === 0 ? (
+                            <div
+                              onClick={() => styleListRef.current?.click()}
+                              style={{ border: '0.5px dashed var(--line2)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', transition: 'all 0.15s' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLElement).style.background = 'var(--accent-glow)' }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = ''; (e.currentTarget as HTMLElement).style.background = '' }}
+                            >
+                              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--text3)" strokeWidth="1.5">
+                                <path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/>
+                                <path d="M8 2v7M5 5l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              <span style={{ fontSize: '13px', color: 'var(--text3)' }}>Click to import range sheet (.xlsx or .csv)</span>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ flex: 1, padding: '8px 12px', background: 'var(--bg3)', border: '0.5px solid var(--line2)', borderRadius: '9px' }}>
+                                <p style={{ fontSize: '13px', color: 'var(--text)' }}>{styleListName}</p>
+                                <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
+                                  {styleList.length} styles · {[...new Set(styleList.map(e => e.colour).filter(Boolean))].length} colours
+                                </p>
+                              </div>
+                              <button onClick={() => { setStyleListLocal([]); setStyleList([]); setStyleListName(null) }} style={{ fontSize: '13px', color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                                Remove
+                              </button>
+                            </div>
+                          )}
+                          <a
+                            href="/shotsync-range-list-template.csv"
+                            download="shotsync-range-list-template.csv"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px', fontSize: '12px', color: 'var(--text3)' }}
+                          >
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/>
+                              <path d="M8 2v7M5 9l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Download template CSV
+                          </a>
+                          <input ref={styleListRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importStyleList(f) }} />
+                        </div>
+
+                        {/* Drop zone */}
+                        <div
+                          onDragOver={(e) => { e.preventDefault(); setIsDraggingOver(true) }}
+                          onDragLeave={() => setIsDraggingOver(false)}
+                          onDrop={onDrop}
+                          style={{
+                            borderRadius: '12px',
+                            border: isDraggingOver ? '2px dashed #30d158' : '2px dashed var(--line2)',
+                            background: isDraggingOver ? 'rgba(48,209,88,0.04)' : 'var(--bg3)',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {files.length === 0 ? (
+                            <div onClick={() => inputRef.current?.click()} style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+                              <div style={{ position: 'relative' }}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, rgba(48,209,88,0.15), rgba(0,122,255,0.15))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" strokeWidth="1.5">
+                                    <path d="M12 17V7M8 11l4-4 4 4" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M5 20h14" strokeLinecap="round"/>
+                                  </svg>
+                                </div>
+                                <div style={{ position: 'absolute', top: '-5px', right: '-9px', width: '18px', height: '18px', borderRadius: '4px', background: 'rgba(48,209,88,0.15)', border: '1px solid rgba(48,209,88,0.3)' }} />
+                                <div style={{ position: 'absolute', bottom: '-4px', left: '-9px', width: '14px', height: '14px', borderRadius: '3px', background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.2)' }} />
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                <p style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text)', marginBottom: '3px' }}>Drop images here</p>
+                                <p style={{ fontSize: '13px', color: 'var(--text3)' }}>or click to browse · JPG, PNG, HEIC · 500–1000+ images supported</p>
+                              </div>
+                              <div style={{ display: 'flex', gap: '5px' }}>
+                                {['JPG', 'PNG', 'WebP', 'HEIC'].map((fmt) => (
+                                  <span key={fmt} style={{ fontSize: '12px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: 'var(--bg4)', color: 'var(--text3)' }}>{fmt}</span>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ padding: '12px' }} ref={imageGridRef}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text2)' }}>{files.length} images queued</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <button onClick={() => inputRef.current?.click()} style={{ fontSize: '13px', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>+ Add more</button>
+                                  <button onClick={() => { setFiles([]); setActiveStep(4) }} style={{ fontSize: '13px', color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer' }}>Clear all</button>
+                                </div>
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(52px, 1fr))', gap: '3px' }}>
+                                {files.slice(0, 80).map((f, i) => (
+                                  <div key={i} style={{ aspectRatio: '1', borderRadius: '3px', overflow: 'hidden', background: 'var(--bg4)' }}>
+                                    <img src={URL.createObjectURL(f)} alt={f.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)} />
+                                  </div>
+                                ))}
+                                {files.length > 80 && (
+                                  <div style={{ aspectRatio: '1', borderRadius: '3px', background: 'var(--bg4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <span style={{ fontSize: '12px', color: 'var(--text3)' }}>+{files.length - 80}</span>
+                                  </div>
+                                )}
+                              </div>
+                              {plan.limits.imagesPerMonth !== -1 && (usage.imagesThisMonth + files.length) > plan.limits.imagesPerMonth && (
+                                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)' }}>
+                                  <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent3)" strokeWidth="1.5" style={{ flexShrink: 0 }}>
+                                    <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
+                                    <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
+                                  </svg>
+                                  <p style={{ fontSize: '12px', color: 'var(--accent3)' }}>
+                                    {files.length} selected — {Math.max(0, plan.limits.imagesPerMonth - usage.imagesThisMonth).toLocaleString()} remaining this month.{' '}
+                                    <button onClick={() => openUpgrade('Upgrade to process more images per month')} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit' }}>Upgrade</button>
+                                  </p>
+                                </div>
+                              )}
+                              {rejectedFiles.length > 0 && (
+                                <div style={{ marginTop: '8px', borderRadius: '8px', border: '0.5px solid rgba(255,159,10,0.25)', background: 'rgba(255,159,10,0.06)', padding: '8px 12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent4)" strokeWidth="1.5" style={{ flexShrink: 0, marginTop: '1px' }}>
+                                      <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
+                                      <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
+                                    </svg>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--accent4)' }}>{rejectedFiles.length} file{rejectedFiles.length > 1 ? 's' : ''} skipped</p>
+                                      <ul style={{ marginTop: '4px' }}>
+                                        {rejectedFiles.slice(0, 5).map((r, i) => (
+                                          <li key={i} style={{ fontSize: '12px', color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            <span style={{ fontWeight: 500, color: 'var(--text2)' }}>{r.name}</span> — {r.reason}
+                                          </li>
+                                        ))}
+                                        {rejectedFiles.length > 5 && <li style={{ fontSize: '12px', color: 'var(--text3)' }}>…and {rejectedFiles.length - 5} more</li>}
+                                      </ul>
+                                    </div>
+                                    <button onClick={() => setRejectedFiles([])} style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)' }}>
+                                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <path d="M1 1l10 10M11 1L1 11" strokeLinecap="round"/>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
+                        </div>
+
+                        {/* Cloud import */}
+                        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '0.5px solid var(--line)' }}>
+                          <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '8px' }}>Or import from cloud</p>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <button
+                              onClick={importFromDropbox}
+                              disabled={!!cloudImporting}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '6px',
+                                padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: cloudImporting ? 'wait' : 'pointer',
+                                background: cloudImporting === 'dropbox' ? '#0061ff' : 'rgba(0,97,255,0.10)',
+                                color: cloudImporting === 'dropbox' ? '#fff' : '#4da3ff',
+                                fontSize: '13px', fontWeight: 500, transition: 'all 0.15s',
+                              }}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 40 40" fill="currentColor">
+                                <path d="M20 8.3L10 15l10 6.7 10-6.7zm-10 13.4L0 15l10-6.7 10 6.7zm10-6.7L20 21.7 30 28.4l10-6.7zm-10 13.4L0 21.7l10-6.7 10 6.7zM20 30.1l10-6.7 10 6.7-10 6.7z"/>
+                              </svg>
+                              {cloudImporting === 'dropbox' ? 'Importing…' : 'Dropbox'}
+                            </button>
+
+                            {activeBrand?.cloud_connections?.google_drive ? (
+                              <button
+                                onClick={() => { setGdriveBrowserOpen(true); loadGdriveFolder('root', 'My Drive', false) }}
+                                disabled={!!cloudImporting}
+                                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: cloudImporting ? 'wait' : 'pointer', background: 'rgba(66,133,244,0.10)', color: '#4285f4', fontSize: '13px', fontWeight: 500 }}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
+                                  <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z"/>
+                                  <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z"/>
+                                  <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z"/>
+                                  <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z"/>
+                                  <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z"/>
+                                  <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
+                                </svg>
+                                Google Drive · {(activeBrand.cloud_connections.google_drive as { email?: string }).email?.split('@')[0]}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={importFromGoogleDrive}
+                                disabled={!!cloudImporting}
+                                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: cloudImporting ? 'wait' : 'pointer', background: cloudImporting === 'google-drive' ? '#4285f4' : 'rgba(66,133,244,0.10)', color: cloudImporting === 'google-drive' ? '#fff' : '#4285f4', fontSize: '13px', fontWeight: 500, transition: 'all 0.15s' }}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
+                                  <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.1c0 1.55.4 3.1 1.2 4.5z"/>
+                                  <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 49.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z"/>
+                                  <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.85l5.87 11.2z"/>
+                                  <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z"/>
+                                  <path d="M59.85 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z"/>
+                                  <path d="M73.4 26.5l-13.1-22.7c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.2 28h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
+                                </svg>
+                                {cloudImporting === 'google-drive' ? 'Importing…' : 'Google Drive'}
+                              </button>
+                            )}
+
+                            {activeBrand?.cloud_connections?.s3?.bucket && (
+                              <button
+                                onClick={() => { setS3BrowserOpen(true); loadS3Folder(s3Prefix) }}
+                                disabled={!!cloudImporting}
+                                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: cloudImporting ? 'wait' : 'pointer', background: 'rgba(255,153,0,0.10)', color: '#ff9f0a', fontSize: '13px', fontWeight: 500 }}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                                </svg>
+                                AWS S3 · {activeBrand.cloud_connections.s3.bucket}
+                              </button>
+                            )}
+                          </div>
+                          {cloudImportError && (
+                            <p style={{ fontSize: '13px', color: 'var(--accent3)', marginTop: '6px' }}>{cloudImportError}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* S3 Browser Modal */}
             {s3BrowserOpen && (
-              <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
-                <div style={{ background: 'var(--bg)', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '16px', width: '560px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }}>
+                <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', width: '560px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <p style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f' }}>S3 Browser</p>
-                      <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>S3 Browser</p>
+                      <p style={{ fontSize: '13px', color: 'var(--text3)', marginTop: '2px' }}>
                         {activeBrand?.cloud_connections?.s3?.bucket}{s3Prefix ? ` / ${s3Prefix}` : ''}
                       </p>
                     </div>
-                    <button onClick={() => setS3BrowserOpen(false)} style={{ color: '#4e4e53', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>×</button>
+                    <button onClick={() => setS3BrowserOpen(false)} style={{ color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
                   </div>
-
                   <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
                     {s3Loading ? (
-                      <div style={{ padding: '32px', textAlign: 'center', color: '#4e4e53', fontSize: '14px' }}>Loading…</div>
+                      <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text3)', fontSize: '13px' }}>Loading…</div>
                     ) : (
                       <>
                         {s3Prefix && (
-                          <button
-                            onClick={() => loadS3Folder(s3Prefix.split('/').slice(0, -2).join('/') + (s3Prefix.includes('/') ? '/' : ''))}
-                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#005fc4', display: 'flex', alignItems: 'center', gap: '6px' }}
-                          >
+                          <button onClick={() => loadS3Folder(s3Prefix.split('/').slice(0, -2).join('/') + (s3Prefix.includes('/') ? '/' : ''))} style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 3L5 7l4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             Back
                           </button>
                         )}
                         {s3Folders.map((folder) => (
-                          <button
-                            key={folder.key}
-                            onClick={() => loadS3Folder(folder.key)}
-                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '8px' }}
-                          >
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#4e4e53" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          <button key={folder.key} onClick={() => loadS3Folder(folder.key)} style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             {folder.name}/
                           </button>
                         ))}
                         {s3Files.map((file) => (
-                          <label
-                            key={file.id}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px', cursor: 'pointer', background: s3Selected.has(file.id) ? 'rgba(0,113,227,0.06)' : 'transparent' }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={s3Selected.has(file.id)}
-                              onChange={(e) => setS3Selected((prev) => {
-                                const next = new Set(prev)
-                                e.target.checked ? next.add(file.id) : next.delete(file.id)
-                                return next
-                              })}
-                              style={{ width: '14px', height: '14px', accentColor: '#0071e3', flexShrink: 0 }}
-                            />
-                            <span style={{ fontSize: '14px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                            <span style={{ fontSize: '15px', color: '#4e4e53', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                          <label key={file.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px', cursor: 'pointer', background: s3Selected.has(file.id) ? 'var(--accent-glow)' : 'transparent' }}>
+                            <input type="checkbox" checked={s3Selected.has(file.id)} onChange={(e) => setS3Selected((prev) => { const next = new Set(prev); e.target.checked ? next.add(file.id) : next.delete(file.id); return next })} style={{ width: '14px', height: '14px', accentColor: 'var(--accent)', flexShrink: 0 }} />
+                            <span style={{ fontSize: '13px', color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                            <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
                           </label>
                         ))}
                         {s3Files.length === 0 && s3Folders.length === 0 && !s3Loading && (
-                          <p style={{ padding: '32px', textAlign: 'center', color: '#4e4e53', fontSize: '14px' }}>No image files found in this location.</p>
+                          <p style={{ padding: '32px', textAlign: 'center', color: 'var(--text3)', fontSize: '13px' }}>No image files found in this location.</p>
                         )}
                       </>
                     )}
                   </div>
-
-                  <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <p style={{ fontSize: '14px', color: '#4e4e53' }}>
-                      {s3Selected.size > 0 ? `${s3Selected.size} selected` : `${s3Files.length} files`}
-                      {s3Files.length === 0 && s3Folders.length > 0 ? '' : ''}
-                    </p>
+                  <div style={{ padding: '12px 20px', borderTop: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text3)' }}>{s3Selected.size > 0 ? `${s3Selected.size} selected` : `${s3Files.length} files`}</p>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       {s3Files.length > 0 && (
-                        <button
-                          onClick={() => setS3Selected(s3Selected.size === s3Files.length ? new Set() : new Set(s3Files.map((f) => f.id)))}
-                          style={{ fontSize: '14px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
-                        >
+                        <button onClick={() => setS3Selected(s3Selected.size === s3Files.length ? new Set() : new Set(s3Files.map((f) => f.id)))} style={{ fontSize: '13px', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>
                           {s3Selected.size === s3Files.length ? 'Deselect all' : 'Select all'}
                         </button>
                       )}
-                      <button
-                        onClick={importFromS3}
-                        disabled={s3Selected.size === 0 || cloudImporting === 's3'}
-                        style={{
-                          padding: '6px 14px', borderRadius: '8px',
-                          background: s3Selected.size > 0 ? '#1d1d1f' : 'rgba(0,0,0,0.08)',
-                          color: s3Selected.size > 0 ? '#f5f5f7' : '#4e4e53',
-                          border: 'none', fontSize: '14px', fontWeight: 500,
-                          cursor: s3Selected.size > 0 ? 'pointer' : 'default',
-                        }}
-                      >
+                      <button onClick={importFromS3} disabled={s3Selected.size === 0 || cloudImporting === 's3'} className="btn btn-primary btn-sm">
                         {cloudImporting === 's3' ? 'Importing…' : `Import ${s3Selected.size > 0 ? s3Selected.size : ''} file${s3Selected.size !== 1 ? 's' : ''}`}
                       </button>
                     </div>
@@ -1233,109 +1313,69 @@ export default function UploadPage() {
 
             {/* Google Drive Browser Modal */}
             {gdriveBrowserOpen && (
-              <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
-                <div style={{ background: 'var(--bg)', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '16px', width: '560px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }}>
+                <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', width: '560px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <p style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f' }}>Google Drive</p>
-                      <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>Google Drive</p>
+                      <p style={{ fontSize: '13px', color: 'var(--text3)', marginTop: '2px' }}>
                         {gdriveFolderStack.length === 0 ? 'My Drive' : gdriveFolderStack.map((f) => f.name).join(' / ')}
                       </p>
                     </div>
-                    <button onClick={() => setGdriveBrowserOpen(false)} style={{ color: '#4e4e53', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>×</button>
+                    <button onClick={() => setGdriveBrowserOpen(false)} style={{ color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
                   </div>
-
                   <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
                     {gdriveLoading ? (
-                      <div style={{ padding: '32px', textAlign: 'center', color: '#4e4e53', fontSize: '14px' }}>Loading…</div>
+                      <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text3)', fontSize: '13px' }}>Loading…</div>
                     ) : gdriveError ? (
                       <div style={{ padding: '32px', textAlign: 'center' }}>
-                        <p style={{ fontSize: '14px', color: '#ff3b30', marginBottom: '8px' }}>{gdriveError}</p>
+                        <p style={{ fontSize: '13px', color: 'var(--accent3)', marginBottom: '8px' }}>{gdriveError}</p>
                         {gdriveError.includes('reconnect') && (
-                          <a href="/dashboard/integrations" style={{ fontSize: '14px', color: '#005fc4' }}>Go to Settings → Integrations</a>
+                          <a href="/dashboard/integrations" style={{ fontSize: '13px', color: 'var(--accent)' }}>Go to Settings → Integrations</a>
                         )}
                       </div>
                     ) : (
                       <>
                         {gdriveFolderStack.length > 0 && (
-                          <button
-                            onClick={gdriveGoBack}
-                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#005fc4', display: 'flex', alignItems: 'center', gap: '6px' }}
-                          >
+                          <button onClick={gdriveGoBack} style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 3L5 7l4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             Back
                           </button>
                         )}
                         {gdriveFolders.map((folder) => (
-                          <button
-                            key={folder.id}
-                            onClick={() => loadGdriveFolder(folder.id, folder.name, true)}
-                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '8px' }}
-                          >
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#4e4e53" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          <button key={folder.id} onClick={() => loadGdriveFolder(folder.id, folder.name, true)} style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             {folder.name}/
                           </button>
                         ))}
                         {gdriveFiles.map((file) => {
                           const tooLarge = file.size > 3 * 1024 * 1024
                           return (
-                            <label
-                              key={file.id}
-                              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px', cursor: tooLarge ? 'not-allowed' : 'pointer', background: gdriveSelected.has(file.id) ? 'rgba(66,133,244,0.06)' : 'transparent', opacity: tooLarge ? 0.45 : 1 }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={gdriveSelected.has(file.id)}
-                                disabled={tooLarge}
-                                onChange={(e) => setGdriveSelected((prev) => {
-                                  const next = new Set(prev)
-                                  e.target.checked ? next.add(file.id) : next.delete(file.id)
-                                  return next
-                                })}
-                                style={{ width: '14px', height: '14px', accentColor: '#4285f4', flexShrink: 0 }}
-                              />
-                              <span style={{ fontSize: '14px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                            <label key={file.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px', cursor: tooLarge ? 'not-allowed' : 'pointer', background: gdriveSelected.has(file.id) ? 'var(--accent-glow)' : 'transparent', opacity: tooLarge ? 0.45 : 1 }}>
+                              <input type="checkbox" checked={gdriveSelected.has(file.id)} disabled={tooLarge} onChange={(e) => setGdriveSelected((prev) => { const next = new Set(prev); e.target.checked ? next.add(file.id) : next.delete(file.id); return next })} style={{ width: '14px', height: '14px', accentColor: 'var(--accent)', flexShrink: 0 }} />
+                              <span style={{ fontSize: '13px', color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
                               {tooLarge
-                                ? <span style={{ fontSize: '15px', color: '#ff3b30', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB · too large</span>
-                                : <span style={{ fontSize: '15px', color: '#4e4e53', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                                ? <span style={{ fontSize: '12px', color: 'var(--accent3)', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB · too large</span>
+                                : <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
                               }
                             </label>
                           )
                         })}
                         {gdriveFiles.length === 0 && gdriveFolders.length === 0 && !gdriveLoading && (
-                          <p style={{ padding: '32px', textAlign: 'center', color: '#4e4e53', fontSize: '14px' }}>No image files found in this location.</p>
+                          <p style={{ padding: '32px', textAlign: 'center', color: 'var(--text3)', fontSize: '13px' }}>No image files found in this location.</p>
                         )}
                       </>
                     )}
                   </div>
-
-                  <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <p style={{ fontSize: '14px', color: '#4e4e53' }}>
-                      {gdriveSelected.size > 0 ? `${gdriveSelected.size} selected` : `${gdriveFiles.length} files`}
-                    </p>
+                  <div style={{ padding: '12px 20px', borderTop: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text3)' }}>{gdriveSelected.size > 0 ? `${gdriveSelected.size} selected` : `${gdriveFiles.length} files`}</p>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       {gdriveFiles.length > 0 && (
-                        <button
-                          onClick={() => {
-                            const eligible = gdriveFiles.filter((f) => f.size <= 3 * 1024 * 1024).map((f) => f.id)
-                            setGdriveSelected(gdriveSelected.size === eligible.length ? new Set() : new Set(eligible))
-                          }}
-                          style={{ fontSize: '14px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
-                        >
+                        <button onClick={() => { const eligible = gdriveFiles.filter((f) => f.size <= 3 * 1024 * 1024).map((f) => f.id); setGdriveSelected(gdriveSelected.size === eligible.length ? new Set() : new Set(eligible)) }} style={{ fontSize: '13px', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>
                           {gdriveSelected.size === gdriveFiles.filter((f) => f.size <= 3 * 1024 * 1024).length ? 'Deselect all' : 'Select all'}
                         </button>
                       )}
-                      <button
-                        onClick={importFromGdriveBrowser}
-                        disabled={gdriveSelected.size === 0 || cloudImporting === 'google-drive'}
-                        style={{
-                          padding: '6px 14px', borderRadius: '8px',
-                          background: gdriveSelected.size > 0 ? '#1d1d1f' : 'rgba(0,0,0,0.08)',
-                          color: gdriveSelected.size > 0 ? '#f5f5f7' : '#4e4e53',
-                          border: 'none', fontSize: '14px', fontWeight: 500,
-                          cursor: gdriveSelected.size > 0 ? 'pointer' : 'default',
-                        }}
-                      >
+                      <button onClick={importFromGdriveBrowser} disabled={gdriveSelected.size === 0 || cloudImporting === 'google-drive'} className="btn btn-primary btn-sm">
                         {gdriveDownloadProgress
                           ? `Downloading ${gdriveDownloadProgress.done} of ${gdriveDownloadProgress.total}…`
                           : `Import ${gdriveSelected.size > 0 ? gdriveSelected.size : ''} file${gdriveSelected.size !== 1 ? 's' : ''}`}
@@ -1345,58 +1385,46 @@ export default function UploadPage() {
                 </div>
               </div>
             )}
-
-            {files.length > 0 && (
-              <div className="flex justify-end gap-3">
-                <button onClick={() => { setFiles([]); setStep('config') }} className="btn btn-ghost">Clear</button>
-                <button onClick={handleProcess} className="btn btn-primary">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M7 1l4 4-4 4M3 5h8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Process {files.length} Images
-                </button>
-              </div>
-            )}
           </>
         )}
+      </div>
 
-        {/* Processing state */}
-        {step === 'processing' && (
-          <div className="max-w-[520px] mx-auto mt-12">
-            <div className="flex flex-col items-center gap-6">
-              <div className="w-16 h-16 rounded-full bg-[rgba(232,217,122,0.1)] border border-[rgba(232,217,122,0.3)] flex items-center justify-center">
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="var(--accent)" strokeWidth="1.5" className="animate-spin" style={{ animationDuration: '2s' }}>
-                  <circle cx="14" cy="14" r="11" strokeDasharray="50 20" />
-                </svg>
-              </div>
-              <div className="text-center w-full">
-                <p className="text-[1rem] font-semibold text-[var(--text)] mb-1">{progress.phase}</p>
-                <p className="text-[0.8rem] text-[var(--text3)] mb-4">
-                  {progress.done > 0 && progress.total > 0 && `${progress.done} / ${progress.total} images`}
-                </p>
-                <div className="h-[6px] bg-[var(--bg3)] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--accent), var(--accent2))' }}
-                  />
-                </div>
-                <p className="text-[0.78rem] text-[var(--accent)] mt-2" style={{ fontFamily: 'var(--font-dm-mono)' }}>{pct}%</p>
-              </div>
-              <div className="grid grid-cols-3 gap-3 w-full mt-2 text-center">
-                {[
-                  { label: 'Loading', active: progress.phase.startsWith('Loading') || progress.phase.startsWith('Start') },
-                  { label: 'Grouping', active: progress.phase.startsWith('Group') },
-                  { label: 'Done', active: progress.phase.startsWith('Done') },
-                ].map((s) => (
-                  <div key={s.label} className={`px-3 py-2 rounded-sm border transition-all ${s.active ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.05)] text-[var(--accent)]' : 'border-[var(--line)] text-[var(--text3)]'}`}>
-                    <p className="text-[0.8rem] font-medium">{s.label}</p>
-                  </div>
-                ))}
-              </div>
+      {/* Sticky bottom bar */}
+      {files.length > 0 && !isProcessing && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: '200px', right: 0, zIndex: 20,
+          padding: '12px 28px',
+          background: 'var(--bg2)',
+          borderTop: '0.5px solid var(--line)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'rgba(0,122,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.6">
+                <rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/>
+                <rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/>
+              </svg>
+            </div>
+            <div>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>{files.length} images selected</p>
+              <p style={{ fontSize: '12px', color: 'var(--text3)' }}>
+                {jobName || 'Untitled shoot'} · {shootType === 'on-model' ? 'On-model' : 'Still life'} · {imagesPerLook} per look
+              </p>
             </div>
           </div>
-        )}
-      </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => { setFiles([]); setActiveStep(4) }} className="btn btn-ghost btn-sm">
+              Clear
+            </button>
+            <button onClick={handleProcess} className="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M7 1l4 4-4 4M3 5h8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Process {files.length} Images
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

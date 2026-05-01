@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <BrandProvider>
       <PlanProvider>
-        <div id="app" className="flex min-h-screen">
+        <div id="app" data-theme="dark" className="flex h-screen">
           <Sidebar />
           <main className="flex-1 overflow-y-auto relative">
             {children}

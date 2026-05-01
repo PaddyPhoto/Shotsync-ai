@@ -27,9 +27,9 @@ declare global {
 }
 
 // ── Dark theme tokens ────────────────────────────────────────────────────────
-const BG      = '#141414'
-const CARD    = '#1e1e1e'
-const CARD2   = '#252525'
+const BG      = '#252525'
+const CARD    = '#2f2f2f'
+const CARD2   = '#363636'
 const BORDER  = 'rgba(255,255,255,0.08)'
 const T1      = '#ffffff'
 const T2      = 'rgba(255,255,255,0.55)'
