@@ -561,33 +561,6 @@ export default function UploadPage() {
           </div>
         )}
 
-        {/* Page header with decorative angle pills */}
-        <div style={{ marginBottom: '28px', borderRadius: '18px', background: 'linear-gradient(135deg, rgba(0,0,0,0.03) 0%, rgba(48,209,88,0.05) 50%, rgba(0,113,227,0.05) 100%)', border: '0.5px solid rgba(0,0,0,0.07)', padding: '24px 28px', position: 'relative', overflow: 'hidden' }}>
-          {/* Decorative floating pills */}
-          <div style={{ position: 'absolute', top: '16px', right: '24px', display: 'flex', gap: '6px', flexWrap: 'wrap', maxWidth: '340px', justifyContent: 'flex-end', pointerEvents: 'none' }}>
-            {[
-              { label: 'Front',       bg: 'rgba(48,209,88,0.12)',  color: '#1a8a35'  },
-              { label: 'Back',        bg: 'rgba(0,122,255,0.10)',  color: '#005fc4'  },
-              { label: 'Side',        bg: 'rgba(255,159,10,0.12)', color: '#c27800'  },
-              { label: 'Full-length', bg: 'rgba(175,82,222,0.10)', color: '#7b2fa8'  },
-              { label: 'Detail',      bg: 'rgba(255,59,48,0.10)',  color: '#c41c00'  },
-              { label: 'Mood',        bg: 'rgba(255,55,95,0.10)',  color: '#b8003c'  },
-              { label: 'Front 3/4',   bg: 'rgba(48,209,88,0.08)',  color: '#1a8a35'  },
-              { label: 'Back 3/4',    bg: 'rgba(0,122,255,0.08)',  color: '#005fc4'  },
-            ].map(({ label, bg, color }) => (
-              <span key={label} style={{ fontSize: '15px', fontWeight: 500, padding: '3px 9px', borderRadius: '20px', background: bg, color, letterSpacing: '-.1px', whiteSpace: 'nowrap' }}>
-                {label}
-              </span>
-            ))}
-          </div>
-          <h1 style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '5px' }}>
-            New Upload
-          </h1>
-          <p style={{ fontSize: '15px', color: '#4e4e53', maxWidth: '420px', lineHeight: 1.5 }}>
-            Upload your shoot batch — images are clustered and organised automatically in your browser.
-          </p>
-        </div>
-
         {step !== 'processing' && (
           <>
             {/* Config */}
