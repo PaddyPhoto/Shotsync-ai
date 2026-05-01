@@ -715,7 +715,8 @@ function ReviewPage() {
                   id={`cluster-${cluster.id}`}
                   key={cluster.id}
                   data-tour={clusterIdx === 0 ? 'cluster-card' : undefined}
-                  className={`bg-[var(--bg2)] rounded-md border transition-all duration-150 overflow-hidden ${
+                  style={{ background: '#3a3a3a' }}
+                  className={`rounded-md border transition-all duration-150 overflow-hidden ${
                     cluster.confirmed
                       ? 'border-[var(--accent2)]'
                       : isDropTarget

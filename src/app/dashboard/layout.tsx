@@ -11,7 +11,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <PlanProvider>
         <div id="app" data-theme="dark" className="flex h-screen">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto relative">
+          <main className="flex-1 overflow-y-auto relative" style={{ background: 'var(--bg)' }}>
             {children}
           </main>
         </div>
