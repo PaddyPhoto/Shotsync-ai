@@ -113,6 +113,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
 
   useEffect(() => {
     setFsaSupported(typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function')
+    if (params.jobId === 'session') return
     fetch(`/api/jobs/${params.jobId}`)
       .then((r) => r.json())
       .then(({ data }) => {
@@ -313,7 +314,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
         background: '#111111',
       }}>
         <Link
-          href={`/dashboard/jobs/${params.jobId}/validation`}
+          href={params.jobId === 'session' ? '/dashboard/review' : `/dashboard/jobs/${params.jobId}/validation`}
           style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: T2, textDecoration: 'none', flexShrink: 0 }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -326,11 +327,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
 
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
           <h1 style={{ fontSize: '14px', fontWeight: 600, color: T1 }}>
-            Export{job?.name ? ` · ${job.name}` : ''}
+            Export{(job?.name || jobName) ? ` · ${job?.name ?? jobName}` : ''}
           </h1>
-          {(job?.cluster_count || job?.total_images) && (
+          {(job?.cluster_count ?? confirmedClusters.length > 0) && (
             <span style={{ fontSize: '13px', color: T3 }}>
-              {job.cluster_count} clusters · {job.total_images} images
+              {job?.cluster_count ?? confirmedClusters.length} clusters · {job?.total_images ?? confirmedClusters.reduce((s, c) => s + c.images.length, 0)} images
             </span>
           )}
         </div>
