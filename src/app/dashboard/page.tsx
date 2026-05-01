@@ -451,9 +451,6 @@ export default function DashboardPage() {
                                 ) : (
                                   <div style={{ width: '100%', height: '100%', background: `hsl(${i * 30},0%,${15 + i * 5}%)` }} />
                                 )}
-                                <div style={{ position: 'absolute', bottom: '3px', left: '3px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', fontSize: '14px', fontWeight: 500, color: '#fff', padding: '1px 4px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                                  {img.viewLabel?.replace('_', ' ') ?? `${i + 1}`}
-                                </div>
                               </div>
                             ))}
                             {/* Empty slots if fewer than 4 images */}
