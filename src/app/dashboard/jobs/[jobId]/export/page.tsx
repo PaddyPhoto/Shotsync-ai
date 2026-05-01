@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Topbar } from '@/components/layout/Topbar'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
+import { useSession } from '@/store/session'
+import { useBrand } from '@/context/BrandContext'
+import { applyNamingTemplate } from '@/lib/brands'
 import type { MarketplaceName, Job } from '@/types'
 
 declare global {
@@ -24,13 +26,21 @@ declare global {
   }
 }
 
-type ExportMode = 'zip' | 'folder'
+// ── Dark theme tokens ────────────────────────────────────────────────────────
+const BG      = '#141414'
+const CARD    = '#1e1e1e'
+const CARD2   = '#252525'
+const BORDER  = 'rgba(255,255,255,0.08)'
+const T1      = '#ffffff'
+const T2      = 'rgba(255,255,255,0.55)'
+const T3      = 'rgba(255,255,255,0.3)'
 
-const PALETTE: Record<MarketplaceName, { bgSel: string; border: string; dot: string; text: string }> = {
-  'the-iconic': { bgSel: 'rgba(255,159,10,0.14)', border: '#ff9f0a', dot: '#ff9f0a', text: '#7a4a00' },
-  myer:         { bgSel: 'rgba(255,59,48,0.13)',  border: '#ff3b30', dot: '#ff3b30', text: '#8a1a14' },
-  'david-jones':{ bgSel: 'rgba(0,122,255,0.12)',  border: '#0071e3', dot: '#0071e3', text: '#003d80' },
-  shopify:      { bgSel: 'rgba(48,209,88,0.14)',  border: '#30d158', dot: '#1a8a35', text: '#1a5c2a' },
+// ── Marketplace palette (dark theme) ─────────────────────────────────────────
+const PALETTE: Record<MarketplaceName, { dot: string; text: string; selBg: string; selBorder: string }> = {
+  'the-iconic':  { dot: '#ff9f0a', text: '#ff9f0a', selBg: 'rgba(255,159,10,0.18)',  selBorder: '#ff9f0a' },
+  myer:          { dot: '#ff3b30', text: '#ff5c52', selBg: 'rgba(255,59,48,0.18)',   selBorder: '#ff3b30' },
+  'david-jones': { dot: '#0a84ff', text: '#4da3ff', selBg: 'rgba(10,132,255,0.18)',  selBorder: '#0a84ff' },
+  shopify:       { dot: '#30d158', text: '#30d158', selBg: 'rgba(48,209,88,0.15)',   selBorder: '#30d158' },
 }
 
 const DESCRIPTIONS: Record<MarketplaceName, string> = {
@@ -40,16 +50,56 @@ const DESCRIPTIONS: Record<MarketplaceName, string> = {
   shopify:       'Your storefront',
 }
 
+// ── Shopify draft state ───────────────────────────────────────────────────────
+type DraftStatus = 'queued' | 'creating' | 'created' | 'error'
+interface DraftItem { id: string; label: string; sku: string; status: DraftStatus; adminUrl?: string }
+
+// ── Image processing (canvas resize + crop to fit) ───────────────────────────
+async function processImage(file: File, w: number, h: number, bg = '#ffffff'): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new window.Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = w; canvas.height = h
+      const ctx = canvas.getContext('2d')!
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
+      const sa = img.width / img.height; const da = w / h
+      let sx = 0, sy = 0, sw = img.width, sh = img.height
+      if (sa > da) { sw = img.height * da; sx = (img.width - sw) / 2 }
+      else { sh = img.width / da; sy = (img.height - sh) / 2 }
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      canvas.toBlob((blob) => {
+        if (!blob) { reject(new Error('toBlob failed')); return }
+        blob.arrayBuffer().then(resolve).catch(reject)
+      }, 'image/jpeg', 0.92)
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('load failed')) }
+    img.src = url
+  })
+}
+
 export default function ExportPage({ params }: { params: { jobId: string } }) {
   const router = useRouter()
+  const { clusters: sessionClusters, jobName, isReady } = useSession()
+  const { activeBrand, brands } = useBrand()
+
   const [job, setJob] = useState<Job | null>(null)
-  const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(['the-iconic'])
-  const [exportMode, setExportMode] = useState<ExportMode>('zip')
+  const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(['shopify'])
+  const [downloadZip, setDownloadZip] = useState(false)
+  const [flatExport, setFlatExport] = useState(false)
+  const [namingTemplate, setNamingTemplate] = useState('{BRAND}_{SEQ}_{VIEW}')
 
-  const [isExporting, setIsExporting] = useState(false)
-  const [exportProgress, setExportProgress] = useState(0)
-  const [error, setError] = useState<string | null>(null)
+  // Shopify push state
+  const [drafts, setDrafts] = useState<DraftItem[]>([])
+  const [isPushing, setIsPushing] = useState(false)
+  const [pushDone, setPushDone] = useState(false)
+  const [pushError, setPushError] = useState<string | null>(null)
+  const [selectedBrandId, setSelectedBrandId] = useState('')
+  const draftListRef = useRef<HTMLDivElement>(null)
 
+  // Folder save state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const folderHandleRef = useRef<any>(null)
   const [folderPath, setFolderPath] = useState<string | null>(null)
@@ -59,6 +109,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   const [folderStatus, setFolderStatus] = useState('')
   const [folderDone, setFolderDone] = useState(false)
   const [writtenFiles, setWrittenFiles] = useState<{ marketplace: string; count: number }[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setFsaSupported(typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function')
@@ -67,561 +118,651 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
       .then(({ data }) => {
         if (data) {
           setJob(data)
-          if (data.selected_marketplaces?.length) {
-            setSelectedMarketplaces(data.selected_marketplaces)
-          }
+          if (data.selected_marketplaces?.length) setSelectedMarketplaces(data.selected_marketplaces)
         }
-      })
-      .catch(() => {})
+      }).catch(() => {})
   }, [params.jobId])
 
-  const handleZipExport = async () => {
-    if (!selectedMarketplaces.length) return
-    setIsExporting(true)
-    setExportProgress(10)
-    setError(null)
-    try {
-      const progressInterval = setInterval(() => {
-        setExportProgress((p) => Math.min(p + 8, 90))
-      }, 600)
-      const res = await fetch('/api/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_id: params.jobId, marketplaces: selectedMarketplaces }),
-      })
-      clearInterval(progressInterval)
-      setExportProgress(100)
-      if (!res.ok) {
-        const { error: msg } = await res.json()
-        throw new Error(msg)
-      }
-      setTimeout(() => { router.push(`/dashboard/jobs/${params.jobId}/download`) }, 600)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Export failed')
-      setIsExporting(false)
-      setExportProgress(0)
+  useEffect(() => {
+    const b = activeBrand ?? brands[0]
+    if (b) {
+      setNamingTemplate(b.naming_template ?? '{BRAND}_{SEQ}_{VIEW}')
+      setSelectedBrandId(b.id)
     }
-  }
+  }, [activeBrand, brands])
 
+  const confirmedClusters = sessionClusters.filter((c) => c.confirmed)
+  const shopifyBrands = brands.filter((b) => b.shopify_store_url && b.shopify_access_token)
+  const shopifyBrand = shopifyBrands.find((b) => b.id === selectedBrandId) ?? shopifyBrands[0] ?? null
+
+  // ── Live naming preview ──────────────────────────────────────────────────────
+  const exampleFilename = (() => {
+    const b = shopifyBrand ?? activeBrand ?? brands[0]
+    if (!b) return 'FC_001_FRONT.jpg'
+    const views = b.on_model_angle_sequence ?? ['front']
+    return applyNamingTemplate(namingTemplate, {
+      brand: b.brand_code, seq: 1, sku: `${b.brand_code}-001`, color: 'BLACK',
+      view: views[0] ?? 'front', index: 1,
+    }) + '.jpg'
+  })()
+
+  // ── Shopify push ─────────────────────────────────────────────────────────────
+  const handleShopifyPush = useCallback(async () => {
+    if (!shopifyBrand || confirmedClusters.length === 0) return
+    setIsPushing(true)
+    setPushDone(false)
+    setPushError(null)
+
+    // Seed the draft list
+    const initial: DraftItem[] = confirmedClusters.map((c, i) => ({
+      id: c.id,
+      label: c.label ?? `Look ${i + 1}`,
+      sku: c.sku ?? `${shopifyBrand.brand_code}-${String(i + 1).padStart(3, '0')}`,
+      status: 'queued',
+    }))
+    setDrafts(initial)
+
+    const rule = MARKETPLACE_RULES['shopify']
+    const { createClient } = await import('@/lib/supabase/client')
+    const { data: { session } } = await createClient().auth.getSession()
+    const authHeader: Record<string, string> = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+
+    for (let ci = 0; ci < confirmedClusters.length; ci++) {
+      const cluster = confirmedClusters[ci]
+      const draftSku = cluster.sku ?? `${shopifyBrand.brand_code}-${String(ci + 1).padStart(3, '0')}`
+
+      setDrafts((prev) => prev.map((d) => d.id === cluster.id ? { ...d, status: 'creating' } : d))
+      // scroll newest into view
+      setTimeout(() => draftListRef.current?.scrollTo({ top: 9999, behavior: 'smooth' }), 50)
+
+      try {
+        const images: { filename: string; base64: string; position: number }[] = []
+        for (let ii = 0; ii < cluster.images.length; ii++) {
+          const img = cluster.images[ii]
+          if (!img.file) continue
+          const buf = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
+          const filename = applyNamingTemplate(namingTemplate, {
+            brand: shopifyBrand.brand_code, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
+            view: img.viewLabel, index: ii + 1,
+          }) + '.jpg'
+          const base64 = btoa(new Uint8Array(buf).reduce((d, b) => d + String.fromCharCode(b), ''))
+          images.push({ filename, base64, position: ii + 1 })
+        }
+
+        const res = await fetch('/api/shopify/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({
+            brand_id: shopifyBrand.id,
+            clusters: [{
+              sku: draftSku,
+              productName: cluster.label ?? draftSku,
+              color: cluster.color ?? '',
+              images,
+            }],
+          }),
+        })
+        const json = await res.json()
+        const result = json.data?.results?.[0]
+        setDrafts((prev) => prev.map((d) =>
+          d.id === cluster.id
+            ? { ...d, status: result?.status === 'created' ? 'created' : 'error', adminUrl: result?.adminUrl }
+            : d
+        ))
+      } catch {
+        setDrafts((prev) => prev.map((d) => d.id === cluster.id ? { ...d, status: 'error' } : d))
+      }
+    }
+
+    setIsPushing(false)
+    setPushDone(true)
+  }, [shopifyBrand, confirmedClusters, namingTemplate]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Folder save ──────────────────────────────────────────────────────────────
   const pickFolder = async () => {
     if (!window.showDirectoryPicker) return
     try {
       const handle = await window.showDirectoryPicker({ mode: 'readwrite' })
       folderHandleRef.current = handle
       setFolderPath(handle.name)
-      setFolderDone(false)
-      setWrittenFiles([])
-    } catch { /* user cancelled */ }
+      setFolderDone(false); setWrittenFiles([])
+    } catch { /* cancelled */ }
   }
 
   const handleSaveToFolder = async () => {
     if (!folderHandleRef.current || !selectedMarketplaces.length) return
-    setIsSavingToFolder(true)
-    setFolderProgress(0)
-    setFolderStatus('Fetching processed images…')
-    setFolderDone(false)
-    setWrittenFiles([])
-    setError(null)
+    setIsSavingToFolder(true); setFolderProgress(0); setFolderStatus('Fetching images…')
+    setFolderDone(false); setWrittenFiles([]); setError(null)
     try {
-      setFolderProgress(5)
       const res = await fetch('/api/export/zip', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_id: params.jobId, marketplaces: selectedMarketplaces, job_name: job?.name }),
       })
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Export failed')
-      }
-      setFolderProgress(40)
-      setFolderStatus('Parsing export package…')
-      const zipBlob = await res.blob()
-      const JSZip = (await import('jszip')).default
-      const zip = await JSZip.loadAsync(zipBlob)
+      if (!res.ok) throw new Error(await res.text() || 'Export failed')
+      setFolderProgress(40); setFolderStatus('Parsing package…')
+      const zip = await (await import('jszip')).default.loadAsync(await res.blob())
       const byFolder: Record<string, { name: string; data: ArrayBuffer }[]> = {}
       const entries = Object.entries(zip.files).filter(([, f]) => !f.dir)
       let done = 0
-      setFolderStatus(`Writing ${entries.length} files to disk…`)
+      setFolderStatus(`Writing ${entries.length} files…`)
       for (const [path, file] of entries) {
         const slash = path.indexOf('/')
-        const folderName = slash >= 0 ? path.slice(0, slash) : 'Export'
-        const filename = slash >= 0 ? path.slice(slash + 1) : path
+        const fn = slash >= 0 ? path.slice(0, slash) : 'Export'
+        const name = slash >= 0 ? path.slice(slash + 1) : path
         const data = await file.async('arraybuffer')
-        if (!byFolder[folderName]) byFolder[folderName] = []
-        byFolder[folderName].push({ name: filename, data })
-        done++
-        setFolderProgress(40 + Math.round((done / entries.length) * 40))
+        if (!byFolder[fn]) byFolder[fn] = []
+        byFolder[fn].push({ name, data })
+        done++; setFolderProgress(40 + Math.round((done / entries.length) * 40))
       }
       setFolderProgress(80)
-      const rootHandle = folderHandleRef.current
       const results: { marketplace: string; count: number }[] = []
-      for (const [folderName, files] of Object.entries(byFolder)) {
-        setFolderStatus(`Writing to ${folderName}/…`)
-        const subDir = await rootHandle.getDirectoryHandle(folderName, { create: true })
+      for (const [fn, files] of Object.entries(byFolder)) {
+        setFolderStatus(`Writing to ${fn}/…`)
+        const sub = await folderHandleRef.current.getDirectoryHandle(fn, { create: true })
         for (const { name, data } of files) {
-          const fh = await subDir.getFileHandle(name, { create: true })
-          const writable = await fh.createWritable()
-          await writable.write(data)
-          await writable.close()
+          const fh = await sub.getFileHandle(name, { create: true })
+          const w = await fh.createWritable(); await w.write(data); await w.close()
         }
-        results.push({ marketplace: folderName, count: files.length })
+        results.push({ marketplace: fn, count: files.length })
       }
-      setFolderProgress(100)
-      setFolderStatus('Done')
-      setWrittenFiles(results)
-      setFolderDone(true)
+      setFolderProgress(100); setFolderStatus('Done')
+      setWrittenFiles(results); setFolderDone(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save files')
-    } finally {
-      setIsSavingToFolder(false)
-    }
+    } finally { setIsSavingToFolder(false) }
   }
 
-  const exportRows = selectedMarketplaces.map((id) => ({ id, rule: MARKETPLACE_RULES[id] }))
-  const canExport = selectedMarketplaces.length > 0
-  const isRunning = isExporting || isSavingToFolder
-  const activeProgress = isExporting ? exportProgress : folderProgress
-  const activeStatus = isExporting
-    ? (exportProgress < 100 ? 'Building export package…' : 'Finalizing…')
-    : folderStatus
+  const isRunning = isPushing || isSavingToFolder
+  const draftsCreated = drafts.filter((d) => d.status === 'created').length
+  const pct = isPushing && drafts.length > 0 ? Math.round((draftsCreated / drafts.length) * 100) : (pushDone ? 100 : 0)
+  const canPush = selectedMarketplaces.includes('shopify') && shopifyBrand && confirmedClusters.length > 0
 
-  const toggleMarketplace = (id: MarketplaceName) => {
-    setSelectedMarketplaces((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
-    )
-  }
+  // Output preview data
+  const previewClusters = confirmedClusters.slice(0, 3)
+
+  // ── Toggle button ─────────────────────────────────────────────────────────────
+  const Toggle = ({ on, onChange }: { on: boolean; onChange: () => void }) => (
+    <button
+      onClick={onChange}
+      style={{
+        width: '40px', height: '24px', borderRadius: '12px', border: 'none',
+        background: on ? '#30d158' : 'rgba(255,255,255,0.15)',
+        position: 'relative', cursor: 'pointer', flexShrink: 0,
+        transition: 'background 0.2s',
+      }}
+    >
+      <span style={{
+        position: 'absolute', top: '3px',
+        left: on ? '19px' : '3px',
+        width: '18px', height: '18px', borderRadius: '50%',
+        background: 'white',
+        transition: 'left 0.2s',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+      }} />
+    </button>
+  )
 
   return (
-    <div>
-      <Topbar
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Jobs', href: '/dashboard/jobs' },
-          { label: job?.name ?? 'Job', href: `/dashboard/jobs/${params.jobId}` },
-          { label: 'Export' },
-        ]}
-      />
+    <div style={{ background: BG, minHeight: '100vh', color: T1 }}>
 
-      <div style={{ padding: '28px' }}>
+      {/* ── Custom top bar ──────────────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '12px',
+        padding: '0 20px', height: '56px',
+        borderBottom: `1px solid ${BORDER}`,
+        background: '#111111',
+      }}>
+        <Link
+          href={`/dashboard/jobs/${params.jobId}/validation`}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: T2, textDecoration: 'none', flexShrink: 0 }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M9 11L5 7l4-4" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Back to review
+        </Link>
 
-        {/* ── Hero stats bar ──────────────────────────────────────────── */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: 'rgba(255,255,255,0.9)', border: '0.5px solid rgba(0,0,0,0.08)',
-          borderRadius: '16px', padding: '20px 24px', marginBottom: '20px',
-          backdropFilter: 'blur(8px)',
-        }}>
-          <div>
-            <p style={{ fontSize: '11px', fontWeight: 600, color: '#aeaeb2', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '5px' }}>
-              Export
-            </p>
-            <h1 style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.5px', color: '#1d1d1f', marginBottom: '5px' }}>
-              {job?.name ?? 'Loading…'}
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#4e4e53' }}>
-              <span style={{ fontWeight: 500 }}>{job?.cluster_count ?? '—'} clusters</span>
-              <span style={{ color: '#d1d1d6' }}>·</span>
-              <span>{job?.total_images ?? '—'} images</span>
-              <span style={{ color: '#d1d1d6' }}>·</span>
-              <span>{selectedMarketplaces.length} marketplace{selectedMarketplaces.length !== 1 ? 's' : ''} selected</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '8px 14px', background: 'rgba(48,209,88,0.08)', borderRadius: '10px', flexShrink: 0 }}>
-            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#30d158', animation: 'pulse 2s ease-in-out infinite' }} />
-            <span style={{ fontSize: '13px', fontWeight: 500, color: '#1a8a35' }}>Ready</span>
-          </div>
+        <div style={{ width: '1px', height: '20px', background: BORDER }} />
+
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <h1 style={{ fontSize: '14px', fontWeight: 600, color: T1 }}>
+            Export{job?.name ? ` · ${job.name}` : ''}
+          </h1>
+          {(job?.cluster_count || job?.total_images) && (
+            <span style={{ fontSize: '13px', color: T3 }}>
+              {job.cluster_count} clusters · {job.total_images} images
+            </span>
+          )}
         </div>
 
-        {/* ── Two-column layout ─────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.45fr', gap: '14px', alignItems: 'start' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => router.back()}
+            style={{ padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, border: `1px solid ${BORDER}`, background: 'transparent', color: T1, cursor: 'pointer' }}
+          >
+            Cancel
+          </button>
+          {folderPath ? (
+            <button
+              onClick={handleSaveToFolder}
+              disabled={isRunning || selectedMarketplaces.length === 0}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '7px',
+                padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
+                border: 'none', background: T1, color: '#000', cursor: 'pointer',
+                opacity: (isRunning || selectedMarketplaces.length === 0) ? 0.4 : 1,
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M6.5 9V1M4 6.5l2.5 2.5 2.5-2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M1.5 11.5h10" strokeLinecap="round"/>
+              </svg>
+              Save to folder
+            </button>
+          ) : (
+            <button
+              onClick={canPush ? handleShopifyPush : undefined}
+              disabled={isRunning || !canPush}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '7px',
+                padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
+                border: 'none', background: '#30d158', color: '#000', cursor: 'pointer',
+                opacity: (isRunning || !canPush) ? 0.4 : 1,
+              }}
+            >
+              {isPushing ? 'Pushing…' : pushDone ? '✓ Done' : 'Push to Shopify'}
+            </button>
+          )}
+        </div>
+      </div>
 
-          {/* ── LEFT: Config ─────────────────────────────────────────── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {/* ── Main layout ─────────────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
 
-            {/* Marketplace selector */}
-            <div style={{ background: 'rgba(255,255,255,0.9)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', overflow: 'hidden' }}>
-              <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.1px' }}>Marketplaces</span>
-                <span style={{ fontSize: '12px', color: '#aeaeb2' }}>{selectedMarketplaces.length} selected</span>
-              </div>
-              <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[]).map((id) => {
-                  const rule = MARKETPLACE_RULES[id]
-                  const isSelected = selectedMarketplaces.includes(id)
-                  const p = PALETTE[id]
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => toggleMarketplace(id)}
-                      style={{
-                        position: 'relative',
-                        background: isSelected ? p.bgSel : 'rgba(0,0,0,0.02)',
-                        border: isSelected ? `1.5px solid ${p.border}` : '1px solid rgba(0,0,0,0.07)',
-                        borderRadius: '10px', padding: '13px',
-                        cursor: 'pointer', textAlign: 'left',
-                        transition: 'all 0.15s',
-                        opacity: isSelected ? 1 : 0.35,
-                      }}
-                    >
-                      {isSelected && (
-                        <span style={{
-                          position: 'absolute', top: '10px', right: '10px',
-                          width: '17px', height: '17px', borderRadius: '50%',
-                          background: p.border,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-                            <polyline points="1.5 4.5 3.5 6.5 7.5 2.5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </span>
-                      )}
-                      <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: p.dot, marginBottom: '9px' }} />
-                      <p style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? p.text : '#1d1d1f', letterSpacing: '-0.1px', marginBottom: '2px' }}>
-                        {rule.name}
-                      </p>
-                      <p style={{ fontSize: '11px', color: '#aeaeb2', marginBottom: '6px' }}>
-                        {DESCRIPTIONS[id]}
-                      </p>
-                      <p style={{ fontSize: '11px', color: '#aeaeb2', fontFamily: 'var(--font-dm-mono)' }}>
-                        {rule.image_dimensions.width}×{rule.image_dimensions.height} · {rule.file_format.toUpperCase()}
-                      </p>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
+        {/* ── LEFT panel ───────────────────────────────────────────────────── */}
+        <div style={{ borderRight: `1px solid ${BORDER}`, overflowY: 'auto', padding: '20px' }}>
 
-            {/* Output format */}
-            <div style={{ background: 'rgba(255,255,255,0.9)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', overflow: 'hidden' }}>
-              <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.1px' }}>Output Format</span>
-              </div>
-              <div style={{ padding: '14px 18px' }}>
-                <div style={{ display: 'inline-flex', background: 'rgba(0,0,0,0.04)', padding: '3px', borderRadius: '8px', gap: '2px', marginBottom: exportMode === 'folder' ? '14px' : '0' }}>
-                  {([
-                    { id: 'zip' as ExportMode, label: 'Download ZIP' },
-                    { id: 'folder' as ExportMode, label: 'Save to Folder' },
-                  ] as const).map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => { setExportMode(m.id); setError(null); setFolderDone(false) }}
-                      style={{
-                        padding: '7px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 500,
-                        border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                        background: exportMode === m.id ? 'white' : 'transparent',
-                        color: exportMode === m.id ? '#1d1d1f' : '#6e6e73',
-                        boxShadow: exportMode === m.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                      }}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-
-                {exportMode === 'folder' && (
-                  <div>
-                    {!fsaSupported && (
-                      <p style={{ fontSize: '12px', color: '#c27800', padding: '8px 12px', background: 'rgba(255,159,10,0.08)', borderRadius: '7px', marginBottom: '12px' }}>
-                        Requires Chrome or Edge. Use ZIP in other browsers.
-                      </p>
-                    )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <button
-                        onClick={pickFolder}
-                        disabled={!fsaSupported || isSavingToFolder}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '6px',
-                          padding: '7px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
-                          background: 'rgba(0,0,0,0.05)', border: 'none', cursor: 'pointer', color: '#1d1d1f',
-                          opacity: !fsaSupported ? 0.4 : 1,
-                        }}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
-                          <path d="M2 4h4l1.5 1.5H12a1 1 0 0 1 1 1V11a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" strokeLinejoin="round"/>
-                        </svg>
-                        Choose folder
-                      </button>
-                      {folderPath ? (
-                        <span style={{ fontSize: '13px', color: '#1a8a35', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--font-dm-mono)' }}>
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8">
-                            <polyline points="1.5 5 4 7.5 8.5 2.5"/>
-                          </svg>
-                          {folderPath}/
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: '12px', color: '#aeaeb2' }}>No folder selected</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Processing rules summary */}
-            <div style={{ background: 'rgba(255,255,255,0.9)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', overflow: 'hidden' }}>
-              <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.1px' }}>Processing Rules</span>
-                <Link href="/dashboard/integrations" style={{ fontSize: '12px', color: '#aeaeb2', textDecoration: 'none' }}>
-                  Edit →
-                </Link>
-              </div>
-              <div>
-                {exportRows.length === 0 ? (
-                  <p style={{ fontSize: '13px', color: '#aeaeb2', padding: '12px 18px' }}>No marketplaces selected.</p>
-                ) : (
-                  exportRows.map(({ id, rule }, i) => (
-                    <div key={id} style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '10px 18px',
-                      borderBottom: i < exportRows.length - 1 ? '0.5px solid rgba(0,0,0,0.05)' : 'none',
+          {/* Marketplaces */}
+          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: T3, textTransform: 'uppercase', marginBottom: '10px' }}>
+            Marketplaces
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '24px' }}>
+            {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[]).map((id) => {
+              const rule = MARKETPLACE_RULES[id]
+              const isSelected = selectedMarketplaces.includes(id)
+              const p = PALETTE[id]
+              return (
+                <button
+                  key={id}
+                  onClick={() => setSelectedMarketplaces((prev) =>
+                    prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
+                  )}
+                  style={{
+                    position: 'relative',
+                    background: isSelected ? p.selBg : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${isSelected ? p.selBorder : BORDER}`,
+                    borderRadius: '10px', padding: '12px',
+                    cursor: 'pointer', textAlign: 'left',
+                    transition: 'all 0.15s',
+                    opacity: isSelected ? 1 : 0.45,
+                  }}
+                >
+                  {isSelected && (
+                    <span style={{
+                      position: 'absolute', top: '10px', right: '10px',
+                      width: '16px', height: '16px', borderRadius: '50%',
+                      background: p.dot,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: PALETTE[id].dot, flexShrink: 0 }} />
-                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f' }}>{rule.name}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#aeaeb2', fontFamily: 'var(--font-dm-mono)' }}>
-                        <span>{rule.image_dimensions.width}×{rule.image_dimensions.height}</span>
-                        <span>{rule.file_format.toUpperCase()}</span>
-                        <span>Q{rule.quality}</span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+                      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                        <polyline points="1 4 3 6.5 7 1.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
+                    <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: p.dot }} />
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: isSelected ? p.text : T2 }}>
+                      {rule.name}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: T3, fontFamily: 'var(--font-dm-mono)' }}>
+                    {rule.image_dimensions.width}×{rule.image_dimensions.height}px · {rule.file_format.toUpperCase()} Q{rule.quality}
+                  </p>
+                </button>
+              )
+            })}
           </div>
 
-          {/* ── RIGHT: Output / Progress ──────────────────────────────── */}
-          <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Output */}
+          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: T3, textTransform: 'uppercase', marginBottom: '10px' }}>
+            Output
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '13px', color: T2 }}>Download ZIP</span>
+              <Toggle on={downloadZip} onChange={() => setDownloadZip((v) => !v)} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '13px', color: T2 }}>Save to folder</span>
+              <Toggle on={!!folderPath} onChange={!folderPath ? pickFolder : () => { folderHandleRef.current = null; setFolderPath(null) }} />
+            </div>
+            {folderPath && (
+              <p style={{ fontSize: '11px', color: '#30d158', fontFamily: 'var(--font-dm-mono)' }}>
+                ✓ {folderPath}/
+              </p>
+            )}
+            {!fsaSupported && (
+              <p style={{ fontSize: '11px', color: '#ff9f0a' }}>Save to folder requires Chrome or Edge.</p>
+            )}
+          </div>
 
-            {/* Progress hero (during export) */}
-            {isRunning && (
-              <div style={{
-                background: '#1d1d1f', borderRadius: '16px', padding: '36px 32px',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-              }}>
-                <p style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '16px' }}>
-                  Exporting
+          {/* Shopify brand (if multiple) */}
+          {shopifyBrands.length > 1 && selectedMarketplaces.includes('shopify') && (
+            <>
+              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: T3, textTransform: 'uppercase', marginBottom: '10px' }}>
+                Shopify Brand
+              </p>
+              <select
+                value={selectedBrandId}
+                onChange={(e) => setSelectedBrandId(e.target.value)}
+                style={{ width: '100%', background: CARD2, border: `1px solid ${BORDER}`, borderRadius: '8px', color: T1, padding: '8px 10px', fontSize: '13px', marginBottom: '24px' }}
+              >
+                {shopifyBrands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </>
+          )}
+
+          {/* File naming */}
+          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: T3, textTransform: 'uppercase', marginBottom: '10px' }}>
+            File Naming
+          </p>
+          <input
+            value={namingTemplate}
+            onChange={(e) => setNamingTemplate(e.target.value)}
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: CARD2, border: `1px solid ${BORDER}`,
+              borderRadius: '8px', color: T1, padding: '9px 10px',
+              fontSize: '13px', fontFamily: 'var(--font-dm-mono)',
+              marginBottom: '6px',
+            }}
+          />
+          <p style={{ fontSize: '11px', color: T3, fontFamily: 'var(--font-dm-mono)' }}>
+            e.g. {exampleFilename}
+          </p>
+        </div>
+
+        {/* ── RIGHT panel ──────────────────────────────────────────────────── */}
+        <div style={{ overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+          {/* Stats row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            {[
+              { value: job?.cluster_count ?? '—', label: 'Clusters', green: false },
+              { value: job?.total_images ?? '—', label: 'Images', green: false },
+              { value: pushDone || isPushing ? draftsCreated : (confirmedClusters.length > 0 ? confirmedClusters.length : (job?.cluster_count ?? '—')), label: 'Shopify drafts created', green: true },
+            ].map(({ value, label, green }) => (
+              <div key={label} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '16px 18px' }}>
+                <p style={{ fontSize: '36px', fontWeight: 700, letterSpacing: '-1.5px', color: green ? '#30d158' : T1, lineHeight: 1, marginBottom: '4px' }}>
+                  {String(value)}
                 </p>
-                <div style={{ fontSize: '80px', fontWeight: 700, color: 'white', letterSpacing: '-4px', lineHeight: 1, marginBottom: '4px', fontFamily: 'var(--font-dm-mono)' }}>
-                  {activeProgress}
-                  <span style={{ fontSize: '40px', color: 'rgba(255,255,255,0.35)' }}>%</span>
+                <p style={{ fontSize: '12px', color: T3 }}>{label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Shopify hero panel */}
+          {selectedMarketplaces.includes('shopify') && (isPushing || pushDone || drafts.length > 0) && (
+            <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', overflow: 'hidden' }}>
+
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
+                <div>
+                  <p style={{ fontSize: '15px', fontWeight: 600, color: T1, letterSpacing: '-0.2px', marginBottom: '3px' }}>
+                    Creating Shopify draft listings
+                  </p>
+                  <p style={{ fontSize: '12px', color: T3 }}>
+                    Images · SKU · colour · AI copy — all included
+                  </p>
                 </div>
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '28px', minHeight: '20px' }}>
-                  {activeStatus}
-                </p>
-                <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      height: '100%', borderRadius: '3px',
-                      background: 'linear-gradient(90deg, #30d158, #34c759)',
-                      width: `${activeProgress}%`,
-                      transition: 'width 0.5s ease',
-                    }}
-                  />
+                <span style={{
+                  padding: '4px 12px', borderRadius: '20px',
+                  background: 'rgba(48,209,88,0.15)', color: '#30d158',
+                  fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-dm-mono)',
+                  flexShrink: 0,
+                }}>
+                  {draftsCreated} / {drafts.length}
+                </span>
+              </div>
+
+              {/* Progress bar + status */}
+              <div style={{ padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>
+                <div style={{ height: '5px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
+                  <div style={{
+                    height: '100%', borderRadius: '3px',
+                    background: 'linear-gradient(90deg, #30d158, #34c759)',
+                    width: `${pct}%`,
+                    transition: 'width 0.5s ease',
+                  }} />
                 </div>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginTop: '18px' }}>
-                  {job?.total_images ?? 0} images · {selectedMarketplaces.length} marketplace{selectedMarketplaces.length !== 1 ? 's' : ''}
+                <p style={{ fontSize: '12px', color: T3 }}>
+                  {draftsCreated} of {drafts.length} drafts created
+                  {isPushing && drafts.length > 0 && draftsCreated < drafts.length && ' · working…'}
+                  {pushDone && ' · complete'}
                 </p>
               </div>
-            )}
 
-            {/* Success panel (folder export done) */}
-            {!isRunning && folderDone && (
-              <div style={{
-                background: 'rgba(48,209,88,0.07)', border: '1px solid rgba(48,209,88,0.25)',
-                borderRadius: '16px', padding: '24px',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#30d158', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                      <polyline points="2.5 7.5 6 11 12.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '15px', fontWeight: 600, color: '#1a5c2a', letterSpacing: '-0.2px' }}>Export complete</p>
-                    <p style={{ fontSize: '12px', color: '#1a8a35', fontFamily: 'var(--font-dm-mono)' }}>{folderPath}/</p>
-                  </div>
-                </div>
-                {writtenFiles.map((r, i) => (
-                  <div key={r.marketplace} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '9px 0',
-                    borderTop: i === 0 ? '0.5px solid rgba(48,209,88,0.2)' : 'none',
-                    borderBottom: '0.5px solid rgba(48,209,88,0.12)',
-                    fontSize: '13px',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="rgba(48,209,88,0.7)" strokeWidth="1.5">
-                        <path d="M2 4h4l1.5 1.5H12a1 1 0 0 1 1 1V11a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" strokeLinejoin="round"/>
-                      </svg>
-                      <span style={{ fontFamily: 'var(--font-dm-mono)', color: '#1d1d1f' }}>{r.marketplace}/</span>
-                    </div>
-                    <span style={{ color: '#4e4e53' }}>{r.count} file{r.count !== 1 ? 's' : ''}</span>
+              {/* Per-cluster list */}
+              <div
+                ref={draftListRef}
+                style={{ maxHeight: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
+              >
+                {drafts.map((d) => (
+                  <div
+                    key={d.id}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '10px 18px',
+                      background: d.status === 'created' ? 'rgba(48,209,88,0.07)' : d.status === 'creating' ? 'rgba(255,255,255,0.03)' : 'transparent',
+                      borderBottom: `1px solid ${BORDER}`,
+                      transition: 'background 0.3s',
+                    }}
+                  >
+                    <span style={{ fontSize: '13px', color: d.status === 'created' ? T2 : T3, fontFamily: 'var(--font-dm-mono)' }}>
+                      {d.label}
+                    </span>
+                    {d.status === 'created' && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 500, color: '#30d158' }}>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <circle cx="7" cy="7" r="7" fill="rgba(48,209,88,0.2)"/>
+                          <polyline points="3.5 7 5.5 9.5 10.5 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Draft created
+                      </span>
+                    )}
+                    {d.status === 'creating' && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: T2 }}>
+                        <span style={{ width: '14px', height: '14px', borderRadius: '50%', border: `1.5px solid rgba(255,255,255,0.3)`, borderTopColor: T1, animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                        Creating…
+                      </span>
+                    )}
+                    {d.status === 'queued' && (
+                      <span style={{ fontSize: '13px', color: T3 }}>Queued</span>
+                    )}
+                    {d.status === 'error' && (
+                      <span style={{ fontSize: '13px', color: '#ff453a' }}>Failed</span>
+                    )}
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Preview panel (before export) */}
-            {!isRunning && !folderDone && (
-              <div style={{ background: 'rgba(255,255,255,0.9)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', overflow: 'hidden' }}>
-                <div style={{ padding: '14px 18px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.1px' }}>Output Preview</span>
-                </div>
-                <div style={{ padding: '16px 18px' }}>
-                  {exportMode === 'zip' ? (
-                    <div>
-                      <p style={{ fontSize: '13px', color: '#4e4e53', lineHeight: 1.55, marginBottom: selectedMarketplaces.includes('shopify') ? '14px' : '0' }}>
-                        A single ZIP will be downloaded containing {selectedMarketplaces.length > 0 ? `${selectedMarketplaces.length} folder${selectedMarketplaces.length !== 1 ? 's' : ''}` : 'folders'} — one per marketplace, each with images resized and renamed per your rules.
-                      </p>
-                      {selectedMarketplaces.length > 0 && (
-                        <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {selectedMarketplaces.map((id) => {
-                            const rule = MARKETPLACE_RULES[id]
-                            const p = PALETTE[id]
-                            return (
-                              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: p.dot, flexShrink: 0 }} />
-                                <span style={{ fontFamily: 'var(--font-dm-mono)', color: '#1d1d1f' }}>
-                                  {rule.name.replace(/\s+/g, '_')}/
-                                </span>
-                                <span style={{ color: '#aeaeb2', fontSize: '12px' }}>
-                                  {rule.image_dimensions.width}×{rule.image_dimensions.height} {rule.file_format.toUpperCase()}
-                                </span>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ) : folderPath ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontFamily: 'var(--font-dm-mono)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', marginBottom: '4px' }}>
-                        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#f0a500" strokeWidth="1.5">
-                          <path d="M2 4h4l1.5 1.5H12a1 1 0 0 1 1 1V11a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" strokeLinejoin="round"/>
-                        </svg>
-                        <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{folderPath}/</span>
-                      </div>
-                      {selectedMarketplaces.map((id, i) => {
-                        const rule = MARKETPLACE_RULES[id]
-                        const p = PALETTE[id]
-                        const isLast = i === selectedMarketplaces.length - 1
+          {/* Shopify ready-state (before push) */}
+          {selectedMarketplaces.includes('shopify') && !isPushing && !pushDone && drafts.length === 0 && (
+            <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', padding: '20px 18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#30d158', animation: 'pulse 2s ease-in-out infinite' }} />
+                <p style={{ fontSize: '14px', fontWeight: 600, color: T1 }}>Ready to push to Shopify</p>
+              </div>
+              <p style={{ fontSize: '13px', color: T3, lineHeight: 1.5, marginBottom: canPush ? '14px' : '0' }}>
+                {!shopifyBrand
+                  ? 'No brand has Shopify credentials configured. Add your store domain and access token in Brands.'
+                  : confirmedClusters.length === 0
+                  ? 'No confirmed clusters in this session. Return to review and confirm at least one look.'
+                  : `${confirmedClusters.length} confirmed cluster${confirmedClusters.length !== 1 ? 's' : ''} · ${confirmedClusters.reduce((s, c) => s + c.images.length, 0)} images will be pushed to ${shopifyBrand.shopify_store_url}.`
+                }
+              </p>
+              {!shopifyBrand && (
+                <Link href="/dashboard/brands" style={{ fontSize: '13px', color: '#0a84ff', textDecoration: 'none' }}>
+                  Configure Shopify credentials →
+                </Link>
+              )}
+              {canPush && (
+                <button
+                  onClick={handleShopifyPush}
+                  style={{
+                    width: '100%', padding: '13px', borderRadius: '10px',
+                    background: '#30d158', border: 'none', cursor: 'pointer',
+                    fontSize: '14px', fontWeight: 600, color: '#000',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M2 12c0-2 1.5-4 5-4s5 2 5 4" strokeLinecap="round"/>
+                    <circle cx="7" cy="4" r="2.5"/>
+                  </svg>
+                  Create {confirmedClusters.length} Shopify draft{confirmedClusters.length !== 1 ? 's' : ''}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Post-push actions */}
+          {pushDone && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Link
+                href="/dashboard/jobs"
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD, border: `1px solid ${BORDER}`, textAlign: 'center', fontSize: '13px', fontWeight: 500, color: T2, textDecoration: 'none' }}
+              >
+                All Jobs
+              </Link>
+              <button
+                onClick={() => { setPushDone(false); setDrafts([]); setPushError(null) }}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD2, border: `1px solid ${BORDER}`, cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: T1 }}
+              >
+                Push again
+              </button>
+            </div>
+          )}
+
+          {/* Output preview (folder tree) */}
+          {(confirmedClusters.length > 0 || selectedMarketplaces.length > 0) && (
+            <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', overflow: 'hidden' }}>
+              <div style={{ padding: '12px 18px', borderBottom: `1px solid ${BORDER}` }}>
+                <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: T3, textTransform: 'uppercase' }}>
+                  Output Preview
+                </p>
+              </div>
+              <div style={{ padding: '14px 18px', fontFamily: 'var(--font-dm-mono)', fontSize: '12px', lineHeight: 1.8 }}>
+                {selectedMarketplaces.map((marketId) => {
+                  const rule = MARKETPLACE_RULES[marketId]
+                  const folderName = rule.name.replace(/\s+/g, '_')
+                  const viewClusters = previewClusters
+                  return (
+                    <div key={marketId} style={{ marginBottom: '4px' }}>
+                      <span style={{ color: T2 }}>{folderName}/</span>
+                      {viewClusters.map((c, ci) => {
+                        const seq = String(ci + 1).padStart(3, '0')
+                        const views = c.images.slice(0, 3).map((img) => img.viewLabel)
+                        const extra = c.images.length - views.length
+                        const isLastCluster = ci === viewClusters.length - 1
                         return (
-                          <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '12px', paddingLeft: '8px' }}>
-                            <span style={{ color: '#d1d1d6', userSelect: 'none', width: '16px', flexShrink: 0 }}>{isLast ? '└─' : '├─'}</span>
-                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke={p.dot} strokeWidth="1.5">
-                              <path d="M2 4h4l1.5 1.5H12a1 1 0 0 1 1 1V11a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" strokeLinejoin="round"/>
-                            </svg>
-                            <span style={{ color: '#4e4e53' }}>{rule.name.replace(/\s+/g, '_')}/</span>
-                            <span style={{ color: '#aeaeb2' }}>({rule.image_dimensions.width}×{rule.image_dimensions.height})</span>
+                          <div key={c.id} style={{ paddingLeft: '16px' }}>
+                            <span style={{ color: T3 }}>{isLastCluster && confirmedClusters.length <= 3 ? '└─' : '├─'} </span>
+                            <span style={{ color: T2 }}>{seq}/</span>
+                            {views.map((v, vi) => {
+                              const filename = applyNamingTemplate(namingTemplate, {
+                                brand: shopifyBrand?.brand_code ?? 'BRAND', seq: ci + 1,
+                                sku: c.sku ?? seq, color: c.color ?? undefined,
+                                view: v, index: vi + 1,
+                              }) + '.jpg'
+                              return (
+                                <div key={vi} style={{ paddingLeft: '28px' }}>
+                                  <span style={{ color: T3 }}>└─ </span>
+                                  <span style={{ color: T3 }}>{filename}</span>
+                                </div>
+                              )
+                            })}
+                            {extra > 0 && (
+                              <div style={{ paddingLeft: '28px' }}>
+                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>…+{extra} more</span>
+                              </div>
+                            )}
                           </div>
                         )
                       })}
+                      {confirmedClusters.length > 3 && (
+                        <div style={{ paddingLeft: '16px' }}>
+                          <span style={{ color: T3 }}>└─ </span>
+                          <span style={{ color: 'rgba(255,255,255,0.2)' }}>({confirmedClusters.length - 3} more folders…)</span>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <p style={{ fontSize: '13px', color: '#aeaeb2' }}>Choose a folder to preview the output structure.</p>
-                  )}
-                </div>
-
-                {/* Shopify callout */}
-                {selectedMarketplaces.includes('shopify') && (
-                  <div style={{
-                    margin: '0 18px 16px', padding: '12px 14px',
-                    background: 'rgba(48,209,88,0.06)', border: '1px solid rgba(48,209,88,0.18)',
-                    borderRadius: '10px',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
-                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158' }} />
-                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#1a5c2a' }}>Shopify-ready files included</p>
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#4e4e53', marginBottom: '8px', lineHeight: 1.4 }}>
-                      Files will be sized and named for Shopify product listings. Push directly to your store after export.
-                    </p>
-                    <Link href="/dashboard/integrations" style={{ fontSize: '12px', fontWeight: 500, color: '#1a8a35', textDecoration: 'none' }}>
-                      Push to Shopify →
-                    </Link>
-                  </div>
+                  )
+                })}
+                {selectedMarketplaces.length === 0 && (
+                  <span style={{ color: T3 }}>Select a marketplace to see output structure.</span>
+                )}
+                {selectedMarketplaces.length > 0 && confirmedClusters.length === 0 && (
+                  <span style={{ color: T3 }}>No confirmed clusters in session.</span>
                 )}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Error */}
-            {error && (
-              <div style={{ padding: '12px 16px', background: 'rgba(255,59,48,0.06)', border: '1px solid rgba(255,59,48,0.18)', borderRadius: '10px', fontSize: '13px', color: '#c41c00' }}>
-                {error}
-              </div>
-            )}
+          {/* Folder save progress/done */}
+          {(isSavingToFolder || folderDone) && (
+            <div style={{ background: CARD, border: `1px solid ${folderDone ? 'rgba(48,209,88,0.3)' : BORDER}`, borderRadius: '14px', padding: '18px' }}>
+              {isSavingToFolder ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                    <span style={{ color: T2 }}>{folderStatus}</span>
+                    <span style={{ color: '#30d158', fontFamily: 'var(--font-dm-mono)' }}>{folderProgress}%</span>
+                  </div>
+                  <div style={{ height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${folderProgress}%`, background: '#30d158', transition: 'width 0.3s' }} />
+                  </div>
+                </>
+              ) : folderDone ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#30d158' }}>Saved to {folderPath}/</span>
+                  </div>
+                  {writtenFiles.map((r) => (
+                    <div key={r.marketplace} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: T3, padding: '3px 0', fontFamily: 'var(--font-dm-mono)' }}>
+                      <span>{r.marketplace}/</span>
+                      <span>{r.count} files</span>
+                    </div>
+                  ))}
+                </>
+              ) : null}
+            </div>
+          )}
 
-            {/* Primary CTA */}
-            {!isRunning && !folderDone && (
-              <div>
-                <button
-                  onClick={exportMode === 'zip' ? handleZipExport : handleSaveToFolder}
-                  disabled={!canExport || (exportMode === 'folder' && (!folderHandleRef.current || !fsaSupported))}
-                  style={{
-                    width: '100%', padding: '17px', borderRadius: '12px',
-                    background: '#1d1d1f', color: 'white', border: 'none', cursor: 'pointer',
-                    fontSize: '15px', fontWeight: 600, letterSpacing: '-0.2px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
-                    transition: 'opacity 0.15s',
-                    opacity: (!canExport || (exportMode === 'folder' && (!folderHandleRef.current || !fsaSupported))) ? 0.35 : 1,
-                  }}
-                >
-                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M7.5 10.5V2M4.5 7.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2 13.5h11" strokeLinecap="round"/>
-                  </svg>
-                  {exportMode === 'zip'
-                    ? `Export ZIP${selectedMarketplaces.length > 0 ? ` · ${selectedMarketplaces.length} marketplace${selectedMarketplaces.length !== 1 ? 's' : ''}` : ''}`
-                    : `Save to ${folderPath ?? 'Folder'}`}
-                </button>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
-                  <Link
-                    href={`/dashboard/jobs/${params.jobId}/validation`}
-                    style={{ fontSize: '13px', color: '#aeaeb2', textDecoration: 'none' }}
-                  >
-                    ← Back
-                  </Link>
-                  <p style={{ fontSize: '12px', color: '#aeaeb2' }}>
-                    {job?.total_images ?? 0} images · {job?.cluster_count ?? 0} clusters
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Post-export actions (folder done) */}
-            {folderDone && (
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <Link
-                  href="/dashboard/jobs"
-                  style={{
-                    flex: 1, padding: '13px', borderRadius: '10px',
-                    background: 'rgba(0,0,0,0.05)', textAlign: 'center',
-                    fontSize: '13px', fontWeight: 500, color: '#1d1d1f', textDecoration: 'none',
-                  }}
-                >
-                  All Jobs
-                </Link>
-                <button
-                  onClick={() => { setFolderDone(false); setWrittenFiles([]); setError(null) }}
-                  style={{
-                    flex: 1, padding: '13px', borderRadius: '10px',
-                    background: '#1d1d1f', border: 'none', cursor: 'pointer',
-                    fontSize: '13px', fontWeight: 500, color: 'white',
-                  }}
-                >
-                  Export again
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Error */}
+          {(error || pushError) && (
+            <div style={{ padding: '12px 16px', background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.3)', borderRadius: '10px', fontSize: '13px', color: '#ff453a' }}>
+              {error || pushError}
+            </div>
+          )}
         </div>
       </div>
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
-        @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
+        @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.3 } }
       `}</style>
     </div>
   )
