@@ -34,11 +34,13 @@ export interface StyleListEntry {
   composition?: string
   care?: string
   fit?: string
+  length?: string
   rrp?: string
   season?: string
   occasion?: string
   gender?: string
   category?: string
+  subCategory?: string
   origin?: string
   sizeRange?: string
 }

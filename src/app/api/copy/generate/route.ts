@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     } catch {}
   }
 
-  const { sku, productName, color, brandName, angles, heroImage, composition, care, fit, rrp, season, occasion, gender, category, origin, sizeRange } = await req.json()
+  const { sku, productName, color, brandName, angles, heroImage, composition, care, fit, length, rrp, season, occasion, gender, category, subCategory, origin, sizeRange } = await req.json()
 
   const OpenAI = (await import('openai')).default
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -63,8 +63,10 @@ When fabric composition is provided, always state it accurately and verbatim —
     brand        && `- Brand: ${brand}`,
     gender       && `- Gender: ${gender}`,
     category     && `- Garment type: ${category}`,
+    subCategory  && `- Sub-category: ${subCategory}`,
     season       && `- Season/Collection: ${season}`,
     fit          && `- Fit: ${fit}`,
+    length       && `- Length: ${length}`,
     sizeRange    && `- Size range: ${sizeRange}`,
     composition  && `- Fabric composition: ${composition}`,
     care         && `- Care instructions: ${care}`,
@@ -95,7 +97,7 @@ Return ONLY valid JSON:
   "description": "2-3 sentences. Garment type, silhouette, fabric feel, and occasion. No generic filler.",
   "bullets": [
     "${category || 'Garment'} type and key style detail",
-    "${fit ? `Fit: ${fit} — ` : ''}silhouette and length",
+    "${fit ? `Fit: ${fit}` : ''}${length ? ` — ${length}` : fit ? '' : 'silhouette and length'}",
     "${composition ? `Fabric: ${composition}` : 'Fabric or material (if visible)'}",
     "${occasion ? `Occasion: ${occasion}` : 'Styling suggestion or occasion'}",
     "${care ? `Care: ${care}` : 'Care instructions'}"

@@ -16,7 +16,7 @@ import { HelpTooltip } from '@/components/ui/HelpTooltip'
 import { ClusterTour, useClusterTour } from '@/components/onboarding/ClusterTour'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { ViewLabel, MarketplaceName } from '@/types'
-import type { SessionCluster } from '@/store/session'
+import type { SessionCluster, StyleListEntry } from '@/store/session'
 import type { Brand } from '@/lib/brands'
 
 const ALL_VIEWS: ViewLabel[] = ['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4']
@@ -74,6 +74,8 @@ function ReviewPage() {
   const [styleNumberInput, setStyleNumberInput] = useState<Record<string, string>>({})
   const [skuSearchOpen, setSkuSearchOpen] = useState<string | null>(null)
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
+  const [skuMatchState, setSkuMatchState] = useState<Record<string, 'matched' | 'no-match' | 'multiple' | null>>({})
+  const [skuMatches, setSkuMatches] = useState<Record<string, StyleListEntry[]>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
 
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
@@ -150,18 +152,20 @@ function ReviewPage() {
         body: JSON.stringify({
           sku: cluster.sku,
           productName: cluster.productName,
-          color: cluster.color,
+          color: cluster.color || styleEntry?.colour || '',
           brandName: activeBrand?.name ?? '',
           angles,
           heroImage,
           composition: styleEntry?.composition ?? '',
           care: styleEntry?.care ?? '',
           fit: styleEntry?.fit ?? '',
+          length: styleEntry?.length ?? '',
           rrp: styleEntry?.rrp ?? '',
           season: styleEntry?.season ?? '',
           occasion: styleEntry?.occasion ?? '',
           gender: styleEntry?.gender ?? '',
           category: styleEntry?.category ?? '',
+          subCategory: styleEntry?.subCategory ?? '',
           origin: styleEntry?.origin ?? '',
           sizeRange: styleEntry?.sizeRange ?? '',
         }),
@@ -406,11 +410,47 @@ function ReviewPage() {
   const confirmedCount = clusters.filter((c) => c.confirmed).length
 
   // ── SKU input ──────────────────────────────────────────────────────────────
-  const handleSkuKeyDown = (clusterId: string, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      const val = (skuInput[clusterId] ?? '').trim().toUpperCase()
-      if (val) { updateClusterSku(clusterId, val); confirmCluster(clusterId) }
+  const applyStyleEntry = (clusterId: string, entry: StyleListEntry) => {
+    updateClusterSku(clusterId, entry.sku, entry.productName)
+    if (entry.colour) {
+      const col = entry.colour.toUpperCase()
+      updateClusterColor(clusterId, col)
+      setColorInput((s) => ({ ...s, [clusterId]: col }))
     }
+    if (entry.colourCode) updateClusterColourCode(clusterId, entry.colourCode)
+    if (entry.styleNumber) updateClusterStyleNumber(clusterId, entry.styleNumber)
+    setSkuInput((s) => ({ ...s, [clusterId]: entry.sku }))
+  }
+
+  const handleConfirm = (clusterId: string) => {
+    const cluster = clusters.find((c) => c.id === clusterId)
+    if (!cluster) return
+    const typed = (skuInput[clusterId] ?? cluster.sku).trim().toUpperCase()
+    if (typed) updateClusterSku(clusterId, typed)
+
+    if (!styleList.length) {
+      confirmCluster(clusterId)
+      return
+    }
+
+    let matches = styleList.filter((e) => e.sku.toUpperCase() === typed)
+    if (!matches.length) matches = styleList.filter((e) => e.styleNumber && e.styleNumber.toUpperCase() === typed)
+
+    if (matches.length === 0) {
+      setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'no-match' }))
+      confirmCluster(clusterId)
+    } else if (matches.length === 1) {
+      applyStyleEntry(clusterId, matches[0])
+      setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'matched' }))
+      confirmCluster(clusterId)
+    } else {
+      setSkuMatches((prev) => ({ ...prev, [clusterId]: matches }))
+      setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'multiple' }))
+    }
+  }
+
+  const handleSkuKeyDown = (clusterId: string, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleConfirm(clusterId)
   }
 
   // ── Drag-and-drop ─────────────────────────────────────────────────────────
@@ -885,7 +925,11 @@ function ReviewPage() {
                             placeholder="Search style list…"
                             value={skuSearchOpen === cluster.id ? (skuSearchQuery[cluster.id] ?? currentSku) : currentSku}
                             onFocus={() => { setSkuSearchOpen(cluster.id); setSkuSearchQuery((q) => ({ ...q, [cluster.id]: currentSku })) }}
-                            onChange={(e) => setSkuSearchQuery((q) => ({ ...q, [cluster.id]: e.target.value }))}
+                            onChange={(e) => {
+                              setSkuSearchQuery((q) => ({ ...q, [cluster.id]: e.target.value }))
+                              setSkuMatchState((s) => ({ ...s, [cluster.id]: null }))
+                              setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
+                            }}
                             onBlur={() => setTimeout(() => setSkuSearchOpen(null), 150)}
                             style={{ fontFamily: 'var(--font-dm-mono)' }}
                           />
@@ -902,16 +946,9 @@ function ReviewPage() {
                                     key={i}
                                     className="w-full text-left px-3 py-[7px] hover:bg-[var(--bg3)] transition-colors flex items-center gap-2"
                                     onMouseDown={() => {
-                                      updateClusterSku(cluster.id, entry.sku, entry.productName)
-                                      if (entry.colour) {
-                                        const col = entry.colour.toUpperCase()
-                                        updateClusterColor(cluster.id, col)
-                                        // Clear stale colorInput so onBlur doesn't overwrite the new value
-                                        setColorInput((s) => ({ ...s, [cluster.id]: col }))
-                                      }
-                                      if (entry.colourCode) updateClusterColourCode(cluster.id, entry.colourCode)
-                                      if (entry.styleNumber) updateClusterStyleNumber(cluster.id, entry.styleNumber)
-                                      setSkuInput((s) => ({ ...s, [cluster.id]: entry.sku }))
+                                      applyStyleEntry(cluster.id, entry)
+                                      setSkuMatchState((s) => ({ ...s, [cluster.id]: 'matched' }))
+                                      setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
                                       setSkuSearchOpen(null)
                                     }}
                                   >
@@ -951,17 +988,44 @@ function ReviewPage() {
                       </span>
                     ) : (
                       <button
-                        onClick={() => {
-                          const val = (skuInput[cluster.id] ?? cluster.sku).trim().toUpperCase()
-                          if (val) updateClusterSku(cluster.id, val)
-                          confirmCluster(cluster.id)
-                        }}
+                        onClick={() => handleConfirm(cluster.id)}
                         className="btn btn-primary btn-sm flex-shrink-0"
                       >
                         Confirm
                       </button>
                     )}
                   </div>
+
+                  {/* SKU match feedback — colourway picker or no-match message */}
+                  {skuMatchState[cluster.id] === 'multiple' && (skuMatches[cluster.id] ?? []).length > 0 && (
+                    <div className="mx-3 mb-2 px-2 py-[7px] rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
+                      <p className="text-[0.72rem] text-[var(--text3)] mb-[6px] uppercase tracking-wide">Multiple colourways — pick one:</p>
+                      <div className="flex flex-wrap gap-[5px]">
+                        {(skuMatches[cluster.id] ?? []).map((entry, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              applyStyleEntry(cluster.id, entry)
+                              setSkuMatchState((s) => ({ ...s, [cluster.id]: 'matched' }))
+                              setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
+                              confirmCluster(cluster.id)
+                            }}
+                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[5px] text-[0.75rem] border border-[var(--line2)] hover:border-[var(--accent)] hover:text-[var(--text)] transition-colors"
+                            style={{ color: 'var(--text2)' }}
+                          >
+                            {entry.colour || entry.sku}
+                            {entry.colourCode && <span style={{ color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)', fontSize: '0.7rem' }}>{entry.colourCode}</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {skuMatchState[cluster.id] === 'no-match' && (
+                    <div className="mx-3 mb-2 flex items-center gap-[6px] px-2 py-[5px] rounded-sm">
+                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round"><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 8h.01"/></svg>
+                      <span className="text-[0.75rem] text-[var(--text3)]">No match in your style list — check the SKU</span>
+                    </div>
+                  )}
 
                   {/* Missing shots per marketplace */}
                   {sessionMarketplaces.map((mp) => {
@@ -1254,6 +1318,26 @@ function ReviewPage() {
                                   </svg>
                                   Regenerate
                                 </button>
+                                {/* From your product data — verbatim CSV fields, not AI-generated */}
+                                {styleList.length > 0 && (() => {
+                                  const entry = styleList.find((e) => e.sku.toUpperCase() === cluster.sku.toUpperCase())
+                                  const fields = [
+                                    { label: 'Fabric', value: entry?.composition },
+                                    { label: 'Care', value: entry?.care },
+                                    { label: 'RRP', value: entry?.rrp ? `$${entry.rrp}` : undefined },
+                                  ]
+                                  return (
+                                    <div className="border-t border-[var(--line)] pt-[8px] mt-[2px]">
+                                      <p className="text-[0.62rem] text-[var(--text3)] uppercase tracking-wide mb-[6px]">From your product data</p>
+                                      {fields.map(({ label, value }) => (
+                                        <div key={label} className="flex items-start gap-[8px] mb-[4px]">
+                                          <span className="text-[0.62rem] text-[var(--text3)] uppercase tracking-wide w-[40px] flex-shrink-0 mt-[2px]">{label}</span>
+                                          <span className={`text-[0.78rem] leading-snug ${value ? 'text-[var(--text2)]' : 'text-[var(--text3)]'}`}>{value || '—'}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )
+                                })()}
                               </>
                             ) : (
                               <button
