@@ -16,6 +16,7 @@ interface NavItem {
   icon: React.ReactNode
   badge?: { text: string; variant: 'blue' | 'green' | 'red' | 'amber' }
   disabled?: boolean
+  activeWhen?: (pathname: string) => boolean
 }
 
 const NAV_WORKSPACE: NavItem[] = [
@@ -69,6 +70,7 @@ const NAV_WORKFLOW: NavItem[] = [
   {
     label: 'All Jobs',
     href: '/dashboard/jobs',
+    activeWhen: (p) => p === '/dashboard/jobs' || (p.startsWith('/dashboard/jobs/') && !p.includes('/session/')),
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
         <rect x="2" y="3" width="12" height="10" rx="1.5"/>
@@ -118,11 +120,13 @@ function NavLink({ item, disabled }: { item: NavItem; disabled?: boolean }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [hrefPath, hrefQuery] = item.href.split('?')
-  const isActive = item.href === '/dashboard'
-    ? pathname === '/dashboard'
-    : hrefQuery
-      ? pathname === hrefPath && searchParams.get('tab') === new URLSearchParams(hrefQuery).get('tab')
-      : pathname.startsWith(hrefPath)
+  const isActive = item.activeWhen
+    ? item.activeWhen(pathname)
+    : item.href === '/dashboard'
+      ? pathname === '/dashboard'
+      : hrefQuery
+        ? pathname === hrefPath && searchParams.get('tab') === new URLSearchParams(hrefQuery).get('tab')
+        : pathname.startsWith(hrefPath)
 
   const isDisabled = disabled ?? item.disabled
 
@@ -291,7 +295,7 @@ export function Sidebar() {
           {/* Workspace */}
           <div style={{ padding: '0 10px 6px' }}>
             <p style={SL}>Workspace</p>
-            <nav className="flex flex-col gap-0">
+            <nav className="flex flex-col gap-[2px]">
               {NAV_WORKSPACE.map((item) => <NavLink key={item.href} item={item} />)}
             </nav>
           </div>
@@ -299,7 +303,7 @@ export function Sidebar() {
           {/* Pipeline */}
           <div style={{ padding: '8px 10px 6px' }}>
             <p style={SL}>Pipeline</p>
-            <nav className="flex flex-col gap-0">
+            <nav className="flex flex-col gap-[2px]">
               {NAV_WORKFLOW.map((item) => (
                 <NavLink
                   key={item.href}
@@ -313,7 +317,7 @@ export function Sidebar() {
           {/* Configure */}
           <div style={{ padding: '8px 10px 6px' }}>
             <p style={SL}>Configure</p>
-            <nav className="flex flex-col gap-0">
+            <nav className="flex flex-col gap-[2px]">
               {NAV_CONFIG.map((item) => <NavLink key={item.href} item={item} />)}
             </nav>
           </div>
