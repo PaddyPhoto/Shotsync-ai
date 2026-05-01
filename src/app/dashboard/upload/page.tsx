@@ -24,7 +24,7 @@ interface ProcessProgress {
 export default function UploadPage() {
   const router = useRouter()
   const { activeBrand } = useBrand()
-  const { canProcessImages, plan, openUpgrade } = usePlan()
+  const { canProcessImages, plan, usage, openUpgrade } = usePlan()
   const setSession = useSession((s) => s.setSession)
   const setStyleList = useSession((s) => s.setStyleList)
   const setShootConfig = useSession((s) => s.setShootConfig)
@@ -440,7 +440,7 @@ export default function UploadPage() {
   const handleProcess = async () => {
     if (!files.length) return
     if (!canProcessImages(files.length)) {
-      openUpgrade(`Your plan supports up to ${plan.limits.imagesPerJob} images per job. You selected ${files.length}.`)
+      openUpgrade(`Your ${plan.name} plan allows ${plan.limits.imagesPerMonth.toLocaleString()} images per month. You've used ${usage.imagesThisMonth.toLocaleString()} so far this month.`)
       return
     }
 
@@ -514,7 +514,7 @@ export default function UploadPage() {
                 <p className="text-[0.88rem] font-semibold text-[var(--text)] leading-tight">
                   {existingSession.jobName || 'Untitled Job'}
                 </p>
-                <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">
+                <p className="text-[0.8rem] text-[var(--text3)] mt-[2px]">
                   {existingSession.clusters.length} clusters · {existingSession.clusters.reduce((s, c) => s + c.images.length, 0)} images · currently active
                 </p>
               </div>
@@ -575,15 +575,15 @@ export default function UploadPage() {
               { label: 'Front 3/4',   bg: 'rgba(48,209,88,0.08)',  color: '#1a8a35'  },
               { label: 'Back 3/4',    bg: 'rgba(0,122,255,0.08)',  color: '#005fc4'  },
             ].map(({ label, bg, color }) => (
-              <span key={label} style={{ fontSize: '11px', fontWeight: 500, padding: '3px 9px', borderRadius: '20px', background: bg, color, letterSpacing: '-.1px', whiteSpace: 'nowrap' }}>
+              <span key={label} style={{ fontSize: '15px', fontWeight: 500, padding: '3px 9px', borderRadius: '20px', background: bg, color, letterSpacing: '-.1px', whiteSpace: 'nowrap' }}>
                 {label}
               </span>
             ))}
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '5px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '5px' }}>
             New Upload
           </h1>
-          <p style={{ fontSize: '14px', color: '#6e6e73', maxWidth: '420px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '15px', color: '#4e4e53', maxWidth: '420px', lineHeight: 1.5 }}>
             Upload your shoot batch — images are clustered and organised automatically in your browser.
           </p>
         </div>
@@ -596,22 +596,22 @@ export default function UploadPage() {
               <div className="card-body flex flex-col gap-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Shoot Name</label>
+                    <label className="text-[13px] text-[var(--text2)] mb-[6px] block">Shoot Name</label>
                     <input className="input" placeholder="e.g. SS25 Studio Shoot" value={jobName} onChange={(e) => setJobName(e.target.value)} />
                   </div>
                   <div>
-                    <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Brand</label>
+                    <label className="text-[13px] text-[var(--text2)] mb-[6px] block">Brand</label>
                     <div className="flex items-center gap-2 h-[35px] px-3 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm">
                       {activeBrand ? (
                         <>
                           <div className="w-[18px] h-[18px] rounded-[3px] flex items-center justify-center text-[0.55rem] font-bold text-black flex-shrink-0" style={{ background: activeBrand.logo_color, fontFamily: 'var(--font-dm-mono)' }}>{activeBrand.brand_code}</div>
-                          <span className="text-[0.82rem] text-[var(--text)]">{activeBrand.name}</span>
+                          <span className="text-[0.8rem] text-[var(--text)]">{activeBrand.name}</span>
                         </>
                       ) : (
-                        <span className="text-[0.82rem] text-[var(--text3)]">No brand selected</span>
+                        <span className="text-[0.8rem] text-[var(--text3)]">No brand selected</span>
                       )}
                     </div>
-                    <p className="text-[0.7rem] text-[var(--text3)] mt-[5px]">Switch brands from the sidebar</p>
+                    <p className="text-[0.86rem] text-[var(--text3)] mt-[5px]">Switch brands from the sidebar</p>
                   </div>
                 </div>
 
@@ -676,16 +676,16 @@ export default function UploadPage() {
                         transition: 'all 0.15s', cursor: 'pointer',
                       }}
                     >
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: shootType === id ? accentBg : 'rgba(0,0,0,0.05)', color: shootType === id ? accent : '#aeaeb2', transition: 'all 0.15s' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: shootType === id ? accentBg : 'rgba(0,0,0,0.05)', color: shootType === id ? accent : '#4e4e53', transition: 'all 0.15s' }}>
                         {icon}
                       </div>
                       <div>
-                        <p style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '3px' }}>{label}</p>
-                        <p style={{ fontSize: '12px', color: '#6e6e73', lineHeight: 1.4 }}>{desc}</p>
+                        <p style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '3px' }}>{label}</p>
+                        <p style={{ fontSize: '14px', color: '#4e4e53', lineHeight: 1.4 }}>{desc}</p>
                       </div>
                       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                         {pills.map((pill, i) => (
-                          <span key={pill} style={{ fontSize: '11px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: pillColors[i]?.bg, color: pillColors[i]?.color }}>
+                          <span key={pill} style={{ fontSize: '13px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: pillColors[i]?.bg, color: pillColors[i]?.color }}>
                             {pill}
                           </span>
                         ))}
@@ -721,7 +721,7 @@ export default function UploadPage() {
                           while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
                           setAngleSequence(seq.slice(0, n))
                         }}
-                        className="text-[0.72rem] text-[var(--accent)] hover:underline flex-shrink-0"
+                        className="text-[0.78rem] text-[var(--accent)] hover:underline flex-shrink-0"
                       >
                         Reset to brand default ({defaultImagesPerLook})
                       </button>
@@ -740,9 +740,9 @@ export default function UploadPage() {
                         }}
                         style={{
                           width: '40px', height: '40px', borderRadius: '10px', border: 'none',
-                          fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+                          fontSize: '15px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
                           background: imagesPerLook === n ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
-                          color: imagesPerLook === n ? '#f5f5f7' : '#6e6e73',
+                          color: imagesPerLook === n ? '#f5f5f7' : '#4e4e53',
                           boxShadow: imagesPerLook === n ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
                         }}
                       >
@@ -753,7 +753,7 @@ export default function UploadPage() {
 
                   {/* Angle sequence editor */}
                   <div>
-                      <p className="text-[0.72rem] text-[var(--text3)] mb-3">Shoot sequence — set the order your photographer shoots each angle</p>
+                      <p className="text-[13px] text-[var(--text3)] mb-3">Shoot sequence — set the order your photographer shoots each angle</p>
                       <div className="flex flex-col gap-[5px]">
                         {angleSequence.slice(0, imagesPerLook).map((angle, idx) => {
                           const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = {
@@ -766,10 +766,10 @@ export default function UploadPage() {
                             'front-3/4':   { bg: 'rgba(48,209,88,0.07)',  color: '#1a8a35', dot: '#30d158' },
                             'back-3/4':    { bg: 'rgba(0,122,255,0.07)',  color: '#005fc4', dot: '#0071e3' },
                           }
-                          const style = ANGLE_STYLE[angle] ?? { bg: 'rgba(0,0,0,0.05)', color: '#6e6e73', dot: '#aeaeb2' }
+                          const style = ANGLE_STYLE[angle] ?? { bg: 'rgba(0,0,0,0.05)', color: '#4e4e53', dot: '#4e4e53' }
                           return (
                             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ width: '18px', fontSize: '11px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{idx + 1}</span>
+                              <span style={{ width: '18px', fontSize: '15px', color: '#4e4e53', textAlign: 'right', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>{idx + 1}</span>
                               {/* Colored dot showing current angle */}
                               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: style.dot, flexShrink: 0 }} />
                               <select
@@ -782,7 +782,7 @@ export default function UploadPage() {
                                 style={{
                                   flex: 1, background: style.bg, border: `1px solid ${style.color}30`,
                                   borderRadius: '8px', padding: '5px 10px',
-                                  fontSize: '13px', fontWeight: 500, color: style.color,
+                                  fontSize: '14px', fontWeight: 500, color: style.color,
                                   outline: 'none', cursor: 'pointer', appearance: 'auto',
                                 }}
                               >
@@ -799,7 +799,7 @@ export default function UploadPage() {
                                     ;[seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]
                                     setAngleSequence(seq)
                                   }}
-                                  style={{ width: '20px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.2 : 1 }}
+                                  style={{ width: '20px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#4e4e53', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.2 : 1 }}
                                 >▲</button>
                                 <button
                                   type="button"
@@ -809,7 +809,7 @@ export default function UploadPage() {
                                     ;[seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]
                                     setAngleSequence(seq)
                                   }}
-                                  style={{ width: '20px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx >= imagesPerLook - 1 ? 0.2 : 1 }}
+                                  style={{ width: '20px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#4e4e53', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx >= imagesPerLook - 1 ? 0.2 : 1 }}
                                 >▼</button>
                               </div>
                             </div>
@@ -823,8 +823,8 @@ export default function UploadPage() {
                 {/* Still life category picker */}
                 {shootType === 'still-life' && (
                   <div className="border-t border-[var(--line)] pt-4">
-                    <p className="text-[0.75rem] font-medium text-[var(--text2)] mb-1">Category</p>
-                    <p className="text-[0.7rem] text-[var(--text3)] mb-3">Select what you&apos;re shooting. Accessory type is detected automatically by AI after clustering.</p>
+                    <p className="text-[0.8rem] font-medium text-[var(--text2)] mb-1">Category</p>
+                    <p className="text-[0.86rem] text-[var(--text3)] mb-3">Select what you&apos;re shooting. Accessory type is detected automatically by AI after clustering.</p>
                     <div className="grid grid-cols-2 gap-2">
                       {ACCESSORY_CATEGORIES.filter((cat) => cat.id === 'ghost-mannequin' || cat.id === 'accessories').map((cat) => {
                         const brandSeq = activeBrand?.still_life_angle_sequences?.[cat.id]
@@ -847,15 +847,15 @@ export default function UploadPage() {
                           >
                             <div className="flex items-center justify-between w-full mb-[3px]">
                               <span className={`text-[0.78rem] font-medium ${isSelected ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`}>{cat.label}</span>
-                              <span className="text-[0.65rem] font-medium text-[var(--text3)] bg-[var(--bg4)] px-[6px] py-[1px] rounded-full">{count} shots</span>
+                              <span className="text-[0.83rem] font-medium text-[var(--text3)] bg-[var(--bg4)] px-[6px] py-[1px] rounded-full">{count} shots</span>
                             </div>
-                            <span className="text-[0.67rem] text-[var(--text3)]">{effectiveSeq.join(' · ')}</span>
+                            <span className="text-[0.83rem] text-[var(--text3)]">{effectiveSeq.join(' · ')}</span>
                           </button>
                         )
                       })}
                     </div>
                     {!stillLifeType && (
-                      <p className="text-[0.68rem] text-[var(--text3)] mt-2">Select a category to set the correct angle sequence and image count.</p>
+                      <p className="text-[0.84rem] text-[var(--text3)] mt-2">Select a category to set the correct angle sequence and image count.</p>
                     )}
                   </div>
                 )}
@@ -893,21 +893,21 @@ export default function UploadPage() {
                       <path d="M8 2v7M5 5l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     <div>
-                      <p className="text-[0.82rem] text-[var(--text2)]">Import style list <span className="text-[var(--text3)]">· optional</span></p>
-                      <p className="text-[0.72rem] text-[var(--text3)] mt-[2px]">Upload your brand's range list (.xlsx or .csv) to auto-populate SKUs on clusters</p>
+                      <p className="text-[0.8rem] text-[var(--text2)]">Import style list <span className="text-[var(--text3)]">· optional</span></p>
+                      <p className="text-[0.78rem] text-[var(--text3)] mt-[2px]">Upload your brand's range list (.xlsx or .csv) to auto-populate SKUs on clusters</p>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
                     <div className="flex-1 px-3 py-2 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm">
                       <p className="text-[0.78rem] text-[var(--text)]">{styleListName}</p>
-                      <p className="text-[0.7rem] text-[var(--text3)] mt-[2px]">
+                      <p className="text-[0.86rem] text-[var(--text3)] mt-[2px]">
                         {styleList.length} styles · {[...new Set(styleList.map(e => e.colour).filter(Boolean))].length} colours
                       </p>
                     </div>
                     <button
                       onClick={() => { setStyleListLocal([]); setStyleList([]); setStyleListName(null) }}
-                      className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
+                      className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
                     >
                       Remove
                     </button>
@@ -916,7 +916,7 @@ export default function UploadPage() {
                 <a
                   href="/shotsync-range-list-template.csv"
                   download="shotsync-range-list-template.csv"
-                  className="flex items-center gap-1.5 mt-2 text-[0.72rem] text-[var(--text3)] hover:text-[var(--accent)] transition-colors w-fit"
+                  className="flex items-center gap-1.5 mt-2 text-[0.78rem] text-[var(--text3)] hover:text-[var(--accent)] transition-colors w-fit"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -978,12 +978,12 @@ export default function UploadPage() {
                         <div style={{ position: 'absolute', bottom: '-4px', left: '-10px', width: '16px', height: '16px', borderRadius: '4px', background: 'rgba(0,113,227,0.12)', border: '1px solid rgba(0,113,227,0.2)' }} />
                       </div>
                       <div className="text-center">
-                        <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Drop images here</p>
-                        <p style={{ fontSize: '13px', color: '#aeaeb2' }}>or click to browse · JPG, PNG, HEIC · 500–1000+ images supported</p>
+                        <p style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Drop images here</p>
+                        <p style={{ fontSize: '14px', color: '#4e4e53' }}>or click to browse · JPG, PNG, HEIC · 500–1000+ images supported</p>
                       </div>
                       <div style={{ display: 'flex', gap: '6px' }}>
                         {['JPG', 'PNG', 'WebP', 'HEIC'].map((fmt) => (
-                          <span key={fmt} style={{ fontSize: '11px', fontWeight: 500, padding: '2px 8px', borderRadius: '20px', background: 'rgba(0,0,0,0.05)', color: '#6e6e73' }}>{fmt}</span>
+                          <span key={fmt} style={{ fontSize: '15px', fontWeight: 500, padding: '2px 8px', borderRadius: '20px', background: 'rgba(0,0,0,0.05)', color: '#4e4e53' }}>{fmt}</span>
                         ))}
                       </div>
                     </div>
@@ -992,8 +992,8 @@ export default function UploadPage() {
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-[0.78rem] font-medium text-[var(--text2)]">{files.length} images queued</p>
                         <div className="flex items-center gap-3">
-                          <button onClick={() => inputRef.current?.click()} className="text-[0.75rem] text-[var(--accent)] hover:underline">+ Add more</button>
-                          <button onClick={() => { setFiles([]); setStep('config') }} className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors">Clear all</button>
+                          <button onClick={() => inputRef.current?.click()} className="text-[0.8rem] text-[var(--accent)] hover:underline">+ Add more</button>
+                          <button onClick={() => { setFiles([]); setStep('config') }} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors">Clear all</button>
                         </div>
                       </div>
                       <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-[3px]">
@@ -1009,19 +1009,19 @@ export default function UploadPage() {
                         ))}
                         {files.length > 80 && (
                           <div className="aspect-square rounded-[3px] bg-[var(--bg4)] flex items-center justify-center">
-                            <span className="text-[0.65rem] text-[var(--text3)]">+{files.length - 80}</span>
+                            <span className="text-[0.83rem] text-[var(--text3)]">+{files.length - 80}</span>
                           </div>
                         )}
                       </div>
-                      {plan.limits.imagesPerJob !== -1 && files.length > plan.limits.imagesPerJob && (
+                      {plan.limits.imagesPerMonth !== -1 && (usage.imagesThisMonth + files.length) > plan.limits.imagesPerMonth && (
                         <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-sm bg-[rgba(232,122,122,0.08)] border border-[rgba(232,122,122,0.2)]">
                           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent3)" strokeWidth="1.5" className="flex-shrink-0">
                             <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
                             <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
                           </svg>
                           <p className="text-[0.78rem] text-[var(--accent3)]">
-                            {files.length} images selected — your plan allows {plan.limits.imagesPerJob}.{' '}
-                            <button onClick={() => openUpgrade(`Upgrade to process more than ${plan.limits.imagesPerJob} images`)} className="underline hover:no-underline">Upgrade</button>
+                            {files.length} images selected — you have {Math.max(0, plan.limits.imagesPerMonth - usage.imagesThisMonth).toLocaleString()} remaining this month.{' '}
+                            <button onClick={() => openUpgrade(`Upgrade to process more images per month`)} className="underline hover:no-underline">Upgrade</button>
                           </p>
                         </div>
                       )}
@@ -1036,17 +1036,17 @@ export default function UploadPage() {
                               <p className="text-[0.78rem] font-medium text-[var(--accent4)]">
                                 {rejectedFiles.length} file{rejectedFiles.length > 1 ? 's' : ''} skipped
                               </p>
-                              <p className="text-[0.73rem] text-[var(--text3)] mt-[2px]">
+                              <p className="text-[0.84rem] text-[var(--text3)] mt-[2px]">
                                 Accepted formats: JPEG, PNG, WebP, HEIC · Max size: 25 MB per image
                               </p>
                               <ul className="mt-1 space-y-[2px]">
                                 {rejectedFiles.slice(0, 5).map((r, i) => (
-                                  <li key={i} className="text-[0.72rem] text-[var(--text3)] truncate">
+                                  <li key={i} className="text-[0.78rem] text-[var(--text3)] truncate">
                                     <span className="font-medium text-[var(--text2)]">{r.name}</span> — {r.reason}
                                   </li>
                                 ))}
                                 {rejectedFiles.length > 5 && (
-                                  <li className="text-[0.72rem] text-[var(--text3)]">…and {rejectedFiles.length - 5} more</li>
+                                  <li className="text-[0.78rem] text-[var(--text3)]">…and {rejectedFiles.length - 5} more</li>
                                 )}
                               </ul>
                             </div>
@@ -1065,7 +1065,7 @@ export default function UploadPage() {
 
                 {/* Cloud import */}
                 <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-                  <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '8px' }}>Or import from cloud</p>
+                  <p style={{ fontSize: '14px', color: '#4e4e53', marginBottom: '8px' }}>Or import from cloud</p>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {/* Dropbox */}
                     <button
@@ -1076,7 +1076,7 @@ export default function UploadPage() {
                         padding: '6px 12px', borderRadius: '8px',
                         background: cloudImporting === 'dropbox' ? '#0061ff' : 'rgba(0,97,255,0.08)',
                         color: cloudImporting === 'dropbox' ? '#fff' : '#0061ff',
-                        border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                        border: 'none', fontSize: '14px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
                         transition: 'all 0.15s',
                       }}
                     >
@@ -1095,7 +1095,7 @@ export default function UploadPage() {
                           display: 'flex', alignItems: 'center', gap: '6px',
                           padding: '6px 12px', borderRadius: '8px',
                           background: 'rgba(66,133,244,0.08)', color: '#4285f4',
-                          border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                          border: 'none', fontSize: '14px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
                         }}
                       >
                         <svg width="12" height="12" viewBox="0 0 87.3 78" fill="currentColor">
@@ -1117,7 +1117,7 @@ export default function UploadPage() {
                           padding: '6px 12px', borderRadius: '8px',
                           background: cloudImporting === 'google-drive' ? '#4285f4' : 'rgba(66,133,244,0.08)',
                           color: cloudImporting === 'google-drive' ? '#fff' : '#4285f4',
-                          border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                          border: 'none', fontSize: '14px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
                           transition: 'all 0.15s',
                         }}
                       >
@@ -1142,7 +1142,7 @@ export default function UploadPage() {
                           display: 'flex', alignItems: 'center', gap: '6px',
                           padding: '6px 12px', borderRadius: '8px',
                           background: 'rgba(255,153,0,0.08)', color: '#b36b00',
-                          border: 'none', fontSize: '12px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
+                          border: 'none', fontSize: '14px', fontWeight: 500, cursor: cloudImporting ? 'wait' : 'pointer',
                         }}
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1155,7 +1155,7 @@ export default function UploadPage() {
                   </div>
 
                   {cloudImportError && (
-                    <p style={{ fontSize: '12px', color: '#ff3b30', marginTop: '6px' }}>{cloudImportError}</p>
+                    <p style={{ fontSize: '14px', color: '#ff3b30', marginTop: '6px' }}>{cloudImportError}</p>
                   )}
                 </div>
               </div>
@@ -1167,23 +1167,23 @@ export default function UploadPage() {
                 <div style={{ background: 'var(--bg)', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '16px', width: '560px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                   <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <p style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f' }}>S3 Browser</p>
-                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>
+                      <p style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f' }}>S3 Browser</p>
+                      <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>
                         {activeBrand?.cloud_connections?.s3?.bucket}{s3Prefix ? ` / ${s3Prefix}` : ''}
                       </p>
                     </div>
-                    <button onClick={() => setS3BrowserOpen(false)} style={{ color: '#aeaeb2', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
+                    <button onClick={() => setS3BrowserOpen(false)} style={{ color: '#4e4e53', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>×</button>
                   </div>
 
                   <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
                     {s3Loading ? (
-                      <div style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>Loading…</div>
+                      <div style={{ padding: '32px', textAlign: 'center', color: '#4e4e53', fontSize: '14px' }}>Loading…</div>
                     ) : (
                       <>
                         {s3Prefix && (
                           <button
                             onClick={() => loadS3Folder(s3Prefix.split('/').slice(0, -2).join('/') + (s3Prefix.includes('/') ? '/' : ''))}
-                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#005fc4', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#005fc4', display: 'flex', alignItems: 'center', gap: '6px' }}
                           >
                             <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 3L5 7l4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             Back
@@ -1193,9 +1193,9 @@ export default function UploadPage() {
                           <button
                             key={folder.key}
                             onClick={() => loadS3Folder(folder.key)}
-                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '8px' }}
                           >
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#aeaeb2" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#4e4e53" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             {folder.name}/
                           </button>
                         ))}
@@ -1214,19 +1214,19 @@ export default function UploadPage() {
                               })}
                               style={{ width: '14px', height: '14px', accentColor: '#0071e3', flexShrink: 0 }}
                             />
-                            <span style={{ fontSize: '13px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                            <span style={{ fontSize: '11px', color: '#aeaeb2', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                            <span style={{ fontSize: '14px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                            <span style={{ fontSize: '15px', color: '#4e4e53', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
                           </label>
                         ))}
                         {s3Files.length === 0 && s3Folders.length === 0 && !s3Loading && (
-                          <p style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>No image files found in this location.</p>
+                          <p style={{ padding: '32px', textAlign: 'center', color: '#4e4e53', fontSize: '14px' }}>No image files found in this location.</p>
                         )}
                       </>
                     )}
                   </div>
 
                   <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <p style={{ fontSize: '12px', color: '#aeaeb2' }}>
+                    <p style={{ fontSize: '14px', color: '#4e4e53' }}>
                       {s3Selected.size > 0 ? `${s3Selected.size} selected` : `${s3Files.length} files`}
                       {s3Files.length === 0 && s3Folders.length > 0 ? '' : ''}
                     </p>
@@ -1234,7 +1234,7 @@ export default function UploadPage() {
                       {s3Files.length > 0 && (
                         <button
                           onClick={() => setS3Selected(s3Selected.size === s3Files.length ? new Set() : new Set(s3Files.map((f) => f.id)))}
-                          style={{ fontSize: '12px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
+                          style={{ fontSize: '14px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
                           {s3Selected.size === s3Files.length ? 'Deselect all' : 'Select all'}
                         </button>
@@ -1245,8 +1245,8 @@ export default function UploadPage() {
                         style={{
                           padding: '6px 14px', borderRadius: '8px',
                           background: s3Selected.size > 0 ? '#1d1d1f' : 'rgba(0,0,0,0.08)',
-                          color: s3Selected.size > 0 ? '#f5f5f7' : '#aeaeb2',
-                          border: 'none', fontSize: '13px', fontWeight: 500,
+                          color: s3Selected.size > 0 ? '#f5f5f7' : '#4e4e53',
+                          border: 'none', fontSize: '14px', fontWeight: 500,
                           cursor: s3Selected.size > 0 ? 'pointer' : 'default',
                         }}
                       >
@@ -1264,22 +1264,22 @@ export default function UploadPage() {
                 <div style={{ background: 'var(--bg)', border: '0.5px solid rgba(0,0,0,0.12)', borderRadius: '16px', width: '560px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                   <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <p style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f' }}>Google Drive</p>
-                      <p style={{ fontSize: '12px', color: '#aeaeb2', marginTop: '2px' }}>
+                      <p style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f' }}>Google Drive</p>
+                      <p style={{ fontSize: '14px', color: '#4e4e53', marginTop: '2px' }}>
                         {gdriveFolderStack.length === 0 ? 'My Drive' : gdriveFolderStack.map((f) => f.name).join(' / ')}
                       </p>
                     </div>
-                    <button onClick={() => setGdriveBrowserOpen(false)} style={{ color: '#aeaeb2', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
+                    <button onClick={() => setGdriveBrowserOpen(false)} style={{ color: '#4e4e53', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>×</button>
                   </div>
 
                   <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
                     {gdriveLoading ? (
-                      <div style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>Loading…</div>
+                      <div style={{ padding: '32px', textAlign: 'center', color: '#4e4e53', fontSize: '14px' }}>Loading…</div>
                     ) : gdriveError ? (
                       <div style={{ padding: '32px', textAlign: 'center' }}>
-                        <p style={{ fontSize: '13px', color: '#ff3b30', marginBottom: '8px' }}>{gdriveError}</p>
+                        <p style={{ fontSize: '14px', color: '#ff3b30', marginBottom: '8px' }}>{gdriveError}</p>
                         {gdriveError.includes('reconnect') && (
-                          <a href="/dashboard/settings?tab=integrations" style={{ fontSize: '12px', color: '#005fc4' }}>Go to Settings → Integrations</a>
+                          <a href="/dashboard/integrations" style={{ fontSize: '14px', color: '#005fc4' }}>Go to Settings → Integrations</a>
                         )}
                       </div>
                     ) : (
@@ -1287,7 +1287,7 @@ export default function UploadPage() {
                         {gdriveFolderStack.length > 0 && (
                           <button
                             onClick={gdriveGoBack}
-                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#005fc4', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#005fc4', display: 'flex', alignItems: 'center', gap: '6px' }}
                           >
                             <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 3L5 7l4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             Back
@@ -1297,9 +1297,9 @@ export default function UploadPage() {
                           <button
                             key={folder.id}
                             onClick={() => loadGdriveFolder(folder.id, folder.name, true)}
-                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '8px' }}
                           >
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#aeaeb2" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#4e4e53" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             {folder.name}/
                           </button>
                         ))}
@@ -1321,23 +1321,23 @@ export default function UploadPage() {
                                 })}
                                 style={{ width: '14px', height: '14px', accentColor: '#4285f4', flexShrink: 0 }}
                               />
-                              <span style={{ fontSize: '13px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                              <span style={{ fontSize: '14px', color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
                               {tooLarge
-                                ? <span style={{ fontSize: '11px', color: '#ff3b30', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB · too large</span>
-                                : <span style={{ fontSize: '11px', color: '#aeaeb2', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                                ? <span style={{ fontSize: '15px', color: '#ff3b30', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB · too large</span>
+                                : <span style={{ fontSize: '15px', color: '#4e4e53', flexShrink: 0 }}>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
                               }
                             </label>
                           )
                         })}
                         {gdriveFiles.length === 0 && gdriveFolders.length === 0 && !gdriveLoading && (
-                          <p style={{ padding: '32px', textAlign: 'center', color: '#aeaeb2', fontSize: '13px' }}>No image files found in this location.</p>
+                          <p style={{ padding: '32px', textAlign: 'center', color: '#4e4e53', fontSize: '14px' }}>No image files found in this location.</p>
                         )}
                       </>
                     )}
                   </div>
 
                   <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <p style={{ fontSize: '12px', color: '#aeaeb2' }}>
+                    <p style={{ fontSize: '14px', color: '#4e4e53' }}>
                       {gdriveSelected.size > 0 ? `${gdriveSelected.size} selected` : `${gdriveFiles.length} files`}
                     </p>
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -1347,7 +1347,7 @@ export default function UploadPage() {
                             const eligible = gdriveFiles.filter((f) => f.size <= 3 * 1024 * 1024).map((f) => f.id)
                             setGdriveSelected(gdriveSelected.size === eligible.length ? new Set() : new Set(eligible))
                           }}
-                          style={{ fontSize: '12px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
+                          style={{ fontSize: '14px', color: '#005fc4', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
                           {gdriveSelected.size === gdriveFiles.filter((f) => f.size <= 3 * 1024 * 1024).length ? 'Deselect all' : 'Select all'}
                         </button>
@@ -1358,8 +1358,8 @@ export default function UploadPage() {
                         style={{
                           padding: '6px 14px', borderRadius: '8px',
                           background: gdriveSelected.size > 0 ? '#1d1d1f' : 'rgba(0,0,0,0.08)',
-                          color: gdriveSelected.size > 0 ? '#f5f5f7' : '#aeaeb2',
-                          border: 'none', fontSize: '13px', fontWeight: 500,
+                          color: gdriveSelected.size > 0 ? '#f5f5f7' : '#4e4e53',
+                          border: 'none', fontSize: '14px', fontWeight: 500,
                           cursor: gdriveSelected.size > 0 ? 'pointer' : 'default',
                         }}
                       >
@@ -1398,7 +1398,7 @@ export default function UploadPage() {
               </div>
               <div className="text-center w-full">
                 <p className="text-[1rem] font-semibold text-[var(--text)] mb-1">{progress.phase}</p>
-                <p className="text-[0.82rem] text-[var(--text3)] mb-4">
+                <p className="text-[0.8rem] text-[var(--text3)] mb-4">
                   {progress.done > 0 && progress.total > 0 && `${progress.done} / ${progress.total} images`}
                 </p>
                 <div className="h-[6px] bg-[var(--bg3)] rounded-full overflow-hidden">
@@ -1416,7 +1416,7 @@ export default function UploadPage() {
                   { label: 'Done', active: progress.phase.startsWith('Done') },
                 ].map((s) => (
                   <div key={s.label} className={`px-3 py-2 rounded-sm border transition-all ${s.active ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.05)] text-[var(--accent)]' : 'border-[var(--line)] text-[var(--text3)]'}`}>
-                    <p className="text-[0.75rem] font-medium">{s.label}</p>
+                    <p className="text-[0.8rem] font-medium">{s.label}</p>
                   </div>
                 ))}
               </div>

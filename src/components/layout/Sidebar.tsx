@@ -57,16 +57,6 @@ const NAV_WORKFLOW: NavItem[] = [
     ),
   },
   {
-    label: 'Export',
-    href: '/dashboard/review',
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M8 11V4M5 8l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M2 13h12" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
     label: 'All Jobs',
     href: '/dashboard/jobs',
     icon: (
@@ -76,9 +66,22 @@ const NAV_WORKFLOW: NavItem[] = [
       </svg>
     ),
   },
+]
+
+const NAV_CONFIG: NavItem[] = [
+  {
+    label: 'Brands',
+    href: '/dashboard/brands',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <circle cx="8" cy="6" r="2.5"/>
+        <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
   {
     label: 'Integrations',
-    href: '/dashboard/settings?tab=integrations',
+    href: '/dashboard/integrations',
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M6 3H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
@@ -89,9 +92,6 @@ const NAV_WORKFLOW: NavItem[] = [
       </svg>
     ),
   },
-]
-
-const NAV_CONFIG: NavItem[] = [
   {
     label: 'Settings',
     href: '/dashboard/settings',
@@ -115,9 +115,9 @@ function NavLink({ item }: { item: NavItem }) {
       : pathname.startsWith(hrefPath)
 
   const baseClass = cn(
-    'flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[15px] transition-all duration-150 w-full border-0',
+    'flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[14px] transition-all duration-150 w-full border-0',
     item.disabled
-      ? 'opacity-40 cursor-not-allowed text-[#aeaeb2]'
+      ? 'opacity-40 cursor-not-allowed text-[#6e6e73]'
       : isActive
       ? 'bg-[rgba(48,209,88,0.10)] text-[#1d1d1f] font-medium'
       : 'text-[#6e6e73] hover:bg-[rgba(0,0,0,0.04)] hover:text-[#1d1d1f] font-normal'
@@ -131,7 +131,7 @@ function NavLink({ item }: { item: NavItem }) {
       <span className="flex-1">{item.label}</span>
       {item.badge && (
         <span className={cn(
-          'ml-auto text-[0.65rem] font-bold px-[6px] py-[1px] rounded-[8px]',
+          'ml-auto text-[0.83rem] font-bold px-[6px] py-[1px] rounded-[8px]',
           item.badge.variant === 'blue'  && 'bg-[var(--accent)] text-black',
           item.badge.variant === 'green' && 'bg-[var(--accent2)] text-black',
           item.badge.variant === 'red'   && 'bg-[var(--accent3)] text-white',
@@ -248,8 +248,8 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-[9px]" style={{ padding: '24px 20px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
         <img src="/icon.png" alt="ShotSync" className="w-[30px] h-[30px] rounded-[8px] flex-shrink-0" />
-        <div className="text-[16px] font-medium tracking-[-0.3px] text-[#1d1d1f]" style={{ fontFamily: "'Inter', sans-serif" }}>
-          Shot<span style={{ color: '#6e6e73' }}>Sync</span>
+        <div className="text-[17px] font-medium tracking-[-0.3px] text-[#1d1d1f]" style={{ fontFamily: "'Inter', sans-serif" }}>
+          Shot<span style={{ color: '#4e4e53' }}>Sync</span>
         </div>
       </div>
 
@@ -259,7 +259,7 @@ export function Sidebar() {
       <Suspense fallback={null}>
       {/* Workspace */}
       <div style={{ padding: '16px 10px 6px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#4e4e53', padding: '0 8px', marginBottom: '4px' }}>
           Workspace
         </p>
         <nav className="flex flex-col gap-0">
@@ -271,32 +271,20 @@ export function Sidebar() {
 
       {/* Pipeline */}
       <div style={{ padding: '10px 10px 6px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#4e4e53', padding: '0 8px', marginBottom: '4px' }}>
           Pipeline
         </p>
         <nav className="flex flex-col gap-0">
-          {NAV_WORKFLOW.map((item) => {
-            if (item.label === 'Export') {
-              return (
-                <NavLink
-                  key="export"
-                  item={{
-                    ...item,
-                    href: '/dashboard/review?export=1',
-                    disabled: !hasSession,
-                  }}
-                />
-              )
-            }
-            return <NavLink key={item.href} item={item} />
-          })}
+          {NAV_WORKFLOW.map((item) => (
+            <NavLink key={item.href} item={item} />
+          ))}
         </nav>
       </div>
 
-      {/* Brand */}
+      {/* Configure */}
       <div style={{ padding: '10px 10px 6px' }}>
-        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
-          Brand
+        <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#4e4e53', padding: '0 8px', marginBottom: '4px' }}>
+          Configure
         </p>
         <nav className="flex flex-col gap-0">
           {NAV_CONFIG.map((item) => (
@@ -310,7 +298,7 @@ export function Sidebar() {
       {/* Parked Jobs */}
       {parkedJobs.length > 0 && (
         <div style={{ padding: '6px 10px 6px', borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
-          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', marginBottom: '4px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#4e4e53', padding: '0 8px', marginBottom: '4px' }}>
             Parked ({parkedJobs.length})
           </p>
           <div className="flex flex-col">
@@ -324,10 +312,10 @@ export function Sidebar() {
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
                 >
-                  <span className="text-[13px] font-medium truncate w-full" style={{ color: '#1d1d1f', maxWidth: '148px', display: 'block' }}>
+                  <span className="text-[14px] font-medium truncate w-full" style={{ color: '#1d1d1f', maxWidth: '148px', display: 'block' }}>
                     {resumingId === job.id ? 'Resuming…' : job.jobName}
                   </span>
-                  <span className="text-[11px]" style={{ color: '#aeaeb2' }}>
+                  <span className="text-[12px]" style={{ color: '#4e4e53' }}>
                     {job.clusterCount} cluster{job.clusterCount !== 1 ? 's' : ''} · {relativeTime(job.savedAt)}
                   </span>
                 </button>
@@ -350,10 +338,10 @@ export function Sidebar() {
       <div className="px-[10px] pb-[6px]">
         <button
           onClick={openWelcomeModal}
-          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[15px] w-full transition-all duration-150"
-          style={{ color: '#aeaeb2' }}
+          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[14px] w-full transition-all duration-150"
+          style={{ color: '#4e4e53' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.color = '#1d1d1f' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#aeaeb2' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#4e4e53' }}
         >
           <span className="w-[14px] h-[14px] flex-shrink-0 opacity-60">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -374,10 +362,10 @@ export function Sidebar() {
             await createClient().auth.signOut()
             window.location.href = '/'
           }}
-          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[15px] w-full transition-all duration-150"
-          style={{ color: '#aeaeb2' }}
+          className="flex items-center gap-[8px] px-[10px] py-[7px] rounded-[8px] text-[14px] w-full transition-all duration-150"
+          style={{ color: '#4e4e53' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.color = '#1d1d1f' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#aeaeb2' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '#4e4e53' }}
         >
           <span className="w-[14px] h-[14px] flex-shrink-0 opacity-60">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -400,14 +388,14 @@ export function Sidebar() {
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
           >
             <div
-              className="w-[30px] h-[30px] rounded-full flex items-center justify-center font-medium text-[12px] flex-shrink-0"
+              className="w-[30px] h-[30px] rounded-full flex items-center justify-center font-medium text-[13px] flex-shrink-0"
               style={{ background: '#1d1d1f', color: '#f5f5f7', letterSpacing: '-0.3px' }}
             >
               {orgName ? orgName[0].toUpperCase() : 'S'}
             </div>
             <div className="min-w-0">
-              <p className="text-[14px] font-medium truncate" style={{ color: '#1d1d1f', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
-              <p className="text-[12px] mt-[1px]" style={{ color: '#aeaeb2' }}>
+              <p className="text-[15px] font-medium truncate" style={{ color: '#1d1d1f', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
+              <p className="text-[13px] mt-[1px]" style={{ color: '#4e4e53' }}>
                 {PLAN_LABEL[planId] ?? planId} plan
               </p>
             </div>
