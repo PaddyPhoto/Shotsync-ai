@@ -13,7 +13,7 @@
   --line2:       rgba(0,0,0,0.11);
   --text:        #1d1d1f;
   --text2:       #494949;
-  --text3:       #6e6e73;
+  --text3:       #4e4e53;
   --accent:      #007aff;
   --accent-deep: #005fc4;
   --accent-glow: rgba(0,122,255,0.08);
@@ -41,7 +41,8 @@
 }
 
 html {
-  font-size: 18px;
+  font-size: 16px;
+  zoom: 0.9;
   scroll-behavior: smooth;
 }
 
@@ -118,7 +119,7 @@ img { display: block; }
 @layer components {
   /* Button base */
   .btn {
-    @apply inline-flex items-center gap-[6px] px-[14px] py-[7px] rounded-[8px] text-[14px] font-medium transition-all duration-150 cursor-pointer border-0;
+    @apply inline-flex items-center gap-[6px] px-[14px] py-[7px] rounded-[8px] text-[16px] font-medium transition-all duration-150 cursor-pointer border-0;
     letter-spacing: -0.1px;
   }
   .btn-primary {
@@ -150,7 +151,7 @@ img { display: block; }
     background: rgba(255,59,48,0.12);
   }
   .btn-sm {
-    @apply py-[4px] px-[10px] text-[13px];
+    @apply py-[4px] px-[10px] text-[14px];
   }
   .btn:disabled {
     opacity: 0.38;
@@ -174,7 +175,7 @@ img { display: block; }
     justify-content: space-between;
   }
   .card-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
     color: var(--text);
     letter-spacing: -0.2px;
@@ -190,7 +191,7 @@ img { display: block; }
     border: 0.5px solid rgba(0,0,0,0.12);
     border-radius: var(--r);
     color: var(--text);
-    font-size: 14px;
+    font-size: 16px;
     padding: 7px 12px;
     transition: border-color 0.15s;
     font-family: inherit;
@@ -209,7 +210,7 @@ img { display: block; }
     padding: 16px 18px;
   }
   .stat-label {
-    font-size: 15px;
+    font-size: 16px;
     color: var(--text3);
     letter-spacing: -0.1px;
     margin-bottom: 6px;
@@ -228,7 +229,7 @@ img { display: block; }
   .chip {
     padding: 3px 8px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     letter-spacing: -0.1px;
   }
@@ -240,7 +241,7 @@ img { display: block; }
 
   /* Shot pills */
   .shot-pill {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     padding: 2px 6px;
     border-radius: 4px;
