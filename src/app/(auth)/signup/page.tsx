@@ -13,6 +13,7 @@ function SignupForm() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [brandName, setBrandName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -103,10 +104,10 @@ function SignupForm() {
           <div className="card-body pt-4">
             <form onSubmit={handleSignup} className="flex flex-col gap-4">
               <div>
-                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Brand Name</label>
+                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Company Name</label>
                 <input
                   className="input"
-                  placeholder="Your brand name"
+                  placeholder="Your company name"
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                 />
@@ -115,6 +116,7 @@ function SignupForm() {
                 <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Email</label>
                 <input
                   type="email"
+                  name="email"
                   className="input"
                   placeholder="you@brand.com"
                   value={email}
@@ -125,16 +127,38 @@ function SignupForm() {
               </div>
               <div>
                 <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Password</label>
-                <input
-                  type="password"
-                  className="input"
-                  placeholder="Min 8 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  required
-                  minLength={8}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    className="input"
+                    placeholder="Min 8 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    style={{ paddingRight: '36px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#aeaeb2', padding: '2px', display: 'flex', alignItems: 'center' }}
+                  >
+                    {showPassword ? (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" strokeLinecap="round"/>
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" strokeLinecap="round"/>
+                        <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round"/>
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <label className="flex items-start gap-[10px] cursor-pointer">

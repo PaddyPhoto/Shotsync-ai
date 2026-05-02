@@ -4,6 +4,9 @@ export interface OrgRow {
   id: string
   plan: string
   exports_this_month: number
+  images_this_month: number
+  images_month_year: number
+  images_month_month: number
 }
 
 /**
@@ -17,7 +20,7 @@ export async function getOrgForUser(
   // Fast path: user is the org owner
   const { data: owned } = await supabase
     .from('orgs')
-    .select('id, plan, exports_this_month')
+    .select('id, plan, exports_this_month, images_this_month, images_month_year, images_month_month')
     .eq('owner_id', userId)
     .limit(1)
     .single()
@@ -36,7 +39,7 @@ export async function getOrgForUser(
 
   const { data: org } = await supabase
     .from('orgs')
-    .select('id, plan, exports_this_month')
+    .select('id, plan, exports_this_month, images_this_month, images_month_year, images_month_month')
     .eq('id', membership.org_id)
     .single()
 

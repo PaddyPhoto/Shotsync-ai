@@ -13,7 +13,7 @@ const STEPS = [
   {
     number: '01',
     title: 'Brand Setup',
-    href: '/dashboard/settings?tab=brands',
+    href: '/dashboard/brands',
     description: 'Configure your brand name, naming template, and marketplace rules. This is a one-time setup — done once, used on every job.',
     color: 'var(--accent3)',
     icon: (
@@ -72,7 +72,10 @@ export function WelcomeModal() {
   useEffect(() => {
     _openModal = () => setVisible(true)
     const dismissed = typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY)
-    if (!dismissed) setVisible(true)
+    if (!dismissed) {
+      const t = setTimeout(() => setVisible(true), 12000)
+      return () => { clearTimeout(t); _openModal = null }
+    }
     return () => { _openModal = null }
   }, [])
 
@@ -131,7 +134,7 @@ export function WelcomeModal() {
                   {step.icon}
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold tracking-[0.1em] uppercase" style={{ color: step.color }}>
+                  <p className="text-[12px] font-semibold tracking-[0.1em] uppercase" style={{ color: step.color }}>
                     Step {step.number}
                   </p>
                   <p className="text-[0.8rem] font-semibold text-[var(--text)] leading-tight">{step.title}</p>

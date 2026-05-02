@@ -81,10 +81,6 @@ export function BrandOnboardingModal() {
       ? customTemplate
       : (NAMING_PRESETS.find((p) => p.id === namingPreset)?.template ?? '{BRAND}_{SKU}_{COLOR}_{VIEW}')
 
-  // Auto-open when no brands exist
-  useEffect(() => {
-    if (!isLoading && brands.length === 0) setVisible(true)
-  }, [isLoading, brands.length])
 
   // Auto-generate brand code while the user hasn't manually edited it
   useEffect(() => {
@@ -166,7 +162,7 @@ export function BrandOnboardingModal() {
         <div style={{ padding: '28px 32px 22px', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
           <button
             onClick={() => setVisible(false)}
-            style={{ position: 'absolute', top: '18px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#aeaeb2', fontSize: '20px', lineHeight: 1, padding: '4px' }}
+            style={{ position: 'absolute', top: '18px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#aeaeb2', fontSize: '21px', lineHeight: 1, padding: '4px' }}
             aria-label="Close"
           >
             ×
@@ -180,7 +176,7 @@ export function BrandOnboardingModal() {
               </svg>
             </div>
             <div>
-              <p style={{ fontSize: '11px', fontWeight: 600, color: '#aeaeb2', letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: '2px' }}>
+              <p style={{ fontSize: '15px', fontWeight: 600, color: '#aeaeb2', letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: '2px' }}>
                 Brand setup · {step + 1} of 4
               </p>
               <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.4px', lineHeight: 1 }}>
@@ -211,22 +207,22 @@ export function BrandOnboardingModal() {
           {step === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '7px' }}>Brand name</label>
+                <label style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '7px' }}>Brand name</label>
                 <input
                   autoFocus
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Country Road"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.14)', fontSize: '15px', color: '#1d1d1f', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.14)', fontSize: '18px', color: '#1d1d1f', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>
+                <label style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>
                   Brand code
                   <span style={{ fontWeight: 400, color: '#aeaeb2' }}> — appears in every exported filename</span>
                 </label>
-                <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '7px' }}>
+                <p style={{ fontSize: '16px', color: '#aeaeb2', marginBottom: '7px' }}>
                   Auto-generated from your name. Max 6 characters, uppercase.
                 </p>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -235,12 +231,12 @@ export function BrandOnboardingModal() {
                     maxLength={6}
                     onChange={(e) => { setBrandCode(e.target.value.toUpperCase()); setCodeManuallyEdited(true) }}
                     placeholder="e.g. CR"
-                    style={{ width: '120px', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.14)', fontSize: '15px', fontWeight: 700, color: '#1d1d1f', fontFamily: 'monospace', letterSpacing: '.06em', outline: 'none', textTransform: 'uppercase', boxSizing: 'border-box' }}
+                    style={{ width: '120px', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.14)', fontSize: '18px', fontWeight: 700, color: '#1d1d1f', fontFamily: 'monospace', letterSpacing: '.06em', outline: 'none', textTransform: 'uppercase', boxSizing: 'border-box' }}
                   />
                   {codeManuallyEdited && name && (
                     <button
                       onClick={() => { setBrandCode(autoBrandCode(name)); setCodeManuallyEdited(false) }}
-                      style={{ fontSize: '12px', color: '#0071e3', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+                      style={{ fontSize: '16px', color: '#0071e3', background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 0' }}
                     >
                       Reset to suggestion
                     </button>
@@ -249,7 +245,7 @@ export function BrandOnboardingModal() {
               </div>
 
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '9px' }}>Brand colour</label>
+                <label style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '9px' }}>Brand colour</label>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {LOGO_COLORS.map((c) => (
                     <button
@@ -270,7 +266,7 @@ export function BrandOnboardingModal() {
           {/* ── Step 2: Naming template ── */}
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <p style={{ fontSize: '13px', color: '#6e6e73', marginBottom: '4px' }}>
+              <p style={{ fontSize: '16px', color: '#6e6e73', marginBottom: '4px' }}>
                 Choose how your exported files will be named. You can always update this in Settings.
               </p>
 
@@ -289,10 +285,10 @@ export function BrandOnboardingModal() {
                     {namingPreset === preset.id && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1d1d1f' }} />}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#1d1d1f', marginBottom: '2px' }}>{preset.label}</p>
-                    <p style={{ fontSize: '11px', color: '#aeaeb2', fontFamily: 'monospace' }}>{preset.template}</p>
+                    <p style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f', marginBottom: '2px' }}>{preset.label}</p>
+                    <p style={{ fontSize: '15px', color: '#aeaeb2', fontFamily: 'monospace' }}>{preset.template}</p>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#6e6e73', textAlign: 'right', maxWidth: '140px', lineHeight: 1.3 }}>{preset.desc}</p>
+                  <p style={{ fontSize: '16px', color: '#6e6e73', textAlign: 'right', maxWidth: '140px', lineHeight: 1.3 }}>{preset.desc}</p>
                 </button>
               ))}
 
@@ -309,7 +305,7 @@ export function BrandOnboardingModal() {
                   <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${namingPreset === 'custom' ? '#1d1d1f' : 'rgba(0,0,0,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {namingPreset === 'custom' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1d1d1f' }} />}
                   </div>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#1d1d1f' }}>Custom template</p>
+                  <p style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f' }}>Custom template</p>
                 </div>
                 {namingPreset === 'custom' && (
                   <input
@@ -317,15 +313,15 @@ export function BrandOnboardingModal() {
                     onChange={(e) => setCustomTemplate(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
                     placeholder="{BRAND}_{SKU}_{COLOR}_{VIEW}"
-                    style={{ marginTop: '10px', width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '13px', fontFamily: 'monospace', color: '#1d1d1f', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ marginTop: '10px', width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '16px', fontFamily: 'monospace', color: '#1d1d1f', outline: 'none', boxSizing: 'border-box' }}
                   />
                 )}
               </div>
 
               {/* Live preview */}
               <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '12px 16px', marginTop: '4px' }}>
-                <p style={{ fontSize: '11px', fontWeight: 600, color: '#aeaeb2', letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: '5px' }}>Filename preview</p>
-                <p style={{ fontSize: '13px', fontFamily: 'monospace', fontWeight: 500, color: '#1d1d1f', wordBreak: 'break-all' }}>
+                <p style={{ fontSize: '15px', fontWeight: 600, color: '#aeaeb2', letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: '5px' }}>Filename preview</p>
+                <p style={{ fontSize: '16px', fontFamily: 'monospace', fontWeight: 500, color: '#1d1d1f', wordBreak: 'break-all' }}>
                   {previewFilename(activeTemplate, brandCode)}
                 </p>
               </div>
@@ -342,7 +338,7 @@ export function BrandOnboardingModal() {
                     key={tab}
                     onClick={() => setShootTab(tab)}
                     style={{
-                      flex: 1, padding: '7px 0', borderRadius: '8px', border: 'none', fontSize: '13px',
+                      flex: 1, padding: '7px 0', borderRadius: '8px', border: 'none', fontSize: '16px',
                       fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s',
                       background: shootTab === tab ? '#fff' : 'transparent',
                       color: shootTab === tab ? '#1d1d1f' : '#6e6e73',
@@ -358,15 +354,15 @@ export function BrandOnboardingModal() {
               {shootTab === 'on-model' && (
                 <>
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Images per look</label>
-                    <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>How many shots make up one complete on-model product look.</p>
+                    <label style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Images per look</label>
+                    <p style={{ fontSize: '16px', color: '#aeaeb2', marginBottom: '10px' }}>How many shots make up one complete on-model product look.</p>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                         <button
                           key={n}
                           onClick={() => setImagesPerLook(n)}
                           style={{
-                            width: '40px', height: '40px', borderRadius: '10px', border: 'none', fontSize: '14px',
+                            width: '40px', height: '40px', borderRadius: '10px', border: 'none', fontSize: '17px',
                             fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
                             background: imagesPerLook === n ? '#1d1d1f' : 'rgba(0,0,0,0.05)',
                             color: imagesPerLook === n ? '#f5f5f7' : '#6e6e73',
@@ -379,25 +375,25 @@ export function BrandOnboardingModal() {
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Angle sequence</label>
-                    <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>The order your photographer shoots each angle in the studio.</p>
+                    <label style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Angle sequence</label>
+                    <p style={{ fontSize: '16px', color: '#aeaeb2', marginBottom: '10px' }}>The order your photographer shoots each angle in the studio.</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       {angleSequence.map((angle, idx) => {
                         const s = ANGLE_STYLE[angle] ?? { bg: 'rgba(0,0,0,0.05)', color: '#6e6e73', dot: '#aeaeb2' }
                         return (
                           <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ width: '18px', fontSize: '11px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
+                            <span style={{ width: '18px', fontSize: '15px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.dot, flexShrink: 0 }} />
                             <select
                               value={angle}
                               onChange={(e) => { const seq = [...angleSequence]; seq[idx] = e.target.value; setAngleSequence(seq) }}
-                              style={{ flex: 1, background: s.bg, border: `1px solid ${s.color}30`, borderRadius: '8px', padding: '5px 10px', fontSize: '13px', fontWeight: 500, color: s.color, outline: 'none', cursor: 'pointer' }}
+                              style={{ flex: 1, background: s.bg, border: `1px solid ${s.color}30`, borderRadius: '8px', padding: '5px 10px', fontSize: '16px', fontWeight: 500, color: s.color, outline: 'none', cursor: 'pointer' }}
                             >
                               {ALL_ANGLES.map((a) => <option key={a} value={a}>{a}</option>)}
                             </select>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <button type="button" disabled={idx === 0} onClick={() => { const seq = [...angleSequence];[seq[idx-1],seq[idx]]=[seq[idx],seq[idx-1]]; setAngleSequence(seq) }} style={{ width: '20px', height: '16px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
-                              <button type="button" disabled={idx >= imagesPerLook - 1} onClick={() => { const seq = [...angleSequence];[seq[idx],seq[idx+1]]=[seq[idx+1],seq[idx]]; setAngleSequence(seq) }} style={{ width: '20px', height: '16px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx >= imagesPerLook - 1 ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
+                              <button type="button" disabled={idx === 0} onClick={() => { const seq = [...angleSequence];[seq[idx-1],seq[idx]]=[seq[idx],seq[idx-1]]; setAngleSequence(seq) }} style={{ width: '20px', height: '16px', fontSize: '13px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx === 0 ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
+                              <button type="button" disabled={idx >= imagesPerLook - 1} onClick={() => { const seq = [...angleSequence];[seq[idx],seq[idx+1]]=[seq[idx+1],seq[idx]]; setAngleSequence(seq) }} style={{ width: '20px', height: '16px', fontSize: '13px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx >= imagesPerLook - 1 ? 0.2 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
                             </div>
                           </div>
                         )
@@ -411,8 +407,8 @@ export function BrandOnboardingModal() {
               {shootTab === 'still-life' && (
                 <>
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Angle sequences by category</label>
-                    <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '10px' }}>Override the default angle order per accessory type. Leave collapsed to use category defaults.</p>
+                    <label style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', display: 'block', marginBottom: '3px' }}>Angle sequences by category</label>
+                    <p style={{ fontSize: '16px', color: '#aeaeb2', marginBottom: '10px' }}>Override the default angle order per accessory type. Leave collapsed to use category defaults.</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {ACCESSORY_CATEGORIES.filter((cat) => cat.id !== 'ghost-mannequin').map((cat) => {
                         const customSeq = stillLifeAngleSequences[cat.id]
@@ -428,10 +424,10 @@ export function BrandOnboardingModal() {
                               style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                             >
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f' }}>{cat.label}</span>
+                                <span style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f' }}>{cat.label}</span>
                                 {hasCustom
-                                  ? <span style={{ fontSize: '11px', fontWeight: 500, color: '#0071e3', background: 'rgba(0,113,227,0.08)', padding: '1px 7px', borderRadius: '20px' }}>custom</span>
-                                  : <span style={{ fontSize: '11px', color: '#aeaeb2' }}>{cat.angles.join(' · ')}</span>
+                                  ? <span style={{ fontSize: '15px', fontWeight: 500, color: '#0071e3', background: 'rgba(0,113,227,0.08)', padding: '1px 7px', borderRadius: '20px' }}>custom</span>
+                                  : <span style={{ fontSize: '15px', color: '#aeaeb2' }}>{cat.angles.join(' · ')}</span>
                                 }
                               </div>
                               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#aeaeb2" strokeWidth="1.5" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }}>
@@ -444,7 +440,7 @@ export function BrandOnboardingModal() {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px' }}>
                                   {activeSeq.map((angle, idx) => (
                                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <span style={{ width: '16px', fontSize: '11px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
+                                      <span style={{ width: '16px', fontSize: '15px', color: '#aeaeb2', textAlign: 'right', flexShrink: 0 }}>{idx + 1}</span>
                                       <select
                                         value={angle}
                                         onChange={(e) => {
@@ -452,22 +448,22 @@ export function BrandOnboardingModal() {
                                           seq[idx] = e.target.value
                                           setStillLifeAngleSequences((prev) => ({ ...prev, [cat.id]: seq }))
                                         }}
-                                        style={{ flex: 1, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: '7px', padding: '4px 8px', fontSize: '12px', color: '#1d1d1f', outline: 'none', cursor: 'pointer' }}
+                                        style={{ flex: 1, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: '7px', padding: '4px 8px', fontSize: '16px', color: '#1d1d1f', outline: 'none', cursor: 'pointer' }}
                                       >
                                         {STILL_LIFE_ANGLES.map((a) => <option key={a} value={a}>{a}</option>)}
                                       </select>
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                        <button type="button" disabled={idx === 0} onClick={() => { const seq=[...activeSeq];[seq[idx-1],seq[idx]]=[seq[idx],seq[idx-1]]; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '14px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx===0?0.2:1, display:'flex', alignItems:'center', justifyContent:'center' }}>▲</button>
-                                        <button type="button" disabled={idx >= activeSeq.length - 1} onClick={() => { const seq=[...activeSeq];[seq[idx],seq[idx+1]]=[seq[idx+1],seq[idx]]; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '14px', fontSize: '9px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx>=activeSeq.length-1?0.2:1, display:'flex', alignItems:'center', justifyContent:'center' }}>▼</button>
+                                        <button type="button" disabled={idx === 0} onClick={() => { const seq=[...activeSeq];[seq[idx-1],seq[idx]]=[seq[idx],seq[idx-1]]; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '14px', fontSize: '13px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx===0?0.2:1, display:'flex', alignItems:'center', justifyContent:'center' }}>▲</button>
+                                        <button type="button" disabled={idx >= activeSeq.length - 1} onClick={() => { const seq=[...activeSeq];[seq[idx],seq[idx+1]]=[seq[idx+1],seq[idx]]; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '14px', fontSize: '13px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', opacity: idx>=activeSeq.length-1?0.2:1, display:'flex', alignItems:'center', justifyContent:'center' }}>▼</button>
                                       </div>
-                                      <button type="button" onClick={() => { const seq=[...activeSeq]; seq.splice(idx,1); setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '18px', fontSize: '13px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+                                      <button type="button" onClick={() => { const seq=[...activeSeq]; seq.splice(idx,1); setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ width: '18px', height: '18px', fontSize: '16px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
                                     </div>
                                   ))}
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <button type="button" onClick={() => { const seq=[...activeSeq, 'front']; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ fontSize: '12px', color: '#0071e3', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>+ Add angle</button>
+                                  <button type="button" onClick={() => { const seq=[...activeSeq, 'front']; setStillLifeAngleSequences((p)=>({...p,[cat.id]:seq})) }} style={{ fontSize: '16px', color: '#0071e3', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>+ Add angle</button>
                                   {hasCustom && (
-                                    <button type="button" onClick={() => { const n={...stillLifeAngleSequences}; delete n[cat.id]; setStillLifeAngleSequences(n) }} style={{ fontSize: '12px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>Reset to default</button>
+                                    <button type="button" onClick={() => { const n={...stillLifeAngleSequences}; delete n[cat.id]; setStillLifeAngleSequences(n) }} style={{ fontSize: '16px', color: '#aeaeb2', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>Reset to default</button>
                                   )}
                                 </div>
                               </div>
@@ -485,7 +481,7 @@ export function BrandOnboardingModal() {
           {/* ── Step 4: Review & save ── */}
           {step === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <p style={{ fontSize: '13px', color: '#6e6e73', marginBottom: '16px' }}>
+              <p style={{ fontSize: '16px', color: '#6e6e73', marginBottom: '16px' }}>
                 Everything looks good — you can always edit these in Settings after setup.
               </p>
               {[
@@ -497,12 +493,12 @@ export function BrandOnboardingModal() {
                 { label: 'Angle sequence',    value: angleSequence.join(' → '),      mono: false },
               ].map(({ label, value, mono }) => (
                 <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '11px 0', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-                  <span style={{ fontSize: '13px', color: '#aeaeb2', flexShrink: 0, marginRight: '20px', paddingTop: '1px' }}>{label}</span>
-                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', textAlign: 'right', fontFamily: mono ? 'monospace' : 'inherit', wordBreak: 'break-all', lineHeight: 1.4 }}>{value}</span>
+                  <span style={{ fontSize: '16px', color: '#aeaeb2', flexShrink: 0, marginRight: '20px', paddingTop: '1px' }}>{label}</span>
+                  <span style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', textAlign: 'right', fontFamily: mono ? 'monospace' : 'inherit', wordBreak: 'break-all', lineHeight: 1.4 }}>{value}</span>
                 </div>
               ))}
               {error && (
-                <p style={{ fontSize: '13px', color: '#ff3b30', marginTop: '12px' }}>{error}</p>
+                <p style={{ fontSize: '16px', color: '#ff3b30', marginTop: '12px' }}>{error}</p>
               )}
             </div>
           )}
@@ -515,15 +511,15 @@ export function BrandOnboardingModal() {
             {step > 0 ? (
               <button
                 onClick={() => { setError(''); setStep((step - 1) as Step) }}
-                style={{ fontSize: '14px', color: '#6e6e73', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+                style={{ fontSize: '17px', color: '#6e6e73', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
               >
                 ← Back
               </button>
             ) : (
-              <span style={{ fontSize: '12px', color: '#aeaeb2' }}>We'll guide you through each setting.</span>
+              <span style={{ fontSize: '16px', color: '#aeaeb2' }}>We'll guide you through each setting.</span>
             )}
             {error && step < 3 && (
-              <p style={{ fontSize: '12px', color: '#ff3b30', marginTop: '4px' }}>{error}</p>
+              <p style={{ fontSize: '16px', color: '#ff3b30', marginTop: '4px' }}>{error}</p>
             )}
           </div>
 
@@ -531,7 +527,7 @@ export function BrandOnboardingModal() {
           {step < 3 ? (
             <button
               onClick={goNext}
-              style={{ padding: '10px 26px', borderRadius: '10px', background: '#1d1d1f', color: '#f5f5f7', fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer', letterSpacing: '-.1px' }}
+              style={{ padding: '10px 26px', borderRadius: '10px', background: '#1d1d1f', color: '#f5f5f7', fontSize: '17px', fontWeight: 600, border: 'none', cursor: 'pointer', letterSpacing: '-.1px' }}
             >
               Continue →
             </button>
@@ -539,7 +535,7 @@ export function BrandOnboardingModal() {
             <button
               onClick={handleSave}
               disabled={saving}
-              style={{ padding: '10px 26px', borderRadius: '10px', background: '#1d1d1f', color: '#f5f5f7', fontSize: '14px', fontWeight: 600, border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, letterSpacing: '-.1px' }}
+              style={{ padding: '10px 26px', borderRadius: '10px', background: '#1d1d1f', color: '#f5f5f7', fontSize: '17px', fontWeight: 600, border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, letterSpacing: '-.1px' }}
             >
               {saving ? 'Creating…' : 'Create brand'}
             </button>

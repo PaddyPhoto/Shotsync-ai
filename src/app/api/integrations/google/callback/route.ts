@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const error = searchParams.get('error')
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
-  const settingsUrl = `${appUrl}/dashboard/settings?tab=integrations`
+  const settingsUrl = `${appUrl}/dashboard/integrations`
 
   if (error || !code || !stateRaw) {
     return NextResponse.redirect(`${settingsUrl}&cloud_error=${encodeURIComponent(error ?? 'cancelled')}`)

@@ -36,21 +36,45 @@ export async function POST(
 
     if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
 
-    // Enforce images-per-job limit
+    // Enforce monthly image limit
     const org = await getOrgForUser(supabase, user.id)
     const planId = ((org?.plan) ?? 'free') as PlanId
     const plan = PLANS[planId]
-    const imageLimit = plan.limits.imagesPerJob
-    if (imageLimit !== -1) {
+    const imageLimit = plan.limits.imagesPerMonth
+    if (imageLimit !== -1 && org) {
       const { count: imageCount } = await supabase
         .from('images')
         .select('*', { count: 'exact', head: true })
         .eq('job_id', params.jobId)
-      if ((imageCount ?? 0) > imageLimit) {
+      const count = imageCount ?? 0
+
+      const { createServiceClient } = await import('@/lib/supabase/server')
+      const service = createServiceClient()
+
+      // Reset counter if calendar month has rolled over
+      const now = new Date()
+      const currentYear = now.getFullYear()
+      const currentMonth = now.getMonth() + 1
+      let usedThisMonth = org.images_this_month ?? 0
+
+      if ((org.images_month_year ?? 0) !== currentYear || (org.images_month_month ?? 0) !== currentMonth) {
+        await service.from('orgs').update({
+          images_this_month: 0,
+          images_month_year: currentYear,
+          images_month_month: currentMonth,
+        }).eq('id', org.id)
+        usedThisMonth = 0
+      }
+
+      if (usedThisMonth + count > imageLimit) {
+        const remaining = Math.max(0, imageLimit - usedThisMonth)
         return NextResponse.json({
-          error: `Your ${plan.name} plan supports up to ${imageLimit.toLocaleString()} images per job. This job has ${(imageCount ?? 0).toLocaleString()} images. Upgrade or reduce the number of images.`
+          error: `Your ${plan.name} plan allows ${imageLimit.toLocaleString()} images per month. You've used ${usedThisMonth.toLocaleString()} and have ${remaining.toLocaleString()} remaining. This job has ${count.toLocaleString()} images.`
         }, { status: 403 })
       }
+
+      // Count images against monthly quota at processing time
+      await service.rpc('increment_org_images', { p_org_id: org.id, p_count: count })
     }
 
     runPipeline(

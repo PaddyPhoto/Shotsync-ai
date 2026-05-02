@@ -94,13 +94,13 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
                 </svg>
               </span>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: palette.dot, marginBottom: '10px', opacity: 0.3 }} />
-              <p style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: 'var(--text2)' }}>
+              <p style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: 'var(--text2)' }}>
                 {rule.name}
               </p>
-              <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '4px' }}>
+              <p style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '4px' }}>
                 {MARKETPLACE_DESCRIPTIONS[id]}
               </p>
-              <p style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600 }}>Starter plan required ↑</p>
+              <p style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600 }}>Starter plan required ↑</p>
             </button>
           )
         }
@@ -133,13 +133,13 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
               }}>✓</span>
             )}
 
-            <p style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: isSelected ? palette.nameColor : '#1d1d1f' }}>
+            <p style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: isSelected ? palette.nameColor : '#1d1d1f' }}>
               {rule.name}
             </p>
-            <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: '12px' }}>
+            <p style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '12px' }}>
               {MARKETPLACE_DESCRIPTIONS[id]}
             </p>
-            <div style={{ fontSize: '11px', lineHeight: 1.8, fontFamily: 'var(--font-dm-mono)', color: '#aeaeb2' }}>
+            <div style={{ fontSize: '12px', lineHeight: 1.8, fontFamily: 'var(--font-dm-mono)', color: '#aeaeb2' }}>
               <p>{rule.image_dimensions.width}×{rule.image_dimensions.height}px</p>
               <p style={{ color: '#6e6e73' }}>{rule.file_format.toUpperCase()} · Q{rule.quality}</p>
               <p>Req: <span style={{ color: '#6e6e73' }}>{rule.required_views.join(', ')}</span></p>

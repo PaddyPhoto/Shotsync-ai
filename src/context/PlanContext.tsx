@@ -34,7 +34,7 @@ interface PlanContextValue {
   refreshPlan: () => Promise<void>
 }
 
-const defaultUsage: PlanUsage = { exportsThisMonth: 0, totalBrandsCreated: 0 }
+const defaultUsage: PlanUsage = { exportsThisMonth: 0, imagesThisMonth: 0, totalBrandsCreated: 0 }
 
 const PlanContext = createContext<PlanContextValue>({
   plan: PLANS.free,
@@ -114,9 +114,9 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const canProcessImages = useCallback((count: number) => {
-    const limit = plan.limits.imagesPerJob
-    return limit === -1 || count <= limit
-  }, [plan])
+    const limit = plan.limits.imagesPerMonth
+    return limit === -1 || (usage.imagesThisMonth + count) <= limit
+  }, [plan, usage])
 
   const canAddBrand = useCallback((currentCount: number) => {
     const limit = plan.limits.brands

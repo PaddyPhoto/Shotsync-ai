@@ -46,9 +46,15 @@ const BrandContext = createContext<BrandContextValue>({
 })
 
 export function BrandProvider({ children }: { children: React.ReactNode }) {
-  const [brands, setBrandsState] = useState<Brand[]>([])
-  const [activeBrandId, setActiveBrandId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Initialise synchronously from localStorage so the first render already has
+  // the correct activeBrand — prevents a second data fetch firing on pages that
+  // depend on activeBrand?.id as an effect dependency.
+  const [brands, setBrandsState] = useState<Brand[]>(() => loadBrandsLocally() ?? [])
+  const [activeBrandId, setActiveBrandId] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
+  )
+  const cachedOnMount = typeof window !== 'undefined' && !!loadBrandsLocally()
+  const [isLoading, setIsLoading] = useState(!cachedOnMount)
 
   const setBrands = useCallback((next: Brand[]) => {
     setBrandsState(next)
@@ -106,11 +112,7 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false)
   }, [setBrands])
 
-  // Load on mount
   useEffect(() => {
-    // Restore persisted brand id
-    const persisted = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
-    if (persisted) setActiveBrandId(persisted)
     refreshBrands()
   }, [refreshBrands])
 

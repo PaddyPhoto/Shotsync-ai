@@ -41,7 +41,7 @@ export function BrandSwitcher() {
       >
         {/* Brand avatar */}
         <div
-          className="w-7 h-7 rounded-[5px] flex items-center justify-center font-bold text-[0.65rem] text-black flex-shrink-0"
+          className="w-7 h-7 rounded-[5px] flex items-center justify-center font-bold text-[0.83rem] text-black flex-shrink-0"
           style={{ background: color, fontFamily: 'var(--font-dm-mono)' }}
         >
           {initials}
@@ -51,7 +51,7 @@ export function BrandSwitcher() {
           <p className="text-[0.8rem] font-medium text-[var(--text)] truncate leading-tight">
             {activeBrand?.name ?? 'No brand'}
           </p>
-          <p className="text-[0.65rem] text-[var(--text3)] leading-tight mt-[1px]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+          <p className="text-[0.83rem] text-[var(--text3)] leading-tight mt-[1px]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
             {activeBrand?.brand_code ?? '—'}
           </p>
         </div>
@@ -70,7 +70,7 @@ export function BrandSwitcher() {
       {open && (
         <div className="absolute left-0 right-0 top-[calc(100%+4px)] bg-[var(--bg2)] border border-[var(--line2)] rounded-sm shadow-[0_8px_24px_rgba(0,0,0,0.4)] z-50 overflow-hidden">
           <div className="px-3 pt-2 pb-1">
-            <p className="text-[0.65rem] text-[var(--text3)] uppercase tracking-[0.1em] font-medium">Switch brand</p>
+            <p className="text-[0.83rem] text-[var(--text3)] uppercase tracking-[0.1em] font-medium">Switch brand</p>
           </div>
 
           <div className="flex flex-col gap-[2px] px-[6px] pb-[6px]">
@@ -79,7 +79,7 @@ export function BrandSwitcher() {
               return (
                 <button
                   key={brand.id}
-                  onClick={() => { setActiveBrand(brand.id); setOpen(false); router.refresh() }}
+                  onClick={() => { setActiveBrand(brand.id); setOpen(false); router.push('/dashboard') }}
                   className={cn(
                     'w-full flex items-center gap-[10px] px-[8px] py-[8px] rounded-[4px] text-left transition-all duration-100',
                     isActive
@@ -110,8 +110,8 @@ export function BrandSwitcher() {
 
           <div className="border-t border-[var(--line)] px-[6px] py-[6px]">
             <button
-              onClick={() => { setOpen(false); router.push('/dashboard/settings?tab=brands') }}
-              className="w-full flex items-center gap-2 px-[8px] py-[7px] rounded-[4px] text-[0.75rem] text-[var(--text3)] hover:text-[var(--text2)] hover:bg-[var(--bg3)] transition-colors"
+              onClick={() => { setOpen(false); router.push('/dashboard/brands') }}
+              className="w-full flex items-center gap-2 px-[8px] py-[7px] rounded-[4px] text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] hover:bg-[var(--bg3)] transition-colors"
             >
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M5.5 1v9M1 5.5h9" strokeLinecap="round"/>

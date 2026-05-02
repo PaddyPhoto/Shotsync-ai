@@ -3,7 +3,7 @@
 export type PlanId = 'free' | 'starter' | 'brand' | 'scale' | 'enterprise'
 
 export interface PlanLimits {
-  imagesPerJob: number       // -1 = unlimited
+  imagesPerMonth: number     // -1 = unlimited; cumulative across all jobs in the calendar month
   marketplaces: number       // max selectable per export
   exportsPerMonth: number    // -1 = unlimited
   brands: number             // -1 = unlimited
@@ -35,7 +35,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'Try the full workflow before you commit',
     stripePriceId: null,
     limits: {
-      imagesPerJob: 25,
+      imagesPerMonth: 25,
       marketplaces: 1,
       exportsPerMonth: 3,
       brands: 1,
@@ -62,7 +62,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'For small brands getting started',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? null,
     limits: {
-      imagesPerJob: 500,
+      imagesPerMonth: 500,
       marketplaces: 2,
       exportsPerMonth: -1,
       brands: 1,
@@ -91,7 +91,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'For mid-tier brands doing 100–200 SKUs/month',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID ?? null,
     limits: {
-      imagesPerJob: 3000,
+      imagesPerMonth: 3000,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 2,
@@ -123,7 +123,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'For fast-growing brands ramping up volume',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID ?? null,
     limits: {
-      imagesPerJob: 6000,
+      imagesPerMonth: 6000,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 5,
@@ -154,7 +154,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'Unlimited everything, custom contracts',
     stripePriceId: null,
     limits: {
-      imagesPerJob: -1,
+      imagesPerMonth: -1,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: -1,
@@ -180,6 +180,7 @@ export const PLANS: Record<PlanId, Plan> = {
 
 export interface PlanUsage {
   exportsThisMonth: number
+  imagesThisMonth: number
   totalBrandsCreated: number
 }
 

@@ -126,7 +126,7 @@ export default function ReviewPage({ params }: { params: { jobId: string } }) {
             </svg>
             <p className="text-[0.78rem] text-[var(--text3)]">
               Shopify not connected — SKU suggestions are unavailable. You can still manually assign SKUs or{' '}
-              <Link href="/dashboard/settings?tab=brands" className="text-[var(--text2)] underline underline-offset-2 hover:text-[var(--text)]">
+              <Link href="/dashboard/brands" className="text-[var(--text2)] underline underline-offset-2 hover:text-[var(--text)]">
                 add Shopify to a brand
               </Link>.
             </p>

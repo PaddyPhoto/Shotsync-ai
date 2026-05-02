@@ -54,6 +54,7 @@ export async function GET(req: NextRequest) {
         plan: (row.plan ?? 'free') as PlanId,
         usage: {
           exportsThisMonth: row.exports_this_month ?? 0,
+          imagesThisMonth: row.images_this_month ?? 0,
           totalBrandsCreated: 0,
         },
       },

@@ -166,6 +166,7 @@ if (authError) {
                   <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Email</label>
                   <input
                     type="email"
+                    name="email"
                     className="input"
                     placeholder="you@brand.com"
                     value={email}
@@ -179,6 +180,7 @@ if (authError) {
                   <div style={{ position: 'relative' }}>
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      name="password"
                       className="input"
                       placeholder="••••••••"
                       value={password}

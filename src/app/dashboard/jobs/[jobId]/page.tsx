@@ -80,14 +80,14 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
   const jobMeta = (
     <div style={{ marginBottom: '28px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-        <h1 style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f' }}>
           {job.name}
         </h1>
-        <span style={{ fontSize: '12px', fontWeight: 500, padding: '3px 9px', borderRadius: '6px', background: 'rgba(48,209,88,0.10)', color: '#1a8a35' }}>
+        <span style={{ fontSize: '13px', fontWeight: 500, padding: '3px 9px', borderRadius: '6px', background: 'rgba(48,209,88,0.10)', color: '#1a8a35' }}>
           Exported
         </span>
       </div>
-      <p style={{ fontSize: '14px', color: '#aeaeb2' }}>
+      <p style={{ fontSize: '15px', color: '#aeaeb2' }}>
         {job.total_images} images · {(job as any).cluster_count ?? 0} clusters
         {(job as any).created_at && (
           <> · {new Date((job as any).created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}</>
@@ -105,8 +105,8 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
         { label: 'Status',       value: 'Exported', accent: '#30d158' },
       ].map(({ label, value, accent }) => (
         <div key={label} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', padding: '16px 18px', backdropFilter: 'blur(8px)' }}>
-          <p style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '6px' }}>{label}</p>
-          <p style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.5px', color: accent ?? '#1d1d1f' }}>{value}</p>
+          <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '6px' }}>{label}</p>
+          <p style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', color: accent ?? '#1d1d1f' }}>{value}</p>
         </div>
       ))}
     </div>
@@ -124,7 +124,7 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
           {marketplaces.length > 0 && (
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '24px' }}>
               {marketplaces.map((m) => (
-                <span key={m} style={{ fontSize: '12px', fontWeight: 500, padding: '3px 10px', borderRadius: '20px', background: 'rgba(0,0,0,0.05)', color: '#6e6e73' }}>
+                <span key={m} style={{ fontSize: '13px', fontWeight: 500, padding: '3px 10px', borderRadius: '20px', background: 'rgba(0,0,0,0.05)', color: '#6e6e73' }}>
                   {m}
                 </span>
               ))}
@@ -136,12 +136,12 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', backdropFilter: 'blur(8px)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
                 <div>
-                  <p style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Session saved on this device</p>
-                  <p style={{ fontSize: '13px', color: '#aeaeb2', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Session saved on this device</p>
+                  <p style={{ fontSize: '14px', color: '#aeaeb2', lineHeight: 1.5 }}>
                     The original images and cluster data were saved locally. You can reopen this session to re-export or make changes.
                   </p>
                   {reopenError && (
-                    <p style={{ fontSize: '12px', color: '#ff3b30', marginTop: '6px' }}>{reopenError}</p>
+                    <p style={{ fontSize: '13px', color: '#ff3b30', marginTop: '6px' }}>{reopenError}</p>
                   )}
                 </div>
                 <button
@@ -150,7 +150,7 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
                   style={{
                     flexShrink: 0, padding: '8px 18px', borderRadius: '10px',
                     background: '#1d1d1f', color: '#f5f5f7', border: 'none',
-                    fontSize: '13px', fontWeight: 500, cursor: reopening ? 'wait' : 'pointer',
+                    fontSize: '14px', fontWeight: 500, cursor: reopening ? 'wait' : 'pointer',
                     opacity: reopening ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '7px',
                   }}
                 >
@@ -173,8 +173,8 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             </div>
           ) : (
             <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', backdropFilter: 'blur(8px)' }}>
-              <p style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px' }}>Export record</p>
-              <p style={{ fontSize: '13px', color: '#aeaeb2', lineHeight: 1.6 }}>
+              <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px' }}>Export record</p>
+              <p style={{ fontSize: '14px', color: '#aeaeb2', lineHeight: 1.6 }}>
                 This is a record of a completed export. The original images and cluster data from this session are no longer in memory — to re-export or review clusters, start a new upload with the same images.
               </p>
             </div>
@@ -250,8 +250,8 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             >
               <span style={{ color: action.primary ? '#f5f5f7' : '#6e6e73', opacity: action.primary ? 1 : 0.7 }}>{action.icon}</span>
               <div>
-                <p style={{ fontSize: '15px', fontWeight: 600, color: action.primary ? '#f5f5f7' : '#1d1d1f', letterSpacing: '-.2px', marginBottom: '5px' }}>{action.label}</p>
-                <p style={{ fontSize: '13px', color: action.primary ? 'rgba(245,245,247,0.6)' : '#aeaeb2', lineHeight: 1.4 }}>{action.description}</p>
+                <p style={{ fontSize: '14px', fontWeight: 600, color: action.primary ? '#f5f5f7' : '#1d1d1f', letterSpacing: '-.2px', marginBottom: '5px' }}>{action.label}</p>
+                <p style={{ fontSize: '14px', color: action.primary ? 'rgba(245,245,247,0.6)' : '#aeaeb2', lineHeight: 1.4 }}>{action.description}</p>
               </div>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={action.primary ? 'rgba(245,245,247,0.4)' : '#aeaeb2'} strokeWidth="1.5" style={{ alignSelf: 'flex-end' }}>
                 <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -330,7 +330,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
       <div>
         <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'All Jobs', href: '/dashboard/jobs' }, { label: 'Job' }]} />
         <div style={{ padding: '28px' }}>
-          <p style={{ fontSize: '14px', color: '#aeaeb2' }}>Job not found.</p>
+          <p style={{ fontSize: '15px', color: '#aeaeb2' }}>Job not found.</p>
         </div>
       </div>
     )
@@ -359,16 +359,16 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
         />
         <div style={{ padding: '28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-            <h1 style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f' }}>{job?.name}</h1>
-            <span style={{ fontSize: '12px', fontWeight: 500, padding: '3px 9px', borderRadius: '6px', background: 'rgba(255,159,10,0.10)', color: '#c27800' }}>Ready for Review</span>
+            <h1 style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f' }}>{job?.name}</h1>
+            <span style={{ fontSize: '13px', fontWeight: 500, padding: '3px 9px', borderRadius: '6px', background: 'rgba(255,159,10,0.10)', color: '#c27800' }}>Ready for Review</span>
           </div>
-          <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '24px' }}>
+          <p style={{ fontSize: '15px', color: '#aeaeb2', marginBottom: '24px' }}>
             {job?.total_images} images · {STEP_LABELS[job?.pipeline_step ?? 0]}
           </p>
           <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '24px', display: 'flex', alignItems: 'center', gap: '16px', backdropFilter: 'blur(8px)' }}>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Clusters are ready to review</p>
-              <p style={{ fontSize: '14px', color: '#aeaeb2' }}>Verify SKU assignments and confirm cluster groupings before generating your export.</p>
+              <p style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Clusters are ready to review</p>
+              <p style={{ fontSize: '15px', color: '#aeaeb2' }}>Verify SKU assignments and confirm cluster groupings before generating your export.</p>
             </div>
             <Link href={`/dashboard/jobs/${params.jobId}/review`} className="btn btn-primary" style={{ flexShrink: 0 }}>
               Review Clusters
