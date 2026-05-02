@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       sku: string
       productName: string
       color: string
-      images: { src: string; filename: string }[]
+      images: { src?: string; base64?: string; filename: string }[]
       copy?: { title: string; description: string; bullets: string[] }
     }[]
     tempPaths?: string[]
