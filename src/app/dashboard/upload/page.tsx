@@ -579,7 +579,7 @@ export default function UploadPage() {
             </div>
           </div>
         ) : (
-          <div style={{ maxWidth: '600px' }}>
+          <div>
 
             {/* Job name */}
             <div style={{ marginBottom: '24px' }}>
