@@ -11,7 +11,6 @@ import type { StyleListEntry, ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import type { MarketplaceName } from '@/types'
-import { HelpTooltip } from '@/components/ui/HelpTooltip'
 
 interface ProcessProgress {
   phase: string
@@ -701,17 +700,19 @@ export default function UploadPage() {
             <div style={{ marginBottom: '16px' }}>
               <div style={{ marginBottom: '10px' }}>
                 {/* Style list */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <label style={{ fontSize: '13px', color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>
-                    Style list
-                    <HelpTooltip position="bottom" width={260} content={
-                      <span>Upload your brand&apos;s range sheet (.xlsx or .csv) to <strong>auto-fill SKU, colour, and product name</strong> on every cluster.</span>
-                    } />
-                    <span style={{ fontSize: '11px', color: 'var(--text3)', marginLeft: '2px', textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>optional</span>
-                  </label>
-                  {styleList.length > 0 && (
-                    <span style={{ fontSize: '12px', color: '#30d158' }}>{styleList.length} styles imported</span>
-                  )}
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <label style={{ fontSize: '13px', color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>
+                      Style list
+                      <span style={{ fontSize: '11px', color: 'var(--text3)', marginLeft: '2px', textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>optional</span>
+                    </label>
+                    {styleList.length > 0 && (
+                      <span style={{ fontSize: '12px', color: '#30d158' }}>{styleList.length} styles imported</span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '3px', lineHeight: 1.5 }}>
+                    Upload your brand&apos;s range sheet and SKU, product name &amp; colour will <strong style={{ color: 'var(--text2)' }}>auto-suggest as you confirm each cluster</strong> — no manual typing needed.
+                  </p>
                 </div>
                 {styleList.length === 0 ? (
                   <div
