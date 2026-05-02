@@ -53,7 +53,7 @@ export default function UploadPage() {
   const [stillLifeType, setStillLifeType] = useState<string | null>(null)
 
   const [isProcessing, setIsProcessing] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
+
   const [styleList, setStyleListLocal] = useState<StyleListEntry[]>([])
   const [styleListName, setStyleListName] = useState<string | null>(null)
   const styleListRef = useRef<HTMLInputElement>(null)
@@ -925,19 +925,10 @@ export default function UploadPage() {
             </div>
 
             {/* Shoot settings */}
-            <div style={{ marginTop: '8px' }}>
-              <button
-                onClick={() => setShowSettings((s) => !s)}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ transition: 'transform 0.2s', transform: showSettings ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                  <path d="M3 5l4 4 4-4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Shoot settings
-              </button>
+            <div style={{ marginTop: '20px' }}>
+              <label style={{ fontSize: '13px', color: 'var(--text3)', display: 'block', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Shoot settings</label>
 
-              {showSettings && (
-                <div style={{ marginTop: '12px', padding: '14px', background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '12px' }}>
+              <div style={{ padding: '14px', background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '12px' }}>
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ fontSize: '13px', color: 'var(--text3)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Marketplaces</label>
                     <MarketplaceSelector selected={marketplaces} onChange={(mps) => setMarketplaces(mps as MarketplaceName[])} />
@@ -1011,7 +1002,7 @@ export default function UploadPage() {
                     </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* S3 Browser Modal */}
