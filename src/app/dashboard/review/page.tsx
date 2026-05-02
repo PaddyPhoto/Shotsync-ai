@@ -715,34 +715,6 @@ function ReviewPage() {
             )
           })()}
 
-          {selectedImages.size > 0 && selectedCluster && (
-            <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-[10px] mb-4 bg-[var(--bg)] border border-[var(--accent)] rounded-md shadow-lg">
-              <span className="text-[0.8rem] text-[var(--accent)] font-medium">{selectedImages.size} selected</span>
-              <div className="flex-1" />
-              <button onClick={() => handleSplit(selectedCluster)} className="btn btn-ghost btn-sm">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M6 1v10M2 6l4-4 4 4M2 6l4 4 4-4" strokeLinecap="round"/>
-                </svg>
-                Split to new cluster
-              </button>
-              <button
-                onClick={() => {
-                  deleteImages(Array.from(selectedImages))
-                  setSelectedImages(new Set())
-                }}
-                className="btn btn-ghost btn-sm"
-                style={{ color: 'var(--accent3)' }}
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M2 3h8M5 3V2h2v1M4 3v6h4V3" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Delete
-              </button>
-              <button onClick={() => setSelectedImages(new Set())} className="btn btn-ghost btn-sm">
-                Cancel
-              </button>
-            </div>
-          )}
 
           {/* Cluster cards */}
           <div className="grid grid-cols-3 gap-5">
@@ -1198,11 +1170,6 @@ function ReviewPage() {
                   <div className="px-3 pb-[10px] flex items-center gap-2">
                     <span className="text-[0.86rem] text-[var(--text3)]">{cluster.images.length} images</span>
                     <div className="flex-1" />
-                    {selectedImages.size > 0 && selectedCluster === cluster.id && (
-                      <button onClick={() => handleSplit(cluster.id)} className="text-[0.78rem] text-[var(--accent)] hover:underline">
-                        Split selection
-                      </button>
-                    )}
                     {clusters.length > 1 && (
                       <div className="relative group">
                         <button className="text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)]">Merge into…</button>
