@@ -90,8 +90,7 @@ export default function LandingPage() {
           .mp-logo-cell { border-right: none !important; border-bottom: 0.5px solid rgba(0,0,0,0.08) !important; }
           .mp-logo-cell:last-child { border-bottom: none !important; }
           .pricing-grid { grid-template-columns: 1fr 1fr !important; }
-          .enterprise-row { flex-direction: column !important; align-items: flex-start !important; }
-          .testimonial-pad { padding: 36px 24px !important; }
+.testimonial-pad { padding: 36px 24px !important; }
           .cta-pad { padding: 48px 28px !important; }
           .footer-inner { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
           .footer-links { flex-wrap: wrap !important; gap: 12px !important; }
@@ -627,14 +626,6 @@ export default function LandingPage() {
             ))}
           </div>
 
-          {/* Enterprise row */}
-          <div className="enterprise-row" style={{ maxWidth: '1200px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.3px', marginBottom: '4px' }}>Enterprise</div>
-              <div style={{ fontSize: '14px', color: '#6e6e73', letterSpacing: '-.1px' }}>Unlimited everything — custom contracts, SSO, SLA, dedicated CSM, and invoiced billing.</div>
-            </div>
-            <a href="mailto:sales@shotsync.ai" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>Contact sales</a>
-          </div>
         </section>
 
         {/* ── TESTIMONIAL ── */}
