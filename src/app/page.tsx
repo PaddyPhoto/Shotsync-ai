@@ -36,6 +36,8 @@ export default function LandingPage() {
   const [demoOpen, setDemoOpen] = useState(false)
   const [activePricingCard, setActivePricingCard] = useState(0)
   const pricingScrollRef = useRef<HTMLDivElement>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
 
   // Supabase may send #access_token=... to the site root when the callback
   // URL isn't matched. Detect and forward to the proper callback handler.
@@ -46,6 +48,45 @@ export default function LandingPage() {
       window.location.replace('/auth/callback' + window.location.hash)
     }
   }, [])
+
+  useEffect(() => {
+    import('@/lib/supabase/client').then(({ createClient }) =>
+      createClient().auth.getSession()
+    ).then(({ data: { session } }) => {
+      if (session) setIsLoggedIn(true)
+    }).catch(() => {})
+  }, [])
+
+  const handlePlanCta = async (planKey: string, signupHref: string) => {
+    if (!isLoggedIn) {
+      window.location.href = signupHref
+      return
+    }
+    if (planKey === 'free') {
+      window.location.href = '/dashboard'
+      return
+    }
+    setCheckoutLoading(planKey)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ planId: planKey, annual }),
+      })
+      const { url, error } = await res.json()
+      if (url) window.location.href = url
+      else alert(error ?? 'Could not start checkout.')
+    } catch {
+      alert('Something went wrong. Please try again.')
+    } finally {
+      setCheckoutLoading(null)
+    }
+  }
 
   return (
     <>
@@ -582,6 +623,7 @@ export default function LandingPage() {
               { planKey: 'brand'   as const, badge: 'Most popular', featured: true,  cta: 'Start with Brand',    href: '/signup?plan=brand' },
               { planKey: 'scale'   as const, badge: 'Scale',        featured: false, cta: 'Start with Scale',    href: '/signup?plan=scale' },
             ]).map(({ planKey, badge, featured, cta, href }) => {
+              const isLoading = checkoutLoading === planKey
               const p = PLANS[planKey]
               const price = planKey === 'free' ? '$0' : `$${annual ? p.priceAudAnnual : p.priceAud}`
               const period = planKey === 'free' ? 'forever' : annual ? 'AUD / mo, billed annually' : 'AUD / month'
@@ -604,7 +646,9 @@ export default function LandingPage() {
                       {f}
                     </div>
                   ))}
-                  <Link href={href} className={`price-cta-btn${featured ? ' featured' : ''}`}>{cta}</Link>
+                  <button onClick={() => handlePlanCta(planKey, href)} disabled={!!checkoutLoading} className={`price-cta-btn${featured ? ' featured' : ''}`} style={{ width: '100%', cursor: checkoutLoading ? 'wait' : 'pointer' }}>
+                    {isLoading ? 'Loading…' : cta}
+                  </button>
                 </div>
               )
             })}

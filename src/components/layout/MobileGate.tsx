@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 
 export function MobileGate({ children }: { children: React.ReactNode }) {
   const [isMobile, setIsMobile] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -13,6 +14,12 @@ export function MobileGate({ children }: { children: React.ReactNode }) {
   }, [])
 
   if (!isMobile) return <>{children}</>
+
+  const handleSignOut = async () => {
+    setSigningOut(true)
+    await fetch('/api/auth/signout', { method: 'POST' })
+    window.location.href = '/'
+  }
 
   return (
     <div style={{
@@ -44,10 +51,26 @@ export function MobileGate({ children }: { children: React.ReactNode }) {
           letterSpacing: '-.2px',
           textDecoration: 'none',
           display: 'inline-block',
+          marginBottom: '16px',
         }}
       >
         Send link to my computer
       </a>
+      <button
+        onClick={handleSignOut}
+        disabled={signingOut}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: '#aeaeb2',
+          fontSize: '13px',
+          cursor: 'pointer',
+          letterSpacing: '-.1px',
+          padding: '8px',
+        }}
+      >
+        {signingOut ? 'Signing out…' : 'Sign out'}
+      </button>
     </div>
   )
 }
