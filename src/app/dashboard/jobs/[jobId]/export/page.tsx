@@ -133,7 +133,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   }, [activeBrand, brands])
 
   const confirmedClusters = sessionClusters.filter((c) => c.confirmed)
-  const shopifyBrands = brands.filter((b) => b.shopify_store_url && b.shopify_access_token)
+  const shopifyBrands = brands.filter((b) => b.shopify_store_url)
   const shopifyBrand = shopifyBrands.find((b) => b.id === selectedBrandId) ?? shopifyBrands[0] ?? null
 
   // ── Live naming preview ──────────────────────────────────────────────────────
