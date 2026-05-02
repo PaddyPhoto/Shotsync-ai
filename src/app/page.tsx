@@ -34,6 +34,8 @@ function Orb({ color, size, top, left, speed }: {
 export default function LandingPage() {
   const [annual, setAnnual] = useState(true)
   const [demoOpen, setDemoOpen] = useState(false)
+  const [activePricingCard, setActivePricingCard] = useState(0)
+  const pricingScrollRef = useRef<HTMLDivElement>(null)
 
   // Supabase may send #access_token=... to the site root when the callback
   // URL isn't matched. Detect and forward to the proper callback handler.
@@ -96,8 +98,28 @@ export default function LandingPage() {
           .nav-bar { padding: 0 20px !important; }
         }
         @media (max-width: 480px) {
-          .pricing-grid { grid-template-columns: 1fr !important; }
           .hero-stat-cell { flex: 1 1 100% !important; }
+          .pricing-grid {
+            display: flex !important;
+            overflow-x: auto !important;
+            scroll-snap-type: x mandatory !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 4px 20px 12px !important;
+            gap: 12px !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            margin: 0 -20px 8px !important;
+            scrollbar-width: none !important;
+          }
+          .pricing-grid::-webkit-scrollbar { display: none !important; }
+          .pricing-dots { display: flex !important; }
+          .pricing-grid > div {
+            flex: 0 0 82vw !important;
+            scroll-snap-align: center !important;
+            border-radius: 16px !important;
+            border: 0.5px solid rgba(0,0,0,0.10) !important;
+          }
         }
       `}</style>
 
@@ -545,7 +567,16 @@ export default function LandingPage() {
           </div>
 
           {/* Plan cards */}
-          <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto 16px' }}>
+          <div
+            ref={pricingScrollRef}
+            className="pricing-grid"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto 16px' }}
+            onScroll={(e) => {
+              const el = e.currentTarget
+              const cardWidth = el.scrollWidth / 4
+              setActivePricingCard(Math.round(el.scrollLeft / cardWidth))
+            }}
+          >
             {([
               { planKey: 'free'    as const, badge: 'Free',         featured: false, cta: 'Get started free',    href: '/signup' },
               { planKey: 'starter' as const, badge: 'Starter',      featured: false, cta: 'Start with Starter',  href: '/signup?plan=starter' },
@@ -578,6 +609,22 @@ export default function LandingPage() {
                 </div>
               )
             })}
+          </div>
+
+          {/* Mobile scroll dots */}
+          <div className="pricing-dots" style={{ display: 'none', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
+            {[0,1,2,3].map((i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  const el = pricingScrollRef.current
+                  if (!el) return
+                  const cardWidth = el.scrollWidth / 4
+                  el.scrollTo({ left: cardWidth * i, behavior: 'smooth' })
+                }}
+                style={{ width: activePricingCard === i ? '18px' : '6px', height: '6px', borderRadius: '999px', border: 'none', padding: 0, cursor: 'pointer', background: activePricingCard === i ? '#1d1d1f' : 'rgba(0,0,0,0.18)', transition: 'all 0.2s' }}
+              />
+            ))}
           </div>
 
           {/* Enterprise row */}
