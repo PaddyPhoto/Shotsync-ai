@@ -1423,7 +1423,7 @@ function ExportPanel({
   const [fsaSupported] = useState(() => typeof window !== 'undefined' && typeof (window as any).showDirectoryPicker === 'function')
   const [exportMode, setExportMode] = useState<'zip' | 'folder' | 'dropbox' | 'google-drive' | 's3'>('folder')
   const [flatExport, setFlatExport] = useState(false)
-  const [bgRemovalEnabled, setBgRemovalEnabled] = useState(true)
+  const [bgRemovalEnabled, setBgRemovalEnabled] = useState(false)
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
   const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
