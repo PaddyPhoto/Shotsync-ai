@@ -51,9 +51,6 @@ export function BrandSwitcher() {
           <p className="text-[0.8rem] font-medium text-[var(--text)] truncate leading-tight">
             {activeBrand?.name ?? 'No brand'}
           </p>
-          <p className="text-[0.83rem] text-[var(--text3)] leading-tight mt-[1px]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
-            {activeBrand?.brand_code ?? '—'}
-          </p>
         </div>
 
         {/* Chevron */}
