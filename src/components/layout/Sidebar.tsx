@@ -418,8 +418,7 @@ export function Sidebar() {
         <div style={{ padding: '2px 10px 8px' }}>
           <button
             onClick={async () => {
-              const { createClient } = await import('@/lib/supabase/client')
-              await createClient().auth.signOut()
+              await fetch('/api/auth/signout', { method: 'POST' })
               window.location.href = '/'
             }}
             className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[14px] w-full transition-all duration-150"
