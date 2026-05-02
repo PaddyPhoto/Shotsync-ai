@@ -676,6 +676,8 @@ function ReviewPage() {
             <button
               onClick={() => router.push('/dashboard/jobs/session/export')}
               className="btn btn-primary"
+              disabled={confirmedCount === 0}
+              title={confirmedCount === 0 ? 'Confirm at least one cluster to export' : undefined}
             >
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M7 10V2M4 7l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
