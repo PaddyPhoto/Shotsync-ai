@@ -52,7 +52,7 @@ const DESCRIPTIONS: Record<MarketplaceName, string> = {
 
 // ── Shopify draft state ───────────────────────────────────────────────────────
 type DraftStatus = 'queued' | 'creating' | 'created' | 'error'
-interface DraftItem { id: string; label: string; sku: string; status: DraftStatus; adminUrl?: string }
+interface DraftItem { id: string; label: string; sku: string; status: DraftStatus; adminUrl?: string; message?: string }
 
 // ── Image processing (canvas resize + crop to fit) ───────────────────────────
 async function processImage(file: File, w: number, h: number, bg = '#ffffff'): Promise<ArrayBuffer> {
@@ -173,11 +173,14 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
       const draftSku = cluster.sku ?? `${shopifyBrand.brand_code}-${String(ci + 1).padStart(3, '0')}`
 
       setDrafts((prev) => prev.map((d) => d.id === cluster.id ? { ...d, status: 'creating' } : d))
-      // scroll newest into view
-      setTimeout(() => draftListRef.current?.scrollTo({ top: 9999, behavior: 'smooth' }), 50)
 
       try {
-        const images: { filename: string; base64: string; position: number }[] = []
+        const { createClient: createBrowserClient } = await import('@/lib/supabase/client')
+        const supabase = createBrowserClient()
+
+        const images: { filename: string; src: string }[] = []
+        const tempPaths: string[] = []
+
         for (let ii = 0; ii < cluster.images.length; ii++) {
           const img = cluster.images[ii]
           if (!img.file) continue
@@ -186,8 +189,14 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             brand: shopifyBrand.brand_code, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
             view: img.viewLabel, index: ii + 1,
           }) + '.jpg'
-          const base64 = btoa(new Uint8Array(buf).reduce((d, b) => d + String.fromCharCode(b), ''))
-          images.push({ filename, base64, position: ii + 1 })
+          const storagePath = `temp/${shopifyBrand.id}/${Date.now()}_${ci}_${ii}_${filename}`
+          const { error: uploadErr } = await supabase.storage
+            .from('shopify-temp')
+            .upload(storagePath, new Blob([buf], { type: 'image/jpeg' }), { contentType: 'image/jpeg', upsert: true })
+          if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`)
+          const { data: { publicUrl } } = supabase.storage.from('shopify-temp').getPublicUrl(storagePath)
+          images.push({ filename, src: publicUrl })
+          tempPaths.push(storagePath)
         }
 
         const res = await fetch('/api/shopify/upload', {
@@ -201,17 +210,19 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               color: cluster.color ?? '',
               images,
             }],
+            tempPaths,
           }),
         })
         const json = await res.json()
         const result = json.data?.results?.[0]
         setDrafts((prev) => prev.map((d) =>
           d.id === cluster.id
-            ? { ...d, status: result?.status === 'created' ? 'created' : 'error', adminUrl: result?.adminUrl }
+            ? { ...d, status: result?.status === 'created' ? 'created' : 'error', adminUrl: result?.adminUrl, message: result?.message }
             : d
         ))
-      } catch {
-        setDrafts((prev) => prev.map((d) => d.id === cluster.id ? { ...d, status: 'error' } : d))
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        setDrafts((prev) => prev.map((d) => d.id === cluster.id ? { ...d, status: 'error', message } : d))
       }
     }
 
@@ -556,7 +567,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               {/* Per-cluster list */}
               <div
                 ref={draftListRef}
-                style={{ maxHeight: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
+                style={{ maxHeight: '480px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
               >
                 {drafts.map((d) => (
                   <div
@@ -591,7 +602,9 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                       <span style={{ fontSize: '13px', color: T3 }}>Queued</span>
                     )}
                     {d.status === 'error' && (
-                      <span style={{ fontSize: '13px', color: '#ff453a' }}>Failed</span>
+                      <span style={{ fontSize: '12px', color: '#ff453a', maxWidth: '220px', textAlign: 'right' }}>
+                        {d.message ? d.message.slice(0, 80) : 'Failed'}
+                      </span>
                     )}
                   </div>
                 ))}
@@ -660,12 +673,12 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           {/* Output preview (folder tree) */}
           {(confirmedClusters.length > 0 || selectedMarketplaces.length > 0) && (
             <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', overflow: 'hidden' }}>
-              <div style={{ padding: '12px 18px', borderBottom: `1px solid ${BORDER}` }}>
+              <div style={{ padding: '10px 18px', borderBottom: `1px solid ${BORDER}` }}>
                 <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: T3, textTransform: 'uppercase' }}>
                   Output Preview
                 </p>
               </div>
-              <div style={{ padding: '14px 18px', fontFamily: 'var(--font-dm-mono)', fontSize: '12px', lineHeight: 1.8 }}>
+              <div style={{ padding: '10px 18px', fontFamily: 'var(--font-dm-mono)', fontSize: '11px', lineHeight: 1.6, maxHeight: '160px', overflowY: 'auto' }}>
                 {selectedMarketplaces.map((marketId) => {
                   const rule = MARKETPLACE_RULES[marketId]
                   const folderName = rule.name.replace(/\s+/g, '_')
