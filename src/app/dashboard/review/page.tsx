@@ -374,6 +374,18 @@ function ReviewPage() {
     })
   }, [isReady, shootType])
 
+  // Auto-save clusters back to the 'draft' IDB session whenever they change,
+  // so resuming always restores the latest edits (SKUs, confirmations, colours).
+  useEffect(() => {
+    if (!isReady || clusters.length === 0) return
+    const timer = setTimeout(() => {
+      import('@/lib/session-store').then(({ saveSession }) =>
+        saveSession('draft', jobName || 'Untitled Job', clusters, sessionMarketplaces, activeBrand?.id ?? null)
+      ).catch(() => {})
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [clusters, isReady]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName
