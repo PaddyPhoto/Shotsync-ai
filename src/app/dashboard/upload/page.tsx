@@ -711,7 +711,7 @@ export default function UploadPage() {
                     )}
                   </div>
                   <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '3px', lineHeight: 1.5 }}>
-                    Upload your brand&apos;s range sheet and SKU, product name &amp; colour will <strong style={{ color: 'var(--text2)' }}>auto-suggest as you confirm each cluster</strong> — no manual typing needed.
+                    Upload your brand&apos;s range sheet and SKU, product name &amp; colour will <strong style={{ color: 'var(--text2)' }}>auto-suggest as you confirm each cluster</strong>. If your images are named with the SKU, <strong style={{ color: 'var(--text2)' }}>all clusters are filled in automatically</strong> — no manual typing needed.
                   </p>
                 </div>
                 {styleList.length === 0 ? (
