@@ -62,14 +62,14 @@ export default function EnterPage() {
             autoFocus
           />
           {error && (
-            <p className="text-[0.75rem] text-red-400">Incorrect access code. Try again.</p>
+            <p className="text-[0.82rem] text-red-400">Incorrect access code. Try again.</p>
           )}
           <button type="submit" disabled={loading || !password} className="btn btn-primary w-full justify-center">
             {loading ? 'Checking…' : 'Enter'}
           </button>
         </form>
 
-        <p className="text-[0.72rem] text-[var(--text3)] text-center">
+        <p className="text-[0.79rem] text-[var(--text3)] text-center">
           Need access?{' '}
           <a href="mailto:hello@shotsync.ai" className="text-[var(--accent)] hover:underline">
             hello@shotsync.ai

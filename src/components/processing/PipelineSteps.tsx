@@ -32,7 +32,7 @@ export function PipelineSteps({ currentStep, status }: PipelineStepsProps) {
           {/* Step number / status circle */}
           <div
             className={cn(
-              'w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[0.72rem] font-medium border',
+              'w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[0.79rem] font-medium border',
               step.status === 'pending' && 'border-[var(--line2)] text-[var(--text3)]',
               step.status === 'active' && 'bg-[var(--accent)] text-black border-[var(--accent)]',
               step.status === 'done' && 'bg-[var(--accent2)] text-black border-[var(--accent2)]',
@@ -59,7 +59,7 @@ export function PipelineSteps({ currentStep, status }: PipelineStepsProps) {
             )}>
               {step.name}
             </p>
-            <p className="text-[0.75rem] text-[var(--text3)] mt-[2px]">
+            <p className="text-[0.82rem] text-[var(--text3)] mt-[2px]">
               {step.description}
             </p>
           </div>
@@ -79,7 +79,7 @@ export function PipelineSteps({ currentStep, status }: PipelineStepsProps) {
           )}
           {step.duration_ms !== undefined && step.status === 'done' && (
             <span
-              className="text-[0.72rem] text-[var(--text3)] flex-shrink-0"
+              className="text-[0.79rem] text-[var(--text3)] flex-shrink-0"
               style={{ fontFamily: 'var(--font-dm-mono)' }}
             >
               {(step.duration_ms / 1000).toFixed(1)}s

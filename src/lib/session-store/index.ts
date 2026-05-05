@@ -60,6 +60,7 @@ interface StoredCluster {
   styleNumber: string
   label: string
   category: string | null
+  isBottomwear?: boolean
   confirmed: boolean
   exported: boolean
   images: StoredClusterImage[]
@@ -231,6 +232,7 @@ export async function saveSession(
       styleNumber: cluster.styleNumber,
       label: cluster.label,
       category: cluster.category,
+      isBottomwear: cluster.isBottomwear ?? false,
       confirmed: cluster.confirmed,
       exported: cluster.exported ?? false,
       images: cluster.images.map((img) => ({
@@ -301,6 +303,7 @@ export async function loadSession(jobId: string): Promise<{
     styleNumber: sc.styleNumber,
     label: sc.label,
     category: sc.category,
+    isBottomwear: sc.isBottomwear ?? false,
     confirmed: sc.confirmed,
     exported: sc.exported ?? false,
     images: sc.images.map((imgMeta) => {

@@ -69,14 +69,14 @@ export function DropZone({ onFiles, disabled = false, maxFiles = 1000 }: DropZon
           {['JPG', 'JPEG', 'PNG'].map((fmt) => (
             <span
               key={fmt}
-              className="bg-[var(--bg4)] border border-[var(--line2)] rounded-[20px] px-[10px] py-1 text-[0.72rem] text-[var(--text2)]"
+              className="bg-[var(--bg4)] border border-[var(--line2)] rounded-[20px] px-[10px] py-1 text-[0.79rem] text-[var(--text2)]"
               style={{ fontFamily: 'var(--font-dm-mono)' }}
             >
               {fmt}
             </span>
           ))}
           <span
-            className="bg-[var(--bg4)] border border-[var(--line2)] rounded-[20px] px-[10px] py-1 text-[0.72rem] text-[var(--text2)]"
+            className="bg-[var(--bg4)] border border-[var(--line2)] rounded-[20px] px-[10px] py-1 text-[0.79rem] text-[var(--text2)]"
             style={{ fontFamily: 'var(--font-dm-mono)' }}
           >
             Up to {maxFiles} files

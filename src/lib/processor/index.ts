@@ -339,6 +339,7 @@ export async function processFiles(
       styleNumber: '',
       label: shootType === 'still-life' ? `Product ${lookNumber}` : `Look ${lookNumber}`,
       category: stillLifeCategory ?? null,
+      isBottomwear: false,
       confirmed: false,
       exported: false,
     })

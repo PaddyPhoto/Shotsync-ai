@@ -63,8 +63,12 @@ export class ShopifyClient {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '')
-      console.error('Shopify createProduct failed:', res.status, errText.slice(0, 300))
-      return null
+      let detail = errText.slice(0, 300)
+      try {
+        const parsed = JSON.parse(errText)
+        if (parsed.errors) detail = JSON.stringify(parsed.errors).slice(0, 300)
+      } catch { /* keep raw text */ }
+      throw new Error(`Shopify ${res.status}: ${detail}`)
     }
 
     const rawText = await res.text().catch(() => '')
@@ -72,8 +76,7 @@ export class ShopifyClient {
     try {
       json = JSON.parse(rawText)
     } catch {
-      console.error('Shopify createProduct: non-JSON 200 response', rawText.slice(0, 300))
-      return null
+      throw new Error(`Shopify returned non-JSON: ${rawText.slice(0, 200)}`)
     }
     const { product } = json
     const shopDomain = this.baseUrl.split('/admin/')[0].replace('https://', '')

@@ -20,12 +20,16 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await service
       .from('brands')
-      .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, cloud_connections, created_at')
+      .select('id, org_id, name, brand_code, shopify_store_url, shopify_access_token, logo_color, images_per_look, naming_template, cloud_connections, created_at')
       .eq('org_id', user.id)
       .order('created_at')
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ data: data ?? [] })
+    const mapped = (data ?? []).map(({ shopify_access_token, ...b }: { shopify_access_token: string | null; [key: string]: unknown }) => ({
+      ...b,
+      shopify_authenticated: !!shopify_access_token,
+    }))
+    return NextResponse.json({ data: mapped })
   } catch (err) {
     console.error('GET /api/brands error:', err)
     return NextResponse.json({ data: [] })

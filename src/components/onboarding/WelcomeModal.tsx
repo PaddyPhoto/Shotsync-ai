@@ -140,7 +140,7 @@ export function WelcomeModal() {
                   <p className="text-[0.8rem] font-semibold text-[var(--text)] leading-tight">{step.title}</p>
                 </div>
               </div>
-              <p className="text-[0.78rem] text-[var(--text3)] leading-relaxed">{step.description}</p>
+              <p className="text-[0.85rem] text-[var(--text3)] leading-relaxed">{step.description}</p>
             </Link>
           ))}
         </div>

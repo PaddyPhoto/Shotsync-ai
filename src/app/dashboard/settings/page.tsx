@@ -31,6 +31,7 @@ function SettingsInner() {
   const [portalLoading, setPortalLoading] = useState(false)
 
   // Team state
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [teamMembers, setTeamMembers] = useState<{ user_id: string; email: string; role: string; joined_at: string }[]>([])
   const [pendingInvites, setPendingInvites] = useState<{ id: string; email: string; role: string; expires_at: string }[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
@@ -38,6 +39,7 @@ function SettingsInner() {
   const [inviteSending, setInviteSending] = useState(false)
   const [inviteResult, setInviteResult] = useState<{ url?: string; error?: string } | null>(null)
   const [teamLoaded, setTeamLoaded] = useState(false)
+  const [removingMember, setRemovingMember] = useState<string | null>(null)
 
   useEffect(() => {
     if (searchParams.get('checkout') === 'success') {
@@ -53,6 +55,7 @@ function SettingsInner() {
     ).then(({ data: { session } }) => {
       if (!session?.access_token) return
       if (session.user.email === 'photoworkssydney@gmail.com') setIsAdmin(true)
+      setCurrentUserId(session.user.id)
       return fetch('/api/orgs/me', { headers: { Authorization: `Bearer ${session.access_token}` } }).then((r) => r.json()).then(({ data, role }) => {
         if (data?.name) setOrgName(data.name)
         if (role) setOrgRole(role)
@@ -100,6 +103,21 @@ function SettingsInner() {
     } finally { setPortalLoading(false) }
   }
 
+  const removeMember = async (userId: string) => {
+    if (!confirm('Remove this member from the team?')) return
+    setRemovingMember(userId)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/orgs/members', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        body: JSON.stringify({ userId }),
+      })
+      if (res.ok) setTeamMembers((prev) => prev.filter((m) => m.user_id !== userId))
+    } finally { setRemovingMember(null) }
+  }
+
   const sendInvite = async () => {
     if (!inviteEmail.trim()) return
     setInviteSending(true); setInviteResult(null)
@@ -139,7 +157,7 @@ function SettingsInner() {
             ))}
           </div>
           {isAdmin && (
-            <a href="/dashboard/admin" className="inline-flex items-center gap-[6px] px-[12px] py-[6px] rounded-[5px] text-[0.78rem] font-medium text-[var(--text3)] hover:text-[var(--text)] border border-[var(--line)] hover:border-[var(--line2)] transition-all">
+            <a href="/dashboard/admin" className="inline-flex items-center gap-[6px] px-[12px] py-[6px] rounded-[5px] text-[0.85rem] font-medium text-[var(--text3)] hover:text-[var(--text)] border border-[var(--line)] hover:border-[var(--line2)] transition-all">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
               Admin
             </a>
@@ -182,7 +200,7 @@ function SettingsInner() {
               <div className="card-body">
                 <div className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-3">
-                    <div className={`px-3 py-[5px] rounded-sm text-[0.78rem] font-bold uppercase tracking-[0.05em] ${planId === 'enterprise' ? 'bg-[rgba(232,122,122,0.15)] text-[var(--accent3)]' : planId === 'scale' ? 'bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]' : planId === 'brand' ? 'bg-[rgba(232,217,122,0.15)] text-[var(--accent)]' : planId === 'starter' ? 'bg-[rgba(62,207,142,0.15)] text-[var(--accent2)]' : 'bg-[var(--bg3)] text-[var(--text3)]'}`}>{plan.name}</div>
+                    <div className={`px-3 py-[5px] rounded-sm text-[0.85rem] font-bold uppercase tracking-[0.05em] ${planId === 'enterprise' ? 'bg-[rgba(232,122,122,0.15)] text-[var(--accent3)]' : planId === 'scale' ? 'bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]' : planId === 'brand' ? 'bg-[rgba(232,217,122,0.15)] text-[var(--accent)]' : planId === 'starter' ? 'bg-[rgba(62,207,142,0.15)] text-[var(--accent2)]' : 'bg-[var(--bg3)] text-[var(--text3)]'}`}>{plan.name}</div>
                     <div>
                       <p className="text-[0.88rem] font-semibold text-[var(--text)]">{plan.priceAud === 0 ? 'Free forever' : `$${plan.priceAud} AUD/month`}</p>
                       <p className="text-[0.8rem] text-[var(--text3)]">{plan.description}</p>
@@ -210,9 +228,9 @@ function SettingsInner() {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr>
-                        <th className="text-left text-[0.78rem] font-medium uppercase tracking-[0.08em] text-[var(--text3)] px-3 py-2 border-b border-[var(--line)]">Feature</th>
+                        <th className="text-left text-[0.85rem] font-medium uppercase tracking-[0.08em] text-[var(--text3)] px-3 py-2 border-b border-[var(--line)]">Feature</th>
                         {(['free', 'starter', 'brand', 'scale', 'enterprise'] as const).map((id) => (
-                          <th key={id} className={`text-center text-[0.78rem] font-medium uppercase tracking-[0.08em] px-3 py-2 border-b border-[var(--line)] ${id === planId ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}`}>{PLANS[id].name}{id === planId && ' ✓'}</th>
+                          <th key={id} className={`text-center text-[0.85rem] font-medium uppercase tracking-[0.08em] px-3 py-2 border-b border-[var(--line)] ${id === planId ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}`}>{PLANS[id].name}{id === planId && ' ✓'}</th>
                         ))}
                       </tr>
                     </thead>
@@ -260,9 +278,9 @@ function SettingsInner() {
                   </select>
                   <button onClick={sendInvite} disabled={inviteSending || !inviteEmail.trim()} className="btn btn-primary">{inviteSending ? 'Sending…' : 'Invite'}</button>
                 </div>
-                {inviteResult?.error && <p className="text-[0.78rem] text-[var(--accent3)]">{inviteResult.error}</p>}
+                {inviteResult?.error && <p className="text-[0.85rem] text-[var(--accent3)]">{inviteResult.error}</p>}
                 {inviteResult?.url && (
-                  <div className="bg-[var(--bg3)] rounded-sm p-3 text-[0.78rem]">
+                  <div className="bg-[var(--bg3)] rounded-sm p-3 text-[0.85rem]">
                     <p className="text-[var(--text2)] mb-1 font-medium">Invite link (copy and send to teammate):</p>
                     <code className="text-[var(--accent2)] break-all select-all">{inviteResult.url}</code>
                   </div>
@@ -277,9 +295,10 @@ function SettingsInner() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-[var(--line)]">
-                        <th className="text-left text-[0.78rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">User</th>
-                        <th className="text-left text-[0.78rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
-                        <th className="text-left text-[0.78rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Joined</th>
+                        <th className="text-left text-[0.85rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">User</th>
+                        <th className="text-left text-[0.85rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
+                        <th className="text-left text-[0.85rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Joined</th>
+                        <th />
                       </tr>
                     </thead>
                     <tbody>
@@ -287,7 +306,18 @@ function SettingsInner() {
                         <tr key={m.user_id} className="border-b border-[var(--line)] last:border-0">
                           <td className="px-4 py-[10px] text-[0.8rem] text-[var(--text)] truncate max-w-[200px]">{m.email || m.user_id.slice(0, 8) + '…'}</td>
                           <td className="px-4 py-[10px]"><span className={`chip ${m.role === 'owner' ? 'chip-ready' : m.role === 'admin' ? 'chip-review' : 'chip-uploading'}`}>{m.role}</span></td>
-                          <td className="px-4 py-[10px] text-[0.78rem] text-[var(--text3)]">{new Date(m.joined_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                          <td className="px-4 py-[10px] text-[0.85rem] text-[var(--text3)]">{new Date(m.joined_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                          <td className="px-4 py-[10px] text-right">
+                            {(orgRole === 'owner' || orgRole === 'admin') && m.role !== 'owner' && m.user_id !== currentUserId && (
+                              <button
+                                onClick={() => removeMember(m.user_id)}
+                                disabled={removingMember === m.user_id}
+                                className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
+                              >
+                                {removingMember === m.user_id ? 'Removing…' : 'Remove'}
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -303,9 +333,9 @@ function SettingsInner() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-[var(--line)]">
-                        <th className="text-left text-[0.78rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Email</th>
-                        <th className="text-left text-[0.78rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
-                        <th className="text-left text-[0.78rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Expires</th>
+                        <th className="text-left text-[0.85rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Email</th>
+                        <th className="text-left text-[0.85rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
+                        <th className="text-left text-[0.85rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Expires</th>
                         <th />
                       </tr>
                     </thead>
@@ -314,7 +344,7 @@ function SettingsInner() {
                         <tr key={inv.id} className="border-b border-[var(--line)] last:border-0">
                           <td className="px-4 py-[10px] text-[0.8rem] text-[var(--text)]">{inv.email}</td>
                           <td className="px-4 py-[10px]"><span className="chip chip-uploading">{inv.role}</span></td>
-                          <td className="px-4 py-[10px] text-[0.78rem] text-[var(--text3)]">{new Date(inv.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</td>
+                          <td className="px-4 py-[10px] text-[0.85rem] text-[var(--text3)]">{new Date(inv.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</td>
                           <td className="px-4 py-[10px] text-right">
                             <button onClick={async () => {
                               const { createClient } = await import('@/lib/supabase/client')

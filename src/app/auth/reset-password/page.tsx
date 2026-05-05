@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
           <div className="card-body pt-4">
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
-                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">New password</label>
+                <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">New password</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
               </div>
 
               <div>
-                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Confirm password</label>
+                <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Confirm password</label>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   className="input"
@@ -131,7 +131,7 @@ export default function ResetPasswordPage() {
                 />
               </div>
 
-              {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
+              {error && <p className="text-[0.85rem] text-[var(--accent3)]">{error}</p>}
 
               <button type="submit" disabled={loading || !ready} className="btn btn-primary w-full justify-center mt-1">
                 {loading ? 'Saving…' : 'Set password'}

@@ -85,7 +85,7 @@ export function BrandSwitcher() {
                   )}
                 >
                   <div
-                    className="w-6 h-6 rounded-[4px] flex items-center justify-center font-bold text-[0.6rem] text-black flex-shrink-0"
+                    className="w-6 h-6 rounded-[4px] flex items-center justify-center font-bold text-[0.67rem] text-black flex-shrink-0"
                     style={{ background: brand.logo_color, fontFamily: 'var(--font-dm-mono)' }}
                   >
                     {brand.brand_code}

@@ -10,6 +10,9 @@ export interface Brand {
   season: string | null          // e.g. "SS25" — used in {SEASON} naming token
   shopify_store_url: string | null
   shopify_access_token: string | null
+  shopify_authenticated?: boolean
+  iconic_user_id?: string | null
+  iconic_api_key?: string | null
   logo_color: string
   images_per_look: number
   still_life_images_per_look: number
@@ -79,10 +82,40 @@ export const DEFAULT_NAMING_TEMPLATE = '{BRAND}_{SEQ}_{VIEW}'
 //   {COLOUR_CODE}   — numeric colour code per cluster (e.g. 062)
 //   {VIEW}          — angle label (e.g. FRONT, BACK, SIDE)
 //   {ANGLE}         — alias for {VIEW}
+//   {VIEW_NUM}      — numeric view code (1–6), category-aware: bottoms use front=1 map, others use full-length=1 map
 //   {INDEX}         — image position within cluster, unpadded (e.g. 1, 2, 3)
 //   {ANGLE_NUMBER}  — alias for {INDEX}
 //   {SEASON}        — season code set on the brand (e.g. SS25)
 //   {CUSTOM_TEXT}   — fixed text string stored in the naming preset
+
+// Non-bottoms: Full Length=1, Side=2, Back=3, Mood=4, Front=5, Detail=6
+const VIEW_NUM_DEFAULT: Record<string, string> = {
+  'full-length': '1', 'full_length': '1',
+  'side': '2',
+  'back': '3', 'back-3/4': '3', 'back_3/4': '3',
+  'mood': '4',
+  'front': '5', 'front-3/4': '5', 'front_3/4': '5',
+  'detail': '6',
+  'ghost-mannequin': '7', 'flat-lay': '8', 'top-down': '8', 'inside': '9',
+}
+
+// Bottoms (pants, skirts, etc.): Front=1, Side=2, Back=3, Mood=4, Full Length=5, Detail=6
+const VIEW_NUM_BOTTOMS: Record<string, string> = {
+  'front': '1', 'front-3/4': '1', 'front_3/4': '1',
+  'side': '2',
+  'back': '3', 'back-3/4': '3', 'back_3/4': '3',
+  'mood': '4',
+  'full-length': '5', 'full_length': '5',
+  'detail': '6',
+  'ghost-mannequin': '7', 'flat-lay': '8', 'top-down': '8', 'inside': '9',
+}
+
+export function getViewNum(viewLabel: string, isBottomwear: boolean): string {
+  const key = viewLabel.toLowerCase()
+  const map = isBottomwear ? VIEW_NUM_BOTTOMS : VIEW_NUM_DEFAULT
+  return map[key] ?? '1'
+}
+
 export function applyNamingTemplate(
   template: string,
   vars: {
@@ -92,6 +125,7 @@ export function applyNamingTemplate(
     color?: string
     view: string
     index: number
+    isBottomwear?: boolean
     supplierCode?: string
     styleNumber?: string
     colourCode?: string
@@ -102,6 +136,7 @@ export function applyNamingTemplate(
   const seq = String(vars.seq).padStart(3, '0')
   const sku = (vars.sku?.trim() || seq).toUpperCase()
   const view = vars.view.toUpperCase().replace(/-/g, '_')
+  const viewNum = getViewNum(vars.view, vars.isBottomwear ?? false)
   const idx = String(vars.index)
   const brand = vars.brand.toUpperCase()
   const color = (vars.color || '').toUpperCase()
@@ -117,6 +152,7 @@ export function applyNamingTemplate(
       .replace(/\{COLOUR_NAME\}/g, color)
       .replace(/\{COLOR\}/g, color)
       .replace(/\{COLOUR_CODE\}/g, (vars.colourCode || '').toUpperCase())
+      .replace(/\{VIEW_NUM\}/g, viewNum)
       .replace(/\{ANGLE_NUMBER\}/g, idx)
       .replace(/\{INDEX\}/g, idx)
       .replace(/\{ANGLE\}/g, view)

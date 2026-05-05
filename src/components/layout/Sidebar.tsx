@@ -93,7 +93,7 @@ const NAV_CONFIG: NavItem[] = [
   },
   {
     label: 'Marketplaces',
-    href: '/dashboard/integrations',
+    href: '/dashboard/marketplaces',
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M6 3H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
@@ -191,7 +191,8 @@ export function Sidebar() {
     marketplaces: s.marketplaces,
     setSession: s.setSession,
   }))
-  const hasSession = isReady && clusters.length > 0
+  const allExported = clusters.length > 0 && clusters.every((c) => c.exported)
+  const hasSession = isReady && clusters.length > 0 && !allExported
   const confirmedCount = clusters.filter((c) => c.confirmed).length
   const exportsLimit = plan.limits.exportsPerMonth
   const exportsUsed = usage.exportsThisMonth
@@ -308,7 +309,11 @@ export function Sidebar() {
                 <NavLink
                   key={item.href}
                   item={item}
-                  disabled={item.href.includes('session/export') ? !hasSession : item.disabled}
+                  disabled={
+                    (item.href === '/dashboard/review' || item.href.includes('session/export'))
+                      ? !hasSession
+                      : item.disabled
+                  }
                 />
               ))}
             </nav>
@@ -418,6 +423,8 @@ export function Sidebar() {
         <div style={{ padding: '2px 10px 8px' }}>
           <button
             onClick={async () => {
+              const { createClient } = await import('@/lib/supabase/client')
+              await createClient().auth.signOut()
               await fetch('/api/auth/signout', { method: 'POST' })
               window.location.href = '/'
             }}

@@ -17,6 +17,8 @@ export function MobileGate({ children }: { children: React.ReactNode }) {
 
   const handleSignOut = async () => {
     setSigningOut(true)
+    const { createClient } = await import('@/lib/supabase/client')
+    await createClient().auth.signOut()
     await fetch('/api/auth/signout', { method: 'POST' })
     window.location.href = '/'
   }

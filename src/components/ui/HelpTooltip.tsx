@@ -58,7 +58,7 @@ export function HelpTooltip({ content, position = 'top', width = 240 }: HelpTool
 
       {open && (
         <div
-          className="absolute z-50 text-[0.75rem] text-[var(--text2)] bg-[var(--bg2)] border border-[var(--line)] rounded-[8px] shadow-lg p-3 leading-relaxed"
+          className="absolute z-50 text-[0.82rem] text-[var(--text2)] bg-[var(--bg2)] border border-[var(--line)] rounded-[8px] shadow-lg p-3 leading-relaxed"
           style={{ ...panelPos[position], width }}
         >
           {content}

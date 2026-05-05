@@ -23,7 +23,7 @@ export default function TermsPage() {
       </nav>
 
       <main className="flex-1 px-8 py-16 max-w-[760px] mx-auto w-full">
-        <p className="text-[0.72rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-3">Legal</p>
+        <p className="text-[0.79rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-3">Legal</p>
         <h1 className="text-[2rem] font-[800] tracking-[-1px] text-[var(--text)] mb-2" style={{ fontFamily: 'var(--font-syne)' }}>
           Terms of Service
         </h1>
@@ -113,7 +113,7 @@ export default function TermsPage() {
         </div>
       </main>
 
-      <footer className="border-t border-[var(--line)] px-8 py-5 text-[0.75rem] text-[var(--text3)] flex items-center justify-between">
+      <footer className="border-t border-[var(--line)] px-8 py-5 text-[0.82rem] text-[var(--text3)] flex items-center justify-between">
         <span>© 2026 ShotSync.ai</span>
         <div className="flex gap-4">
           <Link href="/privacy" className="hover:text-[var(--text2)] transition-colors">Privacy</Link>

@@ -124,7 +124,7 @@ if (authError) {
                   key={m}
                   type="button"
                   onClick={() => setMode(m)}
-                  className={`flex-1 text-[0.75rem] font-[600] py-[5px] rounded-[6px] transition-colors ${
+                  className={`flex-1 text-[0.82rem] font-[600] py-[5px] rounded-[6px] transition-colors ${
                     mode === m
                       ? 'bg-[var(--card)] text-[var(--text)] shadow-sm'
                       : 'text-[var(--text3)] hover:text-[var(--text2)]'
@@ -139,7 +139,7 @@ if (authError) {
               <button
                 type="button"
                 onClick={() => setMode('password')}
-                className="flex items-center gap-1 text-[0.75rem] text-[var(--text3)] hover:text-[var(--text2)] mb-4 -mt-1"
+                className="flex items-center gap-1 text-[0.82rem] text-[var(--text3)] hover:text-[var(--text2)] mb-4 -mt-1"
               >
                 ← Back to sign in
               </button>
@@ -149,13 +149,13 @@ if (authError) {
               <div className="text-center py-4">
                 <div className="text-2xl mb-3">✉️</div>
                 <p className="text-[0.88rem] text-[var(--text)] font-[600]">Check your inbox</p>
-                <p className="text-[0.78rem] text-[var(--text2)] mt-1">
+                <p className="text-[0.85rem] text-[var(--text2)] mt-1">
                   We sent a sign-in link to <strong>{email}</strong>
                 </p>
                 <button
                   type="button"
                   onClick={() => setMagicSent(false)}
-                  className="mt-4 text-[0.75rem] text-[var(--accent)] hover:underline"
+                  className="mt-4 text-[0.82rem] text-[var(--accent)] hover:underline"
                 >
                   Send another link
                 </button>
@@ -163,7 +163,7 @@ if (authError) {
             ) : mode === 'password' ? (
               <form onSubmit={handlePasswordLogin} className="flex flex-col gap-4">
                 <div>
-                  <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Email</label>
+                  <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Email</label>
                   <input
                     type="email"
                     name="email"
@@ -176,7 +176,7 @@ if (authError) {
                   />
                 </div>
                 <div>
-                  <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Password</label>
+                  <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Password</label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -210,11 +210,11 @@ if (authError) {
                   </div>
                 </div>
 
-                <button type="button" onClick={() => setMode('reset')} className="text-[0.73rem] text-[var(--text3)] hover:text-[var(--accent)] text-left -mt-2">
+                <button type="button" onClick={() => setMode('reset')} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--accent)] text-left -mt-2">
                   Forgot password?
                 </button>
 
-                {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
+                {error && <p className="text-[0.85rem] text-[var(--accent3)]">{error}</p>}
 
                 <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-1">
                   {loading ? 'Signing in…' : 'Sign in'}
@@ -225,13 +225,13 @@ if (authError) {
                 <div className="text-center py-4">
                   <div className="text-2xl mb-3">✉️</div>
                   <p className="text-[0.88rem] text-[var(--text)] font-[600]">Check your inbox</p>
-                  <p className="text-[0.78rem] text-[var(--text2)] mt-1">
+                  <p className="text-[0.85rem] text-[var(--text2)] mt-1">
                     We sent a password reset link to <strong>{email}</strong>
                   </p>
                   <button
                     type="button"
                     onClick={() => setResetSent(false)}
-                    className="mt-4 text-[0.75rem] text-[var(--accent)] hover:underline"
+                    className="mt-4 text-[0.82rem] text-[var(--accent)] hover:underline"
                   >
                     Resend link
                   </button>
@@ -239,7 +239,7 @@ if (authError) {
               ) : (
                 <form onSubmit={handleReset} className="flex flex-col gap-4">
                   <div>
-                    <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Email</label>
+                    <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Email</label>
                     <input
                       type="email"
                       className="input"
@@ -249,11 +249,11 @@ if (authError) {
                       required
                     />
                   </div>
-                  <p className="text-[0.75rem] text-[var(--text3)] -mt-1">
+                  <p className="text-[0.82rem] text-[var(--text3)] -mt-1">
                     We'll email you a link to set a new password.
                   </p>
 
-                  {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
+                  {error && <p className="text-[0.85rem] text-[var(--accent3)]">{error}</p>}
 
                   <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-1">
                     {loading ? 'Sending…' : 'Send reset link'}
@@ -263,7 +263,7 @@ if (authError) {
             ) : (
               <form onSubmit={handleMagicLink} className="flex flex-col gap-4">
                 <div>
-                  <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Email</label>
+                  <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Email</label>
                   <input
                     type="email"
                     className="input"
@@ -273,11 +273,11 @@ if (authError) {
                     required
                   />
                 </div>
-                <p className="text-[0.75rem] text-[var(--text3)] -mt-1">
+                <p className="text-[0.82rem] text-[var(--text3)] -mt-1">
                   We'll email you a one-click sign-in link — no password needed.
                 </p>
 
-                {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
+                {error && <p className="text-[0.85rem] text-[var(--accent3)]">{error}</p>}
 
                 <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-1">
                   {loading ? 'Sending…' : 'Send magic link'}
@@ -285,7 +285,7 @@ if (authError) {
               </form>
             )}
 
-            <div className="mt-4 text-center text-[0.78rem] text-[var(--text3)]">
+            <div className="mt-4 text-center text-[0.85rem] text-[var(--text3)]">
               No account?{' '}
               <Link href="/signup" className="text-[var(--accent)] hover:underline">
                 Sign up
@@ -294,7 +294,7 @@ if (authError) {
 
             {/* Demo bypass */}
             <div className="mt-3 pt-3 border-t border-[var(--line)] text-center">
-              <Link href="/dashboard" className="text-[0.75rem] text-[var(--text3)] hover:text-[var(--text2)]">
+              <Link href="/dashboard" className="text-[0.82rem] text-[var(--text3)] hover:text-[var(--text2)]">
                 Continue as demo →
               </Link>
             </div>

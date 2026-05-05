@@ -67,13 +67,13 @@ export async function POST(req: NextRequest) {
     zipBuffer = await buildDemoZip(marketplaces, job_name ?? 'Export')
   } else {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
+      const { createServiceClient, getAuthUser } = await import('@/lib/supabase/server')
       const { buildZipBuffer } = await import('@/lib/pipeline/step10-export')
       const { renameJobImages } = await import('@/lib/pipeline/step8-naming')
 
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getAuthUser(req)
       if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      const supabase = createServiceClient()
 
       // Verify ownership
       const { data: job } = await supabase

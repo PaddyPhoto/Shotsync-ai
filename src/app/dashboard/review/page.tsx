@@ -49,9 +49,10 @@ function ReviewPage() {
   const { activeBrand } = useBrand()
   const {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
+    setSession,
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
-    setClusterCategory, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
+    setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
   } = useSession()
 
   // Resolves the AccessoryCategory config for a cluster.
@@ -77,6 +78,7 @@ function ReviewPage() {
   const [skuMatchState, setSkuMatchState] = useState<Record<string, 'matched' | 'no-match' | 'multiple' | null>>({})
   const [skuMatches, setSkuMatches] = useState<Record<string, StyleListEntry[]>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
+  const [lightboxImageId, setLightboxImageId] = useState<string | null>(null)
 
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
   const [detectingCategories, setDetectingCategories] = useState<Set<string>>(new Set())
@@ -261,6 +263,19 @@ function ReviewPage() {
 
   // removed: no longer redirect to upload when no session — show empty state instead
 
+  // Auto-restore the draft session from IndexedDB if Zustand state was lost (e.g. after a page refresh).
+  useEffect(() => {
+    if (isReady) return
+    import('@/lib/session-store').then(({ loadSession }) =>
+      loadSession('draft')
+    ).then((result) => {
+      if (result && result.clusters.length > 0) {
+        setSession(result.jobName, result.clusters, result.marketplaces)
+      }
+    }).catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     if (isReady && searchParams.get('export') === '1') {
       setShowExportPanel(true)
@@ -403,10 +418,34 @@ function ReviewPage() {
         deleteImages(Array.from(selectedImages))
         setSelectedImages(new Set())
       }
+
+      if (e.key === ' ') {
+        e.preventDefault()
+        setLightboxImageId((current) => {
+          if (current) return null
+          if (selectedImages.size === 1) return Array.from(selectedImages)[0]
+          return null
+        })
+      }
+
+      if (e.key === 'Escape') {
+        setLightboxImageId(null)
+      }
+
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        setLightboxImageId((current) => {
+          if (!current) return current
+          const allImages = clusters.flatMap((c) => c.images)
+          const idx = allImages.findIndex((img) => img.id === current)
+          if (idx === -1) return current
+          const next = e.key === 'ArrowLeft' ? allImages[idx - 1] : allImages[idx + 1]
+          return next ? next.id : current
+        })
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedImages, deleteImages, undo])
+  }, [selectedImages, deleteImages, undo, clusters])
 
   useEffect(() => {
     const handleSelectCluster = (e: Event) => {
@@ -583,7 +622,7 @@ function ReviewPage() {
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: jobName || 'Review' }]}
         actions={
           <div className="flex items-center gap-2">
-            <span className="text-[0.78rem] text-[var(--text3)] flex items-center gap-1">
+            <span className="text-[0.85rem] text-[var(--text3)] flex items-center gap-1">
               {confirmedCount}/{clusters.length} confirmed
               <HelpTooltip
                 position="bottom"
@@ -732,7 +771,10 @@ function ReviewPage() {
 
           {/* Cluster cards */}
           <div className="grid grid-cols-3 gap-5">
-            {clusters.map((cluster, clusterIdx) => {
+            {[...clusters].sort((a, b) => {
+              const n = (s: string) => parseInt(s?.match(/\d+/)?.[0] ?? '0', 10)
+              return n(a.label) - n(b.label)
+            }).map((cluster, clusterIdx) => {
               const isDropTarget = dragOverCluster === cluster.id && draggingFromCluster !== cluster.id
               const currentSku = skuInput[cluster.id] ?? cluster.sku
 
@@ -869,7 +911,7 @@ function ReviewPage() {
                               <select
                                 value={img.viewLabel}
                                 onChange={(e) => setImageViewLabel(img.id, cluster.id, e.target.value as ViewLabel)}
-                                className="w-full bg-transparent text-white text-[0.6rem] font-semibold uppercase outline-none cursor-pointer"
+                                className="w-full bg-transparent text-white text-[0.67rem] font-semibold uppercase outline-none cursor-pointer"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {getSelectableViews(cluster).map((v) => (
@@ -886,6 +928,17 @@ function ReviewPage() {
                               <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="4" y="4" width="7" height="7" rx="1"/>
                                 <path d="M1 8V2a1 1 0 0 1 1-1h6"/>
+                              </svg>
+                            </button>
+                            {/* Zoom / lightbox button */}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setLightboxImageId(img.id) }}
+                              className="absolute top-1 right-1 w-[20px] h-[20px] rounded-[3px] bg-black/60 hover:bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Full-size view (or select + Space)"
+                            >
+                              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round">
+                                <circle cx="5" cy="5" r="3.5"/><path d="M8 8l2.5 2.5"/>
+                                <path d="M3.5 5h3M5 3.5v3"/>
                               </svg>
                             </button>
                           </div>
@@ -938,8 +991,8 @@ function ReviewPage() {
                                       setSkuSearchOpen(null)
                                     }}
                                   >
-                                    <span className="text-[0.78rem] text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{entry.sku}</span>
-                                    <span className="text-[0.78rem] text-[var(--text3)] truncate flex-1">{entry.productName}</span>
+                                    <span className="text-[0.85rem] text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{entry.sku}</span>
+                                    <span className="text-[0.85rem] text-[var(--text3)] truncate flex-1">{entry.productName}</span>
                                     {entry.colour && <span className="text-[0.84rem] text-[var(--text3)] flex-shrink-0">{entry.colour}</span>}
                                   </button>
                                 ))}
@@ -967,8 +1020,15 @@ function ReviewPage() {
                         />
                       )}
                     </div>
+                    <button
+                      onClick={() => setClusterBottomwear(cluster.id, !cluster.isBottomwear)}
+                      title={cluster.isBottomwear ? 'Tagged as Bottomwear — click to switch to Topwear' : 'Tag as Bottomwear (pants, skirts, shorts) for correct {VIEW_NUM} numbering'}
+                      className={`btn btn-sm flex-shrink-0 text-[0.79rem] gap-1 ${cluster.isBottomwear ? 'btn-accent' : 'btn-ghost'}`}
+                    >
+                      {cluster.isBottomwear ? 'Bottoms' : 'Tops'}
+                    </button>
                     {cluster.confirmed ? (
-                      <span className="text-[0.78rem] font-semibold text-[var(--accent2)] flex items-center gap-1 flex-shrink-0">
+                      <span className="text-[0.85rem] font-semibold text-[var(--accent2)] flex items-center gap-1 flex-shrink-0">
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
                         Confirmed
                       </span>
@@ -985,7 +1045,7 @@ function ReviewPage() {
                   {/* SKU match feedback — colourway picker or no-match message */}
                   {skuMatchState[cluster.id] === 'multiple' && (skuMatches[cluster.id] ?? []).length > 0 && (
                     <div className="mx-3 mb-2 px-2 py-[7px] rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
-                      <p className="text-[0.72rem] text-[var(--text3)] mb-[6px] uppercase tracking-wide">Multiple colourways — pick one:</p>
+                      <p className="text-[0.79rem] text-[var(--text3)] mb-[6px] uppercase tracking-wide">Multiple colourways — pick one:</p>
                       <div className="flex flex-wrap gap-[5px]">
                         {(skuMatches[cluster.id] ?? []).map((entry, i) => (
                           <button
@@ -996,7 +1056,7 @@ function ReviewPage() {
                               setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
                               confirmCluster(cluster.id)
                             }}
-                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[5px] text-[0.75rem] border border-[var(--line2)] hover:border-[var(--accent)] hover:text-[var(--text)] transition-colors"
+                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[5px] text-[0.82rem] border border-[var(--line2)] hover:border-[var(--accent)] hover:text-[var(--text)] transition-colors"
                             style={{ color: 'var(--text2)' }}
                           >
                             {entry.colour || entry.sku}
@@ -1009,7 +1069,7 @@ function ReviewPage() {
                   {skuMatchState[cluster.id] === 'no-match' && (
                     <div className="mx-3 mb-2 flex items-center gap-[6px] px-2 py-[5px] rounded-sm">
                       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round"><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 8h.01"/></svg>
-                      <span className="text-[0.75rem] text-[var(--text3)]">No match in your style list — check the SKU</span>
+                      <span className="text-[0.82rem] text-[var(--text3)]">No match in your style list — check the SKU</span>
                     </div>
                   )}
 
@@ -1077,7 +1137,7 @@ function ReviewPage() {
                     ) : (
                       <button
                         onClick={() => { setColorInput((s) => ({ ...s, [cluster.id]: cluster.color })); setEditingColor(cluster.id) }}
-                        className={`flex items-center gap-1 px-2 py-[3px] rounded-sm border text-[0.78rem] transition-all ${
+                        className={`flex items-center gap-1 px-2 py-[3px] rounded-sm border text-[0.85rem] transition-all ${
                           cluster.color
                             ? 'border-[var(--line2)] text-[var(--text)] hover:border-[var(--accent)]'
                             : 'border-dashed border-[var(--line)] text-[var(--text3)] hover:border-[var(--accent)] hover:text-[var(--text2)]'
@@ -1106,7 +1166,7 @@ function ReviewPage() {
                     <div className="flex items-center gap-1">
                       <span className="text-[0.84rem] text-[var(--text3)]">Colour code</span>
                       <input
-                        className="input text-[0.78rem] py-[2px] w-[64px]"
+                        className="input text-[0.85rem] py-[2px] w-[64px]"
                         style={{ fontFamily: 'var(--font-dm-mono)' }}
                         placeholder="062"
                         value={colourCodeInput[cluster.id] ?? cluster.colourCode}
@@ -1120,7 +1180,7 @@ function ReviewPage() {
                     <div className="flex items-center gap-1">
                       <span className="text-[0.84rem] text-[var(--text3)]">Style #</span>
                       <input
-                        className="input text-[0.78rem] py-[2px] w-[80px]"
+                        className="input text-[0.85rem] py-[2px] w-[80px]"
                         style={{ fontFamily: 'var(--font-dm-mono)' }}
                         placeholder="05324"
                         value={styleNumberInput[cluster.id] ?? cluster.styleNumber}
@@ -1161,7 +1221,7 @@ function ReviewPage() {
                             return next
                           })}
                         >
-                          <span className="text-[0.78rem] text-[var(--text3)]">Product details</span>
+                          <span className="text-[0.85rem] text-[var(--text3)]">Product details</span>
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--text3)" strokeWidth="1.5" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
                             <path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
@@ -1170,8 +1230,8 @@ function ReviewPage() {
                           <div className="px-3 pb-3 grid grid-cols-2 gap-x-4 gap-y-[5px]">
                             {fields.map(({ label, value }) => (
                               <div key={label} className="flex flex-col">
-                                <span className="text-[0.62rem] text-[var(--text3)] uppercase tracking-wide leading-tight">{label}</span>
-                                <span className="text-[0.78rem] text-[var(--text2)] leading-snug">{value}</span>
+                                <span className="text-[0.69rem] text-[var(--text3)] uppercase tracking-wide leading-tight">{label}</span>
+                                <span className="text-[0.85rem] text-[var(--text2)] leading-snug">{value}</span>
                               </div>
                             ))}
                           </div>
@@ -1186,13 +1246,13 @@ function ReviewPage() {
                     <div className="flex-1" />
                     {clusters.length > 1 && (
                       <div className="relative group">
-                        <button className="text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)]">Merge into…</button>
+                        <button className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)]">Merge into…</button>
                         <div className="absolute bottom-full right-0 mb-1 bg-[var(--bg)] border border-[var(--line2)] rounded-sm shadow-lg min-w-[160px] hidden group-hover:block z-20">
                           {clusters.filter((c) => c.id !== cluster.id).map((other) => (
                             <button
                               key={other.id}
                               onClick={() => mergeCluster(cluster.id, other.id)}
-                              className="w-full text-left px-3 py-[7px] text-[0.78rem] text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] transition-colors"
+                              className="w-full text-left px-3 py-[7px] text-[0.85rem] text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] transition-colors"
                             >
                               {other.sku || other.label}
                             </button>
@@ -1219,7 +1279,7 @@ function ReviewPage() {
                           <svg viewBox="0 0 16 16" fill="none" width="12" height="12" stroke="none">
                             <path d="M8 1l1.4 3.2L13 5.2l-2.4 2.3.6 3.3L8 9.2l-3.2 1.6.6-3.3L3 5.2l3.6-.9L8 1z" fill="var(--accent4)" opacity="0.9"/>
                           </svg>
-                          <span className="text-[0.78rem] font-medium text-[var(--text2)] flex-1">AI Product Copy</span>
+                          <span className="text-[0.85rem] font-medium text-[var(--text2)] flex-1">AI Product Copy</span>
                           {copy?.title && !isOpen && (
                             <span className="text-[0.83rem] text-[var(--text3)] truncate max-w-[140px]">{copy.title}</span>
                           )}
@@ -1236,11 +1296,11 @@ function ReviewPage() {
                                 <svg className="animate-spin" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="var(--accent4)" strokeWidth="2">
                                   <circle cx="6.5" cy="6.5" r="4.5" strokeDasharray="18 8"/>
                                 </svg>
-                                <span className="text-[0.78rem] text-[var(--text3)]">Generating copy…</span>
+                                <span className="text-[0.85rem] text-[var(--text3)]">Generating copy…</span>
                               </div>
                             ) : copy?.error ? (
                               <div className="flex flex-col gap-2 py-2">
-                                <p className="text-[0.78rem] text-[#ff3b30]">Failed: {copy.error}</p>
+                                <p className="text-[0.85rem] text-[#ff3b30]">Failed: {copy.error}</p>
                                 <button
                                   onClick={() => generateCopy(cluster)}
                                   className="btn btn-ghost btn-sm self-start gap-[6px]"
@@ -1254,30 +1314,30 @@ function ReviewPage() {
                             ) : copy?.title ? (
                               <>
                                 <div>
-                                  <label className="text-[0.79rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Title</label>
+                                  <label className="text-[0.86rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Title</label>
                                   <input
-                                    className="input text-[0.78rem] py-[5px]"
+                                    className="input text-[0.85rem] py-[5px]"
                                     value={copy.title}
                                     onChange={(e) => setClusterCopy((prev) => ({ ...prev, [cluster.id]: { ...prev[cluster.id], title: e.target.value } }))}
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[0.79rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Description</label>
+                                  <label className="text-[0.86rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Description</label>
                                   <textarea
-                                    className="input text-[0.78rem] py-[5px] resize-none"
+                                    className="input text-[0.85rem] py-[5px] resize-none"
                                     rows={3}
                                     value={copy.description}
                                     onChange={(e) => setClusterCopy((prev) => ({ ...prev, [cluster.id]: { ...prev[cluster.id], description: e.target.value } }))}
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[0.79rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Bullet Points</label>
+                                  <label className="text-[0.86rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Bullet Points</label>
                                   <div className="flex flex-col gap-[5px]">
                                     {copy.bullets.map((bullet, i) => (
                                       <div key={i} className="flex items-center gap-[6px]">
                                         <span className="text-[var(--text3)] text-[0.8rem] flex-shrink-0">·</span>
                                         <input
-                                          className="input text-[0.78rem] py-[4px] flex-1"
+                                          className="input text-[0.85rem] py-[4px] flex-1"
                                           value={bullet}
                                           onChange={(e) => {
                                             const next = [...copy.bullets]
@@ -1309,11 +1369,11 @@ function ReviewPage() {
                                   ]
                                   return (
                                     <div className="border-t border-[var(--line)] pt-[8px] mt-[2px]">
-                                      <p className="text-[0.62rem] text-[var(--text3)] uppercase tracking-wide mb-[6px]">From your product data</p>
+                                      <p className="text-[0.69rem] text-[var(--text3)] uppercase tracking-wide mb-[6px]">From your product data</p>
                                       {fields.map(({ label, value }) => (
                                         <div key={label} className="flex items-start gap-[8px] mb-[4px]">
-                                          <span className="text-[0.62rem] text-[var(--text3)] uppercase tracking-wide w-[40px] flex-shrink-0 mt-[2px]">{label}</span>
-                                          <span className={`text-[0.78rem] leading-snug ${value ? 'text-[var(--text2)]' : 'text-[var(--text3)]'}`}>{value || '—'}</span>
+                                          <span className="text-[0.69rem] text-[var(--text3)] uppercase tracking-wide w-[40px] flex-shrink-0 mt-[2px]">{label}</span>
+                                          <span className={`text-[0.85rem] leading-snug ${value ? 'text-[var(--text2)]' : 'text-[var(--text3)]'}`}>{value || '—'}</span>
                                         </div>
                                       ))}
                                     </div>
@@ -1357,6 +1417,63 @@ function ReviewPage() {
           onBackToDashboard={() => { reset(); router.push('/dashboard') }}
         />
       )}
+
+      {/* Lightbox */}
+      {lightboxImageId && (() => {
+        const allImages = clusters.flatMap((c) => c.images.map((img) => ({ ...img, clusterId: c.id })))
+        const currentIdx = allImages.findIndex((img) => img.id === lightboxImageId)
+        const current = allImages[currentIdx]
+        if (!current) return null
+        const prev = currentIdx > 0 ? allImages[currentIdx - 1] : null
+        const next = currentIdx < allImages.length - 1 ? allImages[currentIdx + 1] : null
+        return (
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.92)' }}
+            onClick={() => setLightboxImageId(null)}
+          >
+            {prev && (
+              <button
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                onClick={(e) => { e.stopPropagation(); setLightboxImageId(prev.id) }}
+                title="Previous image"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M11 4L6 9l5 5"/></svg>
+              </button>
+            )}
+            <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+              <img
+                src={current.previewUrl}
+                alt={current.filename}
+                className="max-w-full max-h-[82vh] object-contain rounded-[6px] shadow-2xl"
+                style={{ userSelect: 'none' }}
+              />
+              <div className="flex items-center gap-3 text-[0.85rem]">
+                <span className="px-2 py-0.5 rounded-[4px] bg-white/10 text-white/80 uppercase tracking-wide font-medium">{current.viewLabel.replace(/-/g, ' ')}</span>
+                <span className="text-white/50 font-mono truncate max-w-[300px]">{current.filename}</span>
+                <span className="text-white/30">{currentIdx + 1} / {allImages.length}</span>
+              </div>
+            </div>
+            {next && (
+              <button
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                onClick={(e) => { e.stopPropagation(); setLightboxImageId(next.id) }}
+                title="Next image"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M7 4l5 5-5 5"/></svg>
+              </button>
+            )}
+            <button
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              onClick={() => setLightboxImageId(null)}
+              title="Close (Esc or Space)"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+            </button>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/25 text-[0.79rem]">Space or Esc to close · ← → to navigate</div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -1409,7 +1526,9 @@ function ExportPanel({
 
   const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
   const markClustersExported = useSession((s) => s.markClustersExported)
-  const confirmedClusters = clusters.filter((c) => c.confirmed)
+  const confirmedClusters = clusters
+    .filter((c) => c.confirmed)
+    .sort((a, b) => parseInt(a.label?.match(/\d+/)?.[0] ?? '0', 10) - parseInt(b.label?.match(/\d+/)?.[0] ?? '0', 10))
 
   const pickFolder = async () => {
     try {
@@ -1705,6 +1824,7 @@ function ExportPanel({
                 brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
                 view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
                 styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+                isBottomwear: cluster.isBottomwear,
               }) + '.jpg'
               const dirHandle = flatExport ? mpHandle : await mpHandle.getDirectoryHandle(folderName, { create: true })
               const fh = await dirHandle.getFileHandle(filename, { create: true })
@@ -1773,6 +1893,7 @@ function ExportPanel({
                   brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
                   view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
                   styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+                  isBottomwear: cluster.isBottomwear,
                 }) + '.jpg'
                 marketplaceFolder.file(flatExport ? filename : `${folderName}/${filename}`, buffer)
               } catch (err) {
@@ -1833,6 +1954,7 @@ function ExportPanel({
               brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
               view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
               styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+              isBottomwear: cluster.isBottomwear,
             }) + '.jpg'
             const mpFolder = rule.name.replace(/\s+/g, '_')
             allKeys.push(`${mpFolder}/${filename}`)
@@ -1903,6 +2025,7 @@ function ExportPanel({
                 brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
                 view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
                 styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+                isBottomwear: cluster.isBottomwear,
               }) + '.jpg'
 
               if (exportMode === 'dropbox' && cloudLib && 'uploadToDropbox' in cloudLib) {
@@ -2018,7 +2141,7 @@ function ExportPanel({
       <div className="flex items-center gap-4 px-6 h-[56px] border-b border-[var(--line)] flex-shrink-0">
         <button
           onClick={onClose}
-          className="flex items-center gap-1.5 text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
+          className="flex items-center gap-1.5 text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 2L4 7l5 5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           Back to review
@@ -2045,7 +2168,7 @@ function ExportPanel({
           <div className="flex items-center justify-between mb-4 flex-shrink-0">
             <p className="text-[0.86rem] font-semibold text-[var(--text3)] uppercase tracking-wide">Marketplaces</p>
             {selectedMarketplaces.length === 0 && (
-              <p className="text-[0.78rem] text-[var(--accent3)]">Select at least one</p>
+              <p className="text-[0.85rem] text-[var(--accent3)]">Select at least one</p>
             )}
           </div>
           <MarketplaceSelector
@@ -2085,17 +2208,17 @@ function ExportPanel({
               ))}
             </div>
             <div className="mt-2 min-h-[18px]">
-              {exportMode === 'folder' && <p className="text-[0.78rem] text-[var(--text3)]">Chrome and Edge only</p>}
-              {exportMode === 'dropbox' && <p className="text-[0.78rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.dropbox?.account_email}</span></p>}
-              {exportMode === 'google-drive' && <p className="text-[0.78rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.google_drive?.email}</span></p>}
-              {exportMode === 's3' && <p className="text-[0.78rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.s3?.bucket}{activeBrand?.cloud_connections?.s3?.prefix ? `/${activeBrand.cloud_connections.s3.prefix}` : ''}</span></p>}
+              {exportMode === 'folder' && <p className="text-[0.85rem] text-[var(--text3)]">Chrome and Edge only</p>}
+              {exportMode === 'dropbox' && <p className="text-[0.85rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.dropbox?.account_email}</span></p>}
+              {exportMode === 'google-drive' && <p className="text-[0.85rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.google_drive?.email}</span></p>}
+              {exportMode === 's3' && <p className="text-[0.85rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.s3?.bucket}{activeBrand?.cloud_connections?.s3?.prefix ? `/${activeBrand.cloud_connections.s3.prefix}` : ''}</span></p>}
             </div>
             {exportMode === 'folder' && (
               <div className="flex items-center gap-2 mt-2">
                 <button onClick={pickFolder} disabled={!fsaSupported} className="btn btn-ghost btn-sm">Choose folder</button>
                 {folderName
                   ? <span className="text-[0.8rem] text-[var(--accent2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>/{folderName}</span>
-                  : <span className="text-[0.78rem] text-[var(--text3)]">{fsaSupported ? 'None selected' : 'Requires Chrome/Edge'}</span>
+                  : <span className="text-[0.85rem] text-[var(--text3)]">{fsaSupported ? 'None selected' : 'Requires Chrome/Edge'}</span>
                 }
               </div>
             )}
@@ -2123,7 +2246,7 @@ function ExportPanel({
                       Background removal
                       <span className="text-[var(--text3)] ml-1">— </span>
                       <button onClick={() => openUpgrade('Background removal is available on Starter and above')}
-                        className="text-[0.78rem] text-[var(--accent)] hover:underline">
+                        className="text-[0.85rem] text-[var(--accent)] hover:underline">
                         Starter plan required
                       </button>
                     </span>
@@ -2196,7 +2319,7 @@ function ExportPanel({
           ) : isExporting ? (
             <div className="flex flex-col justify-center h-full gap-7 max-w-[520px]">
               <div>
-                <p className="text-[0.78rem] text-[var(--text3)] uppercase tracking-wide font-semibold mb-2">In progress</p>
+                <p className="text-[0.85rem] text-[var(--text3)] uppercase tracking-wide font-semibold mb-2">In progress</p>
                 <p className="text-[1.15rem] font-semibold text-[var(--text)] leading-snug" style={{ fontFamily: 'var(--font-syne)' }}>{progress.phase}</p>
               </div>
               <div>
@@ -2209,7 +2332,7 @@ function ExportPanel({
                 </div>
               </div>
               {cloudExportStatus && (exportMode === 'dropbox' || exportMode === 'google-drive' || exportMode === 's3') && (
-                <div className="px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)] text-[0.78rem] text-[var(--text2)]">
+                <div className="px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)] text-[0.85rem] text-[var(--text2)]">
                   Uploading {cloudExportStatus.done} / {cloudExportStatus.total} files
                   {cloudExportStatus.errors > 0 && <span className="text-[var(--accent3)] ml-2">· {cloudExportStatus.errors} failed</span>}
                 </div>
@@ -2234,7 +2357,7 @@ function ExportPanel({
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-4">
                     <p className="text-[1.6rem] font-semibold text-[var(--text)] leading-none" style={{ fontFamily: 'var(--font-syne)' }}>{value}</p>
-                    <p className="text-[0.78rem] text-[var(--text3)] mt-1.5">{label}</p>
+                    <p className="text-[0.85rem] text-[var(--text3)] mt-1.5">{label}</p>
                   </div>
                 ))}
               </div>
@@ -2261,7 +2384,7 @@ function ExportPanel({
                   {shopifyResults && (
                     <div className="bg-[var(--bg3)] rounded-sm p-2.5 mb-3 flex flex-col gap-1 max-h-[100px] overflow-y-auto">
                       {shopifyResults.map((r) => (
-                        <div key={r.sku} className="flex items-center justify-between text-[0.78rem]">
+                        <div key={r.sku} className="flex items-center justify-between text-[0.85rem]">
                           <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.sku}</span>
                           <span className={r.status === 'created' ? 'text-[var(--accent2)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
                             {r.status === 'created' ? '✓ Draft created' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
@@ -2294,7 +2417,7 @@ function ExportPanel({
                           {flatExport ? (
                             <>
                               {confirmedClusters.slice(0, 2).map((c, ci) => (
-                                <div key={c.id} className="pl-4 text-[var(--text3)]">└─ {applyNamingTemplate(template, { brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color, view: c.images[0]?.viewLabel ?? 'front', index: 1, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }) + '.jpg'}</div>
+                                <div key={c.id} className="pl-4 text-[var(--text3)]">└─ {applyNamingTemplate(template, { brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color, view: c.images[0]?.viewLabel ?? 'front', index: 1, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode, isBottomwear: c.isBottomwear }) + '.jpg'}</div>
                               ))}
                               {confirmedClusters.length > 2 && <div className="pl-4 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more…)</div>}
                             </>
@@ -2305,7 +2428,7 @@ function ExportPanel({
                                   template.replace(/_{VIEW}/g,'').replace(/_{INDEX}/g,'').replace(/_{ANGLE}/g,'').replace(/_{ANGLE_NUMBER}/g,''),
                                   { brand: brandCode, seq: ci+1, sku: c.sku, color: c.color, view: '', index: 0, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }
                                 ).replace(/_+$/, '') || `${brandCode}_${String(ci+1).padStart(3,'0')}`
-                                const firstFile = applyNamingTemplate(template, { brand: brandCode, seq: ci+1, sku: c.sku, color: c.color, view: c.images[0]?.viewLabel ?? 'front', index: 1, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }) + '.jpg'
+                                const firstFile = applyNamingTemplate(template, { brand: brandCode, seq: ci+1, sku: c.sku, color: c.color, view: c.images[0]?.viewLabel ?? 'front', index: 1, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode, isBottomwear: c.isBottomwear }) + '.jpg'
                                 return <div key={c.id} className="pl-4 text-[var(--text3)]">└─ <span className="text-[var(--text2)]">{fName}/</span>{firstFile} …</div>
                               })}
                               {confirmedClusters.length > 2 && <div className="pl-4 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more folders…)</div>}

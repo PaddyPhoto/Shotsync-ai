@@ -73,7 +73,7 @@ export function UpgradeModal() {
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-4">
           <div>
-            <p className="text-[0.72rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-1">Upgrade Required</p>
+            <p className="text-[0.79rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-1">Upgrade Required</p>
             <h2 className="text-[1.2rem] font-[700] tracking-[-0.3px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
               {upgradeReason || 'Unlock more with ShotSync'}
             </h2>
@@ -103,7 +103,7 @@ export function UpgradeModal() {
                 }`}
               >
                 {isRecommended && (
-                  <span className="absolute -top-[10px] left-4 text-[0.65rem] font-bold uppercase tracking-[0.1em] bg-[var(--accent)] text-black px-2 py-[2px] rounded-full">
+                  <span className="absolute -top-[10px] left-4 text-[0.72rem] font-bold uppercase tracking-[0.1em] bg-[var(--accent)] text-black px-2 py-[2px] rounded-full">
                     Recommended
                   </span>
                 )}
@@ -111,7 +111,7 @@ export function UpgradeModal() {
                   <p className="text-[0.95rem] font-[700] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
                     {p.name}
                   </p>
-                  <p className="text-[0.78rem] text-[var(--text3)] mt-[2px]">{p.description}</p>
+                  <p className="text-[0.85rem] text-[var(--text3)] mt-[2px]">{p.description}</p>
                 </div>
 
                 <div>
@@ -119,12 +119,12 @@ export function UpgradeModal() {
                     <span className="text-[1.2rem] font-[700] text-[var(--text)]">Contact us</span>
                   ) : (
                     <>
-                      <div className="inline-flex items-center gap-1.5 bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] text-[0.7rem] font-semibold px-2 py-[3px] rounded-full mb-2">
+                      <div className="inline-flex items-center gap-1.5 bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] text-[0.77rem] font-semibold px-2 py-[3px] rounded-full mb-2">
                         30 days free
                       </div>
                       <div className="flex items-baseline gap-1">
                         <span className="text-[1.6rem] font-[700] text-[var(--text)]">${p.priceAud}</span>
-                        <span className="text-[0.75rem] text-[var(--text3)]">AUD/month after trial</span>
+                        <span className="text-[0.82rem] text-[var(--text3)]">AUD/month after trial</span>
                       </div>
                     </>
                   )}
@@ -132,7 +132,7 @@ export function UpgradeModal() {
 
                 <ul className="flex flex-col gap-[6px]">
                   {p.highlights.map((h) => (
-                    <li key={h} className="flex items-center gap-2 text-[0.78rem] text-[var(--text2)]">
+                    <li key={h} className="flex items-center gap-2 text-[0.85rem] text-[var(--text2)]">
                       <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--accent2)" strokeWidth="1.8">
                         <polyline points="2 6 4.5 8.5 9 3"/>
                       </svg>
@@ -161,7 +161,7 @@ export function UpgradeModal() {
                 </button>
 
                 {!STRIPE_CONFIGURED && (
-                  <p className="text-[0.65rem] text-[var(--text3)] text-center -mt-2">
+                  <p className="text-[0.72rem] text-[var(--text3)] text-center -mt-2">
                     Demo mode — no payment required
                   </p>
                 )}
@@ -171,10 +171,10 @@ export function UpgradeModal() {
         </div>
 
         <div className="border-t border-[var(--line)] px-6 py-3 flex items-center justify-between">
-          <button onClick={closeUpgrade} className="text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
+          <button onClick={closeUpgrade} className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
             Continue on Free
           </button>
-          <p className="text-[0.72rem] text-[var(--text3)]">30-day free trial · Cancel anytime · No contracts</p>
+          <p className="text-[0.79rem] text-[var(--text3)]">30-day free trial · Cancel anytime · No contracts</p>
         </div>
       </div>
     </div>

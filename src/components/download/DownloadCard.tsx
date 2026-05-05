@@ -36,7 +36,7 @@ export function DownloadCard({ exportRecord }: DownloadCardProps) {
           {marketplaceNames}
         </p>
         <p
-          className="text-[0.75rem] text-[var(--text3)] mt-[2px]"
+          className="text-[0.82rem] text-[var(--text3)] mt-[2px]"
           style={{ fontFamily: 'var(--font-dm-mono)' }}
         >
           {exportRecord.image_count} images · {formatBytes(exportRecord.file_size_bytes)} · ZIP
@@ -47,7 +47,7 @@ export function DownloadCard({ exportRecord }: DownloadCardProps) {
       <div className="flex items-center gap-2 flex-shrink-0">
         {exportRecord.status === 'ready' ? (
           <>
-            <span className="chip chip-ready text-[0.72rem]">Ready</span>
+            <span className="chip chip-ready text-[0.79rem]">Ready</span>
             <button onClick={handleDownload} className="btn btn-primary btn-sm">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M6 1v7M3 5l3 3 3-3"/>

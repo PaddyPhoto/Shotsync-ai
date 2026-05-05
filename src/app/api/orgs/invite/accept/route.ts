@@ -27,6 +27,9 @@ export async function POST(request: Request) {
   if (new Date(invite.expires_at) < new Date()) {
     return NextResponse.json({ error: 'Invite has expired' }, { status: 410 })
   }
+  if (user.email?.toLowerCase() !== invite.email.toLowerCase()) {
+    return NextResponse.json({ error: `This invite was sent to ${invite.email}. Please sign in with that account to accept.` }, { status: 403 })
+  }
 
   // Use service role to bypass RLS for insert + update
   const service = createServiceClient()

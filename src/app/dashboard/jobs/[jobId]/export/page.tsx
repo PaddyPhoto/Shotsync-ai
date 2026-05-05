@@ -12,6 +12,7 @@ import type { MarketplaceName, Job } from '@/types'
 declare global {
   interface Window {
     showDirectoryPicker?: (opts?: { mode?: string }) => Promise<FileSystemDirectoryHandle>
+    showSaveFilePicker?: (opts?: { suggestedName?: string; types?: { description?: string; accept?: Record<string, string[]> }[] }) => Promise<FileSystemFileHandle>
   }
   interface FileSystemDirectoryHandle {
     getDirectoryHandle(name: string, opts?: { create?: boolean }): Promise<FileSystemDirectoryHandle>
@@ -82,7 +83,7 @@ async function processImage(file: File, w: number, h: number, bg = '#ffffff'): P
 
 export default function ExportPage({ params }: { params: { jobId: string } }) {
   const router = useRouter()
-  const { clusters: sessionClusters, jobName, isReady } = useSession()
+  const { clusters: sessionClusters, jobName, isReady, markClustersExported } = useSession()
   const { activeBrand, brands } = useBrand()
 
   const [job, setJob] = useState<Job | null>(null)
@@ -98,6 +99,12 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   const [pushError, setPushError] = useState<string | null>(null)
   const [selectedBrandId, setSelectedBrandId] = useState('')
   const draftListRef = useRef<HTMLDivElement>(null)
+
+  // Download ZIP state
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [downloadDone, setDownloadDone] = useState(false)
+  const [downloadProgress, setDownloadProgress] = useState(0)
+  const [downloadStatus, setDownloadStatus] = useState('')
 
   // Folder save state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,8 +139,10 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     }
   }, [activeBrand, brands])
 
-  const confirmedClusters = sessionClusters.filter((c) => c.confirmed)
-  const shopifyBrands = brands.filter((b) => b.shopify_store_url)
+  const confirmedClusters = sessionClusters
+    .filter((c) => c.confirmed)
+    .sort((a, b) => parseInt(a.label?.match(/\d+/)?.[0] ?? '0', 10) - parseInt(b.label?.match(/\d+/)?.[0] ?? '0', 10))
+  const shopifyBrands = brands.filter((b) => b.shopify_store_url && b.shopify_authenticated)
   const shopifyBrand = shopifyBrands.find((b) => b.id === selectedBrandId) ?? shopifyBrands[0] ?? null
 
   // ── Live naming preview ──────────────────────────────────────────────────────
@@ -175,9 +184,6 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
       setDrafts((prev) => prev.map((d) => d.id === cluster.id ? { ...d, status: 'creating' } : d))
 
       try {
-        const { createClient: createBrowserClient } = await import('@/lib/supabase/client')
-        const supabase = createBrowserClient()
-
         const images: { filename: string; src: string }[] = []
         const tempPaths: string[] = []
 
@@ -187,15 +193,20 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           const buf = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
           const filename = applyNamingTemplate(namingTemplate, {
             brand: shopifyBrand.brand_code, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
-            view: img.viewLabel, index: ii + 1,
+            view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
           }) + '.jpg'
           const storagePath = `temp/${shopifyBrand.id}/${Date.now()}_${ci}_${ii}_${filename}`
-          const { error: uploadErr } = await supabase.storage
-            .from('shopify-temp')
-            .upload(storagePath, new Blob([buf], { type: 'image/jpeg' }), { contentType: 'image/jpeg', upsert: true })
-          if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`)
-          const { data: { publicUrl } } = supabase.storage.from('shopify-temp').getPublicUrl(storagePath)
-          images.push({ filename, src: publicUrl })
+          const stageForm = new FormData()
+          stageForm.append('file', new Blob([buf], { type: 'image/jpeg' }), filename)
+          stageForm.append('path', storagePath)
+          const stageRes = await fetch('/api/shopify/stage-image', {
+            method: 'POST',
+            headers: authHeader,
+            body: stageForm,
+          })
+          const stageJson = await stageRes.json()
+          if (!stageRes.ok) throw new Error(stageJson.error ?? 'Image staging failed')
+          images.push({ filename, src: stageJson.url })
           tempPaths.push(storagePath)
         }
 
@@ -214,10 +225,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           }),
         })
         const json = await res.json()
+        if (!res.ok) throw new Error(json.error ?? `Upload failed (${res.status})`)
         const result = json.data?.results?.[0]
         setDrafts((prev) => prev.map((d) =>
           d.id === cluster.id
-            ? { ...d, status: result?.status === 'created' ? 'created' : 'error', adminUrl: result?.adminUrl, message: result?.message }
+            ? { ...d, status: result?.status === 'created' ? 'created' : 'error', adminUrl: result?.adminUrl, message: result?.message ?? 'Unknown error' }
             : d
         ))
       } catch (err) {
@@ -228,7 +240,9 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
 
     setIsPushing(false)
     setPushDone(true)
-  }, [shopifyBrand, confirmedClusters, namingTemplate]) // eslint-disable-line react-hooks/exhaustive-deps
+    markClustersExported(confirmedClusters.map((c) => c.id))
+    import('@/lib/session-store').then(({ deleteSession }) => deleteSession('draft').catch(() => {}))
+  }, [shopifyBrand, confirmedClusters, namingTemplate, markClustersExported]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Folder save ──────────────────────────────────────────────────────────────
   const pickFolder = async () => {
@@ -241,21 +255,153 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     } catch { /* cancelled */ }
   }
 
+  const getAuthHeader = async (): Promise<Record<string, string>> => {
+    const { createClient } = await import('@/lib/supabase/client')
+    const { data: { session } } = await createClient().auth.getSession()
+    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+  }
+
+  const handleDownloadZip = async () => {
+    setError(null)
+    setIsDownloading(true)
+    setDownloadDone(false)
+    setDownloadProgress(0)
+    const filename = `${(job?.name ?? jobName ?? 'export').replace(/[^a-z0-9_-]/gi, '_').toLowerCase()}.zip`
+
+    // showSaveFilePicker MUST be the first await — browser requires it to still
+    // be within the original user gesture. If called after other awaits it throws.
+    let fileHandle: FileSystemFileHandle | null = null
+    if (window.showSaveFilePicker) {
+      try {
+        fileHandle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: 'ZIP Archive', accept: { 'application/zip': ['.zip'] } }],
+        })
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') { setIsDownloading(false); return }
+        // Picker not available or failed — fall through to anchor download
+      }
+    }
+
+    const saveBlob = async (blob: Blob) => {
+      if (fileHandle) {
+        const writable = await fileHandle.createWritable()
+        await writable.write(blob)
+        await writable.close()
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url; a.download = filename; a.click()
+        URL.revokeObjectURL(url)
+      }
+    }
+
+    try {
+      if (params.jobId === 'session') {
+        setDownloadStatus('Processing images…')
+        const JSZip = (await import('jszip')).default
+        const zip = new JSZip()
+        const total = confirmedClusters.reduce((s, c) => s + c.images.filter(i => i.file).length, 0) * selectedMarketplaces.length
+        let done = 0
+        for (const marketId of selectedMarketplaces) {
+          const rule = MARKETPLACE_RULES[marketId]
+          const folder = zip.folder(rule.name.replace(/\s+/g, '_'))!
+          for (let ci = 0; ci < confirmedClusters.length; ci++) {
+            const cluster = confirmedClusters[ci]
+            for (let ii = 0; ii < cluster.images.length; ii++) {
+              const img = cluster.images[ii]
+              if (!img.file) continue
+              const buf = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
+              const fname = applyNamingTemplate(namingTemplate, {
+                brand: shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND',
+                seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
+                view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
+              }) + '.jpg'
+              folder.file(fname, buf)
+              done++; setDownloadProgress(Math.round((done / total) * 80))
+            }
+          }
+        }
+        setDownloadStatus('Compressing…')
+        setDownloadProgress(85)
+        const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
+        setDownloadStatus('Saving…')
+        setDownloadProgress(95)
+        await saveBlob(blob)
+      } else {
+        setDownloadStatus('Building ZIP…')
+        setDownloadProgress(20)
+        const authHeader = await getAuthHeader()
+        const res = await fetch('/api/export/zip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ job_id: params.jobId, marketplaces: selectedMarketplaces, job_name: job?.name }),
+        })
+        if (!res.ok) throw new Error(await res.text() || 'Export failed')
+        setDownloadProgress(80)
+        setDownloadStatus('Saving…')
+        await saveBlob(await res.blob())
+      }
+      setDownloadProgress(100)
+      setDownloadStatus('Done')
+      setDownloadDone(true)
+      markClustersExported(confirmedClusters.map((c) => c.id))
+      import('@/lib/session-store').then(({ deleteSession }) => deleteSession('draft').catch(() => {}))
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') { setIsDownloading(false); return }
+      setError(err instanceof Error ? err.message : 'Download failed')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   const handleSaveToFolder = async () => {
     if (!folderHandleRef.current || !selectedMarketplaces.length) return
-    setIsSavingToFolder(true); setFolderProgress(0); setFolderStatus('Fetching images…')
+    setIsSavingToFolder(true); setFolderProgress(0); setFolderStatus('Processing images…')
     setFolderDone(false); setWrittenFiles([]); setError(null)
     try {
-      const res = await fetch('/api/export/zip', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_id: params.jobId, marketplaces: selectedMarketplaces, job_name: job?.name }),
-      })
-      if (!res.ok) throw new Error(await res.text() || 'Export failed')
-      setFolderProgress(40); setFolderStatus('Parsing package…')
-      const zip = await (await import('jszip')).default.loadAsync(await res.blob())
-      const byFolder: Record<string, { name: string; data: ArrayBuffer }[]> = {}
+      const JSZip = (await import('jszip')).default
+      let zip: InstanceType<typeof JSZip>
+
+      if (params.jobId === 'session') {
+        zip = new JSZip()
+        const imgs = confirmedClusters.flatMap((c) => c.images.filter((i) => i.file))
+        const total = imgs.length * selectedMarketplaces.length
+        let done = 0
+        for (const marketId of selectedMarketplaces) {
+          const rule = MARKETPLACE_RULES[marketId]
+          const folder = zip.folder(rule.name.replace(/\s+/g, '_'))!
+          for (let ci = 0; ci < confirmedClusters.length; ci++) {
+            const cluster = confirmedClusters[ci]
+            for (let ii = 0; ii < cluster.images.length; ii++) {
+              const img = cluster.images[ii]
+              if (!img.file) continue
+              const buf = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
+              const fname = applyNamingTemplate(namingTemplate, {
+                brand: shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND',
+                seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
+                view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
+              }) + '.jpg'
+              folder.file(fname, buf)
+              done++; setFolderProgress(Math.round((done / total) * 70))
+            }
+          }
+        }
+      } else {
+        setFolderStatus('Fetching images…')
+        const authHeader = await getAuthHeader()
+        const res = await fetch('/api/export/zip', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ job_id: params.jobId, marketplaces: selectedMarketplaces, job_name: job?.name }),
+        })
+        if (!res.ok) throw new Error(await res.text() || 'Export failed')
+        setFolderProgress(40); setFolderStatus('Parsing package…')
+        zip = await JSZip.loadAsync(await res.blob())
+      }
+
       const entries = Object.entries(zip.files).filter(([, f]) => !f.dir)
-      let done = 0
+      const byFolder: Record<string, { name: string; data: ArrayBuffer }[]> = {}
+      let written = 0
       setFolderStatus(`Writing ${entries.length} files…`)
       for (const [path, file] of entries) {
         const slash = path.indexOf('/')
@@ -264,9 +410,8 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
         const data = await file.async('arraybuffer')
         if (!byFolder[fn]) byFolder[fn] = []
         byFolder[fn].push({ name, data })
-        done++; setFolderProgress(40 + Math.round((done / entries.length) * 40))
+        written++; setFolderProgress(70 + Math.round((written / entries.length) * 25))
       }
-      setFolderProgress(80)
       const results: { marketplace: string; count: number }[] = []
       for (const [fn, files] of Object.entries(byFolder)) {
         setFolderStatus(`Writing to ${fn}/…`)
@@ -279,12 +424,14 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
       }
       setFolderProgress(100); setFolderStatus('Done')
       setWrittenFiles(results); setFolderDone(true)
+      markClustersExported(confirmedClusters.map((c) => c.id))
+      import('@/lib/session-store').then(({ deleteSession }) => deleteSession('draft').catch(() => {}))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save files')
     } finally { setIsSavingToFolder(false) }
   }
 
-  const isRunning = isPushing || isSavingToFolder
+  const isRunning = isPushing || isSavingToFolder || isDownloading
   const draftsCreated = drafts.filter((d) => d.status === 'created').length
   const pct = isPushing && drafts.length > 0 ? Math.round((draftsCreated / drafts.length) * 100) : (pushDone ? 100 : 0)
   const canPush = selectedMarketplaces.includes('shopify') && shopifyBrand && confirmedClusters.length > 0
@@ -370,6 +517,23 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 <path d="M1.5 11.5h10" strokeLinecap="round"/>
               </svg>
               Save to folder
+            </button>
+          ) : downloadZip ? (
+            <button
+              onClick={handleDownloadZip}
+              disabled={isRunning || selectedMarketplaces.length === 0}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '7px',
+                padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
+                border: 'none', background: T1, color: '#000', cursor: 'pointer',
+                opacity: (isRunning || selectedMarketplaces.length === 0) ? 0.4 : 1,
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M6.5 9V1M4 6.5l2.5 2.5 2.5-2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M1.5 11.5h10" strokeLinecap="round"/>
+              </svg>
+              Download ZIP
             </button>
           ) : (
             <button
@@ -496,12 +660,51 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               background: CARD2, border: `1px solid ${BORDER}`,
               borderRadius: '8px', color: T1, padding: '9px 10px',
               fontSize: '13px', fontFamily: 'var(--font-dm-mono)',
-              marginBottom: '6px',
+              marginBottom: '10px',
             }}
           />
-          <p style={{ fontSize: '11px', color: T3, fontFamily: 'var(--font-dm-mono)' }}>
-            e.g. {exampleFilename}
-          </p>
+
+          {/* Output preview — inline under naming */}
+          {(confirmedClusters.length > 0 || selectedMarketplaces.length > 0) && (
+            <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: '10px', lineHeight: 1.7, color: T3 }}>
+              {selectedMarketplaces.map((marketId) => {
+                const rule = MARKETPLACE_RULES[marketId]
+                const folderName = rule.name.replace(/\s+/g, '_')
+                return (
+                  <div key={marketId} style={{ marginBottom: '4px' }}>
+                    <span style={{ color: T2 }}>{folderName}/</span>
+                    {previewClusters.map((c, ci) => {
+                      const seq = String(ci + 1).padStart(3, '0')
+                      const firstView = c.images[0]?.viewLabel
+                      const filename = firstView ? applyNamingTemplate(namingTemplate, {
+                        brand: shopifyBrand?.brand_code ?? 'BRAND', seq: ci + 1,
+                        sku: c.sku ?? seq, color: c.color ?? undefined,
+                        view: firstView, index: 1, isBottomwear: c.isBottomwear,
+                      }) + '.jpg' : null
+                      const isLast = ci === previewClusters.length - 1 && confirmedClusters.length <= 3
+                      return (
+                        <div key={c.id} style={{ paddingLeft: '12px' }}>
+                          <span>{isLast ? '└─' : '├─'} </span>
+                          <span style={{ color: T2 }}>{seq}/</span>
+                          {filename && (
+                            <div style={{ paddingLeft: '20px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <span>└─ </span><span>{filename}</span>
+                              {c.images.length > 1 && <span style={{ color: 'rgba(255,255,255,0.2)' }}> +{c.images.length - 1}</span>}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                    {confirmedClusters.length > 3 && (
+                      <div style={{ paddingLeft: '12px', color: 'rgba(255,255,255,0.2)' }}>
+                        └─ ({confirmedClusters.length - 3} more…)
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── RIGHT panel ──────────────────────────────────────────────────── */}
@@ -621,7 +824,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               </div>
               <p style={{ fontSize: '13px', color: T3, lineHeight: 1.5, marginBottom: canPush ? '14px' : '0' }}>
                 {!shopifyBrand
-                  ? 'No brand has Shopify credentials configured. Add your store domain and access token in Brands.'
+                  ? 'No brand has Shopify authorisation. Go to Brands, edit your brand, and click Connect with Shopify.'
                   : confirmedClusters.length === 0
                   ? 'No confirmed clusters in this session. Return to review and confirm at least one look.'
                   : `${confirmedClusters.length} confirmed cluster${confirmedClusters.length !== 1 ? 's' : ''} · ${confirmedClusters.reduce((s, c) => s + c.images.length, 0)} images will be pushed to ${shopifyBrand.shopify_store_url}.`
@@ -652,6 +855,77 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             </div>
           )}
 
+          {/* Coming-soon push panels — The Iconic, Myer, David Jones */}
+          {(['the-iconic', 'myer', 'david-jones'] as const).map((marketId) => {
+            if (!selectedMarketplaces.includes(marketId)) return null
+            const p = PALETTE[marketId]
+            const rule = MARKETPLACE_RULES[marketId]
+            const subtitles: Record<string, string> = {
+              'the-iconic': 'Create SellerCenter listings with images directly from ShotSync',
+              'myer':        'Push product listings directly to Myer\'s supplier portal',
+              'david-jones': 'Push product listings directly to David Jones\' supplier portal',
+            }
+            return (
+              <div key={marketId} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', overflow: 'hidden', opacity: 0.75 }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: T1, letterSpacing: '-0.2px' }}>
+                        {rule.name} — Direct Push
+                      </p>
+                      <span style={{
+                        fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+                        padding: '2px 8px', borderRadius: '20px',
+                        background: 'rgba(10,132,255,0.15)', color: '#4da3ff',
+                      }}>Coming soon</span>
+                    </div>
+                    <p style={{ fontSize: '12px', color: T3 }}>{subtitles[marketId]}</p>
+                  </div>
+                  <span style={{
+                    padding: '4px 12px', borderRadius: '20px',
+                    background: `${p.selBg}`, color: p.text,
+                    fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-dm-mono)',
+                    flexShrink: 0, opacity: 0.5,
+                  }}>0 / {confirmedClusters.length}</span>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ padding: '14px 18px', borderBottom: `1px solid ${BORDER}` }}>
+                  <div style={{ height: '5px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
+                    <div style={{ height: '100%', width: '0%', borderRadius: '3px', background: p.dot }} />
+                  </div>
+                  <p style={{ fontSize: '12px', color: T3 }}>0 of {confirmedClusters.length} listings ready · integration coming soon</p>
+                </div>
+
+                {/* Cluster list — greyed out preview */}
+                <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                  {confirmedClusters.map((d) => (
+                    <div key={d.id} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '10px 18px', borderBottom: `1px solid ${BORDER}`,
+                    }}>
+                      <span style={{ fontSize: '13px', color: T3, fontFamily: 'var(--font-dm-mono)' }}>{d.label}</span>
+                      <span style={{ fontSize: '12px', color: T3 }}>Queued</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Disabled push button */}
+                <div style={{ padding: '14px 18px' }}>
+                  <button disabled style={{
+                    width: '100%', padding: '11px', borderRadius: '10px',
+                    background: p.selBg, border: `1px solid ${p.selBorder}`,
+                    cursor: 'not-allowed', fontSize: '13px', fontWeight: 600, color: p.text,
+                    opacity: 0.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  }}>
+                    Push to {rule.name} — Coming Soon
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+
           {/* Post-push actions */}
           {pushDone && (
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -670,68 +944,34 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             </div>
           )}
 
-          {/* Output preview (folder tree) */}
-          {(confirmedClusters.length > 0 || selectedMarketplaces.length > 0) && (
-            <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', overflow: 'hidden' }}>
-              <div style={{ padding: '10px 18px', borderBottom: `1px solid ${BORDER}` }}>
-                <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: T3, textTransform: 'uppercase' }}>
-                  Output Preview
-                </p>
-              </div>
-              <div style={{ padding: '10px 18px', fontFamily: 'var(--font-dm-mono)', fontSize: '11px', lineHeight: 1.6, maxHeight: '160px', overflowY: 'auto' }}>
-                {selectedMarketplaces.map((marketId) => {
-                  const rule = MARKETPLACE_RULES[marketId]
-                  const folderName = rule.name.replace(/\s+/g, '_')
-                  const viewClusters = previewClusters
-                  return (
-                    <div key={marketId} style={{ marginBottom: '4px' }}>
-                      <span style={{ color: T2 }}>{folderName}/</span>
-                      {viewClusters.map((c, ci) => {
-                        const seq = String(ci + 1).padStart(3, '0')
-                        const views = c.images.slice(0, 3).map((img) => img.viewLabel)
-                        const extra = c.images.length - views.length
-                        const isLastCluster = ci === viewClusters.length - 1
-                        return (
-                          <div key={c.id} style={{ paddingLeft: '16px' }}>
-                            <span style={{ color: T3 }}>{isLastCluster && confirmedClusters.length <= 3 ? '└─' : '├─'} </span>
-                            <span style={{ color: T2 }}>{seq}/</span>
-                            {views.map((v, vi) => {
-                              const filename = applyNamingTemplate(namingTemplate, {
-                                brand: shopifyBrand?.brand_code ?? 'BRAND', seq: ci + 1,
-                                sku: c.sku ?? seq, color: c.color ?? undefined,
-                                view: v, index: vi + 1,
-                              }) + '.jpg'
-                              return (
-                                <div key={vi} style={{ paddingLeft: '28px' }}>
-                                  <span style={{ color: T3 }}>└─ </span>
-                                  <span style={{ color: T3 }}>{filename}</span>
-                                </div>
-                              )
-                            })}
-                            {extra > 0 && (
-                              <div style={{ paddingLeft: '28px' }}>
-                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>…+{extra} more</span>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                      {confirmedClusters.length > 3 && (
-                        <div style={{ paddingLeft: '16px' }}>
-                          <span style={{ color: T3 }}>└─ </span>
-                          <span style={{ color: 'rgba(255,255,255,0.2)' }}>({confirmedClusters.length - 3} more folders…)</span>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-                {selectedMarketplaces.length === 0 && (
-                  <span style={{ color: T3 }}>Select a marketplace to see output structure.</span>
-                )}
-                {selectedMarketplaces.length > 0 && confirmedClusters.length === 0 && (
-                  <span style={{ color: T3 }}>No confirmed clusters in session.</span>
-                )}
-              </div>
+
+          {/* Download ZIP progress/done */}
+          {(isDownloading || downloadDone) && (
+            <div style={{ background: CARD, border: `1px solid ${downloadDone ? 'rgba(48,209,88,0.3)' : BORDER}`, borderRadius: '14px', padding: '18px' }}>
+              {isDownloading ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                    <span style={{ color: T2 }}>{downloadStatus}</span>
+                    <span style={{ color: '#30d158', fontFamily: 'var(--font-dm-mono)' }}>{downloadProgress}%</span>
+                  </div>
+                  <div style={{ height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${downloadProgress}%`, background: '#30d158', transition: 'width 0.3s' }} />
+                  </div>
+                </>
+              ) : downloadDone ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#30d158' }}>ZIP downloaded</span>
+                  </div>
+                  <button
+                    onClick={() => { setDownloadDone(false); setDownloadProgress(0) }}
+                    style={{ fontSize: '12px', color: T3, background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              ) : null}
             </div>
           )}
 

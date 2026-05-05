@@ -61,6 +61,7 @@ export function previewTemplate(template: string, ext = 'jpg'): string {
       .replace(/\{COLOUR_NAME\}/g, 'BURGUNDY')
       .replace(/\{COLOR\}/g, 'BURGUNDY')
       .replace(/\{COLOUR_CODE\}/g, '062')
+      .replace(/\{VIEW_NUM\}/g, '5')
       .replace(/\{ANGLE_NUMBER\}/g, '01')
       .replace(/\{INDEX\}/g, '01')
       .replace(/\{ANGLE\}/g, 'FRONT')

@@ -40,7 +40,7 @@ function ConfidenceBar({ value }: { value: number }) {
   const pct = Math.round(value * 100)
   const cls = value >= 0.7 ? 'bg-[var(--accent2)]' : value >= 0.4 ? 'bg-[var(--accent)]' : 'bg-[var(--accent3)]'
   return (
-    <div className="flex items-center gap-2 text-[0.72rem] text-[var(--text3)]">
+    <div className="flex items-center gap-2 text-[0.79rem] text-[var(--text3)]">
       <div className="flex-1 h-[3px] bg-[var(--bg4)] rounded-full overflow-hidden">
         <div className={cn('h-full rounded-full', cls)} style={{ width: `${pct}%` }} />
       </div>
@@ -69,7 +69,7 @@ export function ClusterCard({ cluster, onSkuChange, onConfirm }: ClusterCardProp
       {/* Header */}
       <div className="px-[14px] py-3 bg-[var(--bg3)] border-b border-[var(--line)] flex items-center justify-between">
         <span
-          className="text-[0.72rem] text-[var(--text3)] bg-[var(--bg4)] px-2 py-[3px] rounded-[4px] border border-[var(--line)]"
+          className="text-[0.79rem] text-[var(--text3)] bg-[var(--bg4)] px-2 py-[3px] rounded-[4px] border border-[var(--line)]"
           style={{ fontFamily: 'var(--font-dm-mono)' }}
         >
           CLU-{cluster.id.slice(0, 6).toUpperCase()}
@@ -92,28 +92,28 @@ export function ClusterCard({ cluster, onSkuChange, onConfirm }: ClusterCardProp
             ) : (
               <div className="w-full h-full shimmer" />
             )}
-            <span className="absolute bottom-1 left-1 bg-[rgba(0,0,0,0.7)] backdrop-blur-[4px] text-[0.6rem] font-semibold uppercase text-[var(--text)] px-[5px] py-[2px] rounded-[3px]">
+            <span className="absolute bottom-1 left-1 bg-[rgba(0,0,0,0.7)] backdrop-blur-[4px] text-[0.67rem] font-semibold uppercase text-[var(--text)] px-[5px] py-[2px] rounded-[3px]">
               {img.view_label}
             </span>
           </div>
         ))}
         {cluster.image_count > 4 && (
           <div className="flex-1 aspect-[3/4] bg-[var(--bg3)] rounded-[4px] flex items-center justify-center border border-dashed border-[var(--line2)] min-w-0">
-            <span className="text-[0.72rem] text-[var(--text3)] text-center">
+            <span className="text-[0.79rem] text-[var(--text3)] text-center">
               +{cluster.image_count - 4}
             </span>
           </div>
         )}
         {cluster.images.length < 3 && Array.from({ length: 3 - cluster.images.length }).map((_, i) => (
           <div key={`empty-${i}`} className="flex-1 aspect-[3/4] bg-[var(--bg3)] rounded-[4px] border border-dashed border-[var(--line2)] flex items-center justify-center min-w-0">
-            <span className="text-[0.65rem] text-[var(--text3)] text-center">missing</span>
+            <span className="text-[0.72rem] text-[var(--text3)] text-center">missing</span>
           </div>
         ))}
       </div>
 
       {/* SKU Suggestions */}
       <div className="px-[14px] pb-3">
-        <p className="text-[0.72rem] text-[var(--text3)] mb-[6px] uppercase tracking-[0.08em]">
+        <p className="text-[0.79rem] text-[var(--text3)] mb-[6px] uppercase tracking-[0.08em]">
           SKU Match
         </p>
         {cluster.suggested_skus.length > 0 ? (
@@ -131,7 +131,7 @@ export function ClusterCard({ cluster, onSkuChange, onConfirm }: ClusterCardProp
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-[0.8rem] text-[var(--text)] truncate">{sug.product_name}</p>
-                  <p className="text-[0.72rem] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                  <p className="text-[0.79rem] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                     {sug.sku}
                     {sug.colour && <span className="ml-1 text-[var(--text2)]">· {sug.colour}</span>}
                   </p>
@@ -141,7 +141,7 @@ export function ClusterCard({ cluster, onSkuChange, onConfirm }: ClusterCardProp
             ))}
           </div>
         ) : (
-          <div className="bg-[var(--bg3)] rounded-sm px-3 py-2 text-[0.78rem] text-[var(--text3)]">
+          <div className="bg-[var(--bg3)] rounded-sm px-3 py-2 text-[0.85rem] text-[var(--text3)]">
             No Shopify products matched — enter SKU manually
           </div>
         )}
@@ -149,12 +149,12 @@ export function ClusterCard({ cluster, onSkuChange, onConfirm }: ClusterCardProp
 
       {/* Footer actions */}
       <div className="px-[14px] py-3 border-t border-[var(--line)] flex items-center gap-2">
-        <span className="text-[0.72rem] text-[var(--text3)]">
+        <span className="text-[0.79rem] text-[var(--text3)]">
           {cluster.image_count} image{cluster.image_count !== 1 ? 's' : ''}
         </span>
         <div className="flex-1" />
         {isConfirmed ? (
-          <span className="text-[0.72rem] font-semibold text-[var(--accent2)] flex items-center gap-1">
+          <span className="text-[0.79rem] font-semibold text-[var(--accent2)] flex items-center gap-1">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="2 5 4.5 7.5 8 2.5"/>
             </svg>

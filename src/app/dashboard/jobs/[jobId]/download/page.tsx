@@ -137,7 +137,7 @@ export default function DownloadPage({ params }: { params: { jobId: string } }) 
             <span className="card-title">File Naming Convention</span>
           </div>
           <div className="card-body">
-            <p className="text-[0.78rem] text-[var(--text3)] mb-3">
+            <p className="text-[0.85rem] text-[var(--text3)] mb-3">
               All images are renamed using the structured format:
             </p>
             <div className="bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-4 py-3 text-[0.82rem] mb-4" style={{ fontFamily: 'var(--font-dm-mono)' }}>
@@ -150,7 +150,7 @@ export default function DownloadPage({ params }: { params: { jobId: string } }) 
               <span className="text-[var(--accent3)]">VIEW</span>
               <span className="text-[var(--text3)]">.jpg</span>
             </div>
-            <div className="flex flex-col gap-1 text-[0.78rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+            <div className="flex flex-col gap-1 text-[0.85rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
               {[
                 'BRAND_TOP-BLK-001_BLACK_FRONT.jpg',
                 'BRAND_TOP-BLK-001_BLACK_BACK.jpg',

@@ -21,6 +21,7 @@ export interface SessionCluster {
   styleNumber: string   // style number e.g. "05324" — may differ from SKU
   label: string
   category: string | null   // accessory category id e.g. 'bags', 'shoes' — null for on-model
+  isBottomwear: boolean     // true for pants, skirts, etc. — affects {VIEW_NUM} numbering
   confirmed: boolean
   exported: boolean
 }
@@ -70,6 +71,7 @@ interface SessionState {
   updateClusterColourCode: (clusterId: string, colourCode: string) => void
   updateClusterStyleNumber: (clusterId: string, styleNumber: string) => void
   setClusterCategory: (clusterId: string, category: string | null) => void
+  setClusterBottomwear: (clusterId: string, isBottomwear: boolean) => void
   setImageViewLabel: (imageId: string, clusterId: string, label: ViewLabel) => void
   confirmCluster: (clusterId: string) => void
   setAllConfirmed: (confirmed: boolean) => void
@@ -200,7 +202,8 @@ export const useSession = create<SessionState>((set, get) => ({
       colourCode: '',
       styleNumber: '',
       label: `Cluster ${_nextClusterNum++}`,
-      category: from.category, // inherit parent category — avoids re-selecting for accessories
+      category: from.category,
+      isBottomwear: from.isBottomwear,
       confirmed: false,
       exported: false,
     }
@@ -239,6 +242,12 @@ export const useSession = create<SessionState>((set, get) => ({
   setClusterCategory: (clusterId, category) => set((state) => ({
     clusters: state.clusters.map((c) =>
       c.id === clusterId ? { ...c, category } : c
+    ),
+  })),
+
+  setClusterBottomwear: (clusterId, isBottomwear) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId ? { ...c, isBottomwear } : c
     ),
   })),
 
@@ -378,7 +387,7 @@ export const useSession = create<SessionState>((set, get) => ({
             images: relabel(chunk),
             sku: '', productName: '', color: '', colourCode: '', styleNumber: '',
             label: `Look ${_nextClusterNum++}`,
-            category: null, confirmed: false, exported: false,
+            category: null, isBottomwear: false, confirmed: false, exported: false,
           }
     })
 

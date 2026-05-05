@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
-type InviteStatus = 'loading' | 'valid' | 'accepted' | 'expired' | 'error'
+type InviteStatus = 'loading' | 'valid' | 'accepted' | 'expired' | 'error' | 'wrong-account'
 
 interface InviteInfo {
   org_id: string
@@ -25,34 +25,41 @@ export default function InvitePage() {
   useEffect(() => {
     const load = async () => {
       const supabase = createClient()
+
+      // Fetch invite details
       const { data, error } = await supabase
         .from('org_invites')
         .select('org_id, email, role, expires_at, accepted_at, orgs(name)')
         .eq('token', token)
         .single()
 
-      if (error || !data) {
-        setStatus('error')
-        return
-      }
-      if (data.accepted_at) {
-        setStatus('accepted')
-        return
-      }
-      if (new Date(data.expires_at) < new Date()) {
-        setStatus('expired')
-        return
-      }
-      setInvite({
+      if (error || !data) { setStatus('error'); return }
+      if (data.accepted_at) { setStatus('accepted'); return }
+      if (new Date(data.expires_at) < new Date()) { setStatus('expired'); return }
+
+      const inviteInfo = {
         org_id: data.org_id,
         org_name: (data.orgs as unknown as { name: string } | null)?.name ?? 'Unknown org',
         email: data.email,
         role: data.role,
-      })
+      }
+      setInvite(inviteInfo)
+
+      // Check auth state
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        // Not signed in — redirect to login, then back to this invite
+        router.replace(`/login?redirect=/invite/${token}`)
+        return
+      }
+      if (user.email?.toLowerCase() !== data.email.toLowerCase()) {
+        setStatus('wrong-account')
+        return
+      }
       setStatus('valid')
     }
     load()
-  }, [token])
+  }, [token, router])
 
   const handleAccept = async () => {
     if (!invite) return
@@ -108,10 +115,10 @@ export default function InvitePage() {
           {status === 'error' && (
             <div className="card-body text-center py-8">
               <p className="text-[0.88rem] text-[var(--text)]">Invite not found</p>
-              <p className="text-[0.78rem] text-[var(--text3)] mt-1">
+              <p className="text-[0.85rem] text-[var(--text3)] mt-1">
                 This link may be invalid or has already been used.
               </p>
-              <Link href="/login" className="mt-4 inline-block text-[0.78rem] text-[var(--accent)] hover:underline">
+              <Link href="/login" className="mt-4 inline-block text-[0.85rem] text-[var(--accent)] hover:underline">
                 Go to login
               </Link>
             </div>
@@ -120,7 +127,7 @@ export default function InvitePage() {
           {status === 'expired' && (
             <div className="card-body text-center py-8">
               <p className="text-[0.88rem] text-[var(--text)]">Invite expired</p>
-              <p className="text-[0.78rem] text-[var(--text3)] mt-1">
+              <p className="text-[0.85rem] text-[var(--text3)] mt-1">
                 Ask your team admin to send a new invite.
               </p>
             </div>
@@ -129,8 +136,20 @@ export default function InvitePage() {
           {status === 'accepted' && (
             <div className="card-body text-center py-8">
               <p className="text-[0.88rem] text-[var(--text)]">Already accepted</p>
-              <Link href="/dashboard" className="mt-3 inline-block text-[0.78rem] text-[var(--accent)] hover:underline">
+              <Link href="/dashboard" className="mt-3 inline-block text-[0.85rem] text-[var(--accent)] hover:underline">
                 Go to dashboard
+              </Link>
+            </div>
+          )}
+
+          {status === 'wrong-account' && invite && (
+            <div className="card-body text-center py-8 flex flex-col gap-3">
+              <p className="text-[0.88rem] text-[var(--text)] font-semibold">Wrong account</p>
+              <p className="text-[0.85rem] text-[var(--text3)]">
+                This invite was sent to <strong className="text-[var(--text)]">{invite.email}</strong>. You're signed in with a different account.
+              </p>
+              <Link href={`/login?redirect=/invite/${token}`} className="btn btn-primary w-full justify-center text-[0.82rem]">
+                Sign in as {invite.email}
               </Link>
             </div>
           )}
@@ -150,11 +169,11 @@ export default function InvitePage() {
               </div>
 
               <div className="pt-4 flex flex-col gap-3">
-                <div className="bg-[var(--bg2)] rounded-[8px] px-3 py-2 text-[0.78rem] text-[var(--text3)]">
+                <div className="bg-[var(--bg2)] rounded-[8px] px-3 py-2 text-[0.85rem] text-[var(--text3)]">
                   Invited email: <span className="text-[var(--text)]">{invite.email}</span>
                 </div>
 
-                {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
+                {error && <p className="text-[0.85rem] text-[var(--accent3)]">{error}</p>}
 
                 <button
                   onClick={handleAccept}
@@ -164,8 +183,8 @@ export default function InvitePage() {
                   {accepting ? 'Joining…' : `Join ${invite.org_name}`}
                 </button>
 
-                <p className="text-[0.72rem] text-[var(--text3)] text-center">
-                  You'll need to be signed in as {invite.email} to accept.
+                <p className="text-[0.79rem] text-[var(--text3)] text-center">
+                  Signed in as {invite.email}
                 </p>
               </div>
             </div>

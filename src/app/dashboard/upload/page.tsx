@@ -57,7 +57,8 @@ export default function UploadPage() {
   const [styleListName, setStyleListName] = useState<string | null>(null)
   const styleListRef = useRef<HTMLInputElement>(null)
   const [resumeDismissed, setResumeDismissed] = useState(false)
-  const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed
+  const allExported = existingSession.clusters.length > 0 && existingSession.clusters.every((c) => c.exported)
+  const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed && !allExported
   const [parkingJob, setParkingJob] = useState(false)
 
   // Drag state for angle reordering
@@ -68,13 +69,14 @@ export default function UploadPage() {
     if (!existingSession.clusters.length) return
     setParkingJob(true)
     try {
-      const { parkJob } = await import('@/lib/session-store')
+      const { parkJob, deleteSession } = await import('@/lib/session-store')
       await parkJob(
         existingSession.jobName || 'Untitled Job',
         existingSession.clusters,
         existingSession.marketplaces,
         activeBrand?.id ?? null,
       )
+      await deleteSession('draft').catch(() => {})
     } catch { /* non-critical */ }
     resetSession()
     setResumeDismissed(true)
@@ -534,7 +536,11 @@ export default function UploadPage() {
                 {parkingJob ? 'Saving…' : 'Park & start new'}
               </button>
               <button
-                onClick={() => { resetSession(); setResumeDismissed(true); setFiles([]); setJobName('') }}
+                onClick={() => {
+                  resetSession()
+                  import('@/lib/session-store').then(({ deleteSession }) => deleteSession('draft').catch(() => {}))
+                  setResumeDismissed(true); setFiles([]); setJobName('')
+                }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 14px', fontSize: '12px', fontWeight: 500, color: 'var(--accent3)', background: 'transparent', border: 'none', cursor: 'pointer' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,59,48,0.07)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}

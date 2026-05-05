@@ -104,7 +104,7 @@ function SignupForm() {
           <div className="card-body pt-4">
             <form onSubmit={handleSignup} className="flex flex-col gap-4">
               <div>
-                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Company Name</label>
+                <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Company Name</label>
                 <input
                   className="input"
                   placeholder="Your company name"
@@ -113,7 +113,7 @@ function SignupForm() {
                 />
               </div>
               <div>
-                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Email</label>
+                <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Email</label>
                 <input
                   type="email"
                   name="email"
@@ -126,7 +126,7 @@ function SignupForm() {
                 />
               </div>
               <div>
-                <label className="text-[0.78rem] text-[var(--text2)] mb-[6px] block">Password</label>
+                <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Password</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -168,7 +168,7 @@ function SignupForm() {
                   onChange={(e) => setAgreed(e.target.checked)}
                   className="mt-[2px] flex-shrink-0 accent-[var(--accent)]"
                 />
-                <span className="text-[0.75rem] text-[var(--text3)] leading-relaxed">
+                <span className="text-[0.82rem] text-[var(--text3)] leading-relaxed">
                   I agree to the{' '}
                   <Link href="/terms" target="_blank" className="text-[var(--accent)] hover:underline">Terms of Service</Link>
                   {' '}and{' '}
@@ -176,14 +176,14 @@ function SignupForm() {
                 </span>
               </label>
 
-              {error && <p className="text-[0.78rem] text-[var(--accent3)]">{error}</p>}
+              {error && <p className="text-[0.85rem] text-[var(--accent3)]">{error}</p>}
 
               <button type="submit" disabled={loading || !agreed} className="btn btn-primary w-full justify-center mt-1">
                 {loading ? 'Creating account…' : 'Create account'}
               </button>
             </form>
 
-            <div className="mt-4 text-center text-[0.78rem] text-[var(--text3)]">
+            <div className="mt-4 text-center text-[0.85rem] text-[var(--text3)]">
               Already have an account?{' '}
               <Link href="/login" className="text-[var(--accent)] hover:underline">
                 Sign in

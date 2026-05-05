@@ -424,7 +424,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
           <div className="card mb-6">
             <div className="card-head">
               <span className="card-title">Image Processing</span>
-              <span className="text-[0.78rem] text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+              <span className="text-[0.85rem] text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                 {job?.processed_images ?? 0} / {job?.total_images ?? 0}
               </span>
             </div>
@@ -440,7 +440,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
                   }}
                 />
               </div>
-              <p className="text-[0.75rem] text-[var(--text3)]">
+              <p className="text-[0.82rem] text-[var(--text3)]">
                 {job?.total_images
                   ? `${Math.round((job.processed_images / job.total_images) * 100)}% complete`
                   : 'Initialising…'}

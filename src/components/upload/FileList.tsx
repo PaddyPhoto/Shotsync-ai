@@ -40,7 +40,7 @@ export function FileList({ files }: FileListProps) {
               <img src={item.preview} alt="" className="w-full h-full object-cover" />
             ) : (
               <span
-                className="text-[0.65rem] text-[var(--text3)]"
+                className="text-[0.72rem] text-[var(--text3)]"
                 style={{ fontFamily: 'var(--font-dm-mono)' }}
               >
                 {item.file.name.split('.').pop()?.toUpperCase()}
@@ -63,13 +63,13 @@ export function FileList({ files }: FileListProps) {
               </div>
             )}
             {item.status === 'error' && (
-              <p className="text-[0.72rem] text-[var(--accent3)] mt-0.5">{item.error}</p>
+              <p className="text-[0.79rem] text-[var(--accent3)] mt-0.5">{item.error}</p>
             )}
           </div>
 
           {/* Size */}
           <span
-            className="text-[var(--text3)] text-[0.75rem] flex-shrink-0"
+            className="text-[var(--text3)] text-[0.82rem] flex-shrink-0"
             style={{ fontFamily: 'var(--font-dm-mono)' }}
           >
             {formatBytes(item.file.size)}
