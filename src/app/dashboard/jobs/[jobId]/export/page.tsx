@@ -959,17 +959,26 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                   </div>
                 </>
               ) : downloadDone ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     <span style={{ fontSize: '14px', fontWeight: 600, color: '#30d158' }}>ZIP downloaded</span>
                   </div>
-                  <button
-                    onClick={() => { setDownloadDone(false); setDownloadProgress(0) }}
-                    style={{ fontSize: '12px', color: T3, background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    Dismiss
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Link
+                      href="/dashboard/jobs"
+                      style={{ flex: 1, padding: '10px', borderRadius: '8px', background: CARD2, border: `1px solid ${BORDER}`, textAlign: 'center', fontSize: '13px', fontWeight: 500, color: T2, textDecoration: 'none' }}
+                    >
+                      All Jobs
+                    </Link>
+                    <Link
+                      href="/dashboard/upload"
+                      style={{ flex: 2, padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    >
+                      New Upload
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7h8M7 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </Link>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -990,7 +999,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 </>
               ) : folderDone ? (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     <span style={{ fontSize: '14px', fontWeight: 600, color: '#30d158' }}>Saved to {folderPath}/</span>
                   </div>
@@ -1000,6 +1009,21 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                       <span>{r.count} files</span>
                     </div>
                   ))}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
+                    <Link
+                      href="/dashboard/jobs"
+                      style={{ flex: 1, padding: '10px', borderRadius: '8px', background: CARD2, border: `1px solid ${BORDER}`, textAlign: 'center', fontSize: '13px', fontWeight: 500, color: T2, textDecoration: 'none' }}
+                    >
+                      All Jobs
+                    </Link>
+                    <Link
+                      href="/dashboard/upload"
+                      style={{ flex: 2, padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    >
+                      New Upload
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7h8M7 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </Link>
+                  </div>
                 </>
               ) : null}
             </div>
