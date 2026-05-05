@@ -227,6 +227,7 @@ export default function UploadPage() {
   const [gdriveLoading, setGdriveLoading] = useState(false)
   const [gdriveSelected, setGdriveSelected] = useState<Set<string>>(new Set())
   const [gdriveToken, setGdriveToken] = useState<string | null>(null)
+  const [gdriveDirectToken, setGdriveDirectToken] = useState<string | null>(null)
   const [gdriveError, setGdriveError] = useState<string | null>(null)
   const [gdriveDownloadProgress, setGdriveDownloadProgress] = useState<{ done: number; total: number } | null>(null)
 
@@ -254,19 +255,58 @@ export default function UploadPage() {
     setCloudImportError(null)
     setCloudImporting('google-drive')
     try {
-      const { openGoogleDrivePicker, downloadGoogleDriveFile } = await import('@/lib/cloud/google-drive')
-      const chosen = await openGoogleDrivePicker()
-      if (chosen.length === 0) { setCloudImporting(null); return }
-      const downloaded: File[] = []
-      for (const cf of chosen) {
-        try { downloaded.push(await downloadGoogleDriveFile(cf)) } catch { /* skip */ }
-      }
-      if (downloaded.length > 0) acceptFiles(downloaded)
-      else setCloudImportError('Could not download any files.')
+      const { authorizeGoogle } = await import('@/lib/cloud/google-drive')
+      const token = await authorizeGoogle()
+      setGdriveDirectToken(token)
+      setGdriveToken(token)
+      setGdriveFolderStack([])
+      setGdriveFiles([])
+      setGdriveFolders([])
+      setGdriveSelected(new Set())
+      setGdriveBrowserOpen(true)
+      await loadGdriveFolderDirect(token, 'root', false)
     } catch (err) {
-      setCloudImportError(err instanceof Error ? err.message : 'Google Drive import failed.')
+      setCloudImportError(err instanceof Error ? err.message : 'Google Drive sign-in failed.')
     } finally {
       setCloudImporting(null)
+    }
+  }
+
+  const loadGdriveFolderDirect = async (token: string, folderId: string, pushStack: boolean, folderName = 'My Drive') => {
+    setGdriveLoading(true)
+    setGdriveError(null)
+    try {
+      const parent = folderId === 'root' ? 'root' : folderId
+      const [foldersRes, filesRes] = await Promise.all([
+        fetch(`https://www.googleapis.com/drive/v3/files?${new URLSearchParams({
+          q: `'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+          fields: 'files(id,name)',
+          orderBy: 'name',
+          pageSize: '200',
+        })}`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`https://www.googleapis.com/drive/v3/files?${new URLSearchParams({
+          q: `'${parent}' in parents and (mimeType contains 'image/') and trashed=false`,
+          fields: 'files(id,name,size,mimeType)',
+          orderBy: 'name',
+          pageSize: '500',
+        })}`, { headers: { Authorization: `Bearer ${token}` } }),
+      ])
+      const [foldersJson, filesJson] = await Promise.all([foldersRes.json(), filesRes.json()])
+      setGdriveFolders((foldersJson.files ?? []).map((f: { id: string; name: string }) => ({ id: f.id, name: f.name })))
+      setGdriveFiles((filesJson.files ?? []).map((f: { id: string; name: string; size?: string; mimeType: string }) => ({
+        id: f.id,
+        name: f.name,
+        downloadUrl: `https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`,
+        size: parseInt(f.size ?? '0', 10),
+        mimeType: f.mimeType,
+      })))
+      setGdriveToken(token)
+      setGdriveSelected(new Set())
+      if (pushStack) setGdriveFolderStack((prev) => [...prev, { id: folderId, name: folderName }])
+    } catch (err) {
+      setGdriveError(err instanceof Error ? err.message : 'Failed to list Google Drive files.')
+    } finally {
+      setGdriveLoading(false)
     }
   }
 
@@ -323,6 +363,9 @@ export default function UploadPage() {
   }
 
   const loadGdriveFolder = async (folderId = 'root', folderName = 'My Drive', pushStack = false) => {
+    if (gdriveDirectToken) {
+      return loadGdriveFolderDirect(gdriveDirectToken, folderId, pushStack, folderName)
+    }
     if (!activeBrand?.id) return
     setGdriveLoading(true)
     setGdriveError(null)
@@ -356,7 +399,11 @@ export default function UploadPage() {
     const newStack = gdriveFolderStack.slice(0, -1)
     setGdriveFolderStack(newStack)
     const parent = newStack[newStack.length - 1]
-    loadGdriveFolder(parent?.id ?? 'root', parent?.name ?? 'My Drive', false)
+    if (gdriveDirectToken) {
+      loadGdriveFolderDirect(gdriveDirectToken, parent?.id ?? 'root', false, parent?.name ?? 'My Drive')
+    } else {
+      loadGdriveFolder(parent?.id ?? 'root', parent?.name ?? 'My Drive', false)
+    }
   }
 
   const importFromGdriveBrowser = async () => {
@@ -1082,7 +1129,7 @@ export default function UploadPage() {
                         {gdriveFolderStack.length === 0 ? 'My Drive' : gdriveFolderStack.map((f) => f.name).join(' / ')}
                       </p>
                     </div>
-                    <button onClick={() => setGdriveBrowserOpen(false)} style={{ color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
+                    <button onClick={() => { setGdriveBrowserOpen(false); setGdriveDirectToken(null) }} style={{ color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>×</button>
                   </div>
                   <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
                     {gdriveLoading ? (
@@ -1103,7 +1150,7 @@ export default function UploadPage() {
                           </button>
                         )}
                         {gdriveFolders.map((folder) => (
-                          <button key={folder.id} onClick={() => loadGdriveFolder(folder.id, folder.name, true)} style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button key={folder.id} onClick={() => gdriveDirectToken ? loadGdriveFolderDirect(gdriveDirectToken, folder.id, true, folder.name) : loadGdriveFolder(folder.id, folder.name, true)} style={{ width: '100%', textAlign: 'left', padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" strokeWidth="1.5"><path d="M1 3.5h12v9H1zM1 3.5l2-2h5l1 1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             {folder.name}/
                           </button>

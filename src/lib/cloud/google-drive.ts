@@ -115,6 +115,15 @@ async function getGoogleToken(): Promise<string> {
 }
 
 /**
+ * Authorize with Google and return an access token — without opening the Picker.
+ * Loads GIS scripts if needed, then requests/refreshes the token.
+ */
+export async function authorizeGoogle(): Promise<string> {
+  await loadGis()
+  return getGoogleToken()
+}
+
+/**
  * Open the Google Drive Picker.
  * Returns selected image files as CloudFile[].
  * OAuth popup appears automatically if not already authed.
