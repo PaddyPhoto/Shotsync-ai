@@ -50,6 +50,8 @@ interface GooglePickerBuilder {
 interface GoogleDocsView {
   setMimeTypes: (types: string) => GoogleDocsView
   setMode: (mode: string) => GoogleDocsView
+  setIncludeFolders: (include: boolean) => GoogleDocsView
+  setSelectFolderEnabled: (enabled: boolean) => GoogleDocsView
 }
 
 interface GooglePickerResponse {
@@ -124,7 +126,10 @@ export async function openGoogleDrivePicker(): Promise<CloudFile[]> {
 
   return new Promise((resolve) => {
     const docsView = new window.google!.picker.DocsView()
-    ;(docsView as unknown as { setMimeTypes: (t: string) => void }).setMimeTypes('image/jpeg,image/png,image/tiff')
+    docsView
+      .setMimeTypes('image/jpeg,image/png,image/tiff,image/webp,image/heic,image/heif')
+      .setIncludeFolders(true)
+      .setSelectFolderEnabled(false)
 
     const picker = new window.google!.picker.PickerBuilder()
       .addView(docsView)
