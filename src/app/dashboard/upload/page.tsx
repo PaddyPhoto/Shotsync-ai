@@ -58,7 +58,7 @@ export default function UploadPage() {
   const styleListRef = useRef<HTMLInputElement>(null)
   const [resumeDismissed, setResumeDismissed] = useState(false)
   const allExported = existingSession.clusters.length > 0 && existingSession.clusters.every((c) => c.exported)
-  const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed && !allExported
+  const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed && !allExported && !isProcessing
   const [parkingJob, setParkingJob] = useState(false)
 
   // Drag state for angle reordering
