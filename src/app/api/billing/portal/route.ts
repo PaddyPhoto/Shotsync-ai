@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const org = membership?.orgs as unknown as { stripe_customer_id: string | null } | null
 
     if (!org?.stripe_customer_id) {
-      return NextResponse.json({ error: 'No billing account found' }, { status: 404 })
+      return NextResponse.json({ error: 'no_customer' }, { status: 404 })
     }
 
     const Stripe = (await import('stripe')).default

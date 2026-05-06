@@ -101,6 +101,8 @@ function SettingsInner() {
       const json = await res.json()
       if (json.url) {
         window.location.href = json.url
+      } else if (json.error === 'no_customer') {
+        alert('Your plan is managed manually. To make changes to your subscription, contact support at hello@shotsync.ai.')
       } else {
         alert(json.error ?? 'Could not open billing portal. Please try again.')
       }
