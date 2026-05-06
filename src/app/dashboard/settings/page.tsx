@@ -99,8 +99,16 @@ function SettingsInner() {
       const { data: { session } } = await createClient().auth.getSession()
       const res = await fetch('/api/billing/portal', { method: 'POST', headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {} })
       const json = await res.json()
-      if (json.url) window.location.href = json.url
-    } finally { setPortalLoading(false) }
+      if (json.url) {
+        window.location.href = json.url
+      } else {
+        alert(json.error ?? 'Could not open billing portal. Please try again.')
+      }
+    } catch {
+      alert('Could not open billing portal. Please try again.')
+    } finally {
+      setPortalLoading(false)
+    }
   }
 
   const removeMember = async (userId: string) => {
