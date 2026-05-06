@@ -257,7 +257,12 @@ function SettingsInner() {
                   </table>
                 </div>
                 <div className="px-3 py-3 border-t border-[var(--line)] flex justify-end">
-                  <button onClick={() => openUpgrade('Upgrade to unlock more features')} className="btn btn-primary btn-sm">Start free trial</button>
+                  <button
+                    onClick={() => openUpgrade(planId === 'free' ? 'Upgrade to unlock more features' : 'Change Your Plan')}
+                    className="btn btn-primary btn-sm"
+                  >
+                    {planId === 'free' ? 'Start free trial' : 'Change plan'}
+                  </button>
                 </div>
               </div>
             )}

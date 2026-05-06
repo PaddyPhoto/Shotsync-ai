@@ -9,11 +9,16 @@ const STRIPE_CONFIGURED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY !== 'pk_test_placeholder'
 )
 
+const PLAN_ORDER: PlanId[] = ['free', 'starter', 'brand', 'scale', 'enterprise']
+
 export function UpgradeModal() {
   const { upgradeReason, closeUpgrade, planId, refreshPlan } = usePlan()
   const [loading, setLoading] = useState<PlanId | null>(null)
 
   if (!upgradeReason && upgradeReason !== '') return null
+
+  const isChangingPlan = planId !== 'free'
+  const currentRank = PLAN_ORDER.indexOf(planId)
 
   const handleUpgrade = async (targetPlanId: PlanId) => {
     if (targetPlanId === 'free') return
@@ -73,12 +78,16 @@ export function UpgradeModal() {
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-4">
           <div>
-            <p className="text-[0.79rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-1">Upgrade Required</p>
+            <p className="text-[0.79rem] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-1">
+              {isChangingPlan ? 'Change Plan' : 'Upgrade Required'}
+            </p>
             <h2 className="text-[1.2rem] font-[700] tracking-[-0.3px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
-              {upgradeReason || 'Unlock more with ShotSync'}
+              {isChangingPlan ? 'Switch to a different plan' : (upgradeReason || 'Unlock more with ShotSync')}
             </h2>
             <p className="text-[0.82rem] text-[var(--text3)] mt-1">
-              Start free for 30 days — no charge until your trial ends
+              {isChangingPlan
+                ? 'Upgrades take effect immediately. Downgrades apply at the end of your billing cycle.'
+                : 'Start free for 30 days — no charge until your trial ends'}
             </p>
           </div>
           <button onClick={closeUpgrade} className="text-[var(--text3)] hover:text-[var(--text2)] transition-colors p-1 mt-1">
@@ -155,6 +164,8 @@ export function UpgradeModal() {
                     </>
                   ) : id === 'enterprise' ? (
                     'Contact us'
+                  ) : isChangingPlan ? (
+                    PLAN_ORDER.indexOf(id) > currentRank ? `Upgrade to ${p.name}` : `Switch to ${p.name}`
                   ) : (
                     `Start free trial — ${p.name}`
                   )}
