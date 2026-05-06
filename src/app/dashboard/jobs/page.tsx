@@ -7,6 +7,31 @@ import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
 import { useSession } from '@/store/session'
 
+// ── Jobs cache ────────────────────────────────────────────────────────────────
+// Module-level: instant on back-navigation (same session, no JSON parse)
+// sessionStorage: survives a full page refresh within the same tab
+const JOBS_CACHE_TTL = 60_000
+const JOBS_SS_KEY = 'shotsync:jobs-cache'
+let _jobsCache: { brandId: string | null; jobs: JobRecord[]; ts: number } | null = null
+
+function readJobsCache(brandId: string | null): JobRecord[] | null {
+  if (_jobsCache && _jobsCache.brandId === brandId && Date.now() - _jobsCache.ts < JOBS_CACHE_TTL) return _jobsCache.jobs
+  try {
+    const raw = sessionStorage.getItem(JOBS_SS_KEY)
+    if (!raw) return null
+    const { brandId: b, jobs, ts } = JSON.parse(raw) as { brandId: string | null; jobs: JobRecord[]; ts: number }
+    if (b === brandId && Date.now() - ts < JOBS_CACHE_TTL) return jobs
+  } catch { /* ignore */ }
+  return null
+}
+
+function writeJobsCache(brandId: string | null, jobs: JobRecord[]) {
+  const entry = { brandId, jobs, ts: Date.now() }
+  _jobsCache = entry
+  try { sessionStorage.setItem(JOBS_SS_KEY, JSON.stringify(entry)) } catch { /* ignore */ }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface JobRecord {
   id: string
   job_name: string
@@ -67,25 +92,40 @@ export default function JobsPage() {
   }
 
   const fetchJobs = (token?: string) => {
-    const url = activeBrand?.id
-      ? `/api/jobs/history?brand_id=${activeBrand.id}`
-      : '/api/jobs/history'
+    const brandId = activeBrand?.id ?? null
+    const url = brandId ? `/api/jobs/history?brand_id=${brandId}` : '/api/jobs/history'
     return fetch(url, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     }).then((r) => r.json()).then(({ data }) => {
-      setJobs(Array.isArray(data) ? data : [])
+      const jobs = Array.isArray(data) ? data : []
+      setJobs(jobs)
+      writeJobsCache(brandId, jobs)
     })
   }
 
   useEffect(() => {
     if (brandsLoading) return
-    setLoading(true)
-    import('@/lib/supabase/client').then(({ createClient }) =>
-      createClient().auth.getSession()
-    ).then(({ data: { session } }) =>
-      fetchJobs(session?.access_token)
-    ).catch(() => setJobs([]))
-      .finally(() => setLoading(false))
+    const brandId = activeBrand?.id ?? null
+
+    const doFetch = (background = false) =>
+      import('@/lib/supabase/client').then(({ createClient }) =>
+        createClient().auth.getSession()
+      ).then(({ data: { session } }) =>
+        fetchJobs(session?.access_token)
+      ).then(() => {
+        // fetchJobs already calls setJobs — update the cache with whatever was set
+      }).catch(() => { if (!background) setJobs([]) })
+        .finally(() => { if (!background) setLoading(false) })
+
+    const cached = readJobsCache(brandId)
+    if (cached) {
+      setJobs(cached)
+      setLoading(false)
+      doFetch(true) // revalidate silently
+    } else {
+      setLoading(true)
+      doFetch(false)
+    }
   }, [activeBrand?.id, brandsLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDelete = async (jobId: string) => {
@@ -98,7 +138,11 @@ export default function JobsPage() {
         method: 'DELETE',
         headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
       })
-      setJobs((prev) => prev.filter((j) => j.id !== jobId))
+      setJobs((prev) => {
+        const next = prev.filter((j) => j.id !== jobId)
+        writeJobsCache(activeBrand?.id ?? null, next)
+        return next
+      })
     } finally {
       setDeletingId(null)
     }
