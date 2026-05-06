@@ -17,7 +17,7 @@ export function UpgradeModal() {
 
   if (!upgradeReason && upgradeReason !== '') return null
 
-  const isChangingPlan = planId !== 'free'
+  const isChangingPlan = upgradeReason === 'change-plan' || planId !== 'free'
   const currentRank = PLAN_ORDER.indexOf(planId)
 
   const handleUpgrade = async (targetPlanId: PlanId) => {
