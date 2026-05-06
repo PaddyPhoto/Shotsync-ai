@@ -71,11 +71,6 @@ export function WelcomeModal() {
 
   useEffect(() => {
     _openModal = () => setVisible(true)
-    const dismissed = typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY)
-    if (!dismissed) {
-      const t = setTimeout(() => setVisible(true), 12000)
-      return () => { clearTimeout(t); _openModal = null }
-    }
     return () => { _openModal = null }
   }, [])
 
