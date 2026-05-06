@@ -54,9 +54,22 @@ const PlanContext = createContext<PlanContextValue>({
 })
 
 export function PlanProvider({ children }: { children: React.ReactNode }) {
-  const [planId, setPlanId] = useState<PlanId>('free')
-  const [usage, setUsage] = useState<PlanUsage>(defaultUsage)
-  const [isLoading, setIsLoading] = useState(true)
+  const [planId, setPlanId] = useState<PlanId>(() => {
+    if (typeof window === 'undefined') return 'free'
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return (stored && (['free', 'starter', 'brand', 'scale', 'enterprise'] as string[]).includes(stored))
+      ? (stored as PlanId) : 'free'
+  })
+  const [usage, setUsage] = useState<PlanUsage>(() => {
+    if (typeof window === 'undefined') return defaultUsage
+    try {
+      const raw = localStorage.getItem(USAGE_KEY)
+      return raw ? (JSON.parse(raw) as PlanUsage) : defaultUsage
+    } catch { return defaultUsage }
+  })
+  const [isLoading, setIsLoading] = useState(() =>
+    typeof window === 'undefined' || !localStorage.getItem(STORAGE_KEY)
+  )
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null)
 
   const plan = PLANS[planId]
@@ -86,6 +99,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
           setPlanId(data.plan as PlanId)
           setUsage(data.usage ?? defaultUsage)
           setIsLoading(false)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(STORAGE_KEY, data.plan)
+            if (data.usage) localStorage.setItem(USAGE_KEY, JSON.stringify(data.usage))
+          }
           return
         }
       }

@@ -1,5 +1,9 @@
 'use client'
 
+// Module-level cache — survives re-renders and back-navigation within the same session
+let _orgCache: { name: string; role: string | null } | null = null
+const ORG_LS_KEY = 'shotsync:org'
+
 import Link from 'next/link'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback, Suspense } from 'react'
@@ -196,8 +200,16 @@ export function Sidebar() {
   const confirmedCount = clusters.filter((c) => c.confirmed).length
   const exportsLimit = plan.limits.exportsPerMonth
   const exportsUsed = usage.exportsThisMonth
-  const [orgName, setOrgName] = useState<string | null>(null)
-  const [orgRole, setOrgRole] = useState<string | null>(null)
+  const [orgName, setOrgName] = useState<string | null>(() => {
+    if (_orgCache) return _orgCache.name
+    if (typeof window === 'undefined') return null
+    try { return JSON.parse(localStorage.getItem(ORG_LS_KEY) || 'null')?.name ?? null } catch { return null }
+  })
+  const [orgRole, setOrgRole] = useState<string | null>(() => {
+    if (_orgCache) return _orgCache.role
+    if (typeof window === 'undefined') return null
+    try { return JSON.parse(localStorage.getItem(ORG_LS_KEY) || 'null')?.role ?? null } catch { return null }
+  })
   const [parkedJobs, setParkedJobs] = useState<SessionHeader[]>([])
   const [resumingId, setResumingId] = useState<string | null>(null)
   const pathname = usePathname()
@@ -258,6 +270,7 @@ export function Sidebar() {
   }
 
   useEffect(() => {
+    if (_orgCache) return // already have it from this session
     import('@/lib/supabase/client').then(({ createClient }) =>
       createClient().auth.getSession()
     ).then(({ data: { session } }) => {
@@ -265,8 +278,12 @@ export function Sidebar() {
       return fetch('/api/orgs/me', {
         headers: { Authorization: `Bearer ${session.access_token}` },
       }).then((r) => r.json()).then(({ data, role }) => {
-        if (data?.name) setOrgName(data.name)
-        if (role) setOrgRole(role)
+        if (data?.name) {
+          setOrgName(data.name)
+          setOrgRole(role ?? null)
+          _orgCache = { name: data.name, role: role ?? null }
+          try { localStorage.setItem(ORG_LS_KEY, JSON.stringify(_orgCache)) } catch { /* ignore */ }
+        }
       })
     }).catch(() => {})
   }, [])
