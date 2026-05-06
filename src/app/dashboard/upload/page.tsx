@@ -525,6 +525,17 @@ export default function UploadPage() {
 
     const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
 
+    // Record image usage server-side (fire and forget — non-blocking)
+    import('@/lib/supabase/client').then(({ createClient }) =>
+      createClient().auth.getSession()
+    ).then(({ data: { session } }) =>
+      fetch('/api/billing/usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        body: JSON.stringify({ images: files.length }),
+      })
+    ).catch(() => { /* non-critical */ })
+
     setSession(name, clusters, marketplaces, imagesPerLook, (effectiveAngleSeq ?? []) as import('@/types').ViewLabel[])
 
     import('@/lib/session-store').then(({ saveSession }) =>
