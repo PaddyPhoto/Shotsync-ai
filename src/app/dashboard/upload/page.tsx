@@ -751,53 +751,60 @@ export default function UploadPage() {
 
             {/* Upload zone */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ marginBottom: '10px' }}>
-                {/* Style list */}
-                <div style={{ marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <label style={{ fontSize: '13px', color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>
-                      Style list
-                      <span style={{ fontSize: '11px', color: 'var(--text3)', marginLeft: '2px', textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>optional</span>
-                    </label>
-                    {styleList.length > 0 && (
-                      <span style={{ fontSize: '12px', color: '#30d158' }}>{styleList.length} styles imported</span>
-                    )}
-                  </div>
-                  <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '3px', lineHeight: 1.5 }}>
-                    Upload your brand&apos;s range sheet and SKU, product name &amp; colour will <strong style={{ color: 'var(--text2)' }}>auto-suggest as you confirm each cluster</strong>. If your images are named with the SKU, <strong style={{ color: 'var(--text2)' }}>all clusters are filled in automatically</strong> — no manual typing needed.
-                  </p>
+              {/* Style list — featured card */}
+              <div style={{
+                marginBottom: '12px',
+                borderRadius: '12px',
+                border: styleList.length > 0 ? '1px solid rgba(48,209,88,0.4)' : '1px solid rgba(48,209,88,0.22)',
+                background: styleList.length > 0 ? 'rgba(48,209,88,0.06)' : 'rgba(48,209,88,0.03)',
+                padding: '14px 16px',
+                transition: 'all 0.15s',
+              }}>
+                {/* Header row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="1.5">
+                    <rect x="2" y="2" width="12" height="12" rx="1.5"/>
+                    <path d="M5 6h6M5 9h4" strokeLinecap="round"/>
+                  </svg>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Style List</span>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#1a8a35', background: 'rgba(48,209,88,0.18)', padding: '2px 7px', borderRadius: '20px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Recommended</span>
                 </div>
+                {/* Benefit line */}
+                <p style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5, marginBottom: '12px' }}>
+                  SKU-named images? <strong style={{ color: 'var(--text)' }}>All clusters fill automatically</strong> — zero typing. Otherwise auto-suggests SKU, name &amp; colour as you confirm each cluster.
+                </p>
+                {/* Action row */}
                 {styleList.length === 0 ? (
-                  <div
-                    onClick={() => styleListRef.current?.click()}
-                    style={{ border: '0.5px dashed var(--line2)', borderRadius: '10px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', transition: 'all 0.15s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLElement).style.background = 'var(--accent-glow)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = ''; (e.currentTarget as HTMLElement).style.background = '' }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--text3)" strokeWidth="1.5">
-                      <path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/>
-                      <path d="M8 2v7M5 5l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span style={{ fontSize: '13px', color: 'var(--text3)' }}>Click to import range sheet (.xlsx or .csv)</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content' }}>
+                    <button
+                      onClick={() => styleListRef.current?.click()}
+                      style={{ padding: '8px 16px', background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0 }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M8 11V3M5 6l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2 13h12" strokeLinecap="round"/>
+                      </svg>
+                      Upload sheet
+                    </button>
                     <a
                       href="/shotsync-range-list-template.csv"
                       download="shotsync-range-list-template.csv"
-                      onClick={e => e.stopPropagation()}
-                      style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      style={{ padding: '7px 13px', border: '1px solid var(--line)', borderRadius: '8px', fontSize: '13px', fontWeight: 500, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', background: 'var(--bg3)', flexShrink: 0 }}
                     >
-                      <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/><path d="M8 2v7M5 9l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Template
+                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/><path d="M8 2v7M5 9l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      Download template
                     </a>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ flex: 1, padding: '8px 12px', background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '9px' }}>
-                      <p style={{ fontSize: '13px', color: 'var(--text)' }}>{styleListName}</p>
-                      <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="2"><path d="M3 8l4 4 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{styleListName}</p>
+                      <p style={{ fontSize: '12px', color: '#30d158', marginTop: '1px' }}>
                         {styleList.length} styles · {[...new Set(styleList.map(e => e.colour).filter(Boolean))].length} colours
                       </p>
                     </div>
-                    <button onClick={() => { setStyleListLocal([]); setStyleList([]); setStyleListName(null) }} style={{ fontSize: '13px', color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <button onClick={() => { setStyleListLocal([]); setStyleList([]); setStyleListName(null) }} style={{ fontSize: '12px', color: 'var(--text3)', background: 'none', border: '1px solid var(--line)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
                       Remove
                     </button>
                   </div>
