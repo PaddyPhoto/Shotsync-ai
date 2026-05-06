@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: portalSession.url })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Portal failed'
+    if (message.includes('No such customer')) {
+      return NextResponse.json({ error: 'no_customer' }, { status: 404 })
+    }
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
