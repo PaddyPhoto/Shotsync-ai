@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
     // after the new checkout completes — avoids destructive events mid-upgrade.
     const existing = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 10 })
     const existingSubIds = existing.data.map(s => s.id).join(',')
+    const isNewCustomer = existing.data.length === 0
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
       cancel_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=cancelled`,
       metadata: { org_id: orgId, plan_id: planId, cancel_subs: existingSubIds },
       subscription_data: {
-        trial_period_days: 30,
+        ...(isNewCustomer ? { trial_period_days: 30 } : {}),
         metadata: { org_id: orgId, plan_id: planId },
       },
     })
