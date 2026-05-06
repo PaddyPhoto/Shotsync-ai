@@ -128,12 +128,14 @@ export function UpgradeModal() {
                     <span className="text-[1.2rem] font-[700] text-[var(--text)]">Contact us</span>
                   ) : (
                     <>
-                      <div className="inline-flex items-center gap-1.5 bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] text-[0.77rem] font-semibold px-2 py-[3px] rounded-full mb-2">
-                        30 days free
-                      </div>
+                      {!isChangingPlan && (
+                        <div className="inline-flex items-center gap-1.5 bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] text-[0.77rem] font-semibold px-2 py-[3px] rounded-full mb-2">
+                          30 days free
+                        </div>
+                      )}
                       <div className="flex items-baseline gap-1">
                         <span className="text-[1.6rem] font-[700] text-[var(--text)]">${p.priceAud}</span>
-                        <span className="text-[0.82rem] text-[var(--text3)]">AUD/month after trial</span>
+                        <span className="text-[0.82rem] text-[var(--text3)]">AUD/month{!isChangingPlan && ' after trial'}</span>
                       </div>
                     </>
                   )}
@@ -183,9 +185,9 @@ export function UpgradeModal() {
 
         <div className="border-t border-[var(--line)] px-6 py-3 flex items-center justify-between">
           <button onClick={closeUpgrade} className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
-            Continue on Free
+            {isChangingPlan ? 'Keep current plan' : 'Continue on Free'}
           </button>
-          <p className="text-[0.79rem] text-[var(--text3)]">30-day free trial · Cancel anytime · No contracts</p>
+          <p className="text-[0.79rem] text-[var(--text3)]">{isChangingPlan ? 'Cancel anytime · No contracts' : '30-day free trial · Cancel anytime · No contracts'}</p>
         </div>
       </div>
     </div>
