@@ -58,7 +58,7 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-4 gap-3">
       {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[]).map((id) => {
         const rule = MARKETPLACE_RULES[id]
         const isSelected = selected.includes(id)
@@ -75,7 +75,7 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
                 background: 'var(--bg3)',
                 border: '1px solid var(--line)',
                 borderRadius: '12px',
-                padding: '16px',
+                padding: '12px',
                 cursor: 'pointer',
                 textAlign: 'left',
                 opacity: 0.5,
@@ -114,7 +114,7 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
               background: isSelected ? palette.bgSelected : palette.bgRest,
               border: isSelected ? `1.5px solid ${palette.border}` : `1px solid ${palette.border}30`,
               borderRadius: '12px',
-              padding: '16px',
+              padding: '12px',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'all 0.15s',
