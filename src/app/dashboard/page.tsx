@@ -409,8 +409,7 @@ export default function DashboardPage() {
               ) : (
                 // Nothing active
                 <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                  <p style={{ fontSize: '15px', color: 'var(--text3)', marginBottom: '10px' }}>No active session. Upload a new shoot to begin.</p>
-                  <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '14px', padding: '4px 10px' }}>New upload</Link>
+                  <p style={{ fontSize: '15px', color: 'var(--text3)' }}>No active session. Upload a new shoot to begin.</p>
                 </div>
               )}
             </div>
@@ -431,8 +430,7 @@ export default function DashboardPage() {
             <div style={{ padding: '12px 16px' }}>
               {!isReady || unexportedClusters.length === 0 ? (
                 <div style={{ padding: '14px 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: '14px', color: 'var(--text3)', marginBottom: '8px' }}>No active session. Upload a shoot to see clusters here.</p>
-                  <Link href="/dashboard/upload" className="btn btn-ghost" style={{ fontSize: '14px', padding: '4px 10px' }}>New upload</Link>
+                  <p style={{ fontSize: '14px', color: 'var(--text3)' }}>No active session. Upload a shoot to see clusters here.</p>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
