@@ -196,15 +196,15 @@ export default function LandingPage() {
         </nav>
 
         {/* ── HERO ── */}
-        <section className="hero-section" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', position: 'relative' }}>
-          <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '28px' }}>
+        <section className="hero-section" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '80px 40px 60px', position: 'relative' }}>
+          <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '22px' }}>
             <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
             Now in early access — ANZ fashion brands
           </div>
-          <h1 className="hero-h1" style={{ fontSize: 'clamp(44px,7vw,80px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.05, color: '#1d1d1f', maxWidth: '820px', marginBottom: '24px' }}>
+          <h1 className="hero-h1" style={{ fontSize: 'clamp(36px,5.2vw,62px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '780px', marginBottom: '20px' }}>
             From Shoot to Live Product Listings<span style={{ color: '#3a3a3c' }}>—In Minutes</span>
           </h1>
-          <p className="hero-sub" style={{ fontSize: 'clamp(17px,2.2vw,21px)', color: '#3a3a3c', maxWidth: '560px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '44px' }}>
+          <p className="hero-sub" style={{ fontSize: 'clamp(16px,1.9vw,19px)', color: '#3a3a3c', maxWidth: '540px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '36px' }}>
             Automatically rename images, generate product copy, and publish to Shopify and marketplaces—without days of manual work.
           </p>
           <div className="hero-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -219,7 +219,7 @@ export default function LandingPage() {
           </div>
 
           {/* Stats bar */}
-          <div className="hero-stats" style={{ display: 'flex', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', marginTop: '64px', overflow: 'hidden' }}>
+          <div className="hero-stats" style={{ display: 'flex', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', marginTop: '44px', overflow: 'hidden' }}>
             {[
               { value: '2–3 days', label: 'Manual post-production', color: '#1d1d1f' },
               { value: '25 min',   label: 'With ShotSync',          color: '#30d158' },
