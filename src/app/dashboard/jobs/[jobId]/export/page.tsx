@@ -83,7 +83,7 @@ async function processImage(file: File, w: number, h: number, bg = '#ffffff'): P
 
 export default function ExportPage({ params }: { params: { jobId: string } }) {
   const router = useRouter()
-  const { clusters: sessionClusters, jobName, isReady, markClustersExported } = useSession()
+  const { clusters: sessionClusters, jobName, isReady, markClustersExported, reset } = useSession()
   const { activeBrand, brands } = useBrand()
 
   const [job, setJob] = useState<Job | null>(null)
@@ -1030,13 +1030,13 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                     >
                       All Jobs
                     </Link>
-                    <Link
-                      href="/dashboard/upload"
-                      style={{ flex: 2, padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    <button
+                      onClick={() => { reset(); router.push('/dashboard/upload') }}
+                      style={{ flex: 2, padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                     >
                       New Upload
                       <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7h8M7 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </Link>
+                    </button>
                   </div>
                 </div>
               ) : null}
@@ -1075,13 +1075,13 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                     >
                       All Jobs
                     </Link>
-                    <Link
-                      href="/dashboard/upload"
-                      style={{ flex: 2, padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    <button
+                      onClick={() => { reset(); router.push('/dashboard/upload') }}
+                      style={{ flex: 2, padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                     >
                       New Upload
                       <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7h8M7 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </Link>
+                    </button>
                   </div>
                 </>
               ) : null}

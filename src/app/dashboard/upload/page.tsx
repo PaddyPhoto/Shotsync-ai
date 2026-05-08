@@ -258,6 +258,7 @@ export default function UploadPage() {
 
   useEffect(() => {
     if (!existingSession.isReady || !existingSession.clusters.length) return
+    if (existingSession.clusters.every((c) => c.exported)) return
     if (existingSession.jobName) setJobName(existingSession.jobName)
     if (existingSession.shootType) setShootType(existingSession.shootType)
     if (existingSession.accessoryCategory !== null) {
