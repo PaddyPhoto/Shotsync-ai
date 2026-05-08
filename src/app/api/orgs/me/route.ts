@@ -10,6 +10,7 @@ async function getUserAndOrg(req: NextRequest) {
     .from('org_members')
     .select('org_id, role, orgs(id, name)')
     .eq('user_id', user.id)
+    .order('role', { ascending: false })
     .limit(1)
     .single()
 

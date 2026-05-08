@@ -11,6 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: { jobId: strin
       .from('org_members')
       .select('org_id')
       .eq('user_id', user.id)
+      .order('role', { ascending: false })
       .limit(1)
       .single()
     const orgId = membership?.org_id ?? null
@@ -21,7 +22,6 @@ export async function GET(req: NextRequest, { params }: { params: { jobId: strin
       .select('id, job_name, image_count, cluster_count, marketplaces, status, created_at, brands(name, brand_code)')
       .eq('id', params.jobId)
       .eq('org_id', orgId)
-      .is('deleted_at', null)
       .single()
 
     if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -55,6 +55,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { jobId: st
       .from('org_members')
       .select('org_id')
       .eq('user_id', user.id)
+      .order('role', { ascending: false })
       .limit(1)
       .single()
     const orgId = membership?.org_id ?? null
@@ -62,7 +63,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { jobId: st
 
     const { error } = await service
       .from('job_history')
-      .update({ deleted_at: new Date().toISOString() })
+      .delete()
       .eq('id', params.jobId)
       .eq('org_id', orgId)
 

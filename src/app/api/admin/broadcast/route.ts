@@ -230,12 +230,62 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const body = await req.json() as { subject?: string; preview?: boolean; extraEmails?: string[] }
+    const body = await req.json() as { subject?: string; preview?: boolean; extraEmails?: string[]; overrideEmails?: string[]; testOnly?: boolean }
     const subject = body.subject || 'ShotSync.ai is live — post-production on autopilot'
     const preview = body.preview ?? false
+    const testOnly = body.testOnly ?? false
+    const overrideEmails: string[] | undefined = body.overrideEmails
     const extraEmails: string[] = (body.extraEmails ?? [])
       .map((e: string) => e.trim().toLowerCase())
       .filter((e: string) => e.includes('@'))
+
+    // Test mode — send only to admin
+    if (testOnly) {
+      if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not set' }, { status: 500 })
+      const { Resend } = await import('resend')
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://shotsync.ai'
+      const r = await resend.emails.send({
+        from: 'ShotSync <hello@shotsync.ai>',
+        to: ADMIN_EMAIL,
+        replyTo: 'hello@shotsync.ai',
+        subject: `[TEST] ${subject}`,
+        html: getEdmHtml(`${APP_URL}/unsubscribe?email=${encodeURIComponent(ADMIN_EMAIL)}`),
+      })
+      if (r.error) return NextResponse.json({ error: r.error.message }, { status: 500 })
+      return NextResponse.json({ sent: 1, failed: 0, failedEmails: [], total: 1 })
+    }
+
+    // If caller provides an explicit list (after user edits), use it directly for sending
+    if (!preview && overrideEmails) {
+      const emails = overrideEmails.filter((e: string) => e.includes('@'))
+      if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not set' }, { status: 500 })
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://shotsync.ai'
+      const { Resend } = await import('resend')
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const BATCH = 50
+      let sent = 0
+      const failed: { email: string; reason: string }[] = []
+      for (let i = 0; i < emails.length; i += BATCH) {
+        const batch = emails.slice(i, i + BATCH)
+        const results = await Promise.allSettled(
+          batch.map((email: string) =>
+            resend.emails.send({
+              from: 'ShotSync <hello@shotsync.ai>',
+              to: email,
+              replyTo: 'hello@shotsync.ai',
+              subject,
+              html: getEdmHtml(`${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`),
+            }).then((r) => { if (r.error) throw new Error(r.error.message); return r })
+          )
+        )
+        results.forEach((r: PromiseSettledResult<unknown>, idx: number) => {
+          if (r.status === 'fulfilled') { sent++ }
+          else { failed.push({ email: batch[idx], reason: r.status === 'rejected' && r.reason instanceof Error ? r.reason.message : 'Unknown error' }) }
+        })
+      }
+      return NextResponse.json({ sent, failed: failed.length, failedEmails: failed, total: emails.length })
+    }
 
     // Get all users from auth
     const { data: { users }, error } = await service.auth.admin.listUsers({ perPage: 1000 })
@@ -249,7 +299,7 @@ export async function POST(req: NextRequest) {
     const emails = [...new Set([...userEmails, ...extraEmails])]
 
     if (preview) {
-      return NextResponse.json({ count: emails.length, emails: emails.slice(0, 5), subject })
+      return NextResponse.json({ count: emails.length, emails, subject })
     }
 
     if (!process.env.RESEND_API_KEY) {

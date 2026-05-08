@@ -32,11 +32,12 @@ export async function GET(req: NextRequest) {
     const { createServiceClient } = await import('@/lib/supabase/server')
     const service = createServiceClient()
 
-    // Get user's org + plan
+    // Get user's org + plan — order by role desc so 'owner' rows come first
     const { data: membership } = await service
       .from('org_members')
       .select('org_id, orgs(plan)')
       .eq('user_id', user.id)
+      .order('role', { ascending: false })
       .limit(1)
       .single()
 
@@ -64,20 +65,18 @@ export async function GET(req: NextRequest) {
 
     let query = service
       .from('job_history')
-      .select(`
-        id, job_name, image_count, cluster_count,
-        marketplaces, status, created_at,
-        brands(name, brand_code, logo_color)
-      `)
+      .select('id, job_name, image_count, cluster_count, marketplaces, status, created_at, brand_id')
       .eq('org_id', orgId)
-      .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
     if (brandId) query = query.eq('brand_id', brandId)
     if (depth > 0) query = query.limit(depth)
 
     const { data, error } = await query
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('GET /api/jobs/history query error:', error.message, { orgId })
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ data: data ?? [], stats, planId, historyDepth: depth })
   } catch (err) {
@@ -103,6 +102,7 @@ export async function POST(req: NextRequest) {
       .from('org_members')
       .select('org_id')
       .eq('user_id', user.id)
+      .order('role', { ascending: false })
       .limit(1)
       .single()
 
@@ -126,7 +126,10 @@ export async function POST(req: NextRequest) {
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('POST /api/jobs/history insert error:', error.message, { org_id: membership.org_id, brand_id })
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
     return NextResponse.json({ data }, { status: 201 })
   } catch (err) {
     console.error('POST /api/jobs/history error:', err)

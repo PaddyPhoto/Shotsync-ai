@@ -1512,6 +1512,8 @@ function ExportPanel({
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
   const [exportError, setExportError] = useState<string | null>(null)
+  const [historySaveError, setHistorySaveError] = useState<string | null>(null)
+  const [historySaved, setHistorySaved] = useState(false)
   const [done, setDone] = useState(false)
   const [shopifyUploading, setShopifyUploading] = useState(false)
   const [shopifyResults, setShopifyResults] = useState<{ sku: string; status: string; adminUrl?: string; message?: string }[] | null>(null)
@@ -1695,6 +1697,7 @@ function ExportPanel({
     setIsExporting(true)
     setDone(false)
     setExportError(null)
+    setHistorySaveError(null)
 
     const sourceImageCount = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
     const totalImages = sourceImageCount * selectedMarketplaces.length
@@ -2058,7 +2061,24 @@ function ExportPanel({
 
     recordExport()
 
-    // Save job to history + persist session to IndexedDB (best-effort — don't block export)
+    // Bill for background removal (fire-and-forget)
+    if (bgRemovalEnabled && anyBgRemovalMarketplace && bgRemovalCache.size > 0) {
+      import('@/lib/supabase/client').then(({ createClient }) =>
+        createClient().auth.getSession()
+      ).then(({ data: { session } }) => {
+        if (!session?.access_token) return
+        fetch('/api/billing/bg-removal', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ count: bgRemovalCache.size, jobName }),
+        }).catch(() => { /* non-critical */ })
+      }).catch(() => { /* non-critical */ })
+    }
+
+    // Save job to history (fire-and-forget — runs concurrently, done screen shows immediately)
     import('@/lib/supabase/client').then(({ createClient }) =>
       createClient().auth.getSession()
     ).then(async ({ data: { session } }) => {
@@ -2076,37 +2096,58 @@ function ExportPanel({
           brand_id: activeBrand?.id ?? null,
         }),
       })
-      if (res.ok) {
-        const { data: historyRecord } = await res.json()
-        if (historyRecord?.id) {
-          // Persist full session so the job can be reopened without re-uploading
-          // and remove the draft (job is now complete)
-          import('@/lib/session-store').then(({ saveSession, deleteSession }) =>
-            Promise.all([
-              saveSession(historyRecord.id, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null),
-              deleteSession('draft'),
-            ])
-          ).catch(() => { /* non-critical */ })
-        }
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        setHistorySaveError(`HTTP ${res.status}: ${errBody?.error ?? 'Unknown error'}`)
+        return
       }
-    }).catch(() => { /* non-critical */ })
+      const { data: historyRecord } = await res.json()
+      setHistorySaved(!!historyRecord?.id)
+      if (historyRecord?.id) {
+        const histId = historyRecord.id
 
-    // Bill for background removal (fire-and-forget — must not block export completion)
-    if (bgRemovalEnabled && anyBgRemovalMarketplace && bgRemovalCache.size > 0) {
-      import('@/lib/supabase/client').then(({ createClient }) =>
-        createClient().auth.getSession()
-      ).then(({ data: { session } }) => {
-        if (!session?.access_token) return
-        fetch('/api/billing/bg-removal', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ count: bgRemovalCache.size, jobName }),
-        }).catch(() => { /* non-critical */ })
-      }).catch(() => { /* non-critical */ })
-    }
+        import('@/lib/session-store').then(({ saveSession, deleteSession }) =>
+          Promise.all([
+            saveSession(histId, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null),
+            deleteSession('draft'),
+          ])
+        ).catch(() => { /* non-critical */ })
+
+        ;(async () => {
+          try {
+            await fetch(`/api/jobs/${histId}/session`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+              },
+              body: JSON.stringify({
+                clusters: confirmedClusters.map((c, i) => ({
+                  cluster_id: c.id,
+                  cluster_order: i,
+                  sku: c.sku,
+                  product_name: c.productName,
+                  color: c.color,
+                  colour_code: c.colourCode,
+                  style_number: c.styleNumber,
+                  label: c.label,
+                  category: c.category ?? null,
+                  is_bottomwear: c.isBottomwear ?? false,
+                  images: c.images.map((img, j) => ({
+                    image_id: img.id,
+                    image_order: j,
+                    filename: img.filename,
+                    seq_index: img.seqIndex,
+                    view_label: img.viewLabel,
+                    view_confidence: img.viewConfidence,
+                  })),
+                })),
+              }),
+            })
+          } catch { /* non-critical */ }
+        })()
+      }
+    }).catch((err) => { setHistorySaveError(err instanceof Error ? err.message : 'Network error') })
 
     markClustersExported(confirmedClusters.map((c) => c.id))
     setIsExporting(false)
@@ -2307,6 +2348,17 @@ function ExportPanel({
               {exportError && (
                 <div className="text-[0.8rem] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-left w-full">
                   <span className="font-medium">Note:</span> {exportError}
+                </div>
+              )}
+              {historySaved && !historySaveError && (
+                <div className="text-[0.8rem] bg-[rgba(48,209,88,0.08)] border border-[rgba(48,209,88,0.3)] rounded-lg px-4 py-3 text-left w-full" style={{ color: '#30d158' }}>
+                  <span className="font-medium">Saved to history.</span> This job is now visible in All Jobs.
+                </div>
+              )}
+              {historySaveError && (
+                <div className="text-[0.8rem] bg-[rgba(255,159,10,0.08)] border border-[rgba(255,159,10,0.3)] rounded-lg px-4 py-3 text-left w-full" style={{ color: '#a05c00' }}>
+                  <span className="font-medium">Job not saved to history.</span> Your export completed but this job couldn't be recorded in All Jobs.
+                  <span className="block mt-1 font-mono text-[0.75rem] opacity-70">{historySaveError}</span>
                 </div>
               )}
               <div className="flex gap-3 w-full justify-center">

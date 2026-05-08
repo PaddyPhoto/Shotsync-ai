@@ -10,7 +10,20 @@ import { useSession } from '@/store/session'
 import type { StyleListEntry, ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
-import type { MarketplaceName } from '@/types'
+import type { MarketplaceName, ViewLabel } from '@/types'
+
+type ReimportImage = {
+  image_id: string; image_order: number; filename: string
+  seq_index: number; view_label: string; view_confidence: number
+}
+type ReimportCluster = {
+  cluster_id: string; cluster_order: number
+  sku: string; product_name: string; color: string; colour_code: string
+  style_number: string; label: string; category: string | null; is_bottomwear: boolean
+  confirmed: boolean
+  job_cluster_images: ReimportImage[]
+}
+type ReimportMeta = { clusters: ReimportCluster[]; jobName: string; marketplaces: string[] }
 
 interface ProcessProgress {
   phase: string
@@ -60,6 +73,62 @@ export default function UploadPage() {
   const allExported = existingSession.clusters.length > 0 && existingSession.clusters.every((c) => c.exported)
   const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed && !allExported && !isProcessing
   const [parkingJob, setParkingJob] = useState(false)
+  const [reimportMeta, setReimportMeta] = useState<ReimportMeta | null>(null)
+  const [autoReimporting, setAutoReimporting] = useState(false)
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('shotsync:reimport')
+      if (raw) setReimportMeta(JSON.parse(raw))
+    } catch { /* ignore */ }
+  }, [])
+
+  // When reimportMeta loads, try to auto-find images from stored folder handles
+  useEffect(() => {
+    if (!reimportMeta) return
+    const allFilenames: string[] = reimportMeta.clusters.flatMap(
+      (c) => c.job_cluster_images.map((img) => img.filename)
+    )
+    if (!allFilenames.length) return
+
+    setAutoReimporting(true)
+    import('@/lib/folder-store').then(async ({ findFileAcrossHandles }) => {
+      const sample = allFilenames.slice(0, 5)
+      const found = await Promise.all(sample.map((fn) => findFileAcrossHandles(fn)))
+      if (found.filter(Boolean).length < Math.ceil(sample.length * 0.6)) {
+        setAutoReimporting(false)
+        return // folder not available — user must select files manually
+      }
+      // Folder is accessible — find all files and trigger reimport automatically
+      const fileMap = new Map<string, File>()
+      await Promise.all(allFilenames.map(async (fn) => {
+        const f = await findFileAcrossHandles(fn)
+        if (f) fileMap.set(fn, f)
+      }))
+      acceptFiles(Array.from(fileMap.values()))
+      setAutoReimporting(false)
+    }).catch(() => setAutoReimporting(false))
+  }, [reimportMeta]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectFolder = async () => {
+    if (typeof window === 'undefined' || !window.showDirectoryPicker) return
+    try {
+      const handle = await window.showDirectoryPicker({ mode: 'read' } as Parameters<typeof window.showDirectoryPicker>[0])
+      const { saveFolderHandle } = await import('@/lib/folder-store')
+      await saveFolderHandle(handle.name, handle)
+      // Read all image files from the folder
+      const images: File[] = []
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for await (const [, entry] of (handle as any).entries()) {
+        if (entry.kind === 'file' && /\.(jpe?g|png|webp|heic|heif)$/i.test(entry.name)) {
+          images.push(await entry.getFile())
+        }
+      }
+      if (images.length) acceptFiles(images)
+    } catch (err) {
+      if (err instanceof Error && err.name !== 'AbortError') console.error('Folder picker error:', err)
+    }
+  }
 
   // Drag state for angle reordering
   const [dragIdx, setDragIdx] = useState<number | null>(null)
@@ -493,6 +562,84 @@ export default function UploadPage() {
     acceptFiles(dropped)
   }, [acceptFiles])
 
+  const handleReimport = async () => {
+    if (!files.length || !reimportMeta) return
+    setIsProcessing(true)
+    setProgress({ phase: 'Matching images to clusters…', done: 0, total: files.length })
+
+    // Build filename → cluster+image lookup
+    const filenameMap = new Map<string, { sc: ReimportCluster; img: ReimportImage }>()
+    for (const sc of reimportMeta.clusters) {
+      for (const img of sc.job_cluster_images) {
+        filenameMap.set(img.filename, { sc, img })
+      }
+    }
+
+    // Group uploaded files into their clusters by filename
+    const buckets = new Map<string, { sc: ReimportCluster; items: { file: File; img: ReimportImage }[] }>()
+    const unmatched: string[] = []
+    let done = 0
+
+    for (const file of files) {
+      const match = filenameMap.get(file.name)
+      if (match) {
+        if (!buckets.has(match.sc.cluster_id)) {
+          buckets.set(match.sc.cluster_id, { sc: match.sc, items: [] })
+        }
+        buckets.get(match.sc.cluster_id)!.items.push({ file, img: match.img })
+      } else {
+        unmatched.push(file.name)
+      }
+      done++
+      setProgress({ phase: 'Matching images to clusters…', done, total: files.length })
+    }
+
+    const clusters = Array.from(buckets.values())
+      .sort((a, b) => a.sc.cluster_order - b.sc.cluster_order)
+      .map(({ sc, items }) => ({
+        id: sc.cluster_id,
+        sku: sc.sku,
+        productName: sc.product_name,
+        color: sc.color,
+        colourCode: sc.colour_code,
+        styleNumber: sc.style_number,
+        label: sc.label,
+        category: sc.category,
+        isBottomwear: sc.is_bottomwear,
+        confirmed: sc.confirmed,
+        exported: false,
+        images: items
+          .sort((a, b) => a.img.image_order - b.img.image_order)
+          .map(({ file, img }) => ({
+            id: img.image_id,
+            file,
+            previewUrl: URL.createObjectURL(file),
+            filename: img.filename,
+            seqIndex: img.seq_index,
+            viewLabel: img.view_label as ViewLabel,
+            viewConfidence: img.view_confidence,
+          })),
+      }))
+
+    try { sessionStorage.removeItem('shotsync:reimport') } catch { /* ignore */ }
+
+    if (clusters.length === 0) {
+      alert(`None of the uploaded images matched the saved job. Make sure you're uploading the original files — filenames must be identical.`)
+      setIsProcessing(false)
+      return
+    }
+
+    if (unmatched.length > 0) {
+      const msg = unmatched.length === 1
+        ? `1 image didn't match any cluster and was skipped: ${unmatched[0]}`
+        : `${unmatched.length} images didn't match any cluster and were skipped.`
+      alert(msg)
+    }
+
+    setSession(reimportMeta.jobName, clusters, reimportMeta.marketplaces)
+    router.push('/dashboard/review')
+  }
+
   const handleProcess = async () => {
     if (!files.length) return
     if (!canProcessImages(files.length)) {
@@ -552,6 +699,40 @@ export default function UploadPage() {
       <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'New Upload' }]} />
 
       <div style={{ padding: '28px', paddingBottom: files.length > 0 && !isProcessing ? '100px' : '28px', flex: 1 }}>
+
+        {/* Re-import banner */}
+        {reimportMeta && (
+          <div style={{ marginBottom: '20px', borderRadius: '14px', border: '0.5px solid rgba(48,209,88,0.35)', background: 'rgba(48,209,88,0.06)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'rgba(48,209,88,0.15)' }}>
+              {autoReimporting ? (
+                <div style={{ width: '15px', height: '15px', border: '2px solid rgba(48,209,88,0.3)', borderTopColor: '#30d158', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="#30d158" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 7a6 6 0 1 0 6-6"/><path d="M1 3v4h4"/>
+                </svg>
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '13px', fontWeight: 600, color: '#30d158' }}>
+                {autoReimporting ? 'Finding images…' : `Re-importing: ${reimportMeta.jobName}`}
+              </p>
+              <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
+                {autoReimporting
+                  ? 'Searching your saved folders for the original images'
+                  : `${reimportMeta.clusters.length} clusters · ${reimportMeta.clusters.reduce((s, c) => s + c.job_cluster_images.length, 0)} images — select the folder with the original files or upload them directly`
+                }
+              </p>
+            </div>
+            {!autoReimporting && (
+              <button
+                onClick={() => { try { sessionStorage.removeItem('shotsync:reimport') } catch { /* ignore */ } setReimportMeta(null) }}
+                style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: '4px' }}
+              >
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 2l10 10M12 2L2 12" strokeLinecap="round"/></svg>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Active session banner */}
         {hasSession && (
@@ -919,6 +1100,14 @@ export default function UploadPage() {
                   </div>
                 )}
                 <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
+                {typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function' && (
+                  <button
+                    onClick={selectFolder}
+                    style={{ marginTop: '8px', fontSize: '13px', color: 'var(--text3)', background: 'none', border: '0.5px solid var(--line)', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer' }}
+                  >
+                    Or select a folder
+                  </button>
+                )}
               </div>
 
               {/* Cloud import */}
@@ -1241,12 +1430,21 @@ export default function UploadPage() {
             <button onClick={() => setFiles([])} className="btn btn-ghost btn-sm">
               Clear
             </button>
-            <button onClick={handleProcess} className="btn btn-primary">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M7 1l4 4-4 4M3 5h8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Process {files.length} Images
-            </button>
+            {reimportMeta ? (
+              <button onClick={handleReimport} className="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 7a6 6 0 1 0 6-6"/><path d="M1 3v4h4"/>
+                </svg>
+                Match & Re-export
+              </button>
+            ) : (
+              <button onClick={handleProcess} className="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M7 1l4 4-4 4M3 5h8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Process {files.length} Images
+              </button>
+            )}
           </div>
         </div>
       )}

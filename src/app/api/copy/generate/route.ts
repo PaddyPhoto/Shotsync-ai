@@ -50,11 +50,18 @@ export async function POST(req: NextRequest) {
   const angleList = Array.isArray(angles) ? angles.join(', ') : 'front, back'
   const brand = brandName || ''
 
-  const systemPrompt = `You are a fashion eCommerce copywriter for ANZ (Australian/New Zealand) brands.
-You write confident, editorial, direct copy for fashion-forward customers.
-When given an image, identify the garment type, style, and any visible details (cut, length, details, texture).
-Never invent details you cannot see. Keep copy grounded in what's actually visible.
-When fabric composition is provided, always state it accurately and verbatim — never guess or paraphrase it.`
+  const systemPrompt = `You are a fashion eCommerce copywriter for premium Australian fashion brands.
+You write precise, editorial, confident product descriptions modelled on the style of top ANZ retailers.
+
+DESCRIPTION STRUCTURE — follow this exactly, 4–5 sentences:
+1. Opening sentence: Lead with the product name in a compelling, garment-specific hook tied to season, occasion, or wardrobe value. Examples of good openers: "Step into winter style with the [Name].", "Invest in classic cold-weather dressing with the [Name].", "Every wardrobe needs quality basics like the [Name],". NEVER start with "Elevate", "Upgrade your wardrobe", "Discover", "Step up your style", "Take your wardrobe to the next level", or any generic phrase.
+2. Material sentence: Name the fabric composition accurately. Mention the specific weave, finish, or fabric quality if relevant.
+3. Design sentence: Describe the silhouette, collar, closure, and key styling details visible or listed.
+4. Feature sentence: Call out specific functional details — pocket types, lining, buttons, vents, etc.
+5. Styling close: One specific, garment-appropriate styling suggestion. NOT a generic "from business to casual" or "day to night" line — make it concrete and relevant to this exact garment.
+
+TONE: Confident, precise, editorial. No filler. No vague superlatives.
+ACCURACY: Never invent details not provided or visible. State fabric composition verbatim when provided.`
 
   const specLines = [
     sku          && `- SKU: ${sku}`,
@@ -88,19 +95,21 @@ When fabric composition is provided, always state it accurately and verbatim —
 Known details:
 ${specLines}
 
-${heroImage ? 'Use the image to identify the garment type and any visible style details.' : 'Use the product details above to write the copy.'}
+${heroImage ? 'Use the image to identify the garment type and any visible style details (cut, silhouette, collar, pockets, buttons, hem, texture).' : 'Use the product details above to write the copy.'}
 ${factualNote ? `These are factual spec sheet values — use them verbatim, never rephrase: ${factualNote}.` : ''}
+
+Write exactly 4–5 sentences following the structure in your instructions. Do not start the description with "Elevate", "Upgrade", "Discover", or any generic phrase — open with the product name in a specific, seasonal or occasion-driven sentence.
 
 Return ONLY valid JSON:
 {
-  "title": "Concise product title max 80 chars — lead with garment type and key detail",
-  "description": "2-3 sentences. Garment type, silhouette, fabric feel, and occasion. No generic filler.",
+  "title": "Concise product title max 80 chars — lead with garment type and key detail, no generic adjectives",
+  "description": "4–5 sentences. Follow the structure: specific opener with product name → fabric/material → design features → functional details → concrete styling close. No generic filler. No 'business to casual' endings.",
   "bullets": [
-    "${category || 'Garment'} type and key style detail",
-    "${fit ? `Fit: ${fit}` : ''}${length ? ` — ${length}` : fit ? '' : 'silhouette and length'}",
-    "${composition ? `Fabric: ${composition}` : 'Fabric or material (if visible)'}",
-    "${occasion ? `Occasion: ${occasion}` : 'Styling suggestion or occasion'}",
-    "${care ? `Care: ${care}` : 'Care instructions'}"
+    "Garment type, fit, and silhouette",
+    "${fit ? `${fit} fit` : 'Fit'}${length ? ` — ${length}` : ''}",
+    "${composition ? `${composition}` : 'Fabric composition'}",
+    "Key design details (collar, closure, pockets, lining, etc.)",
+    "${care ? `Care: ${care}` : 'Care or finishing detail'}"
   ]
 }`
 
@@ -125,8 +134,8 @@ Return ONLY valid JSON:
       model: heroImage ? 'gpt-4o' : 'gpt-4o-mini',
       messages,
       response_format: { type: 'json_object' },
-      temperature: 0.7,
-      max_tokens: 500,
+      temperature: 0.65,
+      max_tokens: 700,
     })
 
     const content = response.choices[0].message.content ?? '{}'

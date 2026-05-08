@@ -240,8 +240,8 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
 
     setIsPushing(false)
     setPushDone(true)
+    saveJobToHistory(authHeader)
     markClustersExported(confirmedClusters.map((c) => c.id))
-    import('@/lib/session-store').then(({ deleteSession }) => deleteSession('draft').catch(() => {}))
   }, [shopifyBrand, confirmedClusters, namingTemplate, markClustersExported]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Folder save ──────────────────────────────────────────────────────────────
@@ -259,6 +259,63 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     const { createClient } = await import('@/lib/supabase/client')
     const { data: { session } } = await createClient().auth.getSession()
     return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+  }
+
+  const saveJobToHistory = async (authHeader: Record<string, string>) => {
+    const name = job?.name ?? jobName ?? 'Untitled Shoot'
+    const imageCount = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
+    try {
+      const res = await fetch('/api/jobs/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({
+          job_name: name,
+          image_count: imageCount,
+          cluster_count: confirmedClusters.length,
+          marketplaces: selectedMarketplaces,
+          brand_id: activeBrand?.id ?? null,
+        }),
+      })
+      if (!res.ok) return
+      const { data: historyRecord } = await res.json()
+      if (!historyRecord?.id) return
+      const histId = historyRecord.id
+
+      // Save session to IDB under the history ID (same-device reopen)
+      const { saveSession, deleteSession } = await import('@/lib/session-store')
+      await Promise.all([
+        saveSession(histId, name, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null),
+        deleteSession('draft'),
+      ])
+
+      // Save cluster metadata to Supabase (cross-device reopen for team members)
+      fetch(`/api/jobs/${histId}/session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({
+          clusters: confirmedClusters.map((c, i) => ({
+            cluster_id: c.id,
+            cluster_order: i,
+            sku: c.sku,
+            product_name: c.productName,
+            color: c.color,
+            colour_code: c.colourCode,
+            style_number: c.styleNumber,
+            label: c.label,
+            category: c.category ?? null,
+            is_bottomwear: c.isBottomwear ?? false,
+            images: c.images.map((img, j) => ({
+              image_id: img.id,
+              image_order: j,
+              filename: img.filename,
+              seq_index: img.seqIndex,
+              view_label: img.viewLabel,
+              view_confidence: img.viewConfidence,
+            })),
+          })),
+        }),
+      }).catch(() => { /* non-critical */ })
+    } catch { /* non-critical */ }
   }
 
   const handleDownloadZip = async () => {
@@ -345,8 +402,9 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
       setDownloadProgress(100)
       setDownloadStatus('Done')
       setDownloadDone(true)
+      const dlAuthHeader = await getAuthHeader()
+      saveJobToHistory(dlAuthHeader)
       markClustersExported(confirmedClusters.map((c) => c.id))
-      import('@/lib/session-store').then(({ deleteSession }) => deleteSession('draft').catch(() => {}))
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') { setIsDownloading(false); return }
       setError(err instanceof Error ? err.message : 'Download failed')
@@ -424,8 +482,9 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
       }
       setFolderProgress(100); setFolderStatus('Done')
       setWrittenFiles(results); setFolderDone(true)
+      const folderAuthHeader = await getAuthHeader()
+      saveJobToHistory(folderAuthHeader)
       markClustersExported(confirmedClusters.map((c) => c.id))
-      import('@/lib/session-store').then(({ deleteSession }) => deleteSession('draft').catch(() => {}))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save files')
     } finally { setIsSavingToFolder(false) }

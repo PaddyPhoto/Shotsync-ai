@@ -40,6 +40,7 @@ interface JobRecord {
   marketplaces: string[]
   status: string
   created_at: string
+  brand_id?: string | null
   brands?: { name: string; brand_code: string; logo_color: string } | null
 }
 
@@ -68,6 +69,7 @@ const STATUS_MAP: Record<string, { bg: string; color: string; label: string }> =
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [reopeningId, setReopeningId] = useState<string | null>(null)
@@ -79,11 +81,91 @@ export default function JobsPage() {
   const handleReopen = async (jobId: string) => {
     setReopeningId(jobId)
     try {
+      // 1. Try local IDB session first (same device — instant, no network)
       const { loadSession } = await import('@/lib/session-store')
       const result = await loadSession(jobId)
-      if (!result) return
-      setSession(result.jobName, result.clusters, result.marketplaces)
-      router.push('/dashboard/review')
+      if (result) {
+        setSession(result.jobName, result.clusters, result.marketplaces)
+        router.push('/dashboard/review')
+        return
+      }
+
+      // 2. No local session — fetch cluster metadata from Supabase (cross-device)
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session: authSession } } = await createClient().auth.getSession()
+      const token = authSession?.access_token
+      const res = await fetch(`/api/jobs/${jobId}/session`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!res.ok) return
+      const json = await res.json()
+      if (!json.clusters?.length) return
+
+      // 3. Try to auto-load images from a previously remembered folder
+      const { findFileAcrossHandles } = await import('@/lib/folder-store')
+      const allFilenames: string[] = json.clusters.flatMap(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c: any) => (c.job_cluster_images ?? []).map((img: any) => img.filename as string)
+      )
+      const unique = [...new Set(allFilenames)]
+
+      // Check a sample to see if the folder is accessible
+      const sampleSize = Math.min(5, unique.length)
+      const samples = await Promise.all(unique.slice(0, sampleSize).map((fn) => findFileAcrossHandles(fn)))
+      const foundCount = samples.filter(Boolean).length
+
+      if (unique.length > 0 && foundCount >= Math.ceil(sampleSize * 0.6)) {
+        // Folder accessible — find all images and restore session directly
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fileMap = new Map<string, File>()
+        await Promise.all(unique.map(async (fn) => {
+          const f = await findFileAcrossHandles(fn)
+          if (f) fileMap.set(fn, f)
+        }))
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const clusters = json.clusters.map((c: any) => ({
+          id: c.cluster_id,
+          sku: c.sku,
+          productName: c.product_name,
+          color: c.color,
+          colourCode: c.colour_code,
+          styleNumber: c.style_number,
+          label: c.label,
+          category: c.category,
+          isBottomwear: c.is_bottomwear ?? false,
+          confirmed: c.confirmed ?? true,
+          exported: false,
+          images: (c.job_cluster_images ?? [])
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .sort((a: any, b: any) => a.image_order - b.image_order)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .map((img: any) => {
+              const file = fileMap.get(img.filename)
+              return {
+                id: img.image_id,
+                file: file ?? null,
+                previewUrl: file ? URL.createObjectURL(file) : '',
+                filename: img.filename,
+                seqIndex: img.seq_index,
+                viewLabel: img.view_label,
+                viewConfidence: img.view_confidence,
+              }
+            }),
+        }))
+        setSession(json.jobName, clusters, json.marketplaces ?? [])
+        router.push('/dashboard/review')
+        return
+      }
+
+      // 4. Folder not accessible — go to upload page with reimport banner
+      // Kat selects the folder once; from then on it's automatic
+      sessionStorage.setItem('shotsync:reimport', JSON.stringify({
+        clusters: json.clusters,
+        jobName: json.jobName,
+        marketplaces: json.marketplaces ?? [],
+      }))
+      router.push('/dashboard/upload')
     } catch (err) {
       console.error('Failed to reopen session:', err)
     } finally {
@@ -96,10 +178,16 @@ export default function JobsPage() {
     const url = brandId ? `/api/jobs/history?brand_id=${brandId}` : '/api/jobs/history'
     return fetch(url, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
-    }).then((r) => r.json()).then(({ data }) => {
-      const jobs = Array.isArray(data) ? data : []
-      setJobs(jobs)
-      writeJobsCache(brandId, jobs)
+    }).then((r) => r.json()).then((json) => {
+      if (json.error || !Array.isArray(json.data)) {
+        const errMsg = json.error ?? 'Unexpected response from server'
+        console.error('[fetchJobs] API error:', errMsg)
+        setFetchError(errMsg)
+        return // don't wipe existing jobs on a server error
+      }
+      setFetchError(null)
+      setJobs(json.data)
+      writeJobsCache(brandId, json.data)
     })
   }
 
@@ -179,6 +267,11 @@ export default function JobsPage() {
 
         {loading ? (
           <div style={{ fontSize: '15px', color: 'var(--text3)' }}>Loading…</div>
+        ) : fetchError ? (
+          <div style={{ textAlign: 'center', padding: '64px 0' }}>
+            <p style={{ fontSize: '15px', color: '#ff453a', marginBottom: '8px' }}>Failed to load jobs</p>
+            <p style={{ fontSize: '13px', color: 'var(--text3)', fontFamily: 'monospace' }}>{fetchError}</p>
+          </div>
         ) : jobs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 0' }}>
             <div style={{ width: '48px', height: '48px', background: 'var(--bg3)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -200,6 +293,9 @@ export default function JobsPage() {
               const isDeleting = deletingId === job.id
               const isConfirming = confirmDeleteId === job.id
 
+              const hasSession = storedSessions.has(job.id)
+              const isReopening = reopeningId === job.id
+
               return (
                 <div
                   key={job.id}
@@ -214,33 +310,40 @@ export default function JobsPage() {
                     overflow: 'hidden',
                   }}
                 >
-                  {/* Clickable main area */}
-                  <Link
-                    href={`/dashboard/jobs/${job.id}`}
+                  {/* Clickable main area — opens directly in review/clusters */}
+                  <button
+                    onClick={() => handleReopen(job.id)}
+                    disabled={isReopening}
                     style={{
                       flex: 1,
                       display: 'flex',
                       alignItems: 'center',
                       gap: '14px',
                       padding: '14px 18px',
-                      textDecoration: 'none',
+                      background: 'transparent',
+                      border: 'none',
+                      textAlign: 'left',
+                      cursor: 'pointer',
                       minWidth: 0,
+                      opacity: isReopening ? 0.7 : 1,
                     }}
-                    className="group"
                   >
                     {/* Brand colour icon */}
                     <div style={{
                       width: '38px', height: '38px', borderRadius: '10px', flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: job.brands?.logo_color ? `${job.brands.logo_color}22` : 'rgba(0,0,0,0.04)',
+                      background: 'rgba(255,255,255,0.04)',
                     }}>
-                      <svg width="16" height="16" viewBox="0 0 18 18" fill="none"
-                        stroke={job.brands?.logo_color ?? '#4e4e53'} strokeWidth="1.5">
-                        <rect x="2" y="2" width="6" height="8" rx="1"/>
-                        <rect x="10" y="2" width="6" height="6" rx="1"/>
-                        <rect x="10" y="10" width="6" height="6" rx="1"/>
-                        <rect x="2" y="12" width="6" height="4" rx="1"/>
-                      </svg>
+                      {isReopening ? (
+                        <div style={{ width: '16px', height: '16px', border: '1.5px solid var(--text3)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="var(--text3)" strokeWidth="1.5">
+                          <rect x="2" y="2" width="6" height="8" rx="1"/>
+                          <rect x="10" y="2" width="6" height="6" rx="1"/>
+                          <rect x="10" y="10" width="6" height="6" rx="1"/>
+                          <rect x="2" y="12" width="6" height="4" rx="1"/>
+                        </svg>
+                      )}
                     </div>
 
                     {/* Name + meta */}
@@ -250,7 +353,6 @@ export default function JobsPage() {
                       </p>
                       <p style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '2px' }}>
                         {job.image_count} images · {job.cluster_count} clusters
-                        {job.brands && <> · <span style={{ color: 'var(--text3)' }}>{job.brands.name}</span></>}
                         {job.marketplaces?.length > 0 && <> · {job.marketplaces.length} marketplace{job.marketplaces.length !== 1 ? 's' : ''}</>}
                       </p>
                     </div>
@@ -268,32 +370,9 @@ export default function JobsPage() {
                       background: chip.bg, color: chip.color,
                       letterSpacing: '-.1px',
                     }}>
-                      {chip.label}
+                      {isReopening ? 'Opening…' : chip.label}
                     </span>
-
-                    {/* Chevron */}
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" strokeWidth="1.5" style={{ flexShrink: 0, transition: 'transform 0.15s' }} className="group-hover:translate-x-[2px]">
-                      <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </Link>
-
-                  {/* Reopen button — outside Link so it doesn't also navigate to detail */}
-                  {storedSessions.has(job.id) && (
-                    <button
-                      onClick={() => handleReopen(job.id)}
-                      disabled={reopeningId === job.id}
-                      style={{
-                        flexShrink: 0,
-                        fontSize: '14px', fontWeight: 500,
-                        padding: '3px 9px', borderRadius: '6px',
-                        background: 'rgba(0,122,255,0.12)', color: '#4da3ff',
-                        border: 'none', cursor: 'pointer', letterSpacing: '-.1px',
-                        opacity: reopeningId === job.id ? 0.6 : 1,
-                      }}
-                    >
-                      {reopeningId === job.id ? 'Opening…' : 'Reopen'}
-                    </button>
-                  )}
+                  </button>
 
                   {/* Delete zone — separated so it doesn't navigate */}
                   <div style={{ padding: '0 14px 0 0', flexShrink: 0 }}>

@@ -231,7 +231,7 @@ export default function DashboardPage() {
                 href="/dashboard/brands"
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  background: '#f5f5f7', color: 'var(--text)',
+                  background: '#f5f5f7', color: '#1d1d1f',
                   fontSize: '16px', fontWeight: 600, letterSpacing: '-.2px',
                   padding: '11px 24px', borderRadius: '10px',
                   textDecoration: 'none', transition: 'background 0.15s',

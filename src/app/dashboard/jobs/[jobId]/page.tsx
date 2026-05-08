@@ -26,28 +26,76 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
   const router = useRouter()
   const { setSession } = useSession()
   const [hasStoredSession, setHasStoredSession] = useState(false)
+  const [sessionSource, setSessionSource] = useState<'local' | 'cloud' | null>(null)
   const [reopening, setReopening] = useState(false)
   const [reopenError, setReopenError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleLoadSessionFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      if (!data.clusters?.length) throw new Error('Invalid file')
+      sessionStorage.setItem('shotsync:reimport', JSON.stringify(data))
+      router.push('/dashboard/upload')
+    } catch {
+      alert('Could not read session file. Make sure you\'re loading a .shotsync file.')
+    }
+    // Reset so same file can be picked again
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   useEffect(() => {
     if (!isHistoryJob) return
     import('@/lib/session-store').then(({ hasSession }) =>
-      hasSession(jobId).then(setHasStoredSession)
-    ).catch(() => { /* IDB unavailable */ })
+      hasSession(jobId)
+    ).then(async (hasLocal) => {
+      if (hasLocal) {
+        setHasStoredSession(true)
+        setSessionSource('local')
+        return
+      }
+      // No local session — check Supabase for cross-device access
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch(`/api/jobs/${jobId}/session`, {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
+      if (res.ok) {
+        const { clusters } = await res.json()
+        if (clusters?.length > 0) {
+          setHasStoredSession(true)
+          setSessionSource('cloud')
+        }
+      }
+    }).catch(() => { /* IDB or network unavailable */ })
   }, [jobId, isHistoryJob])
 
   const handleReopen = async () => {
     setReopening(true)
     setReopenError(null)
     try {
-      const { loadSession } = await import('@/lib/session-store')
-      const result = await loadSession(jobId)
-      if (!result) {
-        setReopenError('Session data could not be loaded.')
-        return
+      if (sessionSource === 'local') {
+        const { loadSession } = await import('@/lib/session-store')
+        const result = await loadSession(jobId)
+        if (!result) { setReopenError('Session data could not be loaded.'); return }
+        setSession(result.jobName, result.clusters, result.marketplaces)
+        router.push('/dashboard/review')
+      } else {
+        // Cloud session — fetch metadata, store for upload page filename matching
+        const { createClient } = await import('@/lib/supabase/client')
+        const { data: { session } } = await createClient().auth.getSession()
+        const res = await fetch(`/api/jobs/${jobId}/session`, {
+          headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+        })
+        if (!res.ok) throw new Error('Failed to load session')
+        const payload = await res.json()
+        if (!payload.clusters?.length) throw new Error('No cluster data found')
+        sessionStorage.setItem('shotsync:reimport', JSON.stringify(payload))
+        router.push('/dashboard/upload')
       }
-      setSession(result.jobName, result.clusters, result.marketplaces)
-      router.push('/dashboard/review')
     } catch (err) {
       console.error('Failed to reopen session:', err)
       setReopenError('Failed to restore session.')
@@ -80,14 +128,12 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
   const jobMeta = (
     <div style={{ marginBottom: '28px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f' }}>
+        <h1 className="text-[1.5rem] font-[600] tracking-[-0.5px] text-[var(--text)]">
           {job.name}
         </h1>
-        <span style={{ fontSize: '13px', fontWeight: 500, padding: '3px 9px', borderRadius: '6px', background: 'rgba(48,209,88,0.10)', color: '#1a8a35' }}>
-          Exported
-        </span>
+        <span className="chip chip-success">Exported</span>
       </div>
-      <p style={{ fontSize: '15px', color: '#aeaeb2' }}>
+      <p className="text-[0.88rem] text-[var(--text3)]">
         {job.total_images} images · {(job as any).cluster_count ?? 0} clusters
         {(job as any).created_at && (
           <> · {new Date((job as any).created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}</>
@@ -102,11 +148,11 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
         { label: 'Images',       value: job.total_images ?? 0 },
         { label: 'Clusters',     value: (job as any).cluster_count ?? '—' },
         { label: 'Marketplaces', value: marketplaces.length || '—' },
-        { label: 'Status',       value: 'Exported', accent: '#30d158' },
-      ].map(({ label, value, accent }) => (
-        <div key={label} style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', padding: '16px 18px', backdropFilter: 'blur(8px)' }}>
-          <p style={{ fontSize: '14px', color: '#aeaeb2', marginBottom: '6px' }}>{label}</p>
-          <p style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', color: accent ?? '#1d1d1f' }}>{value}</p>
+        { label: 'Status',       value: 'Exported', isAccent: true },
+      ].map(({ label, value, isAccent }) => (
+        <div key={label} className="card" style={{ padding: '16px 18px' }}>
+          <p className="text-[0.8rem] text-[var(--text3)] mb-1">{label}</p>
+          <p className={`text-[1.25rem] font-[600] tracking-[-0.3px] ${isAccent ? 'text-[var(--accent2)]' : 'text-[var(--text)]'}`}>{value}</p>
         </div>
       ))}
     </div>
@@ -122,61 +168,84 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
 
           {/* Marketplace tags */}
           {marketplaces.length > 0 && (
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '24px' }}>
+            <div className="flex gap-2 flex-wrap mb-6">
               {marketplaces.map((m) => (
-                <span key={m} style={{ fontSize: '13px', fontWeight: 500, padding: '3px 10px', borderRadius: '20px', background: 'rgba(0,0,0,0.05)', color: '#6e6e73' }}>
-                  {m}
-                </span>
+                <span key={m} className="chip">{m}</span>
               ))}
             </div>
           )}
 
+          {/* Hidden file input for .shotsync loading */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".shotsync"
+            style={{ display: 'none' }}
+            onChange={handleLoadSessionFile}
+          />
+
           {/* Session restore card or info note */}
-          {hasStoredSession ? (
-            <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', backdropFilter: 'blur(8px)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+          {sessionSource === 'local' ? (
+            <div className="card p-5 mb-6">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Session saved on this device</p>
-                  <p style={{ fontSize: '14px', color: '#aeaeb2', lineHeight: 1.5 }}>
-                    The original images and cluster data were saved locally. You can reopen this session to re-export or make changes.
+                  <p className="text-[0.95rem] font-[600] text-[var(--text)] mb-1">Session saved on this device</p>
+                  <p className="text-[0.85rem] text-[var(--text3)] leading-relaxed">
+                    The original images and cluster data are available. Reopen to re-export or make changes.
                   </p>
-                  {reopenError && (
-                    <p style={{ fontSize: '13px', color: '#ff3b30', marginTop: '6px' }}>{reopenError}</p>
-                  )}
+                  {reopenError && <p className="text-[0.8rem] text-red-500 mt-2">{reopenError}</p>}
                 </div>
-                <button
-                  onClick={handleReopen}
-                  disabled={reopening}
-                  style={{
-                    flexShrink: 0, padding: '8px 18px', borderRadius: '10px',
-                    background: '#1d1d1f', color: '#f5f5f7', border: 'none',
-                    fontSize: '14px', fontWeight: 500, cursor: reopening ? 'wait' : 'pointer',
-                    opacity: reopening ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '7px',
-                  }}
-                >
-                  {reopening ? (
-                    <>
-                      <div style={{ width: '12px', height: '12px', border: '1.5px solid rgba(245,245,247,0.4)', borderTopColor: '#f5f5f7', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                      Restoring…
-                    </>
-                  ) : (
-                    <>
-                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M1 7a6 6 0 1 0 6-6" strokeLinecap="round"/>
-                        <path d="M1 3v4h4" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Reopen Session
-                    </>
-                  )}
-                </button>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button onClick={() => fileInputRef.current?.click()} className="btn btn-ghost btn-sm">
+                    Load .shotsync
+                  </button>
+                  <button onClick={handleReopen} disabled={reopening} className="btn btn-primary btn-sm">
+                    {reopening ? (
+                      <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Restoring…</>
+                    ) : (
+                      <><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 7a6 6 0 1 0 6-6"/><path d="M1 3v4h4"/></svg>Reopen Session</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : sessionSource === 'cloud' ? (
+            <div className="card p-5 mb-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[0.95rem] font-[600] text-[var(--text)] mb-1">Cluster data saved</p>
+                  <p className="text-[0.85rem] text-[var(--text3)] leading-relaxed">
+                    All SKU assignments and cluster groupings are saved. Upload the original images to re-export — they'll be matched to their clusters automatically.
+                  </p>
+                  {reopenError && <p className="text-[0.8rem] text-red-500 mt-2">{reopenError}</p>}
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button onClick={() => fileInputRef.current?.click()} className="btn btn-ghost btn-sm">
+                    Load .shotsync
+                  </button>
+                  <button onClick={handleReopen} disabled={reopening} className="btn btn-primary btn-sm">
+                    {reopening ? (
+                      <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Loading…</>
+                    ) : (
+                      <><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 7a6 6 0 1 0 6-6"/><path d="M1 3v4h4"/></svg>Re-import & Re-export</>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
-            <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', backdropFilter: 'blur(8px)' }}>
-              <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '6px' }}>Export record</p>
-              <p style={{ fontSize: '14px', color: '#aeaeb2', lineHeight: 1.6 }}>
-                This is a record of a completed export. The original images and cluster data from this session are no longer in memory — to re-export or review clusters, start a new upload with the same images.
-              </p>
+            <div className="card p-5 mb-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[0.95rem] font-[600] text-[var(--text)] mb-1">Export record</p>
+                  <p className="text-[0.85rem] text-[var(--text3)] leading-relaxed">
+                    This is a record of a completed export. To re-export, open on the original device or load a .shotsync session file.
+                  </p>
+                </div>
+                <button onClick={() => fileInputRef.current?.click()} className="btn btn-ghost btn-sm flex-shrink-0">
+                  Load .shotsync
+                </button>
+              </div>
             </div>
           )}
 
@@ -232,28 +301,21 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
   return (
     <div>
       {header}
-      <div style={{ padding: '28px' }}>
+      <div className="p-7">
         {jobMeta}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {actions.map((action) => (
             <Link
               key={action.label}
               href={action.href}
-              style={{
-                display: 'flex', flexDirection: 'column', gap: '14px', padding: '22px',
-                background: action.primary ? '#1d1d1f' : 'rgba(255,255,255,0.8)',
-                border: action.primary ? 'none' : '0.5px solid rgba(0,0,0,0.08)',
-                borderRadius: '16px', textDecoration: 'none', backdropFilter: 'blur(8px)', transition: 'transform 0.15s, box-shadow 0.15s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}
+              className={`card flex flex-col gap-3 p-[22px] no-underline transition-all hover:-translate-y-[1px] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] ${action.primary ? 'bg-[var(--text)] border-0' : ''}`}
             >
-              <span style={{ color: action.primary ? '#f5f5f7' : '#6e6e73', opacity: action.primary ? 1 : 0.7 }}>{action.icon}</span>
+              <span className={action.primary ? 'text-[rgba(245,245,247,0.7)]' : 'text-[var(--text3)]'}>{action.icon}</span>
               <div>
-                <p style={{ fontSize: '14px', fontWeight: 600, color: action.primary ? '#f5f5f7' : '#1d1d1f', letterSpacing: '-.2px', marginBottom: '5px' }}>{action.label}</p>
-                <p style={{ fontSize: '14px', color: action.primary ? 'rgba(245,245,247,0.6)' : '#aeaeb2', lineHeight: 1.4 }}>{action.description}</p>
+                <p className={`text-[14px] font-[600] tracking-[-0.2px] mb-1 ${action.primary ? 'text-[#f5f5f7]' : 'text-[var(--text)]'}`}>{action.label}</p>
+                <p className={`text-[14px] leading-relaxed ${action.primary ? 'text-[rgba(245,245,247,0.5)]' : 'text-[var(--text3)]'}`}>{action.description}</p>
               </div>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={action.primary ? 'rgba(245,245,247,0.4)' : '#aeaeb2'} strokeWidth="1.5" style={{ alignSelf: 'flex-end' }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={action.primary ? 'rgba(245,245,247,0.35)' : 'var(--text3)'} strokeWidth="1.5" className="self-end">
                 <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Link>
@@ -317,9 +379,8 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '256px' }}>
-        <div style={{ width: '20px', height: '20px', border: '2px solid #30d158', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-5 h-5 border-2 border-[var(--accent2)] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -329,8 +390,8 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
     return (
       <div>
         <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'All Jobs', href: '/dashboard/jobs' }, { label: 'Job' }]} />
-        <div style={{ padding: '28px' }}>
-          <p style={{ fontSize: '15px', color: '#aeaeb2' }}>Job not found.</p>
+        <div className="p-7">
+          <p className="text-[0.95rem] text-[var(--text3)]">Job not found.</p>
         </div>
       </div>
     )
@@ -357,20 +418,20 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
             </Link>
           }
         />
-        <div style={{ padding: '28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f' }}>{job?.name}</h1>
-            <span style={{ fontSize: '13px', fontWeight: 500, padding: '3px 9px', borderRadius: '6px', background: 'rgba(255,159,10,0.10)', color: '#c27800' }}>Ready for Review</span>
+        <div className="p-7">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-[1.5rem] font-[600] tracking-[-0.5px] text-[var(--text)]">{job?.name}</h1>
+            <span className="chip chip-warning">Ready for Review</span>
           </div>
-          <p style={{ fontSize: '15px', color: '#aeaeb2', marginBottom: '24px' }}>
+          <p className="text-[0.88rem] text-[var(--text3)] mb-6">
             {job?.total_images} images · {STEP_LABELS[job?.pipeline_step ?? 0]}
           </p>
-          <div style={{ background: 'rgba(255,255,255,0.8)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: '24px', display: 'flex', alignItems: 'center', gap: '16px', backdropFilter: 'blur(8px)' }}>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', marginBottom: '4px' }}>Clusters are ready to review</p>
-              <p style={{ fontSize: '15px', color: '#aeaeb2' }}>Verify SKU assignments and confirm cluster groupings before generating your export.</p>
+          <div className="card p-6 flex items-center gap-4">
+            <div className="flex-1">
+              <p className="text-[0.9rem] font-[500] text-[var(--text)] mb-1">Clusters are ready to review</p>
+              <p className="text-[0.88rem] text-[var(--text3)]">Verify SKU assignments and confirm cluster groupings before generating your export.</p>
             </div>
-            <Link href={`/dashboard/jobs/${params.jobId}/review`} className="btn btn-primary" style={{ flexShrink: 0 }}>
+            <Link href={`/dashboard/jobs/${params.jobId}/review`} className="btn btn-primary flex-shrink-0">
               Review Clusters
             </Link>
           </div>

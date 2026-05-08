@@ -14,11 +14,13 @@ export default function AdminPage() {
 
   const [subject, setSubject] = useState("ShotSync.ai is live — post-production on autopilot")
   const [extraEmailsRaw, setExtraEmailsRaw] = useState('')
-  const [preview, setPreview] = useState<{ count: number; emails: string[]; subject: string } | null>(null)
+  const [recipientList, setRecipientList] = useState<string[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ sent: number; failed: number; failedEmails: { email: string; reason: string }[]; total: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState(false)
+  const [testLoading, setTestLoading] = useState(false)
+  const [testResult, setTestResult] = useState<string | null>(null)
 
   // Plan override state
   const [planEmail, setPlanEmail] = useState('')
@@ -59,7 +61,7 @@ export default function AdminPage() {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error)
-      setPreview(json)
+      setRecipientList(json.emails)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed')
     } finally {
@@ -68,23 +70,44 @@ export default function AdminPage() {
   }
 
   async function sendBroadcast() {
+    if (!recipientList) return
     setLoading(true)
     setError(null)
     try {
       const res = await fetch('/api/admin/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ subject, preview: false, extraEmails }),
+        body: JSON.stringify({ subject, preview: false, overrideEmails: recipientList }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error)
       setResult(json)
-      setPreview(null)
+      setRecipientList(null)
       setConfirmed(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Send failed')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function sendTestEmail() {
+    setTestLoading(true)
+    setTestResult(null)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ subject, preview: false, extraEmails: [], testOnly: true }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      setTestResult(`Test sent to ${ADMIN_EMAIL}`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Test send failed')
+    } finally {
+      setTestLoading(false)
     }
   }
 
@@ -219,29 +242,52 @@ export default function AdminPage() {
               <p className="text-[0.85rem] text-[var(--accent3)] bg-[rgba(255,59,48,0.07)] rounded-[8px] px-3 py-2">{error}</p>
             )}
 
-            {!preview && !result && (
-              <button
-                className="btn btn-primary w-full justify-center"
-                onClick={loadPreview}
-                disabled={loading || !subject.trim()}
-              >
-                {loading ? 'Loading…' : 'Preview recipients'}
-              </button>
+            {testResult && (
+              <p className="text-[0.82rem] text-[var(--accent2)] bg-[rgba(48,209,88,0.08)] rounded-[8px] px-3 py-2">{testResult}</p>
             )}
 
-            {preview && !result && (
+            {!recipientList && !result && (
+              <div className="flex gap-2">
+                <button
+                  className="btn flex-1 justify-center"
+                  onClick={sendTestEmail}
+                  disabled={testLoading || loading || !subject.trim()}
+                >
+                  {testLoading ? 'Sending…' : 'Send test to me'}
+                </button>
+                <button
+                  className="btn btn-primary flex-1 justify-center"
+                  onClick={loadPreview}
+                  disabled={loading || testLoading || !subject.trim()}
+                >
+                  {loading ? 'Loading…' : 'Load recipients'}
+                </button>
+              </div>
+            )}
+
+            {recipientList && !result && (
               <div className="flex flex-col gap-3">
-                <div style={{ background: 'var(--bg3)', borderRadius: '10px', padding: '16px', border: '0.5px solid var(--line)' }}>
-                  <p className="text-[0.82rem] font-[500] text-[var(--text)] mb-2">
-                    This will send to <strong>{preview.count}</strong> users
-                  </p>
-                  <p className="text-[0.82rem] text-[var(--text3)] mb-2">Sample recipients:</p>
-                  {preview.emails.map(e => (
-                    <p key={e} className="text-[0.82rem] text-[var(--text2)] font-mono">{e}</p>
-                  ))}
-                  {preview.count > preview.emails.length && (
-                    <p className="text-[0.82rem] text-[var(--text3)] mt-1">+{preview.count - preview.emails.length} more…</p>
-                  )}
+                <div style={{ background: 'var(--bg3)', borderRadius: '10px', border: '0.5px solid var(--line)', overflow: 'hidden' }}>
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)]">
+                    <p className="text-[0.82rem] font-[500] text-[var(--text)]">
+                      {recipientList.length} recipient{recipientList.length !== 1 ? 's' : ''}
+                    </p>
+                    <p className="text-[0.78rem] text-[var(--text3)]">Click × to remove</p>
+                  </div>
+                  <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '8px 0' }}>
+                    {recipientList.map(e => (
+                      <div key={e} className="flex items-center justify-between px-4 py-[5px] hover:bg-[var(--bg2)] group">
+                        <p className="text-[0.82rem] text-[var(--text2)] font-mono truncate flex-1">{e}</p>
+                        <button
+                          className="text-[var(--text3)] hover:text-[var(--accent3)] ml-3 text-[1rem] leading-none flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setRecipientList(prev => prev ? prev.filter(x => x !== e) : null)}
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -252,7 +298,7 @@ export default function AdminPage() {
                     className="w-4 h-4"
                   />
                   <span className="text-[0.8rem] text-[var(--text2)]">
-                    I confirm I want to send this EDM to {preview.count} users
+                    I confirm I want to send this EDM to {recipientList.length} recipient{recipientList.length !== 1 ? 's' : ''}
                   </span>
                 </label>
 
@@ -260,13 +306,13 @@ export default function AdminPage() {
                   <button
                     className="btn btn-primary flex-1 justify-center"
                     onClick={sendBroadcast}
-                    disabled={loading || !confirmed}
+                    disabled={loading || !confirmed || recipientList.length === 0}
                   >
-                    {loading ? 'Sending…' : `Send to ${preview.count} users`}
+                    {loading ? 'Sending…' : `Send to ${recipientList.length}`}
                   </button>
                   <button
                     className="btn flex-1 justify-center"
-                    onClick={() => { setPreview(null); setConfirmed(false) }}
+                    onClick={() => { setRecipientList(null); setConfirmed(false) }}
                     disabled={loading}
                   >
                     Cancel
@@ -294,7 +340,7 @@ export default function AdminPage() {
                 )}
                 <button
                   className="btn mt-3"
-                  onClick={() => { setResult(null); setPreview(null) }}
+                  onClick={() => { setResult(null); setRecipientList(null) }}
                 >
                   Send another
                 </button>
