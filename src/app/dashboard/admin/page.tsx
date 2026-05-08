@@ -12,7 +12,7 @@ export default function AdminPage() {
   const router = useRouter()
   const [session, setSession] = useState<Session | null>(null)
 
-  const [subject, setSubject] = useState("ShotSync.ai is live — post-production on autopilot")
+  const [subject, setSubject] = useState("From Shoot to Live Product Listings — ShotSync.ai")
   const [extraEmailsRaw, setExtraEmailsRaw] = useState('')
   const [recipientList, setRecipientList] = useState<string[] | null>(null)
   const [loading, setLoading] = useState(false)

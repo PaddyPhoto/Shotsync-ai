@@ -10,7 +10,7 @@ function getEdmHtml(unsubscribeUrl: string): string {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShotSync.ai — Post-production on autopilot</title>
+<title>ShotSync.ai — From Shoot to Live Product Listings in Minutes</title>
 </head>
 <body style="margin:0;padding:0;background:#e8e8ed;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
 
@@ -24,27 +24,27 @@ function getEdmHtml(unsubscribeUrl: string): string {
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="vertical-align:middle;">
-            <img src="https://shotsync.ai/icon.png" width="28" height="28" alt="ShotSync" style="border-radius:7px;vertical-align:middle;display:inline-block;margin-right:8px;">
+            <img src="https://www.shotsync.ai/icon.png" width="28" height="28" alt="ShotSync" style="border-radius:7px;vertical-align:middle;display:inline-block;margin-right:8px;">
             <span style="font-size:15px;font-weight:600;letter-spacing:-0.3px;color:#1d1d1f;vertical-align:middle;">Shot<span style="color:#6e6e73;">Sync</span></span>
           </td>
-          <td align="right" style="vertical-align:middle;font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#aeaeb2;">Product Launch</td>
+          <td align="right" style="vertical-align:middle;font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#aeaeb2;">Now Live</td>
         </tr>
       </table>
     </td></tr>
 
-    <!-- HERO — gradient background, no absolute orbs -->
+    <!-- HERO -->
     <tr><td style="padding:56px 40px 48px;text-align:center;background:linear-gradient(160deg,#dde9ff 0%,#f5f5f7 45%,#d8f5e3 100%);">
       <!-- Eyebrow -->
       <div style="display:inline-block;background:#ffffff;border:1px solid rgba(0,0,0,0.09);border-radius:999px;padding:5px 16px;font-size:12px;font-weight:500;color:#6e6e73;margin-bottom:24px;">
-        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#30d158;vertical-align:middle;margin-right:6px;position:relative;top:-1px;"></span>Now live — try free today
+        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#30d158;vertical-align:middle;margin-right:6px;position:relative;top:-1px;"></span>Now live — 30-day free trial
       </div>
       <!-- Headline -->
-      <h1 style="margin:0 0 16px;font-size:48px;font-weight:500;letter-spacing:-2px;line-height:1.06;color:#1d1d1f;">Post-production.<br><span style="color:#6e6e73;">On autopilot.</span></h1>
+      <h1 style="margin:0 0 16px;font-size:44px;font-weight:500;letter-spacing:-2px;line-height:1.08;color:#1d1d1f;">From Shoot to Live<br>Product Listings<span style="color:#8e8e93;">—In Minutes</span></h1>
       <!-- Sub -->
-      <p style="margin:0 auto 36px;max-width:440px;font-size:16px;line-height:1.55;color:#6e6e73;letter-spacing:-0.2px;">Upload your shoot. ShotSync groups, names, resizes and exports your images to every marketplace — automatically.</p>
+      <p style="margin:0 auto 36px;max-width:460px;font-size:16px;line-height:1.55;color:#4a4a4f;letter-spacing:-0.2px;">Automatically rename images, generate product copy, and publish to Shopify and marketplaces—without days of manual work.</p>
       <!-- CTAs -->
-      <a href="https://shotsync.ai/signup" style="display:inline-block;background:#1d1d1f;color:#f5f5f7;font-size:14px;font-weight:500;letter-spacing:-0.2px;padding:12px 28px;border-radius:10px;text-decoration:none;margin-right:8px;">Start free</a>
-      <a href="https://shotsync.ai" style="display:inline-block;background:#ffffff;color:#1d1d1f;font-size:14px;font-weight:500;padding:12px 22px;text-decoration:none;letter-spacing:-0.2px;border-radius:10px;border:1px solid rgba(0,0,0,0.12);">Watch demo &rarr;</a>
+      <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#1d1d1f;color:#f5f5f7;font-size:14px;font-weight:500;letter-spacing:-0.2px;padding:12px 28px;border-radius:10px;text-decoration:none;margin-right:8px;">Start free</a>
+      <a href="https://www.shotsync.ai" style="display:inline-block;background:#ffffff;color:#1d1d1f;font-size:14px;font-weight:500;padding:12px 22px;text-decoration:none;letter-spacing:-0.2px;border-radius:10px;border:1px solid rgba(0,0,0,0.12);">See how it works &rarr;</a>
       <!-- Stats bar -->
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:40px;background:#ffffff;border:1px solid rgba(0,0,0,0.08);border-radius:14px;overflow:hidden;">
         <tr>
@@ -61,8 +61,8 @@ function getEdmHtml(unsubscribeUrl: string): string {
             <div style="font-size:11px;color:#aeaeb2;">Images per job</div>
           </td>
           <td style="padding:18px 12px;text-align:center;">
-            <div style="font-size:24px;font-weight:500;letter-spacing:-1px;color:#007aff;line-height:1;margin-bottom:4px;">4</div>
-            <div style="font-size:11px;color:#aeaeb2;">ANZ marketplaces</div>
+            <div style="font-size:24px;font-weight:500;letter-spacing:-1px;color:#007aff;line-height:1;margin-bottom:4px;">5</div>
+            <div style="font-size:11px;color:#aeaeb2;">Marketplaces</div>
           </td>
         </tr>
       </table>
@@ -87,13 +87,13 @@ function getEdmHtml(unsubscribeUrl: string): string {
           </td>
           <td align="center" style="font-size:16px;color:#d1d1d6;padding:0 2px;">&rsaquo;</td>
           <td align="center" style="padding:0 4px;">
-            <div style="display:inline-block;width:34px;height:34px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:9px;text-align:center;line-height:34px;font-size:16px;vertical-align:middle;">🏷️</div>
-            <div style="font-size:11px;font-weight:500;color:#494949;margin-top:6px;">Name &amp; format</div>
+            <div style="display:inline-block;width:34px;height:34px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:9px;text-align:center;line-height:34px;font-size:16px;vertical-align:middle;">✍️</div>
+            <div style="font-size:11px;font-weight:500;color:#494949;margin-top:6px;">Generate copy</div>
           </td>
           <td align="center" style="font-size:16px;color:#d1d1d6;padding:0 2px;">&rsaquo;</td>
           <td align="center" style="padding:0 4px;">
             <div style="display:inline-block;width:34px;height:34px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:9px;text-align:center;line-height:34px;font-size:16px;vertical-align:middle;">📦</div>
-            <div style="font-size:11px;font-weight:500;color:#494949;margin-top:6px;">Export</div>
+            <div style="font-size:11px;font-weight:500;color:#494949;margin-top:6px;">Publish live</div>
           </td>
         </tr>
       </table>
@@ -116,22 +116,22 @@ function getEdmHtml(unsubscribeUrl: string): string {
           <td width="2%"></td>
           <td width="49%" valign="top" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.07);border-radius:12px;padding:18px;">
             <div style="width:34px;height:34px;background:rgba(48,209,88,0.10);border-radius:9px;text-align:center;line-height:34px;font-size:18px;margin-bottom:10px;">🎯</div>
-            <div style="font-size:13px;font-weight:600;color:#1d1d1f;margin-bottom:4px;">Angle Detection</div>
-            <div style="font-size:12px;color:#6e6e73;line-height:1.5;">Identifies front, back, side and detail shots. Flags missing angles.</div>
+            <div style="font-size:13px;font-weight:600;color:#1d1d1f;margin-bottom:4px;">Smart Renaming</div>
+            <div style="font-size:12px;color:#6e6e73;line-height:1.5;">Detects angles, applies your naming convention, resizes for every marketplace.</div>
           </td>
         </tr>
         <tr><td colspan="3" style="height:10px;"></td></tr>
         <tr>
           <td width="49%" valign="top" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.07);border-radius:12px;padding:18px;">
             <div style="width:34px;height:34px;background:rgba(255,159,10,0.10);border-radius:9px;text-align:center;line-height:34px;font-size:18px;margin-bottom:10px;">✍️</div>
-            <div style="font-size:13px;font-weight:600;color:#1d1d1f;margin-bottom:4px;">AI Copywriting</div>
-            <div style="font-size:12px;color:#6e6e73;line-height:1.5;">Generates titles, descriptions and bullet points ready for listing.</div>
+            <div style="font-size:13px;font-weight:600;color:#1d1d1f;margin-bottom:4px;">AI Product Copy</div>
+            <div style="font-size:12px;color:#6e6e73;line-height:1.5;">Generates titles, descriptions and bullet points ready to publish.</div>
           </td>
           <td width="2%"></td>
           <td width="49%" valign="top" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.07);border-radius:12px;padding:18px;">
             <div style="width:34px;height:34px;background:rgba(175,82,222,0.10);border-radius:9px;text-align:center;line-height:34px;font-size:18px;margin-bottom:10px;">🛍️</div>
-            <div style="font-size:13px;font-weight:600;color:#1d1d1f;margin-bottom:4px;">Shopify Upload</div>
-            <div style="font-size:12px;color:#6e6e73;line-height:1.5;">Push confirmed products directly to your Shopify store as drafts.</div>
+            <div style="font-size:13px;font-weight:600;color:#1d1d1f;margin-bottom:4px;">Shopify Publishing</div>
+            <div style="font-size:12px;color:#6e6e73;line-height:1.5;">Push images and copy directly to your Shopify store as draft products.</div>
           </td>
         </tr>
       </table>
@@ -142,11 +142,12 @@ function getEdmHtml(unsubscribeUrl: string): string {
 
     <!-- MARKETPLACES -->
     <tr><td bgcolor="#ffffff" style="padding:24px 32px;text-align:center;border:1px solid rgba(0,0,0,0.08);">
-      <p style="margin:0 0 14px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#aeaeb2;">Exports formatted for</p>
-      <span style="display:inline-block;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:6px 16px;font-size:12px;font-weight:500;color:#494949;margin:3px;">The Iconic</span>
+      <p style="margin:0 0 14px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#aeaeb2;">Export formats built in for</p>
+      <span style="display:inline-block;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:6px 16px;font-size:12px;font-weight:500;color:#494949;margin:3px;">THE ICONIC</span>
       <span style="display:inline-block;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:6px 16px;font-size:12px;font-weight:500;color:#494949;margin:3px;">Myer</span>
       <span style="display:inline-block;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:6px 16px;font-size:12px;font-weight:500;color:#494949;margin:3px;">David Jones</span>
       <span style="display:inline-block;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:6px 16px;font-size:12px;font-weight:500;color:#494949;margin:3px;">Shopify</span>
+      <span style="display:inline-block;background:rgba(88,86,214,0.07);border:1px solid rgba(88,86,214,0.2);border-radius:999px;padding:6px 16px;font-size:12px;font-weight:500;color:#2d2b8a;margin:3px;">JOOR</span>
     </td></tr>
 
     <!-- SPACER -->
@@ -166,6 +167,7 @@ function getEdmHtml(unsubscribeUrl: string): string {
             <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>2 marketplace exports</div>
             <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>1 brand &middot; 2 seats</div>
             <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>Shopify connection</div>
+            <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>30-day free trial</div>
           </td>
           <td width="4%"></td>
           <td width="48%" valign="top" bgcolor="#1d1d1f" style="background:#1d1d1f;border-radius:14px;padding:20px;text-align:left;">
@@ -173,34 +175,35 @@ function getEdmHtml(unsubscribeUrl: string): string {
             <div style="font-size:14px;font-weight:600;color:#f5f5f7;margin-bottom:4px;">Brand</div>
             <div style="font-size:32px;font-weight:500;letter-spacing:-1.2px;color:#f5f5f7;line-height:1;margin-bottom:2px;">$199</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:14px;">AUD / month</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>1,500 images / month</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>All 4 marketplaces</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>3 brands &middot; 5 seats</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>AI copywriting</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>3,000 images / month</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>All 5 marketplaces</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>2 brands &middot; 5 seats</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>AI product copywriting</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>30-day free trial</div>
           </td>
         </tr>
       </table>
-      <a href="https://shotsync.ai/#pricing" style="display:inline-block;background:#1d1d1f;color:#f5f5f7;font-size:14px;font-weight:500;letter-spacing:-0.2px;padding:12px 28px;border-radius:10px;text-decoration:none;">See all plans &rarr;</a>
+      <a href="https://www.shotsync.ai/#pricing" style="display:inline-block;background:#1d1d1f;color:#f5f5f7;font-size:14px;font-weight:500;letter-spacing:-0.2px;padding:12px 28px;border-radius:10px;text-decoration:none;">See all plans &rarr;</a>
     </td></tr>
 
     <!-- SPACER -->
     <tr><td bgcolor="#e8e8ed" style="height:10px;font-size:0;line-height:0;">&nbsp;</td></tr>
 
-    <!-- CTA — clean dark block, no orbs -->
+    <!-- CTA -->
     <tr><td bgcolor="#1d1d1f" style="background:#1d1d1f;padding:52px 40px;text-align:center;border-radius:16px;">
-      <h2 style="margin:0 0 12px;font-size:32px;font-weight:500;letter-spacing:-1.2px;color:#f5f5f7;line-height:1.15;">Ready to cut your<br>post-production time in half?</h2>
-      <p style="margin:0 0 32px;font-size:15px;color:rgba(255,255,255,0.45);line-height:1.55;letter-spacing:-0.2px;">Join ecommerce teams using ShotSync.ai to go from<br>raw shoot to marketplace-ready in minutes.</p>
-      <a href="https://shotsync.ai/signup" style="display:inline-block;background:#f5f5f7;color:#1d1d1f;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Get started free</a>
-      <p style="margin:14px 0 0;font-size:11px;color:rgba(255,255,255,0.22);">No credit card required &middot; Cancel anytime</p>
+      <h2 style="margin:0 0 12px;font-size:32px;font-weight:500;letter-spacing:-1.2px;color:#f5f5f7;line-height:1.15;">Ready to go from shoot<br>to live listings in minutes?</h2>
+      <p style="margin:0 0 32px;font-size:15px;color:rgba(255,255,255,0.45);line-height:1.55;letter-spacing:-0.2px;">Join fashion ecommerce teams using ShotSync.ai to skip<br>the manual work and publish faster.</p>
+      <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#f5f5f7;color:#1d1d1f;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start your free trial</a>
+      <p style="margin:14px 0 0;font-size:11px;color:rgba(255,255,255,0.22);">30-day free trial &middot; No credit card required &middot; Cancel anytime</p>
     </td></tr>
 
     <!-- FOOTER -->
     <tr><td bgcolor="#e8e8ed" style="padding:24px 32px;text-align:center;">
       <div style="margin-bottom:12px;">
-        <a href="https://shotsync.ai" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Website</a>
-        <a href="https://shotsync.ai/#pricing" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Pricing</a>
-        <a href="https://shotsync.ai/privacy" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Privacy</a>
-        <a href="https://shotsync.ai/terms" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Terms</a>
+        <a href="https://www.shotsync.ai" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Website</a>
+        <a href="https://www.shotsync.ai/#pricing" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Pricing</a>
+        <a href="https://www.shotsync.ai/privacy" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Privacy</a>
+        <a href="https://www.shotsync.ai/terms" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Terms</a>
         <a href="mailto:hello@shotsync.ai" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Contact</a>
       </div>
       <div style="font-size:11px;color:#c7c7cc;line-height:1.7;">
