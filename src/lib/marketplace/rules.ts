@@ -54,7 +54,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
     id: 'joor',
     name: 'JOOR',
     required_views: ['front', 'back', 'side', 'detail'],
-    image_dimensions: { width: 2000, height: 2500 },
+    image_dimensions: { width: 1200, height: 1706 },
     file_format: 'jpg',
     quality: 100,
     max_file_size_kb: 5000,
