@@ -29,6 +29,8 @@ function SettingsInner() {
   const { plan, planId, usage, openUpgrade, refreshPlan } = usePlan()
   const { brands } = useBrand()
   const [portalLoading, setPortalLoading] = useState(false)
+  const [activatingPlan, setActivatingPlan] = useState<string | null>(null)
+  const [planActivated, setPlanActivated] = useState(false)
 
   // Team state
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -42,11 +44,35 @@ function SettingsInner() {
   const [removingMember, setRemovingMember] = useState<string | null>(null)
 
   useEffect(() => {
-    if (searchParams.get('checkout') === 'success') {
-      refreshPlan()
-      const timers = [setTimeout(() => refreshPlan(), 3000), setTimeout(() => refreshPlan(), 7000), setTimeout(() => refreshPlan(), 15000)]
-      return () => timers.forEach(clearTimeout)
+    if (searchParams.get('checkout') !== 'success') return
+    const expectedPlan = searchParams.get('plan')
+    setActivatingPlan(expectedPlan)
+
+    let attempts = 0
+    const MAX_ATTEMPTS = 20 // 60s total at 3s intervals
+    let stopped = false
+
+    const poll = async () => {
+      if (stopped) return
+      await refreshPlan()
+      attempts++
+      // Check localStorage which refreshPlan keeps in sync
+      const current = localStorage.getItem('shotsync:plan')
+      if (expectedPlan && current === expectedPlan) {
+        setActivatingPlan(null)
+        setPlanActivated(true)
+        setTimeout(() => setPlanActivated(false), 6000)
+        return
+      }
+      if (attempts < MAX_ATTEMPTS) {
+        setTimeout(poll, 3000)
+      } else {
+        setActivatingPlan(null) // give up, show whatever the current plan is
+      }
     }
+
+    poll()
+    return () => { stopped = true }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -200,6 +226,18 @@ function SettingsInner() {
         {/* ── Billing ───────────────────────────────────────────────────────── */}
         {tab === 'billing' && (
           <div className="p-7 pt-0 flex flex-col gap-4 max-w-[760px]">
+            {activatingPlan && (
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[rgba(255,159,10,0.3)] bg-[rgba(255,159,10,0.07)] text-[0.85rem]">
+                <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,159,10,0.3)', borderTopColor: '#ff9f0a', borderRadius: '50%', flexShrink: 0, animation: 'spin 0.7s linear infinite' }} />
+                <span className="text-[var(--text2)]">Activating your <strong className="text-[var(--text)]">{PLANS[activatingPlan as keyof typeof PLANS]?.name ?? activatingPlan}</strong> plan — this usually takes a few seconds…</span>
+              </div>
+            )}
+            {planActivated && (
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[rgba(48,209,88,0.3)] bg-[rgba(48,209,88,0.07)] text-[0.85rem] text-[var(--text2)]">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Plan activated successfully.
+              </div>
+            )}
             <div className="card">
               <div className="card-head">
                 <span className="card-title">Current Plan</span>

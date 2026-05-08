@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: plan.stripePriceId!, quantity: 1 }],
-      success_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=success`,
+      success_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=success&plan=${planId}`,
       cancel_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=cancelled`,
       metadata: { org_id: orgId, plan_id: planId, cancel_subs: existingSubIds },
       subscription_data: {
