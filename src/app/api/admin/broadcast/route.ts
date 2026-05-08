@@ -153,42 +153,6 @@ function getEdmHtml(unsubscribeUrl: string): string {
     <!-- SPACER -->
     <tr><td bgcolor="#e8e8ed" style="height:10px;font-size:0;line-height:0;">&nbsp;</td></tr>
 
-    <!-- PRICING -->
-    <tr><td bgcolor="#ffffff" style="padding:32px;text-align:center;border:1px solid rgba(0,0,0,0.08);">
-      <h2 style="margin:0 0 6px;font-size:26px;font-weight:500;letter-spacing:-0.9px;color:#1d1d1f;">Simple pricing.</h2>
-      <p style="margin:0 0 26px;font-size:13px;color:#aeaeb2;">Start free. Upgrade when you're ready. Cancel anytime.</p>
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
-        <tr>
-          <td width="48%" valign="top" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.08);border-radius:14px;padding:20px;text-align:left;">
-            <div style="font-size:14px;font-weight:600;color:#1d1d1f;margin-bottom:4px;">Starter</div>
-            <div style="font-size:32px;font-weight:500;letter-spacing:-1.2px;color:#1d1d1f;line-height:1;margin-bottom:2px;">$79</div>
-            <div style="font-size:11px;color:#aeaeb2;margin-bottom:14px;">AUD / month</div>
-            <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>500 images / month</div>
-            <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>2 marketplace exports</div>
-            <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>1 brand &middot; 2 seats</div>
-            <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>Shopify connection</div>
-            <div style="font-size:11px;color:#6e6e73;padding:5px 0;border-top:1px solid rgba(0,0,0,0.05);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>30-day free trial</div>
-          </td>
-          <td width="4%"></td>
-          <td width="48%" valign="top" bgcolor="#1d1d1f" style="background:#1d1d1f;border-radius:14px;padding:20px;text-align:left;">
-            <div style="display:inline-block;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);border-radius:999px;padding:3px 10px;margin-bottom:10px;">Most popular</div>
-            <div style="font-size:14px;font-weight:600;color:#f5f5f7;margin-bottom:4px;">Brand</div>
-            <div style="font-size:32px;font-weight:500;letter-spacing:-1.2px;color:#f5f5f7;line-height:1;margin-bottom:2px;">$199</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:14px;">AUD / month</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>3,000 images / month</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>All 5 marketplaces</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>2 brands &middot; 5 seats</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>AI product copywriting</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);padding:5px 0;border-top:1px solid rgba(255,255,255,0.07);"><span style="color:#30d158;font-weight:700;margin-right:5px;">&#10003;</span>30-day free trial</div>
-          </td>
-        </tr>
-      </table>
-      <a href="https://www.shotsync.ai/#pricing" style="display:inline-block;background:#1d1d1f;color:#f5f5f7;font-size:14px;font-weight:500;letter-spacing:-0.2px;padding:12px 28px;border-radius:10px;text-decoration:none;">See all plans &rarr;</a>
-    </td></tr>
-
-    <!-- SPACER -->
-    <tr><td bgcolor="#e8e8ed" style="height:10px;font-size:0;line-height:0;">&nbsp;</td></tr>
-
     <!-- CTA -->
     <tr><td bgcolor="#1d1d1f" style="background:#1d1d1f;padding:52px 40px;text-align:center;border-radius:16px;">
       <h2 style="margin:0 0 12px;font-size:32px;font-weight:500;letter-spacing:-1.2px;color:#f5f5f7;line-height:1.15;">Ready to go from shoot<br>to live listings in minutes?</h2>
