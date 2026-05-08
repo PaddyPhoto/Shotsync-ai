@@ -629,7 +629,7 @@ export default function LandingPage() {
               const period = planKey === 'free' ? 'forever' : annual ? 'AUD / mo, billed annually' : 'AUD / month'
               const saving = planKey !== 'free' && annual ? Math.round((1 - p.priceAudAnnual / p.priceAud) * 100) : 0
               return (
-                <div key={planKey} style={{ background: featured ? '#1d1d1f' : '#fff', padding: '32px 28px', textAlign: 'left', position: 'relative' }}>
+                <div key={planKey} style={{ background: featured ? '#1d1d1f' : '#fff', padding: '32px 28px', textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'inline-block', background: featured ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: featured ? 'rgba(255,255,255,0.7)' : '#6e6e73', marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
                   <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{p.name}</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
@@ -646,9 +646,11 @@ export default function LandingPage() {
                       {f}
                     </div>
                   ))}
-                  <button onClick={() => handlePlanCta(planKey, href)} disabled={!!checkoutLoading} className={`price-cta-btn${featured ? ' featured' : ''}`} style={{ width: '100%', cursor: checkoutLoading ? 'wait' : 'pointer' }}>
-                    {isLoading ? 'Loading…' : cta}
-                  </button>
+                  <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
+                    <button onClick={() => handlePlanCta(planKey, href)} disabled={!!checkoutLoading} className={`price-cta-btn${featured ? ' featured' : ''}`} style={{ width: '100%', cursor: checkoutLoading ? 'wait' : 'pointer' }}>
+                      {isLoading ? 'Loading…' : cta}
+                    </button>
+                  </div>
                 </div>
               )
             })}
