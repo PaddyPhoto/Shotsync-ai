@@ -50,6 +50,18 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
     naming_locked: false,
     remove_background: true,
   },
+  joor: {
+    id: 'joor',
+    name: 'JOOR',
+    required_views: ['front', 'back', 'side', 'detail'],
+    image_dimensions: { width: 2000, height: 2500 },
+    file_format: 'jpg',
+    quality: 100,
+    max_file_size_kb: 5000,
+    background_color: '#FFFFFF',
+    naming_template: '{SKU}_{VIEW}',
+    naming_locked: false,
+  },
 }
 
 export function getMissingViews(

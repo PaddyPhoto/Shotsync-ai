@@ -11,7 +11,7 @@ export type JobStatus =
   | 'complete'
   | 'error'
 export type ClusterStatus = 'pending' | 'confirmed' | 'exported'
-export type MarketplaceName = 'the-iconic' | 'myer' | 'david-jones' | 'shopify'
+export type MarketplaceName = 'the-iconic' | 'myer' | 'david-jones' | 'shopify' | 'joor'
 
 // ─── Image ───────────────────────────────────────────────────────────────────
 

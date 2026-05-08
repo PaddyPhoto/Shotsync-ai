@@ -42,6 +42,7 @@ const PALETTE: Record<MarketplaceName, { dot: string; text: string; selBg: strin
   myer:          { dot: '#ff3b30', text: '#ff5c52', selBg: 'rgba(255,59,48,0.18)',   selBorder: '#ff3b30' },
   'david-jones': { dot: '#0a84ff', text: '#4da3ff', selBg: 'rgba(10,132,255,0.18)',  selBorder: '#0a84ff' },
   shopify:       { dot: '#30d158', text: '#30d158', selBg: 'rgba(48,209,88,0.15)',   selBorder: '#30d158' },
+  joor:          { dot: '#5856d6', text: '#7b79e8', selBg: 'rgba(88,86,214,0.15)',   selBorder: '#5856d6' },
 }
 
 const DESCRIPTIONS: Record<MarketplaceName, string> = {
@@ -49,6 +50,7 @@ const DESCRIPTIONS: Record<MarketplaceName, string> = {
   myer:          'Department store',
   'david-jones': 'Luxury retail',
   shopify:       'Your storefront',
+  joor:          'Wholesale B2B',
 }
 
 // ── Shopify draft state ───────────────────────────────────────────────────────

@@ -15,6 +15,7 @@ const MARKETPLACE_DESCRIPTIONS: Record<MarketplaceName, string> = {
   myer: 'Premium department store',
   'david-jones': 'Luxury department store',
   shopify: 'Your own storefront',
+  joor: 'Wholesale B2B platform',
 }
 
 const MARKETPLACE_PALETTE: Record<MarketplaceName, { bgRest: string; bgSelected: string; border: string; dot: string; nameColor: string }> = {
@@ -45,6 +46,13 @@ const MARKETPLACE_PALETTE: Record<MarketplaceName, { bgRest: string; bgSelected:
     border:     '#30d158',
     dot:        '#1a8a35',
     nameColor:  '#1a5c2a',
+  },
+  joor: {
+    bgRest:     'rgba(88,86,214,0.07)',
+    bgSelected: 'rgba(88,86,214,0.16)',
+    border:     '#5856d6',
+    dot:        '#5856d6',
+    nameColor:  '#2d2b8a',
   },
 }
 
