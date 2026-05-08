@@ -202,10 +202,10 @@ export default function LandingPage() {
             Now in early access — ANZ fashion brands
           </div>
           <h1 className="hero-h1" style={{ fontSize: 'clamp(44px,7vw,80px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.05, color: '#1d1d1f', maxWidth: '820px', marginBottom: '24px' }}>
-            Post-production.<br/><span style={{ color: '#3a3a3c' }}>On autopilot.</span>
+            From Shoot to Live Product Listings<span style={{ color: '#3a3a3c' }}>—In Minutes</span>
           </h1>
-          <p className="hero-sub" style={{ fontSize: 'clamp(17px,2.2vw,21px)', color: '#3a3a3c', maxWidth: '520px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '44px' }}>
-            Upload your shoot. ShotSync clusters, names, resizes, and exports marketplace-ready images — automatically.
+          <p className="hero-sub" style={{ fontSize: 'clamp(17px,2.2vw,21px)', color: '#3a3a3c', maxWidth: '560px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '44px' }}>
+            Automatically rename images, generate product copy, and publish to Shopify and marketplaces—without days of manual work.
           </p>
           <div className="hero-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/signup" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
