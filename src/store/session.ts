@@ -403,6 +403,7 @@ export const useSession = create<SessionState>((set, get) => ({
 
   reset: () => {
     try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
+    try { sessionStorage.removeItem('shotsync:reimport') } catch { /* ignore */ }
     set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], shootType: 'on-model', accessoryCategory: null, imagesPerLook: 6, angleSequence: [], isReady: false, undoStack: [] })
   },
 }))
