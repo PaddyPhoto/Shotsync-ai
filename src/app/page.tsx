@@ -420,13 +420,71 @@ export default function LandingPage() {
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Groups images by SKU automatically.</h3>
                 <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload a raw, unsorted shoot. The AI clusters every image by product using visual similarity — no manual sorting by your senior staff.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px', marginTop: '28px' }}>
-                  {[
-                    { bg: '#1a1a1a', label: 'Front' },
-                    { bg: '#111111', label: 'Back' },
-                    { bg: '#222222', label: 'Side' },
-                    { bg: '#0d0d0d', label: 'Detail' },
-                  ].map(({ bg, label }) => (
+                  {([
+                    { bg: '#1a1a1a', label: 'Front', figure: (
+                      <svg viewBox="0 0 60 82" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', width: '62%', height: '82%' }}>
+                        <circle cx="30" cy="8" r="5.5"/>
+                        <line x1="30" y1="13.5" x2="30" y2="17.5"/>
+                        <path d="M12 21 Q30 18 48 21"/>
+                        <path d="M12 21 L7 52"/>
+                        <path d="M48 21 L53 52"/>
+                        <path d="M15 22 L18 48"/>
+                        <path d="M45 22 L42 48"/>
+                        <path d="M18 48 Q30 51 42 48"/>
+                        <path d="M18 48 L15 56"/>
+                        <path d="M42 48 L45 56"/>
+                        <line x1="15" y1="56" x2="13" y2="82"/>
+                        <line x1="45" y1="56" x2="47" y2="82"/>
+                      </svg>
+                    )},
+                    { bg: '#111111', label: 'Back', figure: (
+                      <svg viewBox="0 0 60 82" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', width: '62%', height: '82%' }}>
+                        <circle cx="30" cy="8" r="5.5"/>
+                        <path d="M24 5 Q30 1.5 36 5"/>
+                        <line x1="30" y1="13.5" x2="30" y2="17.5"/>
+                        <path d="M12 21 Q30 18 48 21"/>
+                        <path d="M12 21 L7 52"/>
+                        <path d="M48 21 L53 52"/>
+                        <path d="M15 22 L18 48"/>
+                        <path d="M45 22 L42 48"/>
+                        <path d="M18 48 Q30 51 42 48"/>
+                        <path d="M18 48 L15 56"/>
+                        <path d="M42 48 L45 56"/>
+                        <line x1="15" y1="56" x2="13" y2="82"/>
+                        <line x1="45" y1="56" x2="47" y2="82"/>
+                      </svg>
+                    )},
+                    { bg: '#222222', label: 'Side', figure: (
+                      <svg viewBox="0 0 60 82" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', width: '62%', height: '82%' }}>
+                        <circle cx="33" cy="8" r="5.5"/>
+                        <line x1="32" y1="13.5" x2="31" y2="17.5"/>
+                        <path d="M20 21 Q32 18 42 21"/>
+                        <path d="M42 21 L47 52"/>
+                        <path d="M22 22 Q18 36 20 49"/>
+                        <path d="M40 22 Q43 36 41 49"/>
+                        <path d="M20 49 Q30 52 41 49"/>
+                        <path d="M20 49 L18 57"/>
+                        <path d="M41 49 L42 57"/>
+                        <line x1="18" y1="57" x2="17" y2="82"/>
+                        <line x1="42" y1="57" x2="43" y2="82"/>
+                      </svg>
+                    )},
+                    { bg: '#0d0d0d', label: 'Detail', figure: (
+                      <svg viewBox="0 0 60 82" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', top: '8%', left: '50%', transform: 'translateX(-50%)', width: '62%', height: '82%' }}>
+                        <path d="M22 4 Q30 9 38 4"/>
+                        <path d="M25 7 L25 16 M35 7 L35 16"/>
+                        <path d="M0 22 Q30 16 60 22"/>
+                        <path d="M3 22 L0 55"/>
+                        <path d="M57 22 L60 55"/>
+                        <path d="M10 24 L13 82"/>
+                        <path d="M50 24 L47 82"/>
+                        <path d="M25 18 L30 32 L35 18"/>
+                        <path d="M21 32 Q30 35 39 32"/>
+                      </svg>
+                    )},
+                  ] as { bg: string; label: string; figure: React.ReactNode }[]).map(({ bg, label, figure }) => (
                     <div key={label} style={{ background: bg, borderRadius: '6px', aspectRatio: '3/4', position: 'relative', overflow: 'hidden' }}>
+                      {figure}
                       <div style={{ position: 'absolute', bottom: '4px', left: '4px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', fontSize: '8px', fontWeight: 500, color: '#fff', padding: '1px 4px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{label}</div>
                     </div>
                   ))}
