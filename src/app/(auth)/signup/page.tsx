@@ -39,8 +39,7 @@ function SignupForm() {
       }
 
       if (!data.session) {
-        setError('Check your email for a confirmation link before signing in.')
-        setLoading(false)
+        router.push(`/auth/confirm-email?email=${encodeURIComponent(email)}`)
         return
       }
 

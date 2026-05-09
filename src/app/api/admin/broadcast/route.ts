@@ -262,8 +262,12 @@ export async function POST(req: NextRequest) {
       .map((u: { email?: string }) => u.email)
       .filter((e: string | undefined): e is string => !!e && e !== ADMIN_EMAIL)
 
-    // Merge and deduplicate
-    const emails = [...new Set([...userEmails, ...extraEmails])]
+    // Filter out unsubscribes
+    const { data: unsubData } = await service.from('email_unsubscribes').select('email')
+    const unsubSet = new Set((unsubData ?? []).map((r: { email: string }) => r.email.toLowerCase()))
+
+    // Merge, deduplicate, and remove unsubscribes
+    const emails = [...new Set([...userEmails, ...extraEmails])].filter(e => !unsubSet.has(e.toLowerCase()))
 
     if (preview) {
       return NextResponse.json({ count: emails.length, emails, subject })
