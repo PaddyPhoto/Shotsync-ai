@@ -358,12 +358,12 @@ export default function LandingPage() {
               {
                 icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
                 title: 'Upload your shoot',
-                desc: 'Drop up to 1,000 images. ShotSync ingests, reads your CSV catalogue, and starts the pipeline immediately.',
+                desc: 'Drop up to 1,000 images. ShotSync ingests, reads your CSV catalogue, and starts the pipeline.',
               },
               {
                 icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>,
                 title: 'AI does the work',
-                desc: 'Images are clustered by SKU, angles detected, colours matched, files renamed — all automatically, with confidence scoring.',
+                desc: 'Images are clustered by SKU, angles detected, colours matched, and files renamed.',
               },
               {
                 icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
@@ -421,14 +421,13 @@ export default function LandingPage() {
                 <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload a raw, unsorted shoot. The AI clusters every image by product using visual similarity — no manual sorting by your senior staff.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px', marginTop: '28px' }}>
                   {[
-                    { bg: '#1a1a1a', label: 'Front',  conf: '97%' },
-                    { bg: '#111111', label: 'Back',   conf: '94%' },
-                    { bg: '#222222', label: 'Side',   conf: '88%' },
-                    { bg: '#0d0d0d', label: 'Detail', conf: '91%' },
-                  ].map(({ bg, label, conf }) => (
+                    { bg: '#1a1a1a', label: 'Front' },
+                    { bg: '#111111', label: 'Back' },
+                    { bg: '#222222', label: 'Side' },
+                    { bg: '#0d0d0d', label: 'Detail' },
+                  ].map(({ bg, label }) => (
                     <div key={label} style={{ background: bg, borderRadius: '6px', aspectRatio: '3/4', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ position: 'absolute', bottom: '4px', left: '4px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', fontSize: '8px', fontWeight: 500, color: '#fff', padding: '1px 4px', borderRadius: '3px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{label}</div>
-                      <div style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(48,209,88,.2)', borderRadius: '3px', fontSize: '8px', fontWeight: 500, color: '#1a8a35', padding: '1px 4px' }}>{conf}</div>
                     </div>
                   ))}
                 </div>
