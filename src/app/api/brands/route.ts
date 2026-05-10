@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await service
       .from('brands')
-      .select('id, org_id, name, brand_code, shopify_store_url, shopify_access_token, logo_color, images_per_look, naming_template, on_model_angle_sequence, still_life_angle_sequences, gm_position, cloud_connections, created_at')
+      .select('id, org_id, name, brand_code, shopify_store_url, shopify_access_token, logo_color, images_per_look, naming_template, cloud_connections, created_at')
       .eq('org_id', user.id)
       .order('created_at')
 
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         images_per_look: images_per_look ?? 4,
         naming_template: naming_template ?? '{BRAND}_{SEQ}_{VIEW}',
       })
-      .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, on_model_angle_sequence, still_life_angle_sequences, gm_position, created_at')
+      .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, created_at')
       .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
