@@ -1523,6 +1523,7 @@ function ExportPanel({
   const [fsaSupported] = useState(() => typeof window !== 'undefined' && typeof (window as any).showDirectoryPicker === 'function')
   const [exportMode, setExportMode] = useState<'zip' | 'folder' | 'dropbox' | 'google-drive' | 's3'>('folder')
   const [flatExport, setFlatExport] = useState(false)
+  const [useOriginalNames, setUseOriginalNames] = useState(false)
   const [bgRemovalEnabled, setBgRemovalEnabled] = useState(false)
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
@@ -1823,12 +1824,14 @@ function ExportPanel({
               }
             }
             try {
-              const filename = applyNamingTemplate(template, {
-                brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
-                styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
-                isBottomwear: cluster.isBottomwear,
-              }) + '.jpg'
+              const filename = useOriginalNames
+                ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
+                : applyNamingTemplate(template, {
+                    brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
+                    view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                    styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+                    isBottomwear: cluster.isBottomwear,
+                  }) + '.jpg'
               const dirHandle = flatExport ? mpHandle : await mpHandle.getDirectoryHandle(folderName, { create: true })
               const fh = await dirHandle.getFileHandle(filename, { create: true })
               const writable = await fh.createWritable()
@@ -1892,12 +1895,14 @@ function ExportPanel({
                   rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
                   useBgRemoval && !preRemovedBlob, preRemovedBlob,
                 )
-                const filename = applyNamingTemplate(template, {
-                  brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                  view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
-                  styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
-                  isBottomwear: cluster.isBottomwear,
-                }) + '.jpg'
+                const filename = useOriginalNames
+                  ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
+                  : applyNamingTemplate(template, {
+                      brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
+                      view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                      styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+                      isBottomwear: cluster.isBottomwear,
+                    }) + '.jpg'
                 marketplaceFolder.file(flatExport ? filename : `${folderName}/${filename}`, buffer)
               } catch (err) {
                 console.warn(`Export skipped: ${img.filename}`, err)
@@ -1953,12 +1958,14 @@ function ExportPanel({
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
           const tasks = buildTasks(template)
           for (const { cluster, seq, img, imgIdx } of tasks) {
-            const filename = applyNamingTemplate(template, {
-              brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-              view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
-              styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
-              isBottomwear: cluster.isBottomwear,
-            }) + '.jpg'
+            const filename = useOriginalNames
+              ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
+              : applyNamingTemplate(template, {
+                  brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
+                  view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                  styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+                  isBottomwear: cluster.isBottomwear,
+                }) + '.jpg'
             const mpFolder = rule.name.replace(/\s+/g, '_')
             allKeys.push(`${mpFolder}/${filename}`)
           }
@@ -2024,12 +2031,14 @@ function ExportPanel({
                 rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
                 useBgRemoval && !preRemovedBlob, preRemovedBlob,
               )
-              const filename = applyNamingTemplate(template, {
-                brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
-                styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
-                isBottomwear: cluster.isBottomwear,
-              }) + '.jpg'
+              const filename = useOriginalNames
+                ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
+                : applyNamingTemplate(template, {
+                    brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
+                    view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                    styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
+                    isBottomwear: cluster.isBottomwear,
+                  }) + '.jpg'
 
               if (exportMode === 'dropbox' && cloudLib && 'uploadToDropbox' in cloudLib) {
                 await (cloudLib as typeof import('@/lib/cloud/dropbox')).uploadToDropbox(
@@ -2271,6 +2280,8 @@ function ExportPanel({
             <div className="flex flex-col gap-4">
               <Toggle on={flatExport} onToggle={() => setFlatExport(v => !v)}
                 label="Flat export" sub="All images in one folder per marketplace" />
+              <Toggle on={useOriginalNames} onToggle={() => setUseOriginalNames(v => !v)}
+                label="Keep original filenames" sub="Skip renaming — export crops only" />
               {hasBgRemoval && (
                 canUseBgRemoval ? (
                   <Toggle on={bgRemovalEnabled} onToggle={() => setBgRemovalEnabled(v => !v)}
