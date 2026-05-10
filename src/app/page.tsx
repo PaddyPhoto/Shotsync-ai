@@ -421,54 +421,10 @@ export default function LandingPage() {
                 <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload a raw, unsorted shoot. The AI clusters every image by product using visual similarity — no manual sorting by your senior staff.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px', marginTop: '28px' }}>
                   {([
-                    { bg: '#1a1a1a', label: 'Front', figure: (
-                      <svg viewBox="0 0 60 90" fill="none" style={{ position: 'absolute', top: '3%', left: '50%', transform: 'translateX(-50%)', width: '70%', height: '92%' }}>
-                        {/* hair */}
-                        <ellipse cx="30" cy="5" rx="6.5" ry="5" fill="rgba(255,255,255,0.38)"/>
-                        {/* head */}
-                        <ellipse cx="30" cy="10" rx="5.5" ry="6" fill="rgba(255,255,255,0.68)"/>
-                        {/* body + dress */}
-                        <path d="M26 16 Q18 18 14 23 Q10 28 11 35 Q13 39 19 41 Q18 47 16 53 Q12 63 8 77 L8 87 L52 87 Q52 63 44 53 Q42 47 41 41 Q47 39 49 35 Q50 28 46 23 Q42 18 34 16 Z" fill="rgba(255,255,255,0.58)"/>
-                        {/* waist seam */}
-                        <path d="M19 41 Q30 44 41 41" stroke="rgba(255,255,255,0.14)" strokeWidth="0.8" fill="none"/>
-                      </svg>
-                    )},
-                    { bg: '#111111', label: 'Back', figure: (
-                      <svg viewBox="0 0 60 90" fill="none" style={{ position: 'absolute', top: '3%', left: '50%', transform: 'translateX(-50%)', width: '70%', height: '92%' }}>
-                        {/* hair bun */}
-                        <circle cx="30" cy="4" r="5" fill="rgba(255,255,255,0.36)"/>
-                        {/* head */}
-                        <ellipse cx="30" cy="11" rx="5.5" ry="6" fill="rgba(255,255,255,0.65)"/>
-                        {/* body + dress */}
-                        <path d="M26 17 Q18 19 14 24 Q10 29 11 36 Q13 40 19 42 Q18 48 16 54 Q12 64 8 78 L8 88 L52 88 Q52 64 44 54 Q42 48 41 42 Q47 40 49 36 Q50 29 46 24 Q42 19 34 17 Z" fill="rgba(255,255,255,0.55)"/>
-                        {/* hairline at nape */}
-                        <path d="M25 17 Q30 19 35 17" stroke="rgba(255,255,255,0.24)" strokeWidth="0.9" fill="none" strokeLinecap="round"/>
-                      </svg>
-                    )},
-                    { bg: '#222222', label: 'Side', figure: (
-                      <svg viewBox="0 0 60 90" fill="none" style={{ position: 'absolute', top: '3%', left: '50%', transform: 'translateX(-50%)', width: '70%', height: '92%' }}>
-                        {/* hair */}
-                        <ellipse cx="26" cy="7" rx="5" ry="4" fill="rgba(255,255,255,0.38)"/>
-                        {/* head */}
-                        <ellipse cx="28" cy="11" rx="5.5" ry="6" fill="rgba(255,255,255,0.68)"/>
-                        {/* profile silhouette — back edge straight, front edge has chest/waist/hip S-curve */}
-                        <path d="M25 17 Q21 20 20 26 Q20 33 21 40 Q21 48 20 56 Q19 66 18 80 L18 87 L44 87 Q43 66 41 56 Q40 48 40 44 Q39 40 38 36 Q38 30 40 26 Q40 21 37 18 Q34 16 30 17 Z" fill="rgba(255,255,255,0.58)"/>
-                      </svg>
-                    )},
-                    { bg: '#0d0d0d', label: 'Detail', figure: (
-                      <svg viewBox="0 0 60 56" fill="none" style={{ position: 'absolute', top: '5%', left: '50%', transform: 'translateX(-50%)', width: '75%', height: '84%' }}>
-                        {/* hair */}
-                        <ellipse cx="30" cy="4" rx="6.5" ry="5" fill="rgba(255,255,255,0.38)"/>
-                        {/* head */}
-                        <ellipse cx="30" cy="10" rx="5.5" ry="6" fill="rgba(255,255,255,0.68)"/>
-                        {/* upper body cropped — shows neckline/collar detail */}
-                        <path d="M26 16 Q17 18 13 23 Q10 27 11 33 Q12 38 16 41 Q22 43 28 43 L30 56 L32 43 Q38 43 44 41 Q48 38 49 33 Q50 27 47 23 Q43 18 34 16 Z" fill="rgba(255,255,255,0.58)"/>
-                        {/* V-neckline */}
-                        <path d="M25 16 Q28 23 30 27 Q32 23 35 16" stroke="rgba(255,255,255,0.55)" strokeWidth="1.3" fill="none" strokeLinecap="round"/>
-                        {/* collar seam */}
-                        <path d="M15 30 Q22 28 25 30 Q28 32 30 29 Q32 32 35 30 Q38 28 45 30" stroke="rgba(255,255,255,0.22)" strokeWidth="0.8" fill="none"/>
-                      </svg>
-                    )},
+                    { bg: '#1a1a1a', label: 'Front', figure: null },
+                    { bg: '#111111', label: 'Back', figure: null },
+                    { bg: '#222222', label: 'Side', figure: null },
+                    { bg: '#0d0d0d', label: 'Detail', figure: null },
                   ] as { bg: string; label: string; figure: React.ReactNode }[]).map(({ bg, label, figure }) => (
                     <div key={label} style={{ background: bg, borderRadius: '6px', aspectRatio: '3/4', position: 'relative', overflow: 'hidden' }}>
                       {figure}
