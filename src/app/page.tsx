@@ -619,8 +619,8 @@ export default function LandingPage() {
           >
             {([
               { planKey: 'free'    as const, badge: 'Free',         featured: false, cta: 'Get started free',    href: '/signup' },
-              { planKey: 'starter' as const, badge: 'Starter',      featured: false, cta: 'Start with Starter',  href: '/signup?plan=starter' },
-              { planKey: 'brand'   as const, badge: 'Most popular', featured: true,  cta: 'Start with Brand',    href: '/signup?plan=brand' },
+              { planKey: 'starter' as const, badge: 'Launch',       featured: false, cta: 'Start with Launch',   href: '/signup?plan=starter' },
+              { planKey: 'brand'   as const, badge: 'Most popular', featured: true,  cta: 'Start with Growth',   href: '/signup?plan=brand' },
               { planKey: 'scale'   as const, badge: 'Scale',        featured: false, cta: 'Start with Scale',    href: '/signup?plan=scale' },
             ]).map(({ planKey, badge, featured, cta, href }) => {
               const isLoading = checkoutLoading === planKey

@@ -1745,7 +1745,7 @@ function ExportPanel({
         if (bgPlanBlocked) {
           setIsExporting(false)
           setProgress({ done: 0, total: 0, phase: '' })
-          openUpgrade('Background removal is available on the Brand plan and above.')
+          openUpgrade('Background removal is available on the Growth plan and above.')
           return
         }
         // Reset progress counter for the export phase
@@ -2215,7 +2215,7 @@ function ExportPanel({
           <MarketplaceSelector
             selected={selectedMarketplaces}
             lockedMarketplaces={lockedMarketplaces}
-            onLockedClick={() => openUpgrade('ANZ marketplace exports (The Iconic, Myer, David Jones) are available on the Starter plan and above.')}
+            onLockedClick={() => openUpgrade('ANZ marketplace exports (The Iconic, Myer, David Jones) are available on the Launch plan and above.')}
             onChange={(next) => {
               if (next.length > selectedMarketplaces.length && plan.limits.marketplaces !== -1 && next.length > plan.limits.marketplaces) {
                 openUpgrade(`Your plan allows up to ${plan.limits.marketplaces} marketplace${plan.limits.marketplaces !== 1 ? 's' : ''}. Upgrade to select more.`)
@@ -2286,9 +2286,9 @@ function ExportPanel({
                     <span className="text-[0.8rem] text-[var(--text2)]">
                       Background removal
                       <span className="text-[var(--text3)] ml-1">— </span>
-                      <button onClick={() => openUpgrade('Background removal is available on Starter and above')}
+                      <button onClick={() => openUpgrade('Background removal is available on the Growth plan and above')}
                         className="text-[0.85rem] text-[var(--accent)] hover:underline">
-                        Starter plan required
+                        Growth plan required
                       </button>
                     </span>
                   </div>

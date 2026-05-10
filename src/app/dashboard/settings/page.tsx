@@ -262,7 +262,7 @@ function SettingsInner() {
             <div className="card">
               <div className="card-head"><span className="card-title">Usage</span><span className="text-[0.8rem] text-[var(--text3)]">Resets 1st of each month</span></div>
               <div className="card-body flex flex-col gap-4">
-                <UsageBar label="Images this month" value={usage.imagesThisMonth} limit={plan.limits.imagesPerMonth} />
+                <UsageBar label="SKUs this month" value={usage.skusThisMonth} limit={plan.limits.skusPerMonth} />
                 <UsageBar label="Exports this month" value={usage.exportsThisMonth} limit={plan.limits.exportsPerMonth} />
                 <UsageBar label="Brands" value={brands.length} limit={plan.limits.brands} />
                 <UsageBar label="Marketplaces per export" value={0} limit={plan.limits.marketplaces} />

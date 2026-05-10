@@ -36,18 +36,12 @@ export async function POST(
 
     if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
 
-    // Enforce monthly image limit
+    // Enforce monthly SKU limit
     const org = await getOrgForUser(supabase, user.id)
     const planId = ((org?.plan) ?? 'free') as PlanId
     const plan = PLANS[planId]
-    const imageLimit = plan.limits.imagesPerMonth
-    if (imageLimit !== -1 && org) {
-      const { count: imageCount } = await supabase
-        .from('images')
-        .select('*', { count: 'exact', head: true })
-        .eq('job_id', params.jobId)
-      const count = imageCount ?? 0
-
+    const skuLimit = plan.limits.skusPerMonth
+    if (skuLimit !== -1 && org) {
       const { createServiceClient } = await import('@/lib/supabase/server')
       const service = createServiceClient()
 
@@ -66,15 +60,13 @@ export async function POST(
         usedThisMonth = 0
       }
 
-      if (usedThisMonth + count > imageLimit) {
-        const remaining = Math.max(0, imageLimit - usedThisMonth)
+      if (usedThisMonth >= skuLimit) {
         return NextResponse.json({
-          error: `Your ${plan.name} plan allows ${imageLimit.toLocaleString()} images per month. You've used ${usedThisMonth.toLocaleString()} and have ${remaining.toLocaleString()} remaining. This job has ${count.toLocaleString()} images.`
+          error: `You've used all ${skuLimit.toLocaleString()} SKUs for this month on your ${plan.name} plan. Upgrade to process more.`
         }, { status: 403 })
       }
-
-      // Count images against monthly quota at processing time
-      await service.rpc('increment_org_images', { p_org_id: org.id, p_count: count })
+      // SKU count for this job is unknown pre-processing; counter is incremented
+      // client-side via /api/billing/usage once the job completes.
     }
 
     runPipeline(

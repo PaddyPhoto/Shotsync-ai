@@ -101,7 +101,7 @@ export function UpgradeModal() {
         <div className="px-6 pb-6 grid grid-cols-2 gap-4">
           {upgradePlans.map((id) => {
             const p = PLANS[id]
-            const isRecommended = id === 'brand'
+            const isRecommended = id === 'brand'  // Growth plan is the featured tier
             return (
               <div
                 key={id}

@@ -108,7 +108,7 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
               <p style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '4px' }}>
                 {MARKETPLACE_DESCRIPTIONS[id]}
               </p>
-              <p style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600 }}>Starter plan required ↑</p>
+              <p style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600 }}>Launch plan required ↑</p>
             </button>
           )
         }

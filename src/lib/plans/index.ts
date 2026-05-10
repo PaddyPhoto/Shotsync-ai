@@ -3,7 +3,7 @@
 export type PlanId = 'free' | 'starter' | 'brand' | 'scale' | 'enterprise'
 
 export interface PlanLimits {
-  imagesPerMonth: number     // -1 = unlimited; cumulative across all jobs in the calendar month
+  skusPerMonth: number       // -1 = unlimited; cumulative SKUs processed across all jobs in the calendar month
   marketplaces: number       // max selectable per export
   exportsPerMonth: number    // -1 = unlimited
   brands: number             // -1 = unlimited
@@ -35,7 +35,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'Try the full workflow before you commit',
     stripePriceId: null,
     limits: {
-      imagesPerMonth: 25,
+      skusPerMonth: 10,
       marketplaces: 1,
       exportsPerMonth: 3,
       brands: 1,
@@ -46,23 +46,23 @@ export const PLANS: Record<PlanId, Plan> = {
       bgRemoval: false,
     },
     highlights: [
-      'Up to 3 exports/month',
-      'Up to 25 images per export',
+      'Up to 10 SKUs processed / month',
+      'Up to 3 exports',
       'Shopify export (ZIP / folder only)',
-      'ANZ marketplaces locked — Starter and above',
+      'ANZ marketplaces locked — Launch and above',
       '1 brand, 1 seat',
     ],
     forNote: 'Try the workflow before you commit',
   },
   starter: {
     id: 'starter',
-    name: 'Starter',
+    name: 'Launch',
     priceAud: 79,
     priceAudAnnual: 63,
-    description: 'For small brands getting started',
+    description: 'For emerging fashion brands starting to structure their eCommerce workflow',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? null,
     limits: {
-      imagesPerMonth: 500,
+      skusPerMonth: 200,
       marketplaces: 2,
       exportsPerMonth: -1,
       brands: 1,
@@ -73,57 +73,56 @@ export const PLANS: Record<PlanId, Plan> = {
       bgRemoval: false,
     },
     highlights: [
-      'Up to 500 images/month',
+      'Up to 200 SKUs processed / month',
       '1 brand',
-      'Export folders for 2 ANZ marketplaces',
-      '2 seats',
       '1 Shopify store connection',
-      'Email support',
+      'Product folder export (Shopify-ready structure)',
+      'Export to 2 ANZ marketplaces',
+      '2 team seats',
       '30-day free trial',
     ],
-    forNote: 'Small brands, single labels',
+    forNote: 'Small DTC brands, early-stage Shopify stores, new collections',
   },
   brand: {
     id: 'brand',
-    name: 'Brand',
+    name: 'Growth',
     priceAud: 199,
     priceAudAnnual: 143,
-    description: 'For mid-tier brands doing 100–200 SKUs/month',
+    description: 'For growing fashion brands scaling regular drops and online sales',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID ?? null,
     limits: {
-      imagesPerMonth: 3000,
+      skusPerMonth: 1000,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 2,
       seats: 5,
-      shopifyStores: 2,
+      shopifyStores: 1,
       shopify: true,
       aiCopy: true,
       bgRemoval: true,
     },
     highlights: [
-      'Up to 3,000 images/month',
+      'Up to 1,000 SKUs processed / month',
       '2 brands',
-      'All 4 ANZ marketplaces',
-      '5 seats',
-      '2 Shopify store connections',
-      'AI product listing copywriting',
-      'Custom naming convention',
-      'Priority processing',
-      'Background removal (+$0.16/image)',
+      'Unlimited collections per brand',
+      '1 Shopify store integration',
+      'Export to all ANZ marketplaces',
+      'AI product listing copy generation',
+      '5 team seats',
+      'Background removal add-on ($0.16/image)',
       '30-day free trial',
     ],
-    forNote: 'Mid-tier brands doing 100–200 SKUs/month',
+    forNote: 'Active DTC brands, marketing + eCommerce teams, seasonal collections',
   },
   scale: {
     id: 'scale',
     name: 'Scale',
     priceAud: 399,
     priceAudAnnual: 359,
-    description: 'For fast-growing brands ramping up volume',
+    description: 'For high-volume or multi-brand fashion businesses operating at scale',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID ?? null,
     limits: {
-      imagesPerMonth: 6000,
+      skusPerMonth: 2500,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 5,
@@ -134,17 +133,17 @@ export const PLANS: Record<PlanId, Plan> = {
       bgRemoval: true,
     },
     highlights: [
-      'Up to 6,000 images/month',
+      'Up to 2,500 SKUs processed / month',
       '5 brands',
-      'All 4 ANZ marketplaces',
-      'Up to 10 seats',
-      'Up to 5 Shopify store connections',
-      'AI product listing copywriting',
-      'Custom naming convention',
-      'Background removal (+$0.16/image)',
+      'Up to 5 Shopify store integrations',
+      'Full ANZ marketplace exports',
+      'AI product listing copy generation',
+      'Background removal add-on ($0.16/image)',
+      'Priority processing workflow',
+      '10 team seats',
       '30-day free trial',
     ],
-    forNote: 'Growing brands doing 300–800 SKUs/month',
+    forNote: 'Enterprise DTC groups, multi-label brands, high SKU throughput teams',
   },
   enterprise: {
     id: 'enterprise',
@@ -154,7 +153,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'Unlimited everything, custom contracts',
     stripePriceId: null,
     limits: {
-      imagesPerMonth: -1,
+      skusPerMonth: -1,
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: -1,
@@ -180,7 +179,7 @@ export const PLANS: Record<PlanId, Plan> = {
 
 export interface PlanUsage {
   exportsThisMonth: number
-  imagesThisMonth: number
+  skusThisMonth: number
   totalBrandsCreated: number
 }
 

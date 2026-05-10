@@ -45,7 +45,7 @@ const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = 
 export default function UploadPage() {
   const router = useRouter()
   const { activeBrand } = useBrand()
-  const { canProcessImages, plan, usage, openUpgrade } = usePlan()
+  const { canProcessSkus, plan, usage, openUpgrade } = usePlan()
   const setSession = useSession((s) => s.setSession)
   const setStyleList = useSession((s) => s.setStyleList)
   const setShootConfig = useSession((s) => s.setShootConfig)
@@ -643,8 +643,8 @@ export default function UploadPage() {
 
   const handleProcess = async () => {
     if (!files.length) return
-    if (!canProcessImages(files.length)) {
-      openUpgrade(`Your ${plan.name} plan allows ${plan.limits.imagesPerMonth.toLocaleString()} images per month. You've used ${usage.imagesThisMonth.toLocaleString()} so far this month.`)
+    if (!canProcessSkus()) {
+      openUpgrade(`You've used all ${plan.limits.skusPerMonth.toLocaleString()} SKUs for this month on your ${plan.name} plan.`)
       return
     }
 
@@ -680,7 +680,7 @@ export default function UploadPage() {
       fetch('/api/billing/usage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
-        body: JSON.stringify({ images: files.length }),
+        body: JSON.stringify({ skus: clusters.length }),
       })
     ).catch(() => { /* non-critical */ })
 
@@ -1060,15 +1060,15 @@ export default function UploadPage() {
                         </div>
                       )}
                     </div>
-                    {plan.limits.imagesPerMonth !== -1 && (usage.imagesThisMonth + files.length) > plan.limits.imagesPerMonth && (
+                    {plan.limits.skusPerMonth !== -1 && usage.skusThisMonth >= plan.limits.skusPerMonth && (
                       <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)' }}>
                         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--accent3)" strokeWidth="1.5" style={{ flexShrink: 0 }}>
                           <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
                           <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
                         </svg>
                         <p style={{ fontSize: '12px', color: 'var(--accent3)' }}>
-                          {files.length} selected — {Math.max(0, plan.limits.imagesPerMonth - usage.imagesThisMonth).toLocaleString()} remaining this month.{' '}
-                          <button onClick={() => openUpgrade('Upgrade to process more images per month')} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit' }}>Upgrade</button>
+                          SKU limit reached — {plan.limits.skusPerMonth.toLocaleString()} SKUs / month on {plan.name}.{' '}
+                          <button onClick={() => openUpgrade('Upgrade to process more SKUs per month')} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit' }}>Upgrade</button>
                         </p>
                       </div>
                     )}

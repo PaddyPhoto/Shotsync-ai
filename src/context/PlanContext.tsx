@@ -21,7 +21,7 @@ interface PlanContextValue {
   // Increment usage counters (local mode)
   recordExport: () => void
   // Check limits before acting
-  canProcessImages: (count: number) => boolean
+  canProcessSkus: () => boolean
   canAddBrand: (currentCount: number) => boolean
   canSelectMarketplace: (currentCount: number) => boolean
   canExportThisMonth: () => boolean
@@ -34,7 +34,7 @@ interface PlanContextValue {
   refreshPlan: () => Promise<void>
 }
 
-const defaultUsage: PlanUsage = { exportsThisMonth: 0, imagesThisMonth: 0, totalBrandsCreated: 0 }
+const defaultUsage: PlanUsage = { exportsThisMonth: 0, skusThisMonth: 0, totalBrandsCreated: 0 }
 
 const PlanContext = createContext<PlanContextValue>({
   plan: PLANS.free,
@@ -42,7 +42,7 @@ const PlanContext = createContext<PlanContextValue>({
   usage: defaultUsage,
   isLoading: true,
   recordExport: () => {},
-  canProcessImages: () => true,
+  canProcessSkus: () => true,
   canAddBrand: () => true,
   canSelectMarketplace: () => true,
   canExportThisMonth: () => true,
@@ -58,7 +58,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === 'undefined') return 'free'
     const stored = localStorage.getItem(STORAGE_KEY)
     return (stored && (['free', 'starter', 'brand', 'scale', 'enterprise'] as string[]).includes(stored))
-      ? (stored as PlanId) : 'free'
+      ? (stored as PlanId) : 'free'  // IDs are stable; display names are in PLANS[id].name
   })
   const [usage, setUsage] = useState<PlanUsage>(() => {
     if (typeof window === 'undefined') return defaultUsage
@@ -130,9 +130,9 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
-  const canProcessImages = useCallback((count: number) => {
-    const limit = plan.limits.imagesPerMonth
-    return limit === -1 || (usage.imagesThisMonth + count) <= limit
+  const canProcessSkus = useCallback(() => {
+    const limit = plan.limits.skusPerMonth
+    return limit === -1 || usage.skusThisMonth < limit
   }, [plan, usage])
 
   const canAddBrand = useCallback((currentCount: number) => {
@@ -162,7 +162,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     <PlanContext.Provider value={{
       plan, planId, usage, isLoading,
       recordExport,
-      canProcessImages, canAddBrand, canSelectMarketplace, canExportThisMonth, hasShopify,
+      canProcessSkus, canAddBrand, canSelectMarketplace, canExportThisMonth, hasShopify,
       openUpgrade, upgradeReason, closeUpgrade,
       refreshPlan,
     }}>
