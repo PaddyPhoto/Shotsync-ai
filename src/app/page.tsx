@@ -130,7 +130,7 @@ export default function LandingPage() {
           .mp-logos-row { flex-direction: column !important; }
           .mp-logo-cell { border-right: none !important; border-bottom: 0.5px solid rgba(0,0,0,0.08) !important; }
           .mp-logo-cell:last-child { border-bottom: none !important; }
-          .pricing-grid { grid-template-columns: 1fr 1fr !important; }
+          .pricing-grid { grid-template-columns: 1fr 1fr !important; overflow-x: auto; }
 .testimonial-pad { padding: 36px 24px !important; }
           .cta-pad { padding: 48px 28px !important; }
           .footer-inner { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
@@ -610,10 +610,10 @@ export default function LandingPage() {
           <div
             ref={pricingScrollRef}
             className="pricing-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto 16px' }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '1400px', margin: '0 auto 16px' }}
             onScroll={(e) => {
               const el = e.currentTarget
-              const cardWidth = el.scrollWidth / 4
+              const cardWidth = el.scrollWidth / 5
               setActivePricingCard(Math.round(el.scrollLeft / cardWidth))
             }}
           >
@@ -654,17 +654,44 @@ export default function LandingPage() {
                 </div>
               )
             })}
+
+            {/* Enterprise card */}
+            {(() => {
+              const p = PLANS.enterprise
+              return (
+                <div style={{ background: '#fff', padding: '32px 28px', textAlign: 'left', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'inline-block', background: 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: '#6e6e73', marginBottom: '20px', letterSpacing: '-.1px' }}>Enterprise</div>
+                  <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: '#1d1d1f', marginBottom: '8px' }}>{p.name}</div>
+                  <div style={{ fontSize: '36px', fontWeight: 500, letterSpacing: '-1.5px', color: '#1d1d1f', lineHeight: 1, marginBottom: '4px' }}>Custom</div>
+                  <div style={{ fontSize: '13px', color: '#6e6e73', marginBottom: '24px', letterSpacing: '-.1px' }}>tailored to your volume</div>
+                  <div style={{ height: '0.5px', background: 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
+                  {p.highlights.map((f) => (
+                    <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '13px', color: '#4a4a4f', letterSpacing: '-.1px' }}>
+                      <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(48,209,88,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                      {f}
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
+                    <a href="mailto:hello@shotsync.ai" className="price-cta-btn" style={{ width: '100%', display: 'block', textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}>
+                      Contact us
+                    </a>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 
           {/* Mobile scroll dots */}
           <div className="pricing-dots" style={{ display: 'none', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
-            {[0,1,2,3].map((i) => (
+            {[0,1,2,3,4].map((i) => (
               <button
                 key={i}
                 onClick={() => {
                   const el = pricingScrollRef.current
                   if (!el) return
-                  const cardWidth = el.scrollWidth / 4
+                  const cardWidth = el.scrollWidth / 5
                   el.scrollTo({ left: cardWidth * i, behavior: 'smooth' })
                 }}
                 style={{ width: activePricingCard === i ? '18px' : '6px', height: '6px', borderRadius: '999px', border: 'none', padding: 0, cursor: 'pointer', background: activePricingCard === i ? '#1d1d1f' : 'rgba(0,0,0,0.18)', transition: 'all 0.2s' }}
