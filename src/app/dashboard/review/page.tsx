@@ -430,6 +430,8 @@ function ReviewPage() {
 
       if (e.key === 'Escape') {
         setLightboxImageId(null)
+        setSelectedImages(new Set())
+        setSelectedCluster(null)
       }
 
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -592,15 +594,44 @@ function ReviewPage() {
     }
   }
 
-  // ── Toggle image selection ────────────────────────────────────────────────
-  const toggleSelect = (imageId: string, clusterId: string) => {
+  // ── Image selection ───────────────────────────────────────────────────────
+  // Plain click  → select only this image (deselect all others)
+  // Cmd/Ctrl     → toggle this image in/out of the current selection
+  // Shift        → range-select all images between last selected and this one (same cluster)
+  const handleImageClick = (e: React.MouseEvent, imageId: string, clusterId: string) => {
     setSelectedCluster(clusterId)
-    setSelectedImages((prev) => {
-      const next = new Set(prev)
-      if (next.has(imageId)) next.delete(imageId)
-      else next.add(imageId)
-      return next
-    })
+    if (e.metaKey || e.ctrlKey) {
+      setSelectedImages((prev) => {
+        const next = new Set(prev)
+        if (next.has(imageId)) next.delete(imageId)
+        else next.add(imageId)
+        return next
+      })
+    } else if (e.shiftKey) {
+      const clusterImages = clusters.find((c) => c.id === clusterId)?.images ?? []
+      const ids = clusterImages.map((img) => img.id)
+      const clickedIdx = ids.indexOf(imageId)
+      const lastSelectedIdx = ids.reduce((acc, id, i) => (selectedImages.has(id) ? i : acc), -1)
+      if (lastSelectedIdx === -1) {
+        setSelectedImages(new Set([imageId]))
+      } else {
+        const [from, to] = clickedIdx < lastSelectedIdx ? [clickedIdx, lastSelectedIdx] : [lastSelectedIdx, clickedIdx]
+        setSelectedImages((prev) => {
+          const next = new Set(prev)
+          ids.slice(from, to + 1).forEach((id) => next.add(id))
+          return next
+        })
+      }
+    } else {
+      setSelectedImages((prev) => (prev.size === 1 && prev.has(imageId) ? new Set() : new Set([imageId])))
+    }
+  }
+
+  // ── Move all selected images to a cluster ─────────────────────────────────
+  const moveSelectedImages = (toClusterId: string) => {
+    Array.from(selectedImages).forEach((id) => moveImage(id, toClusterId))
+    setSelectedImages(new Set())
+    setSelectedCluster(null)
   }
 
   if (!isReady) return (
@@ -896,7 +927,7 @@ function ReviewPage() {
                               : isSelected ? 'border-[var(--accent)] shadow-[0_0_0_3px_rgba(74,158,255,0.25)]'
                               : 'border-transparent hover:border-white/20'
                             }`}
-                            onClick={() => toggleSelect(img.id, cluster.id)}
+                            onClick={(e) => handleImageClick(e, img.id, cluster.id)}
                           >
                             <img
                               src={img.previewUrl}
@@ -1416,6 +1447,37 @@ function ReviewPage() {
           onStartNewJob={() => { reset(); router.push('/dashboard/upload') }}
           onBackToDashboard={() => { reset(); router.push('/dashboard') }}
         />
+      )}
+
+      {/* Multi-select floating action bar */}
+      {selectedImages.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-3 px-4 py-2.5 rounded-[12px] shadow-2xl"
+          style={{ background: 'var(--bg)', border: '0.5px solid var(--line)', backdropFilter: 'blur(12px)' }}>
+          <span className="text-[0.82rem] font-medium text-[var(--text2)] whitespace-nowrap">
+            {selectedImages.size} image{selectedImages.size !== 1 ? 's' : ''} selected
+          </span>
+          <div className="w-px h-4 bg-[var(--line)]" />
+          <span className="text-[0.78rem] text-[var(--text3)] whitespace-nowrap">Move to:</span>
+          <select
+            className="input text-[0.8rem] py-[4px] pr-6"
+            defaultValue=""
+            onChange={(e) => { if (e.target.value) { moveSelectedImages(e.target.value); e.target.value = '' } }}
+          >
+            <option value="" disabled>Choose cluster…</option>
+            {clusters.map((c, i) => (
+              <option key={c.id} value={c.id}>
+                {c.sku || `Cluster ${i + 1}`}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => { setSelectedImages(new Set()); setSelectedCluster(null) }}
+            className="text-[0.78rem] text-[var(--text3)] hover:text-[var(--text)] transition-colors px-1"
+            title="Clear selection (Esc)"
+          >
+            Clear
+          </button>
+        </div>
       )}
 
       {/* Lightbox */}
