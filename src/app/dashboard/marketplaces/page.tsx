@@ -49,8 +49,11 @@ function MarketplacesInner() {
   const [confirmResetAll, setConfirmResetAll] = useState(false)
   const [unlockedNaming, setUnlockedNaming] = useState<Set<string>>(new Set())
 
-  // Cloud storage
+  // Cloud storage — follows the global active brand from the top-left dropdown
   const [selectedBrandId, setSelectedBrandId] = useState(activeBrand?.id ?? brands[0]?.id ?? '')
+  useEffect(() => {
+    if (activeBrand?.id) setSelectedBrandId(activeBrand.id)
+  }, [activeBrand?.id])
   const { rules, updateRule, resetRule, resetAll, saved } = useMarketplaceRules(selectedBrandId || undefined)
   const [s3Form, setS3Form] = useState({ bucket: '', region: 'ap-southeast-2', access_key_id: '', secret_access_key: '', prefix: '' })
   const [s3Saving, setS3Saving] = useState(false)
