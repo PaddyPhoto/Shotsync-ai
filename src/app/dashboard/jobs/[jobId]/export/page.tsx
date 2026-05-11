@@ -432,7 +432,38 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
       if (params.jobId === 'session') {
         // Write directly to disk one file at a time — avoids buffering all images in memory
         const brandCode = shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND'
-        const total = confirmedClusters.reduce((s, c) => s + c.images.filter((i) => i.file).length, 0) * selectedMarketplaces.length
+        // If File references are missing (e.g. after a page refresh), try to restore from IDB
+        let clustersToExport = confirmedClusters
+        const filesAvailable = () => clustersToExport.reduce((s, c) => s + c.images.filter((i) => i.file).length, 0)
+
+        if (clustersToExport.length > 0 && filesAvailable() === 0) {
+          setFolderStatus('Restoring session…')
+          try {
+            const { loadSession } = await import('@/lib/session-store')
+            const restored = await loadSession('draft')
+            if (restored && restored.clusters.length > 0) {
+              const restoredConfirmed = restored.clusters
+                .filter((c) => c.confirmed)
+                .sort((a, b) => parseInt(a.label?.match(/\d+/)?.[0] ?? '0', 10) - parseInt(b.label?.match(/\d+/)?.[0] ?? '0', 10))
+              if (restoredConfirmed.reduce((s, c) => s + c.images.filter((i) => i.file).length, 0) > 0) {
+                clustersToExport = restoredConfirmed
+                useSession.getState().setSession(restored.jobName, restored.clusters, restored.marketplaces)
+              }
+            }
+          } catch { /* ignore — will throw below if still missing */ }
+          setFolderStatus('Processing images…')
+        }
+
+        const totalImages = clustersToExport.reduce((s, c) => s + c.images.length, 0)
+
+        if (clustersToExport.length === 0) {
+          throw new Error('No confirmed clusters to export. Return to review and confirm at least one look.')
+        }
+        if (filesAvailable() === 0) {
+          throw new Error(`Image files are not available (${totalImages} images found, 0 with file data). Return to review and navigate to export without refreshing the page.`)
+        }
+
+        const total = filesAvailable() * selectedMarketplaces.length
         let done = 0
         const results: { marketplace: string; count: number }[] = []
         for (const marketId of selectedMarketplaces) {
@@ -440,8 +471,8 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           const mpFolderName = rule.name.replace(/\s+/g, '_')
           const mpHandle = await folderHandleRef.current.getDirectoryHandle(mpFolderName, { create: true })
           let mpCount = 0
-          for (let ci = 0; ci < confirmedClusters.length; ci++) {
-            const cluster = confirmedClusters[ci]
+          for (let ci = 0; ci < clustersToExport.length; ci++) {
+            const cluster = clustersToExport[ci]
             const skuFolder = String(ci + 1).padStart(3, '0')
             let dirHandle = mpHandle
             if (!flatExport) {
@@ -465,7 +496,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           results.push({ marketplace: mpFolderName, count: mpCount })
         }
         setFolderProgress(100); setFolderStatus('Done')
-        setWrittenFiles(results); setFolderDone(true)
+        setWrittenFiles(results)
+        if (done === 0) {
+          throw new Error('No images were written. Image file data may be missing — return to review and navigate to export without refreshing the page.')
+        }
+        setFolderDone(true)
       } else {
         // Historical job: fetch ZIP from server then extract to folder
         setFolderStatus('Fetching images…')
