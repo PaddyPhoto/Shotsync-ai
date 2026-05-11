@@ -79,6 +79,7 @@ function ReviewPage() {
   const [skuMatches, setSkuMatches] = useState<Record<string, StyleListEntry[]>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null)
+  const [mergeMenuOpen, setMergeMenuOpen] = useState<string | null>(null)
 
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
   const [detectingCategories, setDetectingCategories] = useState<Set<string>>(new Set())
@@ -1287,19 +1288,30 @@ function ReviewPage() {
                       </button>
                     )}
                     {clusters.length > 1 && (
-                      <div className="relative group">
-                        <button className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)]">Merge into…</button>
-                        <div className="absolute bottom-full right-0 mb-1 bg-[var(--bg)] border border-[var(--line2)] rounded-sm shadow-lg min-w-[160px] hidden group-hover:block z-20">
-                          {clusters.filter((c) => c.id !== cluster.id).map((other) => (
-                            <button
-                              key={other.id}
-                              onClick={() => mergeCluster(cluster.id, other.id)}
-                              className="w-full text-left px-3 py-[7px] text-[0.85rem] text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] transition-colors"
-                            >
-                              {other.sku || other.label}
-                            </button>
-                          ))}
-                        </div>
+                      <div className="relative">
+                        <button
+                          className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
+                          onClick={() => setMergeMenuOpen((prev) => prev === cluster.id ? null : cluster.id)}
+                        >
+                          Merge into…
+                        </button>
+                        {mergeMenuOpen === cluster.id && (
+                          <>
+                            {/* Backdrop to close on outside click */}
+                            <div className="fixed inset-0 z-10" onClick={() => setMergeMenuOpen(null)} />
+                            <div className="absolute bottom-full right-0 mb-1 bg-[var(--bg)] border border-[var(--line2)] rounded-[8px] shadow-xl min-w-[180px] z-20 overflow-hidden max-h-[260px] overflow-y-auto">
+                              {clusters.filter((c) => c.id !== cluster.id).map((other) => (
+                                <button
+                                  key={other.id}
+                                  onClick={() => { mergeCluster(cluster.id, other.id); setMergeMenuOpen(null) }}
+                                  className="w-full text-left px-3 py-[8px] text-[0.85rem] text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] transition-colors"
+                                >
+                                  {other.sku || other.label}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
