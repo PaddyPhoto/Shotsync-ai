@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
-import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
+import { usePlan } from '@/context/PlanContext'
+import { PLANS } from '@/lib/plans'
 import { useSession } from '@/store/session'
 
 interface JobRecord {
@@ -23,6 +24,8 @@ interface LifetimeStats {
   total_images: number
   total_clusters: number
   total_exports: number
+  skus_this_month: number
+  exports_this_month: number
 }
 
 // ── Dashboard cache ───────────────────────────────────────────────────────────
@@ -71,7 +74,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [orgName, setOrgName] = useState<string | null>(null)
   const { activeBrand, brands, isLoading: brandsLoading } = useBrand()
-  const { rules } = useMarketplaceRules()
+  const { planId, plan } = usePlan()
   const { clusters, isReady, jobName: sessionJobName } = useSession((s) => ({ clusters: s.clusters, isReady: s.isReady, jobName: s.jobName }))
   const setSession = useSession((s) => s.setSession)
   const [draftSession, setDraftSession] = useState<{ jobName: string; clusterCount: number; imageCount: number; savedAt: string } | null>(null)
@@ -153,7 +156,6 @@ export default function DashboardPage() {
     }
   }
 
-  const marketplaceNames = Object.keys(rules)
   const processingJob = jobs.find((j) => j.status === 'processing')
   const unexportedClusters = clusters.filter((c) => !c.exported)
   const warningClusters = clusters.filter((c) => !c.confirmed)
@@ -285,22 +287,65 @@ export default function DashboardPage() {
         )}
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginBottom: '14px' }}>
-          {[
-            { label: 'Images processed', value: stats?.total_images,   delta: 'lifetime total',  accent: '#30d158' },
-            { label: 'Active clusters',  value: stats?.total_clusters, delta: 'across all jobs', accent: '#0071e3' },
-            { label: 'Exports ready',    value: stats?.total_exports,  delta: 'completed jobs',  accent: '#ff9f0a' },
-            { label: 'SKU match rate',   value: null,                  delta: 'last batch',      accent: '#af52de', display: clusters.length ? `${Math.round((clusters.filter(c => c.sku).length / clusters.length) * 100)}%` : '—' },
-          ].map(({ label, value, delta, display, accent }) => (
-            <div key={label} style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: `3px solid ${accent}` }}>
-              <div style={{ fontSize: '13px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>{label}</div>
-              <div style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
-                {loading ? '—' : (display ?? (value ?? 0).toLocaleString())}
+        {(() => {
+          const skuLimit = plan.limits.skusPerMonth
+          const skusUsed = stats?.skus_this_month ?? 0
+          const skuPct = skuLimit === -1 ? 0 : Math.min(100, Math.round((skusUsed / skuLimit) * 100))
+          const skuBarColor = skuPct >= 90 ? '#ff453a' : skuPct >= 70 ? '#ff9f0a' : '#30d158'
+          const skuLabel = skuLimit === -1 ? 'Unlimited' : `${skusUsed.toLocaleString()} / ${skuLimit.toLocaleString()}`
+          const monthName = new Date().toLocaleString('en-AU', { month: 'long' })
+
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginBottom: '14px' }}>
+              {/* SKUs exported this month */}
+              <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: `3px solid ${skuBarColor}` }}>
+                <div style={{ fontSize: '13px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>SKUs exported</div>
+                <div style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '6px' }}>
+                  {loading ? '—' : skuLabel}
+                </div>
+                {skuLimit !== -1 && !loading && (
+                  <div style={{ height: '3px', background: 'var(--line2)', borderRadius: '2px', marginBottom: '4px' }}>
+                    <div style={{ height: '100%', width: `${skuPct}%`, background: skuBarColor, borderRadius: '2px', transition: 'width 0.4s' }} />
+                  </div>
+                )}
+                <div style={{ fontSize: '13px', color: skuBarColor, fontWeight: 500 }}>{monthName}</div>
               </div>
-              <div style={{ fontSize: '13px', color: accent, fontWeight: 500 }}>{delta}</div>
+
+              {/* Exports this month */}
+              <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: '3px solid #0071e3' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Exports run</div>
+                <div style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
+                  {loading ? '—' : (stats?.exports_this_month ?? 0).toLocaleString()}
+                </div>
+                <div style={{ fontSize: '13px', color: '#0071e3', fontWeight: 500 }}>{monthName}</div>
+              </div>
+
+              {/* Total SKUs all time */}
+              <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: '3px solid #ff9f0a' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Total SKUs processed</div>
+                <div style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
+                  {loading ? '—' : (stats?.total_clusters ?? 0).toLocaleString()}
+                </div>
+                <div style={{ fontSize: '13px', color: '#ff9f0a', fontWeight: 500 }}>all time</div>
+              </div>
+
+              {/* Plan */}
+              <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: '3px solid #af52de' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Plan</div>
+                <div style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
+                  {plan.name}
+                </div>
+                {planId === 'free' ? (
+                  <Link href="/dashboard/billing" style={{ fontSize: '13px', color: '#af52de', fontWeight: 500, textDecoration: 'none' }}>Upgrade →</Link>
+                ) : (
+                  <div style={{ fontSize: '13px', color: '#af52de', fontWeight: 500 }}>
+                    {skuLimit === -1 ? 'Unlimited SKUs' : `${Math.max(0, skuLimit - skusUsed).toLocaleString()} SKUs remaining`}
+                  </div>
+                )}
+              </div>
             </div>
-          ))}
-        </div>
+          )
+        })()}
 
         {/* Row 1: Recent jobs + Marketplace coverage */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
@@ -344,42 +389,85 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Marketplace coverage */}
-          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
-            <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)' }}>
-              <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>Marketplace coverage</span>
-            </div>
-            <div style={{ padding: '12px 16px' }}>
-              {marketplaceNames.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                  <p style={{ fontSize: '14px', color: 'var(--text3)', marginBottom: '8px' }}>No marketplaces configured yet.</p>
-                  <Link href="/dashboard/integrations" className="btn btn-ghost" style={{ fontSize: '14px', padding: '4px 10px' }}>Configure</Link>
+          {/* Plan & Usage */}
+          {(() => {
+            const skuLimit = plan.limits.skusPerMonth
+            const skusUsed = stats?.skus_this_month ?? 0
+            const skuPct = skuLimit === -1 ? 0 : Math.min(100, Math.round((skusUsed / skuLimit) * 100))
+            const barColor = skuPct >= 90 ? '#ff453a' : skuPct >= 70 ? '#ff9f0a' : '#30d158'
+            const nextMonth = new Date(); nextMonth.setMonth(nextMonth.getMonth() + 1); nextMonth.setDate(1)
+            const resetLabel = nextMonth.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+            const nextPlan = PLANS[planId === 'free' ? 'starter' : planId === 'starter' ? 'brand' : planId === 'brand' ? 'scale' : 'enterprise']
+
+            return (
+              <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
+                <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>Plan &amp; usage</span>
+                  <Link href="/dashboard/billing" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '14px' }}>Manage</Link>
                 </div>
-              ) : (
-                marketplaceNames.map((name, i) => {
-                  // Derive a rough coverage % from jobs exported to this marketplace
-                  const exported = jobs.filter((j) => j.status === 'completed' && j.marketplaces?.includes(name)).length
-                  const total = Math.max(jobs.length, 1)
-                  const pct = jobs.length ? Math.round((exported / total) * 100) : 0
-                  // Show a baseline fill for configured marketplaces so it never looks empty
-                  const displayPct = Math.max(pct, jobs.length === 0 ? 0 : 20)
-                  return (
-                    <div key={name} style={{ marginBottom: i < marketplaceNames.length - 1 ? '10px' : 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                        <span style={{ color: 'var(--text)', fontWeight: 500 }}>{name}</span>
-                        <span style={{ color: 'var(--text3)', fontSize: '13px' }}>
-                          {jobs.length === 0 ? 'No jobs yet' : `${exported} exported · ${displayPct}%`}
-                        </span>
-                      </div>
-                      <div style={{ background: 'var(--bg4)', borderRadius: '999px', height: '3px', overflow: 'hidden' }}>
-                        <div style={{ width: `${displayPct}%`, height: '100%', borderRadius: '999px', background: '#30d158', transition: 'width 0.4s ease' }} />
-                      </div>
+                <div style={{ padding: '16px' }}>
+                  {/* Plan name row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>{plan.name} plan</span>
+                    {planId !== 'enterprise' && planId !== 'scale' && (
+                      <Link href="/dashboard/billing" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 500, textDecoration: 'none', padding: '2px 8px', border: '1px solid var(--accent)', borderRadius: '20px' }}>
+                        Upgrade
+                      </Link>
+                    )}
+                  </div>
+
+                  {/* SKU usage */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text2)', fontWeight: 500 }}>SKUs exported this month</span>
+                      <span style={{ fontSize: '13px', color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)' }}>
+                        {loading ? '…' : skuLimit === -1 ? `${skusUsed.toLocaleString()} · unlimited` : `${skusUsed.toLocaleString()} / ${skuLimit.toLocaleString()}`}
+                      </span>
                     </div>
-                  )
-                })
-              )}
-            </div>
-          </div>
+                    {skuLimit !== -1 && (
+                      <div style={{ height: '5px', background: 'var(--line2)', borderRadius: '3px' }}>
+                        <div style={{ height: '100%', width: `${skuPct}%`, background: barColor, borderRadius: '3px', transition: 'width 0.4s' }} />
+                      </div>
+                    )}
+                    {skuLimit !== -1 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+                        <span style={{ fontSize: '12px', color: skuPct >= 90 ? '#ff453a' : 'var(--text3)' }}>
+                          {skuPct >= 90 ? 'Approaching limit' : skuPct >= 70 ? 'Getting close' : `${Math.max(0, skuLimit - skusUsed).toLocaleString()} remaining`}
+                        </span>
+                        <span style={{ fontSize: '12px', color: 'var(--text3)' }}>Resets {resetLabel}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Other limits */}
+                  {[
+                    { label: 'Exports per month', val: plan.limits.exportsPerMonth },
+                    { label: 'Brands', val: plan.limits.brands },
+                    { label: 'Team seats', val: plan.limits.seats },
+                  ].map(({ label, val }) => (
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderTop: '0.5px solid var(--line)' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text3)' }}>{label}</span>
+                      <span style={{ fontSize: '13px', color: 'var(--text2)', fontFamily: 'var(--font-dm-mono)' }}>
+                        {val === -1 ? 'Unlimited' : val.toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+
+                  {/* Upgrade nudge if approaching limit */}
+                  {skuPct >= 70 && planId !== 'enterprise' && nextPlan && (
+                    <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(255,159,10,0.08)', border: '1px solid rgba(255,159,10,0.2)', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '13px', color: '#ff9f0a', marginBottom: '6px' }}>
+                        {skuPct >= 90 ? `You're almost at your SKU limit.` : `You've used ${skuPct}% of your SKU quota.`}
+                      </p>
+                      <Link href="/dashboard/billing" style={{ fontSize: '13px', color: '#ff9f0a', fontWeight: 600, textDecoration: 'none' }}>
+                        Upgrade to {nextPlan.name} → {nextPlan.limits.skusPerMonth.toLocaleString()} SKUs/mo
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
         </div>
 
         {/* Row 2: Active pipeline + Cluster review */}

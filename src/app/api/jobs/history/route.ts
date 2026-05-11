@@ -53,14 +53,23 @@ export async function GET(req: NextRequest) {
     // Lifetime stats — all records including soft-deleted, no depth/brand filter
     const { data: allJobs } = await service
       .from('job_history')
-      .select('image_count, cluster_count, status')
+      .select('image_count, cluster_count, status, created_at')
       .eq('org_id', orgId)
+
+    const monthStart = new Date()
+    monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
+    const monthStartIso = monthStart.toISOString()
+
+    const completed = allJobs?.filter((j: { status?: string }) => j.status === 'completed') ?? []
+    const completedThisMonth = completed.filter((j: { created_at?: string }) => (j.created_at ?? '') >= monthStartIso)
 
     const stats = {
       total_jobs: allJobs?.length ?? 0,
       total_images: allJobs?.reduce((s: number, j: { image_count?: number }) => s + (j.image_count ?? 0), 0) ?? 0,
       total_clusters: allJobs?.reduce((s: number, j: { cluster_count?: number }) => s + (j.cluster_count ?? 0), 0) ?? 0,
-      total_exports: allJobs?.filter((j: { status?: string }) => j.status === 'completed').length ?? 0,
+      total_exports: completed.length,
+      skus_this_month: completedThisMonth.reduce((s: number, j: { cluster_count?: number }) => s + (j.cluster_count ?? 0), 0),
+      exports_this_month: completedThisMonth.length,
     }
 
     let query = service
