@@ -1116,17 +1116,17 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           )}
           {pushDone && (
             <div style={{ display: 'flex', gap: '8px' }}>
-              <Link
-                href="/dashboard/jobs"
-                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD, border: `1px solid ${BORDER}`, textAlign: 'center', fontSize: '13px', fontWeight: 500, color: T2, textDecoration: 'none' }}
-              >
-                All Jobs
-              </Link>
               <button
                 onClick={() => { setPushDone(false); setDrafts([]); setPushError(null) }}
                 style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD2, border: `1px solid ${BORDER}`, cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: T1 }}
               >
                 Push again
+              </button>
+              <button
+                onClick={() => { reset(); router.push('/dashboard') }}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: T1, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#000' }}
+              >
+                Exit Job
               </button>
             </div>
           )}
@@ -1151,21 +1151,12 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     <span style={{ fontSize: '14px', fontWeight: 600, color: '#30d158' }}>ZIP downloaded</span>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <Link
-                      href="/dashboard/jobs"
-                      style={{ flex: 1, padding: '10px', borderRadius: '8px', background: CARD2, border: `1px solid ${BORDER}`, textAlign: 'center', fontSize: '13px', fontWeight: 500, color: T2, textDecoration: 'none' }}
-                    >
-                      All Jobs
-                    </Link>
-                    <button
-                      onClick={() => { reset(); router.push('/dashboard/upload') }}
-                      style={{ flex: 2, padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                    >
-                      New Upload
-                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7h8M7 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => { reset(); router.push('/dashboard') }}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', cursor: 'pointer' }}
+                  >
+                    Exit Job
+                  </button>
                 </div>
               ) : null}
             </div>
@@ -1196,21 +1187,12 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                       <span>{r.count} files</span>
                     </div>
                   ))}
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
-                    <Link
-                      href="/dashboard/jobs"
-                      style={{ flex: 1, padding: '10px', borderRadius: '8px', background: CARD2, border: `1px solid ${BORDER}`, textAlign: 'center', fontSize: '13px', fontWeight: 500, color: T2, textDecoration: 'none' }}
-                    >
-                      All Jobs
-                    </Link>
-                    <button
-                      onClick={() => { reset(); router.push('/dashboard/upload') }}
-                      style={{ flex: 2, padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                    >
-                      New Upload
-                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7h8M7 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => { reset(); router.push('/dashboard') }}
+                    style={{ width: '100%', marginTop: '14px', padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '13px', fontWeight: 600, color: '#000', cursor: 'pointer' }}
+                  >
+                    Exit Job
+                  </button>
                 </>
               ) : null}
             </div>
