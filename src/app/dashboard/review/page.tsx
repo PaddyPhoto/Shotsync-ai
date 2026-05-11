@@ -1426,16 +1426,20 @@ function ReviewPage() {
         if (!current) return null
         const prev = currentIdx > 0 ? allImages[currentIdx - 1] : null
         const next = currentIdx < allImages.length - 1 ? allImages[currentIdx + 1] : null
+        // Use the original File for full-resolution display — previewUrl is a 420px thumbnail
+        const fullResUrl = URL.createObjectURL(current.file)
+        const closeLightbox = () => { URL.revokeObjectURL(fullResUrl); setLightboxImageId(null) }
+        const goTo = (id: string) => { URL.revokeObjectURL(fullResUrl); setLightboxImageId(id) }
         return (
           <div
             className="fixed inset-0 z-[200] flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.92)' }}
-            onClick={() => setLightboxImageId(null)}
+            onClick={closeLightbox}
           >
             {prev && (
               <button
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                onClick={(e) => { e.stopPropagation(); setLightboxImageId(prev.id) }}
+                onClick={(e) => { e.stopPropagation(); goTo(prev.id) }}
                 title="Previous image"
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M11 4L6 9l5 5"/></svg>
@@ -1443,7 +1447,7 @@ function ReviewPage() {
             )}
             <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
               <img
-                src={current.previewUrl}
+                src={fullResUrl}
                 alt={current.filename}
                 className="max-w-full max-h-[82vh] object-contain rounded-[6px] shadow-2xl"
                 style={{ userSelect: 'none' }}
@@ -1457,7 +1461,7 @@ function ReviewPage() {
             {next && (
               <button
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                onClick={(e) => { e.stopPropagation(); setLightboxImageId(next.id) }}
+                onClick={(e) => { e.stopPropagation(); goTo(next.id) }}
                 title="Next image"
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M7 4l5 5-5 5"/></svg>
@@ -1465,7 +1469,7 @@ function ReviewPage() {
             )}
             <button
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              onClick={() => setLightboxImageId(null)}
+              onClick={closeLightbox}
               title="Close (Esc or Space)"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
