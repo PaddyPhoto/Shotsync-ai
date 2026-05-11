@@ -686,7 +686,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <a href="mailto:hello@shotsync.ai" className="price-cta-btn" style={{ whiteSpace: 'nowrap', textDecoration: 'none', flexShrink: 0, fontSize: '13px', padding: '7px 16px' }}>
+            <a href="mailto:hello@shotsync.ai" className="price-cta-btn" style={{ whiteSpace: 'nowrap', textDecoration: 'none', flexShrink: 0, fontSize: '13px', padding: '7px 16px', display: 'inline-block', marginTop: 0 }}>
               Contact us
             </a>
           </div>
