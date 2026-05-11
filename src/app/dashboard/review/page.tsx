@@ -1356,7 +1356,7 @@ function ReviewPage() {
                                   <label className="text-[0.86rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Description</label>
                                   <textarea
                                     className="input text-[0.85rem] py-[5px] resize-none"
-                                    rows={3}
+                                    rows={5}
                                     value={copy.description}
                                     onChange={(e) => setClusterCopy((prev) => ({ ...prev, [cluster.id]: { ...prev[cluster.id], description: e.target.value } }))}
                                   />
