@@ -20,6 +20,7 @@ declare global {
   }
   interface FileSystemFileHandle {
     createWritable(): Promise<FileSystemWritableFileStream>
+    getFile(): Promise<File>
   }
   interface FileSystemWritableFileStream {
     write(data: BufferSource | Blob | string): Promise<void>
@@ -488,7 +489,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
               }) + '.jpg'
               const fh = await dirHandle.getFileHandle(fname, { create: true })
-              const w = await fh.createWritable(); await w.write(buf); await w.close()
+              const w = await fh.createWritable()
+              await w.write(new Blob([buf], { type: 'image/jpeg' }))
+              await w.close()
+              const written = await fh.getFile()
+              if (written.size === 0) throw new Error(`File written but is 0 bytes: ${fname}. Check folder write permissions.`)
               done++; mpCount++
               setFolderProgress(Math.round((done / total) * 100))
             }
@@ -532,7 +537,9 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             }
           }
           const fh = await dirHandle.getFileHandle(fileName, { create: true })
-          const w = await fh.createWritable(); await w.write(data); await w.close()
+          const w = await fh.createWritable()
+          await w.write(new Blob([data], { type: 'image/jpeg' }))
+          await w.close()
           mpCounts[mpName] = (mpCounts[mpName] ?? 0) + 1
           written++
           setFolderProgress(70 + Math.round((written / entries.length) * 30))
