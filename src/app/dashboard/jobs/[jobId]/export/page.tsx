@@ -98,8 +98,10 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   const [drafts, setDrafts] = useState<DraftItem[]>([])
   const [isPushing, setIsPushing] = useState(false)
   const [pushDone, setPushDone] = useState(false)
+  const [pushCancelled, setPushCancelled] = useState(false)
   const [pushError, setPushError] = useState<string | null>(null)
   const [selectedBrandId, setSelectedBrandId] = useState('')
+  const cancelPushRef = useRef(false)
   const draftListRef = useRef<HTMLDivElement>(null)
 
   // Download ZIP state
@@ -161,8 +163,10 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   // ── Shopify push ─────────────────────────────────────────────────────────────
   const handleShopifyPush = useCallback(async () => {
     if (!shopifyBrand || confirmedClusters.length === 0) return
+    cancelPushRef.current = false
     setIsPushing(true)
     setPushDone(false)
+    setPushCancelled(false)
     setPushError(null)
 
     // Seed the draft list
@@ -180,6 +184,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     const authHeader: Record<string, string> = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
 
     for (let ci = 0; ci < confirmedClusters.length; ci++) {
+      if (cancelPushRef.current) break
       const cluster = confirmedClusters[ci]
       const draftSku = cluster.sku ?? `${shopifyBrand.brand_code}-${String(ci + 1).padStart(3, '0')}`
 
@@ -241,9 +246,13 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     }
 
     setIsPushing(false)
-    setPushDone(true)
-    saveJobToHistory(authHeader)
-    markClustersExported(confirmedClusters.map((c) => c.id))
+    if (cancelPushRef.current) {
+      setPushCancelled(true)
+    } else {
+      setPushDone(true)
+      saveJobToHistory(authHeader)
+      markClustersExported(confirmedClusters.map((c) => c.id))
+    }
   }, [shopifyBrand, confirmedClusters, namingTemplate, markClustersExported]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Folder save ──────────────────────────────────────────────────────────────
@@ -506,6 +515,8 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   }
 
   const isRunning = isPushing || isSavingToFolder || isDownloading
+  const isFolderBusy = isSavingToFolder
+  const isZipBusy = isDownloading
   const draftsCreated = drafts.filter((d) => d.status === 'created').length
   const pct = isPushing && drafts.length > 0 ? Math.round((draftsCreated / drafts.length) * 100) : (pushDone ? 100 : 0)
   const canPush = selectedMarketplaces.includes('shopify') && shopifyBrand && confirmedClusters.length > 0
@@ -575,52 +586,40 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           >
             Cancel
           </button>
-          {folderPath ? (
+          {folderPath && (
             <button
               onClick={handleSaveToFolder}
-              disabled={isRunning || selectedMarketplaces.length === 0}
+              disabled={isFolderBusy || selectedMarketplaces.length === 0}
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
                 padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
                 border: 'none', background: T1, color: '#000', cursor: 'pointer',
-                opacity: (isRunning || selectedMarketplaces.length === 0) ? 0.4 : 1,
+                opacity: (isFolderBusy || selectedMarketplaces.length === 0) ? 0.4 : 1,
               }}
             >
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M6.5 9V1M4 6.5l2.5 2.5 2.5-2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M1.5 11.5h10" strokeLinecap="round"/>
               </svg>
-              Save to folder
+              {isFolderBusy ? 'Saving…' : 'Save to folder'}
             </button>
-          ) : downloadZip ? (
+          )}
+          {downloadZip && (
             <button
               onClick={handleDownloadZip}
-              disabled={isRunning || selectedMarketplaces.length === 0}
+              disabled={isZipBusy || selectedMarketplaces.length === 0}
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
                 padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
                 border: 'none', background: T1, color: '#000', cursor: 'pointer',
-                opacity: (isRunning || selectedMarketplaces.length === 0) ? 0.4 : 1,
+                opacity: (isZipBusy || selectedMarketplaces.length === 0) ? 0.4 : 1,
               }}
             >
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M6.5 9V1M4 6.5l2.5 2.5 2.5-2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M1.5 11.5h10" strokeLinecap="round"/>
               </svg>
-              Download ZIP
-            </button>
-          ) : (
-            <button
-              onClick={canPush ? handleShopifyPush : undefined}
-              disabled={isRunning || !canPush}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
-                border: 'none', background: '#30d158', color: '#000', cursor: 'pointer',
-                opacity: (isRunning || !canPush) ? 0.4 : 1,
-              }}
-            >
-              {isPushing ? 'Pushing…' : pushDone ? '✓ Done' : 'Push to Shopify'}
+              {isZipBusy ? 'Downloading…' : 'Download ZIP'}
             </button>
           )}
         </div>
@@ -815,20 +814,36 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
                 <div>
                   <p style={{ fontSize: '15px', fontWeight: 600, color: T1, letterSpacing: '-0.2px', marginBottom: '3px' }}>
-                    Creating Shopify draft listings
+                    {pushCancelled ? 'Push stopped' : 'Creating Shopify draft listings'}
                   </p>
                   <p style={{ fontSize: '12px', color: T3 }}>
-                    Images · SKU · colour · AI copy — all included
+                    {pushCancelled
+                      ? `${draftsCreated} of ${drafts.length} drafts created before stopping`
+                      : 'Images · SKU · colour · AI copy — all included'}
                   </p>
                 </div>
-                <span style={{
-                  padding: '4px 12px', borderRadius: '20px',
-                  background: 'rgba(48,209,88,0.15)', color: '#30d158',
-                  fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-dm-mono)',
-                  flexShrink: 0,
-                }}>
-                  {draftsCreated} / {drafts.length}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  {isPushing && (
+                    <button
+                      onClick={() => { cancelPushRef.current = true }}
+                      style={{
+                        padding: '4px 12px', borderRadius: '20px', border: `1px solid rgba(255,69,58,0.4)`,
+                        background: 'rgba(255,69,58,0.1)', color: '#ff453a',
+                        fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                      }}
+                    >
+                      Stop push
+                    </button>
+                  )}
+                  <span style={{
+                    padding: '4px 12px', borderRadius: '20px',
+                    background: pushCancelled ? 'rgba(255,159,10,0.15)' : 'rgba(48,209,88,0.15)',
+                    color: pushCancelled ? '#ff9f0a' : '#30d158',
+                    fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-dm-mono)',
+                  }}>
+                    {draftsCreated} / {drafts.length}
+                  </span>
+                </div>
               </div>
 
               {/* Progress bar + status */}
@@ -845,6 +860,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                   {draftsCreated} of {drafts.length} drafts created
                   {isPushing && drafts.length > 0 && draftsCreated < drafts.length && ' · working…'}
                   {pushDone && ' · complete'}
+                  {pushCancelled && ' · stopped'}
                 </p>
               </div>
 
@@ -1009,6 +1025,22 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           })}
 
           {/* Post-push actions */}
+          {pushCancelled && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => { setPushCancelled(false); setDrafts([]); setPushError(null) }}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#30d158', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#000' }}
+              >
+                Resume push
+              </button>
+              <button
+                onClick={() => { setPushCancelled(false); setDrafts([]); setPushError(null) }}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD2, border: `1px solid ${BORDER}`, cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: T1 }}
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           {pushDone && (
             <div style={{ display: 'flex', gap: '8px' }}>
               <Link
