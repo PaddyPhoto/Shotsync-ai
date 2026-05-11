@@ -59,7 +59,7 @@ type DraftStatus = 'queued' | 'creating' | 'created' | 'error'
 interface DraftItem { id: string; label: string; sku: string; status: DraftStatus; adminUrl?: string; message?: string }
 
 // ── Image processing (canvas resize + crop to fit) ───────────────────────────
-async function processImage(file: File, w: number, h: number, bg = '#ffffff'): Promise<ArrayBuffer> {
+async function processImage(file: File, w: number, h: number, bg = '#ffffff'): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file)
     const img = new window.Image()
@@ -76,7 +76,7 @@ async function processImage(file: File, w: number, h: number, bg = '#ffffff'): P
       URL.revokeObjectURL(url)
       canvas.toBlob((blob) => {
         if (!blob) { reject(new Error('toBlob failed')); return }
-        blob.arrayBuffer().then(resolve).catch(reject)
+        resolve(blob)
       }, 'image/jpeg', 0.92)
     }
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('load failed')) }
@@ -198,14 +198,14 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
         for (let ii = 0; ii < cluster.images.length; ii++) {
           const img = cluster.images[ii]
           if (!img.file) continue
-          const buf = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
+          const blob = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
           const filename = applyNamingTemplate(namingTemplate, {
             brand: shopifyBrand.brand_code, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
             view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
           }) + '.jpg'
           const storagePath = `temp/${shopifyBrand.id}/${Date.now()}_${ci}_${ii}_${filename}`
           const stageForm = new FormData()
-          stageForm.append('file', new Blob([buf], { type: 'image/jpeg' }), filename)
+          stageForm.append('file', blob, filename)
           stageForm.append('path', storagePath)
           const stageRes = await fetch('/api/shopify/stage-image', {
             method: 'POST',
@@ -380,13 +380,13 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             for (let ii = 0; ii < cluster.images.length; ii++) {
               const img = cluster.images[ii]
               if (!img.file) continue
-              const buf = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
+              const imgBlob = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
               const fname = applyNamingTemplate(namingTemplate, {
                 brand: shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND',
                 seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
                 view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
               }) + '.jpg'
-              folder.file(fname, buf)
+              folder.file(fname, await imgBlob.arrayBuffer())
               done++; setDownloadProgress(Math.round((done / total) * 80))
             }
           }
@@ -483,14 +483,14 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               const img = cluster.images[ii]
               if (!img.file) continue
               setFolderStatus(`${mpFolderName} · ${done + 1}/${total}`)
-              const buf = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
+              const imgBlob = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
               const fname = applyNamingTemplate(namingTemplate, {
                 brand: brandCode, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
                 view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
               }) + '.jpg'
               const fh = await dirHandle.getFileHandle(fname, { create: true })
               const w = await fh.createWritable()
-              await w.write(new Blob([buf], { type: 'image/jpeg' }))
+              await w.write(imgBlob)
               await w.close()
               const written = await fh.getFile()
               if (written.size === 0) throw new Error(`File written but is 0 bytes: ${fname}. Check folder write permissions.`)
