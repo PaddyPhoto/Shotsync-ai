@@ -93,6 +93,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(['shopify'])
   const [downloadZip, setDownloadZip] = useState(false)
   const [flatExport, setFlatExport] = useState(false)
+  const [keepOriginalFilenames, setKeepOriginalFilenames] = useState(false)
   const [namingTemplate, setNamingTemplate] = useState('{BRAND}_{SEQ}_{VIEW}')
 
   // Shopify push state
@@ -150,6 +151,18 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   const shopifyBrands = brands.filter((b) => b.shopify_store_url && b.shopify_authenticated)
   const shopifyBrand = shopifyBrands.find((b) => b.id === selectedBrandId) ?? shopifyBrands[0] ?? null
 
+  // ── Filename resolver ────────────────────────────────────────────────────────
+  const resolveFilename = (
+    originalFilename: string,
+    templateVars: Parameters<typeof applyNamingTemplate>[1]
+  ): string => {
+    if (keepOriginalFilenames) {
+      return originalFilename.replace(/\.[^.]+$/, '')
+    }
+    const tpl = namingTemplate || '{BRAND}_{SEQ}_{VIEW}'
+    return applyNamingTemplate(tpl, templateVars) || `${templateVars.brand}_${String(templateVars.seq).padStart(3, '0')}_${templateVars.view}`
+  }
+
   // ── Live naming preview ──────────────────────────────────────────────────────
   const exampleFilename = (() => {
     const b = shopifyBrand ?? activeBrand ?? brands[0]
@@ -199,7 +212,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           const img = cluster.images[ii]
           if (!img.file) continue
           const blob = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
-          const filename = applyNamingTemplate(namingTemplate, {
+          const filename = resolveFilename(img.filename, {
             brand: shopifyBrand.brand_code, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
             view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
           }) + '.jpg'
@@ -381,7 +394,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               const img = cluster.images[ii]
               if (!img.file) continue
               const imgBlob = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
-              const fname = applyNamingTemplate(namingTemplate, {
+              const fname = resolveFilename(img.filename, {
                 brand: shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND',
                 seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
                 view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
@@ -484,11 +497,10 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               if (!img.file) continue
               setFolderStatus(`${mpFolderName} · ${done + 1}/${total}`)
               const imgBlob = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
-              const baseName = applyNamingTemplate(namingTemplate || '{BRAND}_{SEQ}_{VIEW}', {
+              const fname = resolveFilename(img.filename, {
                 brand: brandCode, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
                 view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
-              }) || `${brandCode}_${String(ci + 1).padStart(3, '0')}_${img.viewLabel}`
-              const fname = baseName + '.jpg'
+              }) + '.jpg'
               const fh = await dirHandle.getFileHandle(fname, { create: true })
               const w = await fh.createWritable()
               await w.write(imgBlob)
@@ -775,17 +787,26 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: T3, textTransform: 'uppercase', marginBottom: '10px' }}>
             File Naming
           </p>
-          <input
-            value={namingTemplate}
-            onChange={(e) => setNamingTemplate(e.target.value)}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              background: CARD2, border: `1px solid ${BORDER}`,
-              borderRadius: '8px', color: T1, padding: '9px 10px',
-              fontSize: '13px', fontFamily: 'var(--font-dm-mono)',
-              marginBottom: '10px',
-            }}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <div>
+              <span style={{ fontSize: '13px', color: T2 }}>Keep original filenames</span>
+              <p style={{ fontSize: '11px', color: T3, marginTop: '1px' }}>Only apply marketplace crop &amp; resize</p>
+            </div>
+            <Toggle on={keepOriginalFilenames} onChange={() => setKeepOriginalFilenames((v) => !v)} />
+          </div>
+          {!keepOriginalFilenames && (
+            <input
+              value={namingTemplate}
+              onChange={(e) => setNamingTemplate(e.target.value)}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                background: CARD2, border: `1px solid ${BORDER}`,
+                borderRadius: '8px', color: T1, padding: '9px 10px',
+                fontSize: '13px', fontFamily: 'var(--font-dm-mono)',
+                marginBottom: '10px',
+              }}
+            />
+          )}
 
           {/* Output preview — inline under naming */}
           {(confirmedClusters.length > 0 || selectedMarketplaces.length > 0) && (
@@ -798,12 +819,16 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                     <span style={{ color: T2 }}>{folderName}/</span>
                     {previewClusters.map((c, ci) => {
                       const seq = String(ci + 1).padStart(3, '0')
-                      const firstView = c.images[0]?.viewLabel
-                      const filename = firstView ? applyNamingTemplate(namingTemplate, {
-                        brand: shopifyBrand?.brand_code ?? 'BRAND', seq: ci + 1,
-                        sku: c.sku ?? seq, color: c.color ?? undefined,
-                        view: firstView, index: 1, isBottomwear: c.isBottomwear,
-                      }) + '.jpg' : null
+                      const firstImg = c.images[0]
+                      const filename = firstImg
+                        ? (keepOriginalFilenames
+                            ? firstImg.filename
+                            : resolveFilename(firstImg.filename, {
+                                brand: shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND', seq: ci + 1,
+                                sku: c.sku ?? seq, color: c.color ?? undefined,
+                                view: firstImg.viewLabel, index: 1, isBottomwear: c.isBottomwear,
+                              }) + '.jpg')
+                        : null
                       const isLast = ci === previewClusters.length - 1 && confirmedClusters.length <= 3
                       return (
                         <div key={c.id} style={{ paddingLeft: '12px' }}>
