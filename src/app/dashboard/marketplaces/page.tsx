@@ -46,12 +46,12 @@ export default function MarketplacesPage() {
 function MarketplacesInner() {
   const searchParams = useSearchParams()
   const { brands, refreshBrands, activeBrand } = useBrand()
-  const { rules, updateRule, resetRule, resetAll, saved } = useMarketplaceRules()
   const [confirmResetAll, setConfirmResetAll] = useState(false)
   const [unlockedNaming, setUnlockedNaming] = useState<Set<string>>(new Set())
 
   // Cloud storage
   const [selectedBrandId, setSelectedBrandId] = useState(activeBrand?.id ?? brands[0]?.id ?? '')
+  const { rules, updateRule, resetRule, resetAll, saved } = useMarketplaceRules(selectedBrandId || undefined)
   const [s3Form, setS3Form] = useState({ bucket: '', region: 'ap-southeast-2', access_key_id: '', secret_access_key: '', prefix: '' })
   const [s3Saving, setS3Saving] = useState(false)
   const [s3Saved, setS3Saved] = useState(false)

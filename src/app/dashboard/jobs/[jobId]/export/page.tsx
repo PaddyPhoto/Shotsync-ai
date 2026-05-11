@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
+import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import { useSession } from '@/store/session'
 import { useBrand } from '@/context/BrandContext'
 import { applyNamingTemplate } from '@/lib/brands'
@@ -151,6 +152,10 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   const shopifyBrands = brands.filter((b) => b.shopify_store_url && b.shopify_authenticated)
   const shopifyBrand = shopifyBrands.find((b) => b.id === selectedBrandId) ?? shopifyBrands[0] ?? null
 
+  // Brand-specific marketplace rules (overrides hardcoded defaults per brand)
+  const exportBrandId = activeBrand?.id ?? brands[0]?.id
+  const { rules: marketplaceRules } = useMarketplaceRules(exportBrandId)
+
   // ── Filename resolver ────────────────────────────────────────────────────────
   const resolveFilename = (
     originalFilename: string,
@@ -192,7 +197,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     }))
     setDrafts(initial)
 
-    const rule = MARKETPLACE_RULES['shopify']
+    const rule = marketplaceRules['shopify']
     const { createClient } = await import('@/lib/supabase/client')
     const { data: { session } } = await createClient().auth.getSession()
     const authHeader: Record<string, string> = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
@@ -386,7 +391,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
         const total = confirmedClusters.reduce((s, c) => s + c.images.filter(i => i.file).length, 0) * selectedMarketplaces.length
         let done = 0
         for (const marketId of selectedMarketplaces) {
-          const rule = MARKETPLACE_RULES[marketId]
+          const rule = marketplaceRules[marketId]
           const folder = zip.folder(rule.name.replace(/\s+/g, '_'))!
           for (let ci = 0; ci < confirmedClusters.length; ci++) {
             const cluster = confirmedClusters[ci]
@@ -481,7 +486,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
         let done = 0
         const results: { marketplace: string; count: number }[] = []
         for (const marketId of selectedMarketplaces) {
-          const rule = MARKETPLACE_RULES[marketId]
+          const rule = marketplaceRules[marketId]
           const mpFolderName = rule.name.replace(/\s+/g, '_')
           const mpHandle = await folderHandleRef.current.getDirectoryHandle(mpFolderName, { create: true })
           let mpCount = 0
@@ -692,7 +697,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '24px' }}>
             {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[]).map((id) => {
-              const rule = MARKETPLACE_RULES[id]
+              const rule = marketplaceRules[id]
               const isSelected = selectedMarketplaces.includes(id)
               const p = PALETTE[id]
               return (
@@ -812,7 +817,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           {(confirmedClusters.length > 0 || selectedMarketplaces.length > 0) && (
             <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: '10px', lineHeight: 1.7, color: T3 }}>
               {selectedMarketplaces.map((marketId) => {
-                const rule = MARKETPLACE_RULES[marketId]
+                const rule = marketplaceRules[marketId]
                 const folderName = rule.name.replace(/\s+/g, '_')
                 return (
                   <div key={marketId} style={{ marginBottom: '4px' }}>
@@ -1024,7 +1029,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           {(['the-iconic', 'myer', 'david-jones', 'joor'] as const).map((marketId) => {
             if (!selectedMarketplaces.includes(marketId)) return null
             const p = PALETTE[marketId]
-            const rule = MARKETPLACE_RULES[marketId]
+            const rule = marketplaceRules[marketId]
             const subtitles: Record<string, string> = {
               'the-iconic': 'Create SellerCenter listings with images directly from ShotSync',
               'myer':        'Push product listings directly to Myer\'s supplier portal',
