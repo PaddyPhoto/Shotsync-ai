@@ -139,7 +139,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   useEffect(() => {
     const b = activeBrand ?? brands[0]
     if (b) {
-      setNamingTemplate(b.naming_template ?? '{BRAND}_{SEQ}_{VIEW}')
+      setNamingTemplate(b.naming_template || '{BRAND}_{SEQ}_{VIEW}')
       setSelectedBrandId(b.id)
     }
   }, [activeBrand, brands])
@@ -484,10 +484,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               if (!img.file) continue
               setFolderStatus(`${mpFolderName} · ${done + 1}/${total}`)
               const imgBlob = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
-              const fname = applyNamingTemplate(namingTemplate, {
+              const baseName = applyNamingTemplate(namingTemplate || '{BRAND}_{SEQ}_{VIEW}', {
                 brand: brandCode, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
                 view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
-              }) + '.jpg'
+              }) || `${brandCode}_${String(ci + 1).padStart(3, '0')}_${img.viewLabel}`
+              const fname = baseName + '.jpg'
               const fh = await dirHandle.getFileHandle(fname, { create: true })
               const w = await fh.createWritable()
               await w.write(imgBlob)

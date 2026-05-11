@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         shopify_access_token: shopify_access_token ?? null,
         logo_color: logo_color ?? '#e8d97a',
         images_per_look: images_per_look ?? 4,
-        naming_template: naming_template ?? '{BRAND}_{SEQ}_{VIEW}',
+        naming_template: naming_template || '{BRAND}_{SEQ}_{VIEW}',
         created_at: new Date().toISOString(),
       },
     }, { status: 201 })
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
         shopify_access_token: shopify_access_token ?? null,
         logo_color: logo_color ?? '#e8d97a',
         images_per_look: images_per_look ?? 4,
-        naming_template: naming_template ?? '{BRAND}_{SEQ}_{VIEW}',
+        naming_template: naming_template || '{BRAND}_{SEQ}_{VIEW}',
       })
       .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, on_model_angle_sequence, still_life_angle_sequences, gm_position, created_at')
       .single()

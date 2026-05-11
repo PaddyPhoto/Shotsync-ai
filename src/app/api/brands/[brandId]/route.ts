@@ -36,6 +36,10 @@ export async function PATCH(
       updates.brand_code = (updates.brand_code as string).toUpperCase()
     }
 
+    if ('naming_template' in updates && !updates.naming_template) {
+      updates.naming_template = '{BRAND}_{SEQ}_{VIEW}'
+    }
+
     // Enforce Shopify store limit when adding a new connection to an existing brand
     if (updates.shopify_access_token && updates.shopify_store_url) {
       const { data: currentBrand } = await service
