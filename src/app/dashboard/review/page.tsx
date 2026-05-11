@@ -1276,6 +1276,16 @@ function ReviewPage() {
                   <div className="px-3 pb-[10px] flex items-center gap-2">
                     <span className="text-[0.86rem] text-[var(--text3)]">{cluster.images.length} images</span>
                     <div className="flex-1" />
+                    {/* Split — visible when images in this cluster are selected */}
+                    {Array.from(selectedImages).some((id) => cluster.images.some((img) => img.id === id)) && (
+                      <button
+                        onClick={() => handleSplit(cluster.id)}
+                        className="text-[0.85rem] text-[var(--accent2)] hover:opacity-70 transition-opacity"
+                        title="Move selected images into a new cluster"
+                      >
+                        Split selected
+                      </button>
+                    )}
                     {clusters.length > 1 && (
                       <div className="relative group">
                         <button className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)]">Merge into…</button>
