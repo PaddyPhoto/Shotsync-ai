@@ -1699,6 +1699,18 @@ function ExportPanel({
     setDone(false)
     setExportError(null)
     setHistorySaveError(null)
+    try {
+      await handleExportInner()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[handleExport] unhandled exception:', err)
+      setExportError(`Export failed: ${msg}`)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleExportInner = async () => {
 
     const sourceImageCount = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
     const totalImages = sourceImageCount * selectedMarketplaces.length
@@ -1793,11 +1805,19 @@ function ExportPanel({
         const mpHandle = await rootHandle.getDirectoryHandle(rule.name.replace(/\s+/g, '_'), { create: true })
         const tasks = buildTasks(template)
 
-        for (let i = 0; i < tasks.length; i += CONCURRENCY) {
-          await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
+        // Sequential writes — FSA API holds swap files open until close(), so concurrent
+        // writes stack up in memory. One-at-a-time lets each file flush to disk before the next.
+        for (const { cluster, seq, img, imgIdx, folderName } of tasks) {
+            if (!img.file) {
+              console.warn(`[export] skipping ${img.filename} — file reference missing`)
+              setExportError(`${img.filename}: file not available (try re-uploading)`)
+              doneCount++
+              setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
+              continue
+            }
             const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
             const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
-            let buffer: ArrayBuffer
+            let buffer: ArrayBuffer | undefined
             try {
               buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
@@ -1810,19 +1830,29 @@ function ExportPanel({
                 const stack = err instanceof Error && err.stack ? ` | ${err.stack.split('\n')[1]?.trim()}` : ''
                 console.error('[background-removal] failed, retrying without BG removal:', err)
                 setExportError(`AI background removal failed: "${msg}"${stack} — exporting without BG removal.`)
-                buffer = await processImageOnCanvas(
-                  img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                  rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false,
-                )
+                try {
+                  buffer = await processImageOnCanvas(
+                    img.file, rule.image_dimensions.width, rule.image_dimensions.height,
+                    rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false,
+                  )
+                } catch (retryErr) {
+                  const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr)
+                  console.error(`Export retry failed: ${img.filename}`, retryErr)
+                  setExportError(`${img.filename}: ${retryMsg}`)
+                  doneCount++
+                  setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
+                  continue
+                }
               } else {
                 const msg = err instanceof Error ? err.message : String(err)
                 console.error(`Export failed: ${img.filename}`, err)
                 setExportError(`${img.filename}: ${msg}`)
                 doneCount++
                 setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
-                return
+                continue
               }
             }
+            if (!buffer) continue
             try {
               const filename = useOriginalNames
                 ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
@@ -1839,12 +1869,11 @@ function ExportPanel({
               await writable.close()
             } catch (err) {
               const msg = err instanceof Error ? err.message : String(err)
-              console.error(`Export failed: ${img.filename}`, err)
+              console.error(`Export write failed: ${img.filename}`, err)
               setExportError(`${img.filename}: ${msg}`)
             }
             doneCount++
             setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
-          }))
         }
       }
 
@@ -2159,7 +2188,6 @@ function ExportPanel({
     }).catch((err) => { setHistorySaveError(err instanceof Error ? err.message : 'Network error') })
 
     markClustersExported(confirmedClusters.map((c) => c.id))
-    setIsExporting(false)
     setDone(true)
   }
 
@@ -2237,7 +2265,7 @@ function ExportPanel({
 
         {/* ── MIDDLE: Settings ───────────────────────────────────────────── */}
         <div
-          className="flex flex-col px-5 py-6 gap-0 overflow-hidden transition-opacity duration-200"
+          className="flex flex-col px-5 py-6 gap-0 overflow-y-auto transition-opacity duration-200"
           style={{ opacity: isExporting ? 0.3 : 1, pointerEvents: isExporting ? 'none' : 'auto' }}
         >
           {/* Output format */}
