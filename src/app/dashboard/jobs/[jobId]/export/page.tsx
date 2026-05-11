@@ -420,34 +420,45 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     setIsSavingToFolder(true); setFolderProgress(0); setFolderStatus('Processing images…')
     setFolderDone(false); setWrittenFiles([]); setError(null)
     try {
-      const JSZip = (await import('jszip')).default
-      let zip: InstanceType<typeof JSZip>
-
       if (params.jobId === 'session') {
-        zip = new JSZip()
-        const imgs = confirmedClusters.flatMap((c) => c.images.filter((i) => i.file))
-        const total = imgs.length * selectedMarketplaces.length
+        // Write directly to disk one file at a time — avoids buffering all images in memory
+        const brandCode = shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND'
+        const total = confirmedClusters.reduce((s, c) => s + c.images.filter((i) => i.file).length, 0) * selectedMarketplaces.length
         let done = 0
+        const results: { marketplace: string; count: number }[] = []
         for (const marketId of selectedMarketplaces) {
           const rule = MARKETPLACE_RULES[marketId]
-          const folder = zip.folder(rule.name.replace(/\s+/g, '_'))!
+          const mpFolderName = rule.name.replace(/\s+/g, '_')
+          const mpHandle = await folderHandleRef.current.getDirectoryHandle(mpFolderName, { create: true })
+          let mpCount = 0
           for (let ci = 0; ci < confirmedClusters.length; ci++) {
             const cluster = confirmedClusters[ci]
+            const skuFolder = String(ci + 1).padStart(3, '0')
+            let dirHandle = mpHandle
+            if (!flatExport) {
+              dirHandle = await mpHandle.getDirectoryHandle(skuFolder, { create: true })
+            }
             for (let ii = 0; ii < cluster.images.length; ii++) {
               const img = cluster.images[ii]
               if (!img.file) continue
+              setFolderStatus(`${mpFolderName} · ${done + 1}/${total}`)
               const buf = await processImage(img.file, rule.image_dimensions.width, rule.image_dimensions.height, rule.background_color)
               const fname = applyNamingTemplate(namingTemplate, {
-                brand: shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND',
-                seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
+                brand: brandCode, seq: ci + 1, sku: cluster.sku, color: cluster.color ?? undefined,
                 view: img.viewLabel, index: ii + 1, isBottomwear: cluster.isBottomwear,
               }) + '.jpg'
-              folder.file(fname, buf)
-              done++; setFolderProgress(Math.round((done / total) * 70))
+              const fh = await dirHandle.getFileHandle(fname, { create: true })
+              const w = await fh.createWritable(); await w.write(buf); await w.close()
+              done++; mpCount++
+              setFolderProgress(Math.round((done / total) * 100))
             }
           }
+          results.push({ marketplace: mpFolderName, count: mpCount })
         }
+        setFolderProgress(100); setFolderStatus('Done')
+        setWrittenFiles(results); setFolderDone(true)
       } else {
+        // Historical job: fetch ZIP from server then extract to folder
         setFolderStatus('Fetching images…')
         const authHeader = await getAuthHeader()
         const res = await fetch('/api/export/zip', {
@@ -456,34 +467,36 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
         })
         if (!res.ok) throw new Error(await res.text() || 'Export failed')
         setFolderProgress(40); setFolderStatus('Parsing package…')
-        zip = await JSZip.loadAsync(await res.blob())
-      }
-
-      const entries = Object.entries(zip.files).filter(([, f]) => !f.dir)
-      const byFolder: Record<string, { name: string; data: ArrayBuffer }[]> = {}
-      let written = 0
-      setFolderStatus(`Writing ${entries.length} files…`)
-      for (const [path, file] of entries) {
-        const slash = path.indexOf('/')
-        const fn = slash >= 0 ? path.slice(0, slash) : 'Export'
-        const name = slash >= 0 ? path.slice(slash + 1) : path
-        const data = await file.async('arraybuffer')
-        if (!byFolder[fn]) byFolder[fn] = []
-        byFolder[fn].push({ name, data })
-        written++; setFolderProgress(70 + Math.round((written / entries.length) * 25))
-      }
-      const results: { marketplace: string; count: number }[] = []
-      for (const [fn, files] of Object.entries(byFolder)) {
-        setFolderStatus(`Writing to ${fn}/…`)
-        const sub = await folderHandleRef.current.getDirectoryHandle(fn, { create: true })
-        for (const { name, data } of files) {
-          const fh = await sub.getFileHandle(name, { create: true })
+        const JSZip = (await import('jszip')).default
+        const zip = await JSZip.loadAsync(await res.blob())
+        const entries = Object.entries(zip.files).filter(([, f]) => !f.dir)
+        const results: { marketplace: string; count: number }[] = []
+        const mpCounts: Record<string, number> = {}
+        let written = 0
+        setFolderStatus(`Writing ${entries.length} files…`)
+        for (const [path, file] of entries) {
+          const parts = path.split('/')
+          const mpName = parts[0]
+          const fileName = parts[parts.length - 1]
+          const data = await file.async('arraybuffer')
+          const mpHandle = await folderHandleRef.current.getDirectoryHandle(mpName, { create: true })
+          let dirHandle = mpHandle
+          if (!flatExport && parts.length > 2) {
+            // preserve SKU subfolder from ZIP structure
+            for (let pi = 1; pi < parts.length - 1; pi++) {
+              dirHandle = await dirHandle.getDirectoryHandle(parts[pi], { create: true })
+            }
+          }
+          const fh = await dirHandle.getFileHandle(fileName, { create: true })
           const w = await fh.createWritable(); await w.write(data); await w.close()
+          mpCounts[mpName] = (mpCounts[mpName] ?? 0) + 1
+          written++
+          setFolderProgress(70 + Math.round((written / entries.length) * 30))
         }
-        results.push({ marketplace: fn, count: files.length })
+        for (const [mp, count] of Object.entries(mpCounts)) results.push({ marketplace: mp, count })
+        setFolderProgress(100); setFolderStatus('Done')
+        setWrittenFiles(results); setFolderDone(true)
       }
-      setFolderProgress(100); setFolderStatus('Done')
-      setWrittenFiles(results); setFolderDone(true)
       const folderAuthHeader = await getAuthHeader()
       saveJobToHistory(folderAuthHeader)
       markClustersExported(confirmedClusters.map((c) => c.id))
@@ -691,6 +704,13 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             {!fsaSupported && (
               <p style={{ fontSize: '11px', color: '#ff9f0a' }}>Save to folder requires Chrome or Edge.</p>
             )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <span style={{ fontSize: '13px', color: T2 }}>Flat export</span>
+                <p style={{ fontSize: '11px', color: T3, marginTop: '1px' }}>All files in one folder per marketplace</p>
+              </div>
+              <Toggle on={flatExport} onChange={() => setFlatExport((v) => !v)} />
+            </div>
           </div>
 
           {/* Shopify brand (if multiple) */}
@@ -916,8 +936,8 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             </div>
           )}
 
-          {/* Coming-soon push panels — The Iconic, Myer, David Jones */}
-          {(['the-iconic', 'myer', 'david-jones'] as const).map((marketId) => {
+          {/* Coming-soon push panels — The Iconic, Myer, David Jones, JOOR */}
+          {(['the-iconic', 'myer', 'david-jones', 'joor'] as const).map((marketId) => {
             if (!selectedMarketplaces.includes(marketId)) return null
             const p = PALETTE[marketId]
             const rule = MARKETPLACE_RULES[marketId]
@@ -925,6 +945,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               'the-iconic': 'Create SellerCenter listings with images directly from ShotSync',
               'myer':        'Push product listings directly to Myer\'s supplier portal',
               'david-jones': 'Push product listings directly to David Jones\' supplier portal',
+              'joor':        'Push wholesale product listings and lookbook images to JOOR',
             }
             return (
               <div key={marketId} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', overflow: 'hidden', opacity: 0.75 }}>
