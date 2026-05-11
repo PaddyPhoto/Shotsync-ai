@@ -397,7 +397,7 @@ export default function DashboardPage() {
             const barColor = skuPct >= 90 ? '#ff453a' : skuPct >= 70 ? '#ff9f0a' : '#30d158'
             const nextMonth = new Date(); nextMonth.setMonth(nextMonth.getMonth() + 1); nextMonth.setDate(1)
             const resetLabel = nextMonth.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
-            const nextPlan = PLANS[planId === 'free' ? 'starter' : planId === 'starter' ? 'brand' : planId === 'brand' ? 'scale' : 'enterprise']
+            const nextPlan = PLANS[planId === 'free' ? 'launch' : planId === 'launch' ? 'growth' : planId === 'growth' ? 'scale' : 'enterprise']
 
             return (
               <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>

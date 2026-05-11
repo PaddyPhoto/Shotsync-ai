@@ -57,7 +57,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [planId, setPlanId] = useState<PlanId>(() => {
     if (typeof window === 'undefined') return 'free'
     const stored = localStorage.getItem(STORAGE_KEY)
-    return (stored && (['free', 'starter', 'brand', 'scale', 'enterprise'] as string[]).includes(stored))
+    return (stored && (['free', 'launch', 'growth', 'scale', 'enterprise'] as string[]).includes(stored))
       ? (stored as PlanId) : 'free'  // IDs are stable; display names are in PLANS[id].name
   })
   const [usage, setUsage] = useState<PlanUsage>(() => {
@@ -110,7 +110,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
 
     // Local/demo mode
     const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
-    if (stored && (['free', 'starter', 'brand', 'scale', 'enterprise'] as string[]).includes(stored)) {
+    if (stored && (['free', 'launch', 'growth', 'scale', 'enterprise'] as string[]).includes(stored)) {
       setPlanId(stored as PlanId)
     }
     const storedUsage = typeof window !== 'undefined' ? localStorage.getItem(USAGE_KEY) : null

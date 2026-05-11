@@ -1,6 +1,6 @@
 // ── Plan definitions ──────────────────────────────────────────────────────────
 
-export type PlanId = 'free' | 'starter' | 'brand' | 'scale' | 'enterprise'
+export type PlanId = 'free' | 'launch' | 'growth' | 'scale' | 'enterprise'
 
 export interface PlanLimits {
   skusPerMonth: number       // -1 = unlimited; cumulative SKUs processed across all jobs in the calendar month
@@ -54,8 +54,8 @@ export const PLANS: Record<PlanId, Plan> = {
     ],
     forNote: 'Try the workflow before you commit',
   },
-  starter: {
-    id: 'starter',
+  launch: {
+    id: 'launch',
     name: 'Launch',
     priceAud: 79,
     priceAudAnnual: 63,
@@ -83,8 +83,8 @@ export const PLANS: Record<PlanId, Plan> = {
     ],
     forNote: 'Small DTC brands, early-stage Shopify stores, new collections',
   },
-  brand: {
-    id: 'brand',
+  growth: {
+    id: 'growth',
     name: 'Growth',
     priceAud: 199,
     priceAudAnnual: 143,

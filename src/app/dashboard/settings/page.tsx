@@ -248,7 +248,7 @@ function SettingsInner() {
               <div className="card-body">
                 <div className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-3">
-                    <div className={`px-3 py-[5px] rounded-sm text-[0.85rem] font-bold uppercase tracking-[0.05em] ${planId === 'enterprise' ? 'bg-[rgba(232,122,122,0.15)] text-[var(--accent3)]' : planId === 'scale' ? 'bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]' : planId === 'brand' ? 'bg-[rgba(232,217,122,0.15)] text-[var(--accent)]' : planId === 'starter' ? 'bg-[rgba(62,207,142,0.15)] text-[var(--accent2)]' : 'bg-[var(--bg3)] text-[var(--text3)]'}`}>{plan.name}</div>
+                    <div className={`px-3 py-[5px] rounded-sm text-[0.85rem] font-bold uppercase tracking-[0.05em] ${planId === 'enterprise' ? 'bg-[rgba(232,122,122,0.15)] text-[var(--accent3)]' : planId === 'scale' ? 'bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]' : planId === 'growth' ? 'bg-[rgba(232,217,122,0.15)] text-[var(--accent)]' : planId === 'launch' ? 'bg-[rgba(62,207,142,0.15)] text-[var(--accent2)]' : 'bg-[var(--bg3)] text-[var(--text3)]'}`}>{plan.name}</div>
                     <div>
                       <p className="text-[0.88rem] font-semibold text-[var(--text)]">{plan.priceAud === 0 ? 'Free forever' : `$${plan.priceAud} AUD/month`}</p>
                       <p className="text-[0.8rem] text-[var(--text3)]">{plan.description}</p>
@@ -277,7 +277,7 @@ function SettingsInner() {
                     <thead>
                       <tr>
                         <th className="text-left text-[0.85rem] font-medium uppercase tracking-[0.08em] text-[var(--text3)] px-3 py-2 border-b border-[var(--line)]">Feature</th>
-                        {(['free', 'starter', 'brand', 'scale', 'enterprise'] as const).map((id) => (
+                        {(['free', 'launch', 'growth', 'scale', 'enterprise'] as const).map((id) => (
                           <th key={id} className={`text-center text-[0.85rem] font-medium uppercase tracking-[0.08em] px-3 py-2 border-b border-[var(--line)] ${id === planId ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}`}>{PLANS[id].name}{id === planId && ' ✓'}</th>
                         ))}
                       </tr>
@@ -296,7 +296,7 @@ function SettingsInner() {
                         <tr key={row.feature} className="hover:bg-[var(--bg3)] transition-colors">
                           <td className="px-3 py-[9px] text-[0.8rem] text-[var(--text2)] border-b border-[var(--line)]">{row.feature}</td>
                           {row.values.map((v, i) => {
-                            const id = (['free', 'starter', 'brand', 'scale', 'enterprise'] as const)[i]
+                            const id = (['free', 'launch', 'growth', 'scale', 'enterprise'] as const)[i]
                             return <td key={id} className={`px-3 py-[9px] text-[0.8rem] text-center border-b border-[var(--line)] ${id === planId ? 'font-semibold text-[var(--text)]' : 'text-[var(--text3)]'}`} style={v === '✓' ? { color: 'var(--accent2)' } : {}}>{v}</td>
                           })}
                         </tr>

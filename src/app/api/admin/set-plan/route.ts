@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
 const ADMIN_EMAIL = 'photoworkssydney@gmail.com'
-const VALID_PLANS = ['free', 'starter', 'brand', 'scale', 'enterprise']
+const VALID_PLANS = ['free', 'launch', 'growth', 'scale', 'enterprise']
 
 export async function POST(req: NextRequest) {
   try {

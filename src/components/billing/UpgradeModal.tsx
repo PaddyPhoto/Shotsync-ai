@@ -9,7 +9,7 @@ const STRIPE_CONFIGURED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY !== 'pk_test_placeholder'
 )
 
-const PLAN_ORDER: PlanId[] = ['free', 'starter', 'brand', 'scale', 'enterprise']
+const PLAN_ORDER: PlanId[] = ['free', 'launch', 'growth', 'scale', 'enterprise']
 
 export function UpgradeModal() {
   const { upgradeReason, closeUpgrade, planId, refreshPlan } = usePlan()
@@ -69,7 +69,7 @@ export function UpgradeModal() {
     }
   }
 
-  const upgradePlans = (['starter', 'brand', 'scale', 'enterprise'] as PlanId[]).filter((id) => id !== planId)
+  const upgradePlans = (['launch', 'growth', 'scale', 'enterprise'] as PlanId[]).filter((id) => id !== planId)
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}>
@@ -101,7 +101,7 @@ export function UpgradeModal() {
         <div className="px-6 pb-6 grid grid-cols-2 gap-4">
           {upgradePlans.map((id) => {
             const p = PLANS[id]
-            const isRecommended = id === 'brand'  // Growth plan is the featured tier
+            const isRecommended = id === 'growth'
             return (
               <div
                 key={id}

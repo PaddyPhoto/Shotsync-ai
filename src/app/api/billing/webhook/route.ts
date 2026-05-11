@@ -31,8 +31,8 @@ async function sendSubscriptionEmails(orgId: string, planId: PlanId, service: Aw
   if (!email) return
   const plan = PLANS[planId]
   await Promise.all([
-    sendEmail(welcomePaidEmail(email, plan.name, planId === 'brand')),
-    sendEmail(adminNewSubscriberEmail(email, plan.name, plan.priceAud, planId === 'brand')),
+    sendEmail(welcomePaidEmail(email, plan.name, planId === 'growth')),
+    sendEmail(adminNewSubscriberEmail(email, plan.name, plan.priceAud, planId === 'growth')),
   ])
 }
 
@@ -44,8 +44,8 @@ async function sendPaymentFailedEmail(orgId: string, planId: PlanId, service: Aw
 
 // Map Stripe price IDs → plan IDs
 function priceIdToPlan(priceId: string): PlanId | null {
-  if (priceId === process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID) return 'starter'
-  if (priceId === process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID) return 'brand'
+  if (priceId === process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID) return 'launch'
+  if (priceId === process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID) return 'growth'
   if (priceId === process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID) return 'scale'
   if (priceId === process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID) return 'enterprise'
   return null

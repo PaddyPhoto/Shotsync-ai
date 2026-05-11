@@ -24,7 +24,7 @@ export default function AdminPage() {
 
   // Plan override state
   const [planEmail, setPlanEmail] = useState('')
-  const [planValue, setPlanValue] = useState('brand')
+  const [planValue, setPlanValue] = useState('growth')
   const [planLoading, setPlanLoading] = useState(false)
   const [planResult, setPlanResult] = useState<{ orgName: string; previousPlan: string; newPlan: string; email: string } | null>(null)
   const [planError, setPlanError] = useState<string | null>(null)
@@ -166,8 +166,8 @@ export default function AdminPage() {
                   style={{ width: '130px' }}
                 >
                   <option value="free">Free</option>
-                  <option value="starter">Starter</option>
-                  <option value="brand">Brand</option>
+                  <option value="launch">Launch</option>
+                  <option value="growth">Growth</option>
                   <option value="scale">Scale</option>
                   <option value="enterprise">Enterprise</option>
                 </select>
