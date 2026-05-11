@@ -1001,6 +1001,7 @@ function ReviewPage() {
                               setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
                             }}
                             onBlur={() => setTimeout(() => setSkuSearchOpen(null), 150)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { setSkuInput((s) => ({ ...s, [cluster.id]: skuSearchQuery[cluster.id] ?? currentSku })); handleConfirm(cluster.id); setSkuSearchOpen(null) } }}
                             style={{ fontFamily: 'var(--font-dm-mono)' }}
                           />
                           {skuSearchOpen === cluster.id && (
