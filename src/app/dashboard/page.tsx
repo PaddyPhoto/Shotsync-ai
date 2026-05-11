@@ -25,6 +25,30 @@ interface LifetimeStats {
   total_exports: number
 }
 
+// ── Dashboard cache ───────────────────────────────────────────────────────────
+const DASH_CACHE_TTL = 30_000
+const DASH_SS_KEY = 'shotsync:dashboard-cache'
+interface DashCache { brandId: string | null; jobs: JobRecord[]; stats: LifetimeStats | null; orgName: string | null; ts: number }
+let _dashCache: DashCache | null = null
+
+function readDashCache(brandId: string | null): DashCache | null {
+  if (_dashCache?.brandId === brandId && Date.now() - _dashCache.ts < DASH_CACHE_TTL) return _dashCache
+  try {
+    const raw = sessionStorage.getItem(DASH_SS_KEY)
+    if (!raw) return null
+    const p = JSON.parse(raw) as DashCache
+    if (p.brandId === brandId && Date.now() - p.ts < DASH_CACHE_TTL) return p
+  } catch { /* ignore */ }
+  return null
+}
+
+function writeDashCache(brandId: string | null, jobs: JobRecord[], stats: LifetimeStats | null, orgName: string | null) {
+  const entry: DashCache = { brandId, jobs, stats, orgName, ts: Date.now() }
+  _dashCache = entry
+  try { sessionStorage.setItem(DASH_SS_KEY, JSON.stringify(entry)) } catch { /* ignore */ }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const STATUS_CHIP: Record<string, { bg: string; color: string; label: string }> = {
   processing: { bg: 'rgba(0,122,255,0.12)',  color: '#4da3ff', label: 'Processing' },
   completed:  { bg: 'rgba(48,209,88,0.12)',  color: '#30d158', label: 'Ready'      },
@@ -54,38 +78,49 @@ export default function DashboardPage() {
   const [draftLoading, setDraftLoading] = useState(false)
 
   useEffect(() => {
-    import('@/lib/supabase/client').then(({ createClient }) =>
-      createClient().auth.getSession()
-    ).then(({ data: { session } }) => {
-      if (!session?.access_token) return
-      fetch('/api/orgs/me', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      }).then((r) => r.json()).then(({ data }) => {
-        if (data?.name) setOrgName(data.name)
-      }).catch(() => {})
-    }).catch(() => {})
-  }, [])
+    const brandId = activeBrand?.id ?? null
 
-  useEffect(() => {
-    if (brandsLoading) return  // wait for brands to resolve so this only fires once
-    setLoading(true)
-    const url = activeBrand?.id
-      ? `/api/jobs/history?brand_id=${activeBrand.id}`
-      : '/api/jobs/history'
-    import('@/lib/supabase/client').then(({ createClient }) =>
-      createClient().auth.getSession()
-    ).then(({ data: { session } }) =>
-      fetch(url, {
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+    // Show cached data instantly — don't wait for brands or network
+    const cached = readDashCache(brandId)
+    if (cached) {
+      setJobs(cached.jobs)
+      if (cached.stats) setStats(cached.stats)
+      if (cached.orgName) setOrgName(cached.orgName)
+      setLoading(false)
+    }
+
+    // Wait for brands to resolve before fetching (avoids a double-fetch on cold load)
+    if (brandsLoading) return
+
+    const background = !!cached
+    if (!background) setLoading(true)
+
+    const jobsUrl = brandId ? `/api/jobs/history?brand_id=${brandId}` : '/api/jobs/history'
+
+    import('@/lib/supabase/client')
+      .then(({ createClient }) => createClient().auth.getSession())
+      .then(({ data: { session } }) => {
+        const headers: Record<string, string> = session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {}
+        // Both API calls share one getSession() and run in parallel
+        return Promise.all([
+          fetch(jobsUrl, { headers }).then((r) => r.json()),
+          cached?.orgName ? Promise.resolve(null) : fetch('/api/orgs/me', { headers }).then((r) => r.json()),
+        ])
       })
-    ).then((r) => r.json())
-      .then(({ data, stats: s }) => {
-        setJobs(Array.isArray(data) ? data.slice(0, 4) : [])
-        if (s) setStats(s)
+      .then(([jobsJson, orgJson]) => {
+        const newJobs = Array.isArray(jobsJson?.data) ? jobsJson.data.slice(0, 4) : []
+        const newStats: LifetimeStats | null = jobsJson?.stats ?? null
+        const newOrgName: string | null = orgJson?.data?.name ?? cached?.orgName ?? null
+        setJobs(newJobs)
+        if (newStats) setStats(newStats)
+        if (newOrgName) setOrgName(newOrgName)
+        writeDashCache(brandId, newJobs, newStats, newOrgName)
       })
-      .catch(() => setJobs([]))
+      .catch(() => { if (!background) setJobs([]) })
       .finally(() => setLoading(false))
-  }, [activeBrand?.id, brandsLoading])
+  }, [activeBrand?.id, brandsLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check IDB for a saved draft session (unfinished job from a previous browser session)
   useEffect(() => {
