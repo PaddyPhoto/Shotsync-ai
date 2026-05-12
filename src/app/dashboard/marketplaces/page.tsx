@@ -234,6 +234,46 @@ function MarketplacesInner() {
                             })}
                           </div>
                         </div>
+
+                        {/* Angle export order */}
+                        <div className="col-span-2 flex items-start justify-between py-[12px] border-b border-[var(--line)]">
+                          <div className="flex-shrink-0 mr-6">
+                            <p className="text-[0.8rem] text-[var(--text2)]">Export Image Order</p>
+                            <p className="text-[0.86rem] text-[var(--text3)] mt-[2px]">Drag or use arrows to set the angle sequence in exported files</p>
+                          </div>
+                          <div className="flex flex-col gap-[4px] min-w-[180px]">
+                            {(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order).map((v, i, arr) => (
+                              <div key={v} className="flex items-center gap-2 bg-[var(--bg3)] rounded-[6px] px-2 py-[5px]">
+                                <span className="text-[0.75rem] text-[var(--text3)] w-[16px] text-center flex-shrink-0">{i + 1}</span>
+                                <span className={`shot-pill text-[0.75rem] flex-1 ${VIEW_PILL_CLS[v] ?? ''}`}>{v}</span>
+                                <div className="flex flex-col gap-[1px]">
+                                  <button
+                                    disabled={i === 0}
+                                    onClick={() => {
+                                      const next = [...arr]
+                                      ;[next[i - 1], next[i]] = [next[i], next[i - 1]]
+                                      updateRule(id, { angle_order: next })
+                                    }}
+                                    className="w-[18px] h-[14px] flex items-center justify-center rounded-[3px] hover:bg-[var(--line2)] disabled:opacity-20 transition-opacity"
+                                  >
+                                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 4.5L4 1.5L7 4.5"/></svg>
+                                  </button>
+                                  <button
+                                    disabled={i === arr.length - 1}
+                                    onClick={() => {
+                                      const next = [...arr]
+                                      ;[next[i], next[i + 1]] = [next[i + 1], next[i]]
+                                      updateRule(id, { angle_order: next })
+                                    }}
+                                    className="w-[18px] h-[14px] flex items-center justify-center rounded-[3px] hover:bg-[var(--line2)] disabled:opacity-20 transition-opacity"
+                                  >
+                                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 1.5L4 4.5L7 1.5"/></svg>
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                         <SRow label="Width (px)" sub="Output image width"><input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.width} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, width: Number(e.target.value) } })} /></SRow>
                         <SRow label="Height (px)" sub="Output image height"><input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.height} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, height: Number(e.target.value) } })} /></SRow>
                         <SRow label="File Format" sub="Output file type">

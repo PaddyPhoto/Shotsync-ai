@@ -84,6 +84,7 @@ export interface MarketplaceRule {
   id: MarketplaceName
   name: string
   required_views: ViewLabel[]
+  angle_order: ViewLabel[]   // export sequence — images sorted in this order per marketplace
   image_dimensions: { width: number; height: number }
   file_format: 'jpg' | 'png'
   quality: number

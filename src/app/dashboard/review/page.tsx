@@ -1858,7 +1858,7 @@ function ExportPanel({
 
     // Helper: build the task list for a marketplace (shared by both paths)
     type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }
-    const buildTasks = (template: string): ExportTask[] => {
+    const buildTasks = (template: string, angleOrder: string[]): ExportTask[] => {
       const tasks: ExportTask[] = []
       for (let clusterIdx = 0; clusterIdx < confirmedClusters.length; clusterIdx++) {
         const cluster = confirmedClusters[clusterIdx]
@@ -1873,7 +1873,12 @@ function ExportPanel({
           const bIsGM = b.viewLabel === 'ghost-mannequin'
           if (aIsGM && !bIsGM) return gmPosition === 'first' ? -1 : 1
           if (!aIsGM && bIsGM) return gmPosition === 'first' ? 1 : -1
-          return 0
+          // Sort by configured angle order; unlisted angles go to the end
+          const aIdx = angleOrder.indexOf(a.viewLabel ?? '')
+          const bIdx = angleOrder.indexOf(b.viewLabel ?? '')
+          const aPos = aIdx === -1 ? 999 : aIdx
+          const bPos = bIdx === -1 ? 999 : bIdx
+          return aPos - bPos
         })
         for (let imgIdx = 0; imgIdx < sortedImages.length; imgIdx++) {
           tasks.push({ cluster, seq, img: sortedImages[imgIdx], imgIdx, folderName })
@@ -1892,7 +1897,7 @@ function ExportPanel({
         const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
         // Always create the marketplace folder — flatExport only skips SKU subfolders
         const mpHandle = await rootHandle.getDirectoryHandle(rule.name.replace(/\s+/g, '_'), { create: true })
-        const tasks = buildTasks(template)
+        const tasks = buildTasks(template, rule.angle_order ?? MARKETPLACE_RULES[marketplace].angle_order)
 
         // Sequential writes — FSA API holds swap files open until close(), so concurrent
         // writes stack up in memory. One-at-a-time lets each file flush to disk before the next.
@@ -2001,7 +2006,7 @@ function ExportPanel({
           const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
           const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
-          const tasks = buildTasks(template)
+          const tasks = buildTasks(template, rule.angle_order ?? MARKETPLACE_RULES[marketplace].angle_order)
 
           for (let i = 0; i < tasks.length; i += CONCURRENCY) {
             await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
@@ -2074,7 +2079,7 @@ function ExportPanel({
         for (const marketplace of selectedMarketplaces) {
           const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
-          const tasks = buildTasks(template)
+          const tasks = buildTasks(template, rule.angle_order ?? MARKETPLACE_RULES[marketplace].angle_order)
           for (const { cluster, seq, img, imgIdx } of tasks) {
             const filename = useOriginalNames
               ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
@@ -2138,7 +2143,7 @@ function ExportPanel({
           driveMpFolderId = await (cloudLib as typeof import('@/lib/cloud/google-drive')).createDriveFolder(driveToken, mpFolderName, driveRootFolderId)
         }
 
-        const tasks = buildTasks(template)
+        const tasks = buildTasks(template, rule.angle_order ?? MARKETPLACE_RULES[marketplace].angle_order)
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
           await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx }) => {
             try {
