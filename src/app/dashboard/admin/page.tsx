@@ -1,12 +1,31 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { createClient } from '@/lib/supabase/client'
 import type { Session } from '@supabase/supabase-js'
 
 const ADMIN_EMAIL = 'photoworkssydney@gmail.com'
+
+const EVENT_LABELS: Record<string, { label: string; color: string }> = {
+  'job.completed':      { label: 'Job exported',     color: 'var(--accent2)' },
+  'plan.upgraded':      { label: 'Plan upgraded',     color: 'var(--accent4)' },
+  'plan.changed':       { label: 'Plan changed',      color: 'var(--accent4)' },
+  'plan.admin_override':{ label: 'Admin override',    color: 'var(--accent)' },
+  'export.started':     { label: 'Export started',    color: 'var(--text3)' },
+  'export.failed':      { label: 'Export failed',     color: 'var(--accent3)' },
+}
+
+interface ActivityRow {
+  id: string
+  event: string
+  metadata: Record<string, unknown>
+  created_at: string
+  org_id: string
+  org_name: string
+  user_email: string | null
+}
 
 export default function AdminPage() {
   const router = useRouter()
@@ -22,6 +41,11 @@ export default function AdminPage() {
   const [testLoading, setTestLoading] = useState(false)
   const [testResult, setTestResult] = useState<string | null>(null)
 
+  // Activity log state
+  const [activity, setActivity] = useState<ActivityRow[]>([])
+  const [activityLoading, setActivityLoading] = useState(false)
+  const [activityFilter, setActivityFilter] = useState('')
+
   // Plan override state
   const [planEmail, setPlanEmail] = useState('')
   const [planValue, setPlanValue] = useState('growth')
@@ -29,15 +53,29 @@ export default function AdminPage() {
   const [planResult, setPlanResult] = useState<{ orgName: string; previousPlan: string; newPlan: string; email: string } | null>(null)
   const [planError, setPlanError] = useState<string | null>(null)
 
+  const fetchActivity = useCallback(async (tok: string) => {
+    setActivityLoading(true)
+    try {
+      const res = await fetch('/api/admin/activity?limit=200', {
+        headers: { Authorization: `Bearer ${tok}` },
+      })
+      const json = await res.json()
+      if (res.ok) setActivity(json.data ?? [])
+    } finally {
+      setActivityLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     createClient().auth.getSession().then(({ data: { session: s } }) => {
       if (!s || s.user.email !== ADMIN_EMAIL) {
         router.replace('/dashboard')
       } else {
         setSession(s)
+        fetchActivity(s.access_token)
       }
     })
-  }, [router])
+  }, [router, fetchActivity])
 
   if (!session) return null
 
@@ -347,6 +385,80 @@ export default function AdminPage() {
               </div>
             )}
 
+          </div>
+        </div>
+
+        {/* Activity Log */}
+        <div className="card" style={{ marginBottom: '16px' }}>
+          <div className="card-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h2 className="text-[1rem] font-[600] text-[var(--text)]">Activity Log</h2>
+              <p className="text-[0.8rem] text-[var(--text3)] mt-1">Last 200 events across all orgs.</p>
+            </div>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => fetchActivity(token)}
+              disabled={activityLoading}
+            >
+              {activityLoading ? 'Loading…' : 'Refresh'}
+            </button>
+          </div>
+          <div className="card-body flex flex-col gap-3">
+            <input
+              className="input text-[0.85rem] py-[6px]"
+              placeholder="Filter by org, email, or event…"
+              value={activityFilter}
+              onChange={(e) => setActivityFilter(e.target.value)}
+            />
+            {activityLoading ? (
+              <p className="text-[0.85rem] text-[var(--text3)] py-4 text-center">Loading…</p>
+            ) : activity.length === 0 ? (
+              <p className="text-[0.85rem] text-[var(--text3)] py-4 text-center">No activity yet.</p>
+            ) : (
+              <div className="flex flex-col gap-[2px]">
+                {activity
+                  .filter((row) => {
+                    if (!activityFilter.trim()) return true
+                    const q = activityFilter.toLowerCase()
+                    return (
+                      row.org_name?.toLowerCase().includes(q) ||
+                      row.user_email?.toLowerCase().includes(q) ||
+                      row.event.toLowerCase().includes(q) ||
+                      JSON.stringify(row.metadata).toLowerCase().includes(q)
+                    )
+                  })
+                  .map((row) => {
+                    const ev = EVENT_LABELS[row.event] ?? { label: row.event, color: 'var(--text3)' }
+                    const date = new Date(row.created_at)
+                    const dateStr = date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: '2-digit' })
+                    const timeStr = date.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
+                    return (
+                      <div key={row.id} className="flex items-start gap-3 px-3 py-[10px] rounded-[8px] hover:bg-[var(--bg3)] transition-colors">
+                        <div className="flex-shrink-0 w-[8px] h-[8px] rounded-full mt-[5px]" style={{ background: ev.color }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[0.82rem] font-[600] text-[var(--text)]">{row.org_name}</span>
+                            <span className="text-[0.78rem] px-[6px] py-[1px] rounded-[4px]" style={{ background: `color-mix(in srgb, ${ev.color} 12%, transparent)`, color: ev.color }}>{ev.label}</span>
+                          </div>
+                          {row.user_email && (
+                            <p className="text-[0.78rem] text-[var(--text3)] font-mono truncate mt-[1px]">{row.user_email}</p>
+                          )}
+                          {Object.keys(row.metadata).length > 0 && (
+                            <p className="text-[0.78rem] text-[var(--text3)] mt-[2px] truncate">
+                              {row.event === 'job.completed' && `${row.metadata.job_name} · ${row.metadata.cluster_count} SKUs · ${(row.metadata.marketplaces as string[])?.join(', ')}`}
+                              {(row.event === 'plan.upgraded' || row.event === 'plan.changed' || row.event === 'plan.admin_override') && `${row.metadata.plan_from ? `${row.metadata.plan_from} → ` : ''}${row.metadata.plan_to}`}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <p className="text-[0.78rem] text-[var(--text3)]">{dateStr}</p>
+                          <p className="text-[0.75rem] text-[var(--text3)] opacity-60">{timeStr}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            )}
           </div>
         </div>
 

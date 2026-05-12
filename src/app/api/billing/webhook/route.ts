@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PLANS, type PlanId } from '@/lib/plans'
 import { sendEmail, welcomePaidEmail, adminNewSubscriberEmail, paymentFailedEmail, trialEndingEmail } from '@/lib/email'
+import { logActivity } from '@/lib/activity'
 
 export const dynamic = 'force-dynamic'
 
@@ -99,6 +100,7 @@ export async function POST(req: NextRequest) {
 
           if (updateError) console.error('[webhook] plan update error:', updateError.message)
 
+          logActivity(orgId, null, 'plan.upgraded', { plan_to: planId })
           await sendSubscriptionEmails(orgId, planId, service)
         }
         break

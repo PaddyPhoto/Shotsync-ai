@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PLANS, type PlanId } from '@/lib/plans'
+import { logActivity } from '@/lib/activity'
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -139,6 +140,12 @@ export async function POST(req: NextRequest) {
       console.error('POST /api/jobs/history insert error:', error.message, { org_id: membership.org_id, brand_id })
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+    logActivity(membership.org_id, user.id, 'job.completed', {
+      job_name: job_name ?? 'Untitled Shoot',
+      image_count: image_count ?? 0,
+      cluster_count: cluster_count ?? 0,
+      marketplaces: marketplaces ?? [],
+    })
     return NextResponse.json({ data }, { status: 201 })
   } catch (err) {
     console.error('POST /api/jobs/history error:', err)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/activity'
 
 const ADMIN_EMAIL = 'photoworkssydney@gmail.com'
 const VALID_PLANS = ['free', 'launch', 'growth', 'scale', 'enterprise']
@@ -54,6 +55,12 @@ export async function POST(req: NextRequest) {
       .eq('id', membership.org_id)
 
     if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
+
+    logActivity(membership.org_id, null, 'plan.admin_override', {
+      plan_from: org?.plan ?? 'unknown',
+      plan_to: plan,
+      admin: user.email,
+    })
 
     return NextResponse.json({
       ok: true,
