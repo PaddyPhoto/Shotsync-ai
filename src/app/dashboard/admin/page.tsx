@@ -27,6 +27,36 @@ interface ActivityRow {
   user_email: string | null
 }
 
+interface UserRow {
+  id: string
+  email: string
+  created_at: string
+  last_sign_in_at: string | null
+  org_name: string | null
+  org_id: string | null
+  plan: string
+  role: string | null
+  job_count: number
+}
+
+const PLAN_COLOURS: Record<string, string> = {
+  free:       'var(--text3)',
+  launch:     'var(--accent2)',
+  growth:     'var(--accent)',
+  scale:      'var(--accent4)',
+  enterprise: 'var(--accent3)',
+}
+
+function sydneyTime(iso: string | null): string {
+  if (!iso) return 'Never'
+  const d = new Date(iso)
+  return d.toLocaleString('en-AU', {
+    timeZone: 'Australia/Sydney',
+    day: 'numeric', month: 'short', year: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 export default function AdminPage() {
   const router = useRouter()
   const [session, setSession] = useState<Session | null>(null)
@@ -41,6 +71,11 @@ export default function AdminPage() {
   const [testLoading, setTestLoading] = useState(false)
   const [testResult, setTestResult] = useState<string | null>(null)
 
+  // Users state
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [usersFilter, setUsersFilter] = useState('')
+
   // Activity log state
   const [activity, setActivity] = useState<ActivityRow[]>([])
   const [activityLoading, setActivityLoading] = useState(false)
@@ -52,6 +87,17 @@ export default function AdminPage() {
   const [planLoading, setPlanLoading] = useState(false)
   const [planResult, setPlanResult] = useState<{ orgName: string; previousPlan: string; newPlan: string; email: string } | null>(null)
   const [planError, setPlanError] = useState<string | null>(null)
+
+  const fetchUsers = useCallback(async (tok: string) => {
+    setUsersLoading(true)
+    try {
+      const res = await fetch('/api/admin/users', { headers: { Authorization: `Bearer ${tok}` } })
+      const json = await res.json()
+      if (res.ok) setUsers(json.data ?? [])
+    } finally {
+      setUsersLoading(false)
+    }
+  }, [])
 
   const fetchActivity = useCallback(async (tok: string) => {
     setActivityLoading(true)
@@ -72,10 +118,11 @@ export default function AdminPage() {
         router.replace('/dashboard')
       } else {
         setSession(s)
+        fetchUsers(s.access_token)
         fetchActivity(s.access_token)
       }
     })
-  }, [router, fetchActivity])
+  }, [router, fetchUsers, fetchActivity])
 
   if (!session) return null
 
@@ -388,6 +435,65 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* Users */}
+        <div className="card" style={{ marginBottom: '16px' }}>
+          <div className="card-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h2 className="text-[1rem] font-[600] text-[var(--text)]">Users</h2>
+              <p className="text-[0.8rem] text-[var(--text3)] mt-1">{users.length} accounts · sorted by last seen · Sydney time</p>
+            </div>
+            <button className="btn btn-ghost btn-sm" onClick={() => fetchUsers(token)} disabled={usersLoading}>
+              {usersLoading ? 'Loading…' : 'Refresh'}
+            </button>
+          </div>
+          <div className="card-body flex flex-col gap-3">
+            <input
+              className="input text-[0.85rem] py-[6px]"
+              placeholder="Filter by email, org, or plan…"
+              value={usersFilter}
+              onChange={(e) => setUsersFilter(e.target.value)}
+            />
+            {usersLoading ? (
+              <p className="text-[0.85rem] text-[var(--text3)] py-4 text-center">Loading…</p>
+            ) : (
+              <div className="flex flex-col gap-[2px]">
+                {users
+                  .filter((u) => {
+                    if (!usersFilter.trim()) return true
+                    const q = usersFilter.toLowerCase()
+                    return (
+                      u.email.toLowerCase().includes(q) ||
+                      u.org_name?.toLowerCase().includes(q) ||
+                      u.plan.toLowerCase().includes(q)
+                    )
+                  })
+                  .map((u) => (
+                    <div key={u.id} className="flex items-center gap-3 px-3 py-[10px] rounded-[8px] hover:bg-[var(--bg3)] transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[0.85rem] font-medium text-[var(--text)] truncate">{u.email}</span>
+                          <span className="text-[0.75rem] font-semibold uppercase tracking-wide px-[6px] py-[1px] rounded-[4px]"
+                            style={{ color: PLAN_COLOURS[u.plan] ?? 'var(--text3)', background: `color-mix(in srgb, ${PLAN_COLOURS[u.plan] ?? 'var(--text3)'} 10%, transparent)` }}>
+                            {u.plan}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-[2px] flex-wrap">
+                          {u.org_name && <span className="text-[0.78rem] text-[var(--text3)]">{u.org_name}</span>}
+                          <span className="text-[0.78rem] text-[var(--text3)]">{u.job_count} job{u.job_count !== 1 ? 's' : ''}</span>
+                          <span className="text-[0.78rem] text-[var(--text3)]">joined {sydneyTime(u.created_at).split(',')[0]}</span>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-[0.78rem] text-[var(--text2)]">Last seen</p>
+                        <p className="text-[0.78rem] text-[var(--text3)]">{sydneyTime(u.last_sign_in_at)}</p>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Activity Log */}
         <div className="card" style={{ marginBottom: '16px' }}>
           <div className="card-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -429,9 +535,8 @@ export default function AdminPage() {
                   })
                   .map((row) => {
                     const ev = EVENT_LABELS[row.event] ?? { label: row.event, color: 'var(--text3)' }
-                    const date = new Date(row.created_at)
-                    const dateStr = date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: '2-digit' })
-                    const timeStr = date.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
+                    const dateStr = new Date(row.created_at).toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', day: 'numeric', month: 'short', year: '2-digit' })
+                    const timeStr = new Date(row.created_at).toLocaleTimeString('en-AU', { timeZone: 'Australia/Sydney', hour: '2-digit', minute: '2-digit' })
                     return (
                       <div key={row.id} className="flex items-start gap-3 px-3 py-[10px] rounded-[8px] hover:bg-[var(--bg3)] transition-colors">
                         <div className="flex-shrink-0 w-[8px] h-[8px] rounded-full mt-[5px]" style={{ background: ev.color }} />
