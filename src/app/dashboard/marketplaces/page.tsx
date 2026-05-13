@@ -249,7 +249,7 @@ function MarketplacesInner() {
 
                           {/* Default row */}
                           <div className="flex items-center gap-3 mb-[6px]">
-                            <span className="text-[0.78rem] text-[var(--text3)] w-[90px] flex-shrink-0 font-medium">Default</span>
+                            <span className="text-[0.78rem] text-[var(--text3)] w-[160px] flex-shrink-0 font-medium">Default</span>
                             <AnglePillRow
                               views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
                               allViews={ALL_VIEWS}
@@ -267,7 +267,7 @@ function MarketplacesInner() {
                           {(rule.category_overrides ?? []).map((ov) => (
                             <div key={ov.id} className="flex items-center gap-3 mt-[6px]">
                               <select
-                                className="text-[0.78rem] flex-shrink-0 input py-[3px] cursor-pointer"
+                                className="text-[0.78rem] w-[160px] flex-shrink-0 input py-[3px] cursor-pointer"
                                 value={ov.category}
                                 onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
                               >
