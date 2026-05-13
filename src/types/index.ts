@@ -80,11 +80,22 @@ export interface SKUSuggestion {
 
 // ─── Marketplace ──────────────────────────────────────────────────────────────
 
+export interface CategoryOverride {
+  id: string           // uuid, client-generated
+  category: string     // matches cluster.garmentCategory (case-insensitive trim)
+  label: string        // display name shown in UI
+  angle_order?: ViewLabel[]
+  required_views?: ViewLabel[]
+  hero_view?: ViewLabel   // force this view to position 1 (overrides angle_order[0])
+  exclude_views?: ViewLabel[]  // skip these views entirely in this category's export
+}
+
 export interface MarketplaceRule {
   id: MarketplaceName
   name: string
   required_views: ViewLabel[]
   angle_order: ViewLabel[]   // export sequence — images sorted in this order per marketplace
+  category_overrides?: CategoryOverride[]  // per-category overrides on top of the default
   image_dimensions: { width: number; height: number }
   file_format: 'jpg' | 'png'
   quality: number

@@ -606,6 +606,7 @@ export default function UploadPage() {
         styleNumber: sc.style_number,
         label: sc.label,
         category: sc.category,
+        garmentCategory: null,
         isBottomwear: sc.is_bottomwear,
         confirmed: sc.confirmed,
         exported: false,

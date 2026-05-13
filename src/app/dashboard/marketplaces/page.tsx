@@ -10,7 +10,7 @@ import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
 import type { ReactNode } from 'react'
-import type { MarketplaceName, ViewLabel } from '@/types'
+import type { MarketplaceName, ViewLabel, CategoryOverride } from '@/types'
 
 const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
 
@@ -62,6 +62,8 @@ function MarketplacesInner() {
   const [disconnecting, setDisconnecting] = useState<string | null>(null)
   const [connectModal, setConnectModal] = useState<null | 'google_drive' | 'dropbox'>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [overridesOpen, setOverridesOpen] = useState<Set<MarketplaceName>>(new Set())
+  const [editingOverride, setEditingOverride] = useState<{ mpId: MarketplaceName; overrideId: string } | null>(null)
 
   useEffect(() => {
     const connected = searchParams.get('cloud_connected')
@@ -274,6 +276,179 @@ function MarketplacesInner() {
                             ))}
                           </div>
                         </div>
+
+                        {/* Category Overrides accordion */}
+                        <div className="col-span-2 border-b border-[var(--line)]">
+                          <button
+                            type="button"
+                            onClick={() => setOverridesOpen((prev) => {
+                              const next = new Set(prev)
+                              if (next.has(id)) next.delete(id); else next.add(id)
+                              return next
+                            })}
+                            className="w-full flex items-center justify-between py-[12px] text-left group"
+                          >
+                            <div>
+                              <p className="text-[0.8rem] text-[var(--text2)] flex items-center gap-1">
+                                Category Overrides
+                                <HelpTooltip position="right" width={280} content="Per-garment-category export rules. When a cluster's category matches, these settings override the default angle order, hero view, and excluded views." />
+                                {(rule.category_overrides?.length ?? 0) > 0 && (
+                                  <span className="ml-1 px-[5px] py-[1px] rounded-full text-[0.7rem] bg-[var(--bg3)] text-[var(--text3)]">{rule.category_overrides!.length}</span>
+                                )}
+                              </p>
+                              <p className="text-[0.86rem] text-[var(--text3)] mt-[2px]">Override angle order and views for specific garment categories</p>
+                            </div>
+                            <svg
+                              width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                              className={`text-[var(--text3)] transition-transform flex-shrink-0 ${overridesOpen.has(id) ? 'rotate-180' : ''}`}
+                            >
+                              <path d="M2 4l4 4 4-4"/>
+                            </svg>
+                          </button>
+
+                          {overridesOpen.has(id) && (
+                            <div className="pb-3 flex flex-col gap-2">
+                              {(rule.category_overrides ?? []).map((ov) => {
+                                const isEditing = editingOverride?.mpId === id && editingOverride?.overrideId === ov.id
+                                return (
+                                  <div key={ov.id} className="rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)] overflow-hidden">
+                                    <div className="flex items-center gap-2 px-3 py-2">
+                                      <span className="text-[0.85rem] font-medium text-[var(--text2)] flex-1 truncate">{ov.label || ov.category || '(unnamed)'}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditingOverride(isEditing ? null : { mpId: id, overrideId: ov.id })}
+                                        className="text-[0.78rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors px-1"
+                                      >
+                                        {isEditing ? 'Done' : 'Edit'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateRule(id, { category_overrides: (rule.category_overrides ?? []).filter((o) => o.id !== ov.id) })}
+                                        className="text-[var(--text3)] hover:text-[#ff3b30] transition-colors"
+                                        title="Delete override"
+                                      >
+                                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
+                                      </button>
+                                    </div>
+                                    {!isEditing && (
+                                      <div className="px-3 pb-2 flex flex-wrap gap-x-4 gap-y-1">
+                                        {ov.hero_view && <span className="text-[0.78rem] text-[var(--text3)]">Hero: <span className="text-[var(--text2)]">{ov.hero_view}</span></span>}
+                                        {ov.exclude_views && ov.exclude_views.length > 0 && <span className="text-[0.78rem] text-[var(--text3)]">Exclude: <span className="text-[var(--text2)]">{ov.exclude_views.join(', ')}</span></span>}
+                                        {ov.angle_order && ov.angle_order.length > 0 && <span className="text-[0.78rem] text-[var(--text3)]">Order: <span className="text-[var(--text2)]">{ov.angle_order.join(' → ')}</span></span>}
+                                        {!ov.hero_view && (!ov.exclude_views || ov.exclude_views.length === 0) && (!ov.angle_order || ov.angle_order.length === 0) && (
+                                          <span className="text-[0.78rem] text-[var(--text3)] italic">No overrides set — click Edit to configure</span>
+                                        )}
+                                      </div>
+                                    )}
+                                    {isEditing && (
+                                      <div className="px-3 pb-3 flex flex-col gap-3 border-t border-[var(--line)]">
+                                        <div className="grid grid-cols-2 gap-2 pt-2">
+                                          <div>
+                                            <label className="text-[0.78rem] text-[var(--text3)] mb-1 block">Category name</label>
+                                            <input
+                                              className="input text-[0.8rem] py-[4px] w-full"
+                                              placeholder="e.g. Mens Suits"
+                                              value={ov.category}
+                                              onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
+                                            />
+                                            <p className="text-[0.72rem] text-[var(--text3)] mt-1">Must match the garment category on the cluster exactly (case-insensitive)</p>
+                                          </div>
+                                          <div>
+                                            <label className="text-[0.78rem] text-[var(--text3)] mb-1 block">Hero view <span className="text-[var(--text3)]">(override position 1)</span></label>
+                                            <select
+                                              className="input text-[0.8rem] py-[4px] w-full"
+                                              value={ov.hero_view ?? ''}
+                                              onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, hero_view: e.target.value as ViewLabel || undefined } : o) })}
+                                            >
+                                              <option value="">— none —</option>
+                                              {ALL_VIEWS.map((v) => <option key={v} value={v}>{v}</option>)}
+                                            </select>
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <label className="text-[0.78rem] text-[var(--text3)] mb-1 block">Exclude views <span className="text-[var(--text3)]">(click to toggle)</span></label>
+                                          <div className="flex flex-wrap gap-[5px]">
+                                            {ALL_VIEWS.map((v) => {
+                                              const excluded = (ov.exclude_views ?? []).includes(v)
+                                              return (
+                                                <button
+                                                  key={v}
+                                                  type="button"
+                                                  onClick={() => {
+                                                    const next = excluded
+                                                      ? (ov.exclude_views ?? []).filter((x) => x !== v)
+                                                      : [...(ov.exclude_views ?? []), v]
+                                                    updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, exclude_views: next } : o) })
+                                                  }}
+                                                  className={`shot-pill transition-all text-[0.75rem] ${excluded ? 'opacity-25 line-through' : VIEW_PILL_CLS[v] ?? ''}`}
+                                                >
+                                                  {v}
+                                                </button>
+                                              )
+                                            })}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <label className="text-[0.78rem] text-[var(--text3)] mb-2 block">Custom angle order <span className="text-[var(--text3)]">(leave empty to use marketplace default)</span></label>
+                                          {(!ov.angle_order || ov.angle_order.length === 0) ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, angle_order: [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)] } : o) })}
+                                              className="text-[0.78rem] text-[var(--accent)] hover:underline"
+                                            >
+                                              + Set custom order (copies from marketplace default)
+                                            </button>
+                                          ) : (
+                                            <div className="flex flex-col gap-[3px]">
+                                              {ov.angle_order.map((v, i, arr) => (
+                                                <div key={`${v}-${i}`} className="flex items-center gap-2 bg-[var(--bg4)] rounded-[5px] px-2 py-[4px]">
+                                                  <span className="text-[0.72rem] text-[var(--text3)] w-[14px] text-center">{i + 1}</span>
+                                                  <span className={`shot-pill text-[0.72rem] flex-1 ${VIEW_PILL_CLS[v] ?? ''}`}>{v}</span>
+                                                  <div className="flex flex-col gap-[1px]">
+                                                    <button disabled={i === 0} onClick={() => { const next = [...arr]; [next[i-1], next[i]] = [next[i], next[i-1]]; updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, angle_order: next } : o) }) }} className="w-[16px] h-[12px] flex items-center justify-center rounded-[2px] hover:bg-[var(--line2)] disabled:opacity-20">
+                                                      <svg width="7" height="5" viewBox="0 0 8 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 4.5L4 1.5L7 4.5"/></svg>
+                                                    </button>
+                                                    <button disabled={i === arr.length - 1} onClick={() => { const next = [...arr]; [next[i], next[i+1]] = [next[i+1], next[i]]; updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, angle_order: next } : o) }) }} className="w-[16px] h-[12px] flex items-center justify-center rounded-[2px] hover:bg-[var(--line2)] disabled:opacity-20">
+                                                      <svg width="7" height="5" viewBox="0 0 8 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 1.5L4 4.5L7 1.5"/></svg>
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                              <button
+                                                type="button"
+                                                onClick={() => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, angle_order: undefined } : o) })}
+                                                className="text-[0.72rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors mt-1 self-start"
+                                              >
+                                                Remove custom order
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newOverride: CategoryOverride = {
+                                    id: `override-${Date.now()}`,
+                                    category: '',
+                                    label: '',
+                                  }
+                                  updateRule(id, { category_overrides: [...(rule.category_overrides ?? []), newOverride] })
+                                  setEditingOverride({ mpId: id, overrideId: newOverride.id })
+                                }}
+                                className="text-[0.8rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-1"
+                              >
+                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
+                                Add category override
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
                         <SRow label="Width (px)" sub="Output image width"><input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.width} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, width: Number(e.target.value) } })} /></SRow>
                         <SRow label="Height (px)" sub="Output image height"><input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.height} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, height: Number(e.target.value) } })} /></SRow>
                         <SRow label="File Format" sub="Output file type">

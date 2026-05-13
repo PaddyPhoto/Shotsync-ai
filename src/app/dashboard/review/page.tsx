@@ -50,7 +50,7 @@ function ReviewPage() {
   const {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
     setSession,
-    moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster,
+    moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
     setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
   } = useSession()
@@ -80,6 +80,8 @@ function ReviewPage() {
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null)
   const [mergeMenuOpen, setMergeMenuOpen] = useState<string | null>(null)
+  const [editingGarmentCategory, setEditingGarmentCategory] = useState<string | null>(null)
+  const [garmentCategoryInput, setGarmentCategoryInput] = useState<Record<string, string>>({})
 
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
   const [detectingCategories, setDetectingCategories] = useState<Set<string>>(new Set())
@@ -473,6 +475,7 @@ function ReviewPage() {
     }
     if (entry.colourCode) updateClusterColourCode(clusterId, entry.colourCode)
     if (entry.styleNumber) updateClusterStyleNumber(clusterId, entry.styleNumber)
+    if (entry.category) setClusterGarmentCategory(clusterId, entry.category)
     setSkuInput((s) => ({ ...s, [clusterId]: entry.sku }))
   }
 
@@ -832,6 +835,40 @@ function ReviewPage() {
                     <span className="text-[0.86rem] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                       {cluster.label}
                     </span>
+                    {/* Garment category tag — auto-set from style list, drives marketplace category overrides */}
+                    {editingGarmentCategory === cluster.id ? (
+                      <input
+                        autoFocus
+                        type="text"
+                        value={garmentCategoryInput[cluster.id] ?? cluster.garmentCategory ?? ''}
+                        onChange={(e) => setGarmentCategoryInput((p) => ({ ...p, [cluster.id]: e.target.value }))}
+                        onBlur={() => {
+                          const val = (garmentCategoryInput[cluster.id] ?? '').trim() || null
+                          setClusterGarmentCategory(cluster.id, val)
+                          setEditingGarmentCategory(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === 'Escape') {
+                            if (e.key === 'Enter') {
+                              const val = (garmentCategoryInput[cluster.id] ?? '').trim() || null
+                              setClusterGarmentCategory(cluster.id, val)
+                            }
+                            setEditingGarmentCategory(null)
+                          }
+                        }}
+                        className="text-[0.78rem] px-[5px] py-[1px] rounded-sm border border-[var(--accent)] bg-[var(--bg4)] text-[var(--text2)] w-[120px]"
+                        placeholder="garment category"
+                      />
+                    ) : cluster.garmentCategory ? (
+                      <button
+                        type="button"
+                        onClick={() => { setGarmentCategoryInput((p) => ({ ...p, [cluster.id]: cluster.garmentCategory ?? '' })); setEditingGarmentCategory(cluster.id) }}
+                        title="Garment category — affects marketplace export overrides. Click to edit."
+                        className="text-[0.75rem] px-[5px] py-[1px] rounded-sm bg-[var(--bg4)] border border-[var(--line2)] text-[var(--text3)] hover:text-[var(--text2)] hover:border-[var(--line3)] transition-colors"
+                      >
+                        {cluster.garmentCategory}
+                      </button>
+                    ) : null}
                     {shootType === 'still-life' && (
                       detectingCategories.has(cluster.id)
                         ? <span className="text-[0.84rem] text-[var(--text3)] animate-pulse px-1">detecting…</span>
@@ -1858,7 +1895,7 @@ function ExportPanel({
 
     // Helper: build the task list for a marketplace (shared by both paths)
     type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }
-    const buildTasks = (template: string, angleOrder: string[]): ExportTask[] => {
+    const buildTasks = (template: string, rule: typeof MARKETPLACE_RULES[keyof typeof MARKETPLACE_RULES]): ExportTask[] => {
       const tasks: ExportTask[] = []
       for (let clusterIdx = 0; clusterIdx < confirmedClusters.length; clusterIdx++) {
         const cluster = confirmedClusters[clusterIdx]
@@ -1867,19 +1904,36 @@ function ExportPanel({
           template.replace(/_{VIEW}/g, '').replace(/_{INDEX}/g, '').replace(/_{ANGLE}/g, '').replace(/_{ANGLE_NUMBER}/g, ''),
           { brand: brandCode, seq, sku: cluster.sku, color: cluster.color, view: '', index: 0, supplierCode, season, styleNumber: cluster.styleNumber, colourCode: cluster.colourCode }
         ).replace(/_+$/, '') || `${brandCode}_${String(seq).padStart(3, '0')}`
+
+        // Resolve category override if one matches this cluster's garmentCategory
+        const gc = cluster.garmentCategory?.trim().toLowerCase() ?? ''
+        const override = gc
+          ? rule.category_overrides?.find((o) => o.category.trim().toLowerCase() === gc)
+          : undefined
+
+        const baseOrder = rule.angle_order ?? []
+        const angleOrder: string[] = override?.angle_order ?? baseOrder
+        const excludeViews = new Set(override?.exclude_views ?? [])
+        const heroView = override?.hero_view ?? null
+
         const gmPosition = activeBrand?.gm_position ?? 'last'
-        const sortedImages = [...cluster.images].sort((a, b) => {
-          const aIsGM = a.viewLabel === 'ghost-mannequin'
-          const bIsGM = b.viewLabel === 'ghost-mannequin'
-          if (aIsGM && !bIsGM) return gmPosition === 'first' ? -1 : 1
-          if (!aIsGM && bIsGM) return gmPosition === 'first' ? 1 : -1
-          // Sort by configured angle order; unlisted angles go to the end
-          const aIdx = angleOrder.indexOf(a.viewLabel ?? '')
-          const bIdx = angleOrder.indexOf(b.viewLabel ?? '')
-          const aPos = aIdx === -1 ? 999 : aIdx
-          const bPos = bIdx === -1 ? 999 : bIdx
-          return aPos - bPos
-        })
+        const sortedImages = [...cluster.images]
+          .filter((img) => !excludeViews.has(img.viewLabel ?? ''))
+          .sort((a, b) => {
+            const aIsGM = a.viewLabel === 'ghost-mannequin'
+            const bIsGM = b.viewLabel === 'ghost-mannequin'
+            if (aIsGM && !bIsGM) return gmPosition === 'first' ? -1 : 1
+            if (!aIsGM && bIsGM) return gmPosition === 'first' ? 1 : -1
+            // Hero view goes to position 0
+            if (heroView) {
+              if (a.viewLabel === heroView && b.viewLabel !== heroView) return -1
+              if (b.viewLabel === heroView && a.viewLabel !== heroView) return 1
+            }
+            // Sort by angle order; unlisted angles go to the end
+            const aIdx = angleOrder.indexOf(a.viewLabel ?? '')
+            const bIdx = angleOrder.indexOf(b.viewLabel ?? '')
+            return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
+          })
         for (let imgIdx = 0; imgIdx < sortedImages.length; imgIdx++) {
           tasks.push({ cluster, seq, img: sortedImages[imgIdx], imgIdx, folderName })
         }
@@ -1897,7 +1951,7 @@ function ExportPanel({
         const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
         // Always create the marketplace folder — flatExport only skips SKU subfolders
         const mpHandle = await rootHandle.getDirectoryHandle(rule.name.replace(/\s+/g, '_'), { create: true })
-        const tasks = buildTasks(template, rule.angle_order ?? MARKETPLACE_RULES[marketplace].angle_order)
+        const tasks = buildTasks(template, rule)
 
         // Sequential writes — FSA API holds swap files open until close(), so concurrent
         // writes stack up in memory. One-at-a-time lets each file flush to disk before the next.
@@ -2006,7 +2060,7 @@ function ExportPanel({
           const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
           const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
-          const tasks = buildTasks(template, rule.angle_order ?? MARKETPLACE_RULES[marketplace].angle_order)
+          const tasks = buildTasks(template, rule)
 
           for (let i = 0; i < tasks.length; i += CONCURRENCY) {
             await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
@@ -2079,7 +2133,7 @@ function ExportPanel({
         for (const marketplace of selectedMarketplaces) {
           const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
-          const tasks = buildTasks(template, rule.angle_order ?? MARKETPLACE_RULES[marketplace].angle_order)
+          const tasks = buildTasks(template, rule)
           for (const { cluster, seq, img, imgIdx } of tasks) {
             const filename = useOriginalNames
               ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
@@ -2143,7 +2197,7 @@ function ExportPanel({
           driveMpFolderId = await (cloudLib as typeof import('@/lib/cloud/google-drive')).createDriveFolder(driveToken, mpFolderName, driveRootFolderId)
         }
 
-        const tasks = buildTasks(template, rule.angle_order ?? MARKETPLACE_RULES[marketplace].angle_order)
+        const tasks = buildTasks(template, rule)
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
           await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx }) => {
             try {
