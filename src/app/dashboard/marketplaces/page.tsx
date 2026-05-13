@@ -13,7 +13,7 @@ import type { ReactNode } from 'react'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import type { MarketplaceName, ViewLabel, CategoryOverride } from '@/types'
 
-const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
+const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'front-3/4', 'back-3/4', 'ghost-mannequin', 'flat-lay', 'top-down', 'inside']
 
 const VIEW_PILL_CLS: Record<ViewLabel, string> = {
   front: 'shot-front', back: 'shot-back', side: 'shot-side', detail: 'shot-detail',
