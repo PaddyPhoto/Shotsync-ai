@@ -23,15 +23,18 @@ const VIEW_PILL_CLS: Record<ViewLabel, string> = {
 }
 
 const NAMING_TOKENS = [
-  { token: '{BRAND}',        color: 'var(--accent3)', desc: 'Brand code e.g. FBC' },
-  { token: '{SEQ}',          color: 'var(--accent)',  desc: 'Look # e.g. 001' },
-  { token: '{SKU}',          color: 'var(--accent)',  desc: 'SKU e.g. SS25-0042' },
-  { token: '{STYLE_NUMBER}', color: 'var(--accent)',  desc: 'Style number e.g. 05324' },
-  { token: '{COLOR}',        color: 'var(--accent2)', desc: 'Colour name e.g. BURGUNDY' },
-  { token: '{COLOUR_CODE}',  color: 'var(--accent2)', desc: 'Colour code e.g. 062' },
-  { token: '{VIEW}',         color: 'var(--accent4)', desc: 'Angle e.g. FRONT' },
-  { token: '{INDEX}',        color: 'var(--accent4)', desc: 'Image # e.g. 01' },
-  { token: '{CUSTOM_TEXT}',  color: 'var(--text3)',   desc: 'Fixed text string' },
+  { token: '{BRAND}',         color: 'var(--accent3)', desc: 'Brand code e.g. FBC' },
+  { token: '{SUPPLIER_CODE}', color: 'var(--accent3)', desc: 'Supplier code e.g. SUP01' },
+  { token: '{SEASON}',        color: 'var(--accent3)', desc: 'Season e.g. SS25' },
+  { token: '{SEQ}',           color: 'var(--accent)',  desc: 'Look # e.g. 001' },
+  { token: '{SKU}',           color: 'var(--accent)',  desc: 'SKU e.g. SS25-0042' },
+  { token: '{STYLE_NUMBER}',  color: 'var(--accent)',  desc: 'Style number e.g. 05324' },
+  { token: '{COLOR}',         color: 'var(--accent2)', desc: 'Colour name e.g. BURGUNDY' },
+  { token: '{COLOUR_CODE}',   color: 'var(--accent2)', desc: 'Colour code e.g. 062' },
+  { token: '{VIEW}',          color: 'var(--accent4)', desc: 'Angle name e.g. FRONT' },
+  { token: '{VIEW_NUM}',      color: 'var(--accent4)', desc: 'Angle number e.g. 1, 2, 5' },
+  { token: '{INDEX}',         color: 'var(--accent4)', desc: 'Image # e.g. 01' },
+  { token: '{CUSTOM_TEXT}',   color: 'var(--text3)',   desc: 'Fixed text string' },
 ]
 
 function toggleToken(template: string, token: string): string {
@@ -347,7 +350,7 @@ function MarketplacesInner() {
                         <div className="col-span-2 py-[12px] border-t border-[var(--line)]">
                           <p className="text-[0.8rem] text-[var(--text2)] mb-2">Naming Convention</p>
                           <div className="flex flex-wrap gap-[6px] mb-2">
-                            {NAMING_TOKENS.filter((t) => t.token !== '{SEQ}').map((t) => {
+                            {NAMING_TOKENS.map((t) => {
                               const active = rule.naming_template.includes(t.token)
                               return (
                                 <button key={t.token} type="button" onClick={() => updateRule(id, { naming_template: toggleToken(rule.naming_template, t.token) })} className={`px-2 py-[3px] rounded-sm border text-[0.85rem] font-mono transition-all ${active ? 'border-current opacity-100' : 'border-[var(--line2)] text-[var(--text3)] opacity-50 hover:opacity-80'}`} style={active ? { color: t.color, borderColor: t.color, background: `color-mix(in srgb, ${t.color} 10%, transparent)` } : {}}>{t.token}</button>
@@ -360,7 +363,7 @@ function MarketplacesInner() {
                       <div className="mt-3 pt-3 border-t border-[var(--line)] flex items-center gap-3">
                         <span className="text-[0.85rem] text-[var(--text3)] flex-shrink-0">Preview:</span>
                         <span className="text-[0.8rem] text-[var(--text2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>
-                          {applyNamingTemplate(rule.naming_template, { brand: activeBrand?.brand_code ?? 'BRAND', sku: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', color: 'BLACK', view: activeBrand?.on_model_angle_sequence?.[0] ?? 'front', seq: 1, index: 1, styleNumber: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', colourCode: '001' })}.{rule.file_format}
+                          {applyNamingTemplate(rule.naming_template, { brand: activeBrand?.brand_code ?? 'BRAND', sku: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', color: 'BLACK', view: activeBrand?.on_model_angle_sequence?.[0] ?? 'front', seq: 1, index: 1, styleNumber: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', colourCode: '001', supplierCode: activeBrand?.brand_code ?? 'BRAND', season: 'SS25', customText: 'TEXT' })}.{rule.file_format}
                         </span>
                         <span className="text-[0.86rem] text-[var(--text3)] flex-shrink-0 ml-auto" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.image_dimensions.width}×{rule.image_dimensions.height} · Q{rule.quality}</span>
                       </div>
