@@ -10,6 +10,7 @@ import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
 import type { ReactNode } from 'react'
+import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import type { MarketplaceName, ViewLabel, CategoryOverride } from '@/types'
 
 const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length']
@@ -265,13 +266,16 @@ function MarketplacesInner() {
                           )}
                           {(rule.category_overrides ?? []).map((ov) => (
                             <div key={ov.id} className="flex items-center gap-3 mt-[6px]">
-                              <input
-                                className="text-[0.78rem] w-[90px] flex-shrink-0 input py-[3px] placeholder:text-[var(--text3)] placeholder:italic"
-                                placeholder="Category…"
-                                title="Must match the garment category on the cluster exactly (case-insensitive)"
+                              <select
+                                className="text-[0.78rem] flex-shrink-0 input py-[3px] cursor-pointer"
                                 value={ov.category}
                                 onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
-                              />
+                              >
+                                <option value="">— category —</option>
+                                {GARMENT_CATEGORIES.map((cat) => (
+                                  <option key={cat.id} value={cat.label}>{cat.label}</option>
+                                ))}
+                              </select>
                               <AnglePillRow
                                 views={ov.angle_order ?? [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)]}
                                 allViews={ALL_VIEWS}

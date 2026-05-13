@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo, Suspense } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useSession } from '@/store/session'
@@ -12,6 +12,7 @@ import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { detectColourFromFilename } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
+import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
 import { ClusterTour, useClusterTour } from '@/components/onboarding/ClusterTour'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
@@ -245,17 +246,6 @@ function ReviewPage() {
     })
   }
   const { rules: marketplaceRules } = useMarketplaceRules()
-
-  // All unique category override names configured across any marketplace — used as dropdown options on cluster cards
-  const garmentCategoryOptions = useMemo(() => {
-    const seen = new Set<string>()
-    for (const rule of Object.values(marketplaceRules)) {
-      for (const ov of rule.category_overrides ?? []) {
-        if (ov.category.trim()) seen.add(ov.category.trim())
-      }
-    }
-    return [...seen].sort()
-  }, [marketplaceRules])
 
   const activeTemplate = activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
   const [showExportPanel, setShowExportPanel] = useState(false)
@@ -845,20 +835,18 @@ function ReviewPage() {
                     <span className="text-[0.86rem] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                       {cluster.label}
                     </span>
-                    {/* Garment category — dropdown populated from configured marketplace overrides */}
-                    {garmentCategoryOptions.length > 0 && (
-                      <select
-                        value={cluster.garmentCategory ?? ''}
-                        onChange={(e) => setClusterGarmentCategory(cluster.id, e.target.value || null)}
-                        title="Garment category — applies matching marketplace export overrides"
-                        className="text-[0.78rem] px-[5px] py-[1px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer hover:border-[var(--line3)] transition-colors"
-                      >
-                        <option value="">— category —</option>
-                        {garmentCategoryOptions.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    )}
+                    {/* Garment category — shared predefined list, matches against marketplace export overrides */}
+                    <select
+                      value={cluster.garmentCategory ?? ''}
+                      onChange={(e) => setClusterGarmentCategory(cluster.id, e.target.value || null)}
+                      title="Garment category — applies matching marketplace export overrides"
+                      className="text-[0.78rem] px-[5px] py-[1px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer hover:border-[var(--line3)] transition-colors"
+                    >
+                      <option value="">— category —</option>
+                      {GARMENT_CATEGORIES.map((cat) => (
+                        <option key={cat.id} value={cat.label}>{cat.label}</option>
+                      ))}
+                    </select>
                     {shootType === 'still-life' && (
                       detectingCategories.has(cluster.id)
                         ? <span className="text-[0.84rem] text-[var(--text3)] animate-pulse px-1">detecting…</span>
