@@ -48,7 +48,6 @@ function MarketplacesInner() {
   const searchParams = useSearchParams()
   const { brands, refreshBrands, activeBrand } = useBrand()
   const [confirmResetAll, setConfirmResetAll] = useState(false)
-  const [unlockedNaming, setUnlockedNaming] = useState<Set<string>>(new Set())
 
   // Cloud storage — follows the global active brand from the top-left dropdown
   const [selectedBrandId, setSelectedBrandId] = useState(activeBrand?.id ?? brands[0]?.id ?? '')
@@ -346,41 +345,16 @@ function MarketplacesInner() {
                           </button>
                         </SRow>
                         <div className="col-span-2 py-[12px] border-t border-[var(--line)]">
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="text-[0.8rem] text-[var(--text2)] flex items-center gap-1">
-                              Naming Convention
-                              <HelpTooltip position="right" width={260} content={<span>The file naming format required by this marketplace. Platform-mandated formats cannot be changed here — adjust at export time if needed.<br /><br />Unlock only if the retailer has updated their official requirements.</span>} />
-                            </p>
-                            {unlockedNaming.has(id) ? (
-                              <button type="button" onClick={() => setUnlockedNaming((prev) => { const next = new Set(prev); next.delete(id); return next })} className="text-[0.86rem] text-[var(--text3)] hover:text-[var(--text2)] flex items-center gap-1 transition-colors">
-                                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="5" width="7" height="5" rx="1"/><path d="M4 5V3.5a1.5 1.5 0 013 0V5"/></svg>Lock
-                              </button>
-                            ) : (
-                              <button type="button" onClick={() => setUnlockedNaming((prev) => new Set([...prev, id]))} className="text-[0.86rem] text-[var(--text3)] hover:text-[var(--accent3)] flex items-center gap-1 transition-colors">
-                                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="5" width="7" height="5" rx="1"/><path d="M4 5V3a1.5 1.5 0 013 0"/></svg>Unlock to edit
-                              </button>
-                            )}
+                          <p className="text-[0.8rem] text-[var(--text2)] mb-2">Naming Convention</p>
+                          <div className="flex flex-wrap gap-[6px] mb-2">
+                            {NAMING_TOKENS.filter((t) => t.token !== '{SEQ}').map((t) => {
+                              const active = rule.naming_template.includes(t.token)
+                              return (
+                                <button key={t.token} type="button" onClick={() => updateRule(id, { naming_template: toggleToken(rule.naming_template, t.token) })} className={`px-2 py-[3px] rounded-sm border text-[0.85rem] font-mono transition-all ${active ? 'border-current opacity-100' : 'border-[var(--line2)] text-[var(--text3)] opacity-50 hover:opacity-80'}`} style={active ? { color: t.color, borderColor: t.color, background: `color-mix(in srgb, ${t.color} 10%, transparent)` } : {}}>{t.token}</button>
+                              )
+                            })}
                           </div>
-                          {unlockedNaming.has(id) ? (
-                            <>
-                              {MARKETPLACE_RULES[id].naming_locked && <p className="text-[0.86rem] mb-2" style={{ color: '#ff9f0a' }}>⚠ This is a platform-mandated format. Only change it if {rule.name} has officially updated their requirements.</p>}
-                              <div className="flex flex-wrap gap-[6px] mb-2">
-                                {NAMING_TOKENS.filter((t) => t.token !== '{SEQ}').map((t) => {
-                                  const active = rule.naming_template.includes(t.token)
-                                  return (
-                                    <button key={t.token} type="button" onClick={() => updateRule(id, { naming_template: toggleToken(rule.naming_template, t.token) })} className={`px-2 py-[3px] rounded-sm border text-[0.85rem] font-mono transition-all ${active ? 'border-current opacity-100' : 'border-[var(--line2)] text-[var(--text3)] opacity-50 hover:opacity-80'}`} style={active ? { color: t.color, borderColor: t.color, background: `color-mix(in srgb, ${t.color} 10%, transparent)` } : {}}>{t.token}</button>
-                                  )
-                                })}
-                              </div>
-                              <input className="input" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.naming_template} onChange={(e) => updateRule(id, { naming_template: e.target.value })} />
-                            </>
-                          ) : (
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="2.5" y="5.5" width="7" height="5" rx="1"/><path d="M4.5 5.5V4a1.5 1.5 0 013 0v1.5"/></svg>
-                              <code className="text-[0.85rem] text-[var(--text2)] flex-1" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.naming_template}</code>
-                              {MARKETPLACE_RULES[id].naming_locked && <span className="text-[0.83rem] text-[#ff9f0a] bg-[rgba(255,159,10,0.1)] px-[6px] py-[2px] rounded-full flex-shrink-0">platform mandated</span>}
-                            </div>
-                          )}
+                          <input className="input" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.naming_template} onChange={(e) => updateRule(id, { naming_template: e.target.value })} />
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t border-[var(--line)] flex items-center gap-3">

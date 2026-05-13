@@ -2480,18 +2480,6 @@ function ExportPanel({
                 <code key={t} style={{ fontFamily: 'var(--font-dm-mono)' }}>{t}</code>
               ))}
             </p>
-            {selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).naming_locked) && (
-              <div className="mt-2 flex flex-col gap-1">
-                {selectedMarketplaces.filter((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).naming_locked).map((m) => {
-                  const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
-                  return (
-                    <p key={m} className="text-[0.83rem]" style={{ color: '#ff9f0a' }}>
-                      ⚠ {rule.name} uses <code style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.naming_template}</code>
-                    </p>
-                  )
-                })}
-              </div>
-            )}
           </div>
         </div>
 
