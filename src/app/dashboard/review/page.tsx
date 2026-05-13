@@ -20,7 +20,7 @@ import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster, StyleListEntry } from '@/store/session'
 import type { Brand } from '@/lib/brands'
 
-const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'front-3/4', 'back-3/4', 'ghost-mannequin', 'flat-lay', 'top-down', 'inside']
+const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'front-3/4', 'back-3/4']
 
 const VIEW_CLS: Record<ViewLabel, string> = {
   front:             'shot-front',
