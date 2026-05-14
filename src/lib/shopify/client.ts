@@ -17,6 +17,72 @@ export class ShopifyClient {
   }
 
   /**
+   * Find an existing product by exact SKU match using the GraphQL API.
+   * Returns the product's numeric ID and admin URL, or null if not found.
+   */
+  async findProductBySku(sku: string): Promise<{ id: string; adminUrl: string } | null> {
+    const url = `${this.baseUrl}/graphql.json`
+    // Escape single quotes in SKU for the GQL query string
+    const safeSku = sku.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+    const query = `{
+      productVariants(first: 10, query: "sku:'${safeSku}'") {
+        edges {
+          node {
+            sku
+            product { legacyResourceId status }
+          }
+        }
+      }
+    }`
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: this.headers,
+      body: JSON.stringify({ query }),
+    })
+    if (!res.ok) return null
+
+    const json = await res.json().catch(() => null)
+    const edges: { node: { sku: string; product: { legacyResourceId: string; status: string } } }[] =
+      json?.data?.productVariants?.edges ?? []
+
+    // GraphQL query is a contains search — filter for exact match
+    const match = edges.find((e) => e.node.sku === sku)
+    if (!match) return null
+
+    const productId = match.node.product.legacyResourceId
+    const shopDomain = this.baseUrl.split('/admin/')[0].replace('https://', '')
+    return { id: String(productId), adminUrl: `https://${shopDomain}/admin/products/${productId}` }
+  }
+
+  /**
+   * Append images to an existing product — one REST call per image.
+   * Existing images are untouched.
+   */
+  async appendImages(
+    productId: string,
+    images: { src?: string; base64?: string; filename: string }[],
+  ): Promise<void> {
+    const url = `${this.baseUrl}/products/${productId}/images.json`
+    for (const img of images) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify({
+          image: {
+            ...(img.base64 ? { attachment: img.base64 } : { src: img.src }),
+            filename: img.filename,
+          },
+        }),
+      })
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '')
+        throw new Error(`Shopify image append ${res.status}: ${errText.slice(0, 200)}`)
+      }
+    }
+  }
+
+  /**
    * Create a new Shopify product as a draft.
    * Images are uploaded in the same request — one API call per cluster.
    * The ecommerce coordinator can then review, set a price, and publish.

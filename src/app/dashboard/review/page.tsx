@@ -2646,8 +2646,8 @@ function ExportPanel({
                       {shopifyResults.map((r) => (
                         <div key={r.sku} className="flex items-center justify-between text-[0.85rem]">
                           <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.sku}</span>
-                          <span className={r.status === 'created' ? 'text-[var(--accent2)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
-                            {r.status === 'created' ? '✓ Draft created' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
+                          <span className={r.status === 'created' || r.status === 'updated' ? 'text-[var(--accent2)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
+                            {r.status === 'created' ? '✓ Draft created' : r.status === 'updated' ? '✓ Images added' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
                           </span>
                         </div>
                       ))}

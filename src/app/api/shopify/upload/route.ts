@@ -70,34 +70,43 @@ export async function POST(req: NextRequest) {
 
   const results: {
     sku: string
-    status: 'created' | 'error'
+    status: 'created' | 'updated' | 'error'
     adminUrl?: string
     message?: string
   }[] = []
 
   for (const cluster of clusters) {
     try {
-      let bodyHtml = ''
-      if (cluster.copy?.description) {
-        const bulletHtml = cluster.copy.bullets?.length
-          ? `<ul>${cluster.copy.bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`
-          : ''
-        bodyHtml = `<p>${cluster.copy.description}</p>${bulletHtml}`
-      }
+      // Check if a product with this SKU already exists in Shopify.
+      // If so, append the new images rather than creating a duplicate listing.
+      const existing = await client.findProductBySku(cluster.sku)
 
-      const result = await client.createProduct({
-        title: cluster.copy?.title || cluster.productName || cluster.sku,
-        sku: cluster.sku,
-        vendor: brandVendor,
-        color: cluster.color || undefined,
-        bodyHtml,
-        images: cluster.images,
-      })
-
-      if (!result) {
-        results.push({ sku: cluster.sku, status: 'error', message: 'Shopify API rejected the product' })
+      if (existing) {
+        await client.appendImages(existing.id, cluster.images)
+        results.push({ sku: cluster.sku, status: 'updated', adminUrl: existing.adminUrl })
       } else {
-        results.push({ sku: cluster.sku, status: 'created', adminUrl: result.adminUrl })
+        let bodyHtml = ''
+        if (cluster.copy?.description) {
+          const bulletHtml = cluster.copy.bullets?.length
+            ? `<ul>${cluster.copy.bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`
+            : ''
+          bodyHtml = `<p>${cluster.copy.description}</p>${bulletHtml}`
+        }
+
+        const result = await client.createProduct({
+          title: cluster.copy?.title || cluster.productName || cluster.sku,
+          sku: cluster.sku,
+          vendor: brandVendor,
+          color: cluster.color || undefined,
+          bodyHtml,
+          images: cluster.images,
+        })
+
+        if (!result) {
+          results.push({ sku: cluster.sku, status: 'error', message: 'Shopify API rejected the product' })
+        } else {
+          results.push({ sku: cluster.sku, status: 'created', adminUrl: result.adminUrl })
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
