@@ -109,6 +109,10 @@ const SECTIONS: Section[] = [
         a: 'THE ICONIC is a premium Australian fashion marketplace. Add your User ID and API Key in Brand Settings → Platforms to export product listings directly in THE ICONIC\'s required format, including correct image sequencing and metadata fields.',
       },
       {
+        q: 'What data actually gets pushed into Cin7?',
+        a: 'Everything. The AI-generated title becomes the Cin7 product name. The description and bullet points become the product description in HTML. RRP maps to price. All CSV metadata (Fabric, Care, Fit, Size Range, Season, Gender, Occasion, Origin, Sub-Category) maps to custom attributes. The garment category maps to Cin7\'s Category field. Images are processed (cropped, background-removed to your spec) and attached directly. One dependency: the custom attributes only appear in Cin7 if you\'ve created the "ShotSync Apparel" attribute set in your Cin7 account with matching field names. Without it, the product still creates but the attribute fields are silently dropped.',
+      },
+      {
         q: 'Why does ShotSync integrate with ERPs rather than marketplaces directly?',
         a: 'Most brands already have an ERP (like Cin7 or Apparel21) that distributes products to all their marketplaces — Shopify, THE ICONIC, ASOS, and others. By pushing enriched product clusters into the ERP, ShotSync becomes part of the brand\'s existing workflow rather than a parallel system.',
       },
