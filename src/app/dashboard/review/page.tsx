@@ -83,7 +83,7 @@ function ReviewPage() {
     setSession, setStyleList,
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
-    setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
+    setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, unconfirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
   } = useSession()
 
   // Resolves the AccessoryCategory config for a cluster.
@@ -1154,10 +1154,16 @@ function ReviewPage() {
                       {cluster.isBottomwear ? 'Bottoms' : 'Tops'}
                     </button>
                     {cluster.confirmed ? (
-                      <span className="text-[0.85rem] font-semibold text-[var(--accent2)] flex items-center gap-1 flex-shrink-0">
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
-                        Confirmed
-                      </span>
+                      <button
+                        onClick={() => unconfirmCluster(cluster.id)}
+                        title="Click to unconfirm"
+                        className="group text-[0.85rem] font-semibold text-[var(--accent2)] flex items-center gap-1 flex-shrink-0 hover:text-[var(--text3)] transition-colors"
+                      >
+                        <svg className="group-hover:hidden" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
+                        <svg className="hidden group-hover:block" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
+                        <span className="group-hover:hidden">Confirmed</span>
+                        <span className="hidden group-hover:inline">Unconfirm</span>
+                      </button>
                     ) : (
                       <button
                         onClick={() => handleConfirm(cluster.id)}

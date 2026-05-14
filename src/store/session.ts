@@ -76,6 +76,7 @@ interface SessionState {
   setClusterBottomwear: (clusterId: string, isBottomwear: boolean) => void
   setImageViewLabel: (imageId: string, clusterId: string, label: ViewLabel) => void
   confirmCluster: (clusterId: string) => void
+  unconfirmCluster: (clusterId: string) => void
   setAllConfirmed: (confirmed: boolean) => void
   markClustersExported: (ids: string[]) => void
   deleteCluster: (clusterId: string) => void
@@ -271,6 +272,12 @@ export const useSession = create<SessionState>((set, get) => ({
   confirmCluster: (clusterId) => set((state) => ({
     clusters: state.clusters.map((c) =>
       c.id === clusterId ? { ...c, confirmed: true } : c
+    ),
+  })),
+
+  unconfirmCluster: (clusterId) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId ? { ...c, confirmed: false, exported: false } : c
     ),
   })),
 
