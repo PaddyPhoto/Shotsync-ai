@@ -41,6 +41,10 @@ const SECTIONS: Section[] = [
         q: 'What if my shoot sequence doesn\'t match the configured angles?',
         a: 'You can manually re-order images within any cluster on the Review page by dragging thumbnails to their correct positions. You can also click an angle label to reassign it from your brand\'s configured sequence.',
       },
+      {
+        q: 'Can different garment categories have different shoot sequences?',
+        a: 'Yes. In Brand Settings → Shot Configuration → Per-Category Shoot Sequences, you can add a custom angle order for specific categories — for example, Womens Dresses might be shot Full-Length first while Tops are shot Front first. When you assign that category to a cluster on the Review page, its angle labels update instantly to match.',
+      },
     ],
   },
   {
@@ -61,6 +65,10 @@ const SECTIONS: Section[] = [
       {
         q: 'Can I rename angles manually?',
         a: 'Yes. Click the angle label beneath any image in a cluster to reassign it from your brand\'s configured angle sequence. Dragging an image to a different position also updates its angle label automatically.',
+      },
+      {
+        q: 'What does the garment category dropdown do?',
+        a: 'It does two things. First, if you\'ve set up a per-category shoot sequence in Brand Settings, selecting the category immediately relabels the cluster\'s angle thumbnails to match — so you get instant visual feedback. Second, at export time it applies any matching category override from Marketplace Settings, which reorders the exported images into the sequence that specific marketplace expects for that garment type.',
       },
     ],
   },
@@ -120,6 +128,10 @@ const SECTIONS: Section[] = [
       {
         q: 'Can I export a subset of clusters?',
         a: 'Yes. In the Export panel on the Review page, you can select which confirmed clusters to include in the export. Unselected clusters are left unchanged.',
+      },
+      {
+        q: 'How do marketplace category overrides work?',
+        a: 'In Marketplace Settings, each marketplace can have category override rows — for example, Shopify might export Womens Dresses in a different angle order than the default. When a cluster has a matching garment category set, that override\'s angle sequence is used automatically at export time. The cluster\'s thumbnail labels stay as-is; only the output file order changes.',
       },
     ],
   },
