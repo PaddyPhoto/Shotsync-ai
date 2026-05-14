@@ -82,7 +82,7 @@ function ReviewPage() {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, angleSequence, isReady,
     setSession, setStyleList,
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
-    updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
+    updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber, setClusterCopyText,
     setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, unconfirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
   } = useSession()
 
@@ -227,9 +227,12 @@ function ReviewPage() {
         ...prev,
         [cluster.id]: { title: aiTitle, description: (data.description as string) ?? '', bullets: Array.isArray(data.bullets) ? data.bullets as string[] : [], loading: false, open: true, error: undefined },
       }))
-      // Persist AI title to the cluster's productName so it survives page refreshes
-      // and is available as a fallback in Shopify/Cin7 pushes even if clusterCopy is cleared.
+      // Persist AI copy to session store so it survives page refreshes and is available
+      // as a fallback in Shopify/Cin7 pushes even if clusterCopy state is cleared.
       if (aiTitle) updateClusterSku(cluster.id, cluster.sku, aiTitle)
+      const aiDescription = (data.description as string) ?? ''
+      const aiBullets = Array.isArray(data.bullets) ? data.bullets as string[] : []
+      if (aiDescription || aiBullets.length) setClusterCopyText(cluster.id, aiDescription, aiBullets)
       return true
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Network error'
@@ -1803,7 +1806,11 @@ function ExportPanel({
                 productName: cluster.productName || cluster.sku || cluster.label,
                 color: cluster.color || '',
                 images,
-                ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
+                ...(copy?.title || cluster.productName ? { copy: {
+                  title: copy?.title || cluster.productName || '',
+                  description: copy?.description || cluster.copyDescription || '',
+                  bullets: copy?.bullets?.length ? copy.bullets : (cluster.copyBullets ?? []),
+                } } : {}),
               }],
               tempPaths,
             }),
@@ -1924,7 +1931,11 @@ function ExportPanel({
               styleNumber: cluster.styleNumber || '',
               garmentCategory: cluster.garmentCategory || null,
               images,
-              ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
+              ...(copy?.title || cluster.productName ? { copy: {
+                title: copy?.title || cluster.productName || '',
+                description: copy?.description || cluster.copyDescription || '',
+                bullets: copy?.bullets?.length ? copy.bullets : (cluster.copyBullets ?? []),
+              } } : {}),
               ...(styleEntry ? { styleEntry: {
                 composition: styleEntry.composition,
                 care: styleEntry.care,

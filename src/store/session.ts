@@ -25,6 +25,8 @@ export interface SessionCluster {
   isBottomwear: boolean          // true for pants, skirts, etc. — affects {VIEW_NUM} numbering
   confirmed: boolean
   exported: boolean
+  copyDescription?: string
+  copyBullets?: string[]
 }
 
 export interface StyleListEntry {
@@ -68,6 +70,7 @@ interface SessionState {
   splitImages: (fromClusterId: string, imageIds: string[]) => void
   splitAndReflow: (clusterId: string, atImageId: string) => void
   updateClusterSku: (clusterId: string, sku: string, productName?: string) => void
+  setClusterCopyText: (clusterId: string, description: string, bullets: string[]) => void
   updateClusterColor: (clusterId: string, color: string) => void
   updateClusterColourCode: (clusterId: string, colourCode: string) => void
   updateClusterStyleNumber: (clusterId: string, styleNumber: string) => void
@@ -222,6 +225,12 @@ export const useSession = create<SessionState>((set, get) => ({
       c.id === clusterId
         ? { ...c, sku, productName: productName ?? sku }
         : c
+    ),
+  })),
+
+  setClusterCopyText: (clusterId, description, bullets) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId ? { ...c, copyDescription: description, copyBullets: bullets } : c
     ),
   })),
 

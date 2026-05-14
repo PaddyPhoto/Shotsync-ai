@@ -65,6 +65,8 @@ interface StoredCluster {
   isBottomwear?: boolean
   confirmed: boolean
   exported: boolean
+  copyDescription?: string
+  copyBullets?: string[]
   images: StoredClusterImage[]
 }
 
@@ -240,6 +242,8 @@ export async function saveSession(
       isBottomwear: cluster.isBottomwear ?? false,
       confirmed: cluster.confirmed,
       exported: cluster.exported ?? false,
+      copyDescription: cluster.copyDescription ?? '',
+      copyBullets: cluster.copyBullets ?? [],
       images: cluster.images.map((img) => ({
         id: img.id,
         filename: img.filename,
@@ -313,6 +317,8 @@ export async function loadSession(jobId: string): Promise<{
     isBottomwear: sc.isBottomwear ?? false,
     confirmed: sc.confirmed,
     exported: sc.exported ?? false,
+    copyDescription: sc.copyDescription ?? '',
+    copyBullets: sc.copyBullets ?? [],
     images: sc.images.map((imgMeta) => {
       const stored = fileMap.get(imgMeta.id)
       if (!stored) {
