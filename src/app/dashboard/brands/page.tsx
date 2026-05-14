@@ -675,7 +675,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
           <p className="text-[0.85rem] text-[var(--text3)] mt-[3px]">Connect platforms to push images directly from any export.</p>
         </div>
         <div className="p-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
 
             {/* Shopify */}
             <div className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)]">
@@ -741,6 +741,27 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                 />
               </div>
               <p className="text-[0.75rem] text-[var(--text3)]">Pulls your product catalogue and pushes enriched copy + images back to Cin7.</p>
+            </div>
+
+            {/* Apparel21 */}
+            <div className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)] opacity-60">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-[6px] flex items-center justify-center flex-shrink-0" style={{ background: '#1a1a2e' }}>
+                    <span className="text-white font-bold text-[0.65rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>A21</span>
+                  </div>
+                  <span className="text-[0.82rem] font-semibold text-[var(--text)]">Apparel21</span>
+                </div>
+                <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[6px] py-[2px] rounded-full border border-[var(--line2)] text-[var(--text3)]">Soon</span>
+              </div>
+              <div className="flex-1 flex flex-col gap-1">
+                <div className="flex items-center gap-1.5 text-[0.8rem] text-[var(--text3)]">
+                  <div className="w-[5px] h-[5px] rounded-full bg-[var(--bg4)] flex-shrink-0" />
+                  Coming soon
+                </div>
+                <p className="text-[0.75rem] text-[var(--text3)]">Pulls styles from A21 and pushes enriched copy + images back.</p>
+              </div>
+              <button disabled className="btn btn-ghost btn-sm text-[0.8rem] cursor-not-allowed self-start">Connect</button>
             </div>
 
             {/* THE ICONIC — credential fields wired, disabled until live */}
