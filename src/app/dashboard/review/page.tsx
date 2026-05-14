@@ -41,7 +41,7 @@ const VIEW_CLS: Record<ViewLabel, string> = {
 // ReviewPage uses useSearchParams() which requires a Suspense boundary in Next.js App Router.
 // Generates a medium-resolution blob URL from a File for lightbox display.
 // Caps the longer dimension at maxPx, preserving aspect ratio.
-async function generateMediumRes(file: File, maxPx = 1400): Promise<string> {
+async function generateMediumRes(file: File, maxPx = 2800): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const src = URL.createObjectURL(file)
@@ -57,7 +57,7 @@ async function generateMediumRes(file: File, maxPx = 1400): Promise<string> {
       canvas.toBlob((blob) => {
         if (blob) resolve(URL.createObjectURL(blob))
         else reject(new Error('toBlob failed'))
-      }, 'image/jpeg', 0.88)
+      }, 'image/jpeg', 0.92)
     }
     img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('load failed')) }
     img.src = src
