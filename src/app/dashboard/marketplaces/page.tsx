@@ -245,11 +245,22 @@ function MarketplacesInner() {
                         {/* Angle Sequence — default order + per-category overrides in one view */}
                         <div className="col-span-2 py-[12px] border-b border-[var(--line)]">
                           <div className="mb-3">
-                            <p className="text-[0.8rem] text-[var(--text2)] flex items-center gap-1">
+                            <p className="text-[0.8rem] text-[var(--text2)] flex items-center gap-1 mb-2">
                               Angle Sequence
                               <HelpTooltip position="right" width={290} content="Controls the order images are exported. Drag pills to reorder. Faded pills are excluded — click to add back. Add category rows for garment-specific sequences that override the default." />
                             </p>
-                            <p className="text-[0.86rem] text-[var(--text3)] mt-[2px]">Drag to reorder · hover to remove · click faded angles to include · add rows per garment category</p>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1">
+                              {[
+                                { icon: <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor"><circle cx="1.5" cy="1.5" r="1"/><circle cx="4.5" cy="1.5" r="1"/><circle cx="1.5" cy="4" r="1"/><circle cx="4.5" cy="4" r="1"/><circle cx="1.5" cy="6.5" r="1"/><circle cx="4.5" cy="6.5" r="1"/></svg>, label: 'Drag to reorder' },
+                                { icon: <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>, label: 'Hover pill to remove' },
+                                { icon: <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 2v6M2 5h6"/></svg>, label: 'Click faded angle to add' },
+                              ].map(({ icon, label }) => (
+                                <span key={label} className="flex items-center gap-[5px] text-[0.75rem]" style={{ color: 'var(--text3)' }}>
+                                  <span className="opacity-60">{icon}</span>
+                                  {label}
+                                </span>
+                              ))}
+                            </div>
                           </div>
 
                           {/* Default row */}
@@ -488,7 +499,7 @@ function AnglePillRow({
   const isThisRow = dragState?.rowKey === rowKey
 
   return (
-    <div className="flex flex-wrap items-center gap-[5px] flex-1 min-h-[26px]">
+    <div className="flex flex-wrap items-center gap-[6px] flex-1 min-h-[26px]">
       {views.map((v, i) => {
         const isDragging = isThisRow && dragState.fromIdx === i
         const isTarget = isThisRow && dragState.overIdx === i && dragState.fromIdx !== i
@@ -510,11 +521,21 @@ function AnglePillRow({
             onDragEnd={() => setDragState(null)}
             className={`group relative cursor-grab active:cursor-grabbing transition-all ${isDragging ? 'opacity-25 scale-95' : ''} ${isTarget ? 'ring-2 ring-[var(--accent)] ring-offset-1 ring-offset-[var(--bg)]' : ''}`}
           >
-            <span className={`shot-pill select-none pointer-events-none ${VIEW_PILL_CLS[v] ?? ''}`}>{v}</span>
+            <span className={`shot-pill select-none pointer-events-none flex items-center gap-[5px] pr-[8px] ${VIEW_PILL_CLS[v] ?? ''}`}>
+              {/* Position number */}
+              <span className="text-[10px] font-bold opacity-50 leading-none w-[14px] text-center flex-shrink-0">{i + 1}</span>
+              {/* Grip dots */}
+              <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor" className="opacity-40 flex-shrink-0">
+                <circle cx="1.5" cy="1.5" r="1"/><circle cx="4.5" cy="1.5" r="1"/>
+                <circle cx="1.5" cy="4" r="1"/><circle cx="4.5" cy="4" r="1"/>
+                <circle cx="1.5" cy="6.5" r="1"/><circle cx="4.5" cy="6.5" r="1"/>
+              </svg>
+              {v}
+            </span>
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onChange(views.filter((x, j) => j !== i)) }}
-              className="hidden group-hover:flex absolute -top-[5px] -right-[5px] w-[13px] h-[13px] bg-[var(--bg2)] border border-[var(--line2)] rounded-full items-center justify-center text-[0.6rem] text-[var(--text3)] hover:bg-[#ff3b30] hover:text-white hover:border-[#ff3b30] transition-colors z-10"
+              className="hidden group-hover:flex absolute -top-[5px] -right-[5px] w-[14px] h-[14px] bg-[var(--bg2)] border border-[var(--line2)] rounded-full items-center justify-center text-[0.6rem] text-[var(--text3)] hover:bg-[#ff3b30] hover:text-white hover:border-[#ff3b30] transition-colors z-10"
               title="Remove from sequence"
             >×</button>
           </div>
@@ -530,8 +551,9 @@ function AnglePillRow({
               draggable={false}
               onClick={() => onChange([...views, v])}
               title="Click to add to sequence"
-              className={`shot-pill opacity-25 hover:opacity-60 transition-opacity cursor-pointer select-none ${VIEW_PILL_CLS[v] ?? ''}`}
+              className={`shot-pill opacity-30 hover:opacity-70 transition-opacity cursor-pointer select-none flex items-center gap-[4px] ${VIEW_PILL_CLS[v] ?? ''}`}
             >
+              <span className="text-[10px] font-bold leading-none">+</span>
               {v}
             </button>
           ))}
