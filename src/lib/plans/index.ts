@@ -104,7 +104,6 @@ export const PLANS: Record<PlanId, Plan> = {
     highlights: [
       'Up to 1,000 SKUs processed / month',
       '2 brands',
-      'Unlimited collections per brand',
       '1 Shopify store integration',
       'Export to all ANZ marketplaces',
       'AI product listing copy generation',
