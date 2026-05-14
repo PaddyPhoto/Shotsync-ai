@@ -668,144 +668,118 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
       </div>
       {/* end Card 1: Brand Settings */}
 
-      {/* ═══ Card 2: Marketplace Integrations ═══════════════════════════════ */}
+      {/* ═══ Card 2: Platform Connections ═══════════════════════════════════ */}
       <div className="card overflow-hidden" style={{ borderLeft: `3px solid ${brand!.logo_color}` }}>
         <div className="px-6 py-4 border-b border-[var(--line)]">
-          <h3 className="text-[0.88rem] font-semibold text-[var(--text)]">Marketplace Integrations</h3>
-          <p className="text-[0.85rem] text-[var(--text3)] mt-[3px]">Connect platforms to push images directly from any export.</p>
+          <h3 className="text-[0.88rem] font-semibold text-[var(--text)]">Platform Connections</h3>
+          <p className="text-[0.85rem] text-[var(--text3)] mt-[3px]">Connect your eCommerce and ERP platforms.</p>
         </div>
-        <div className="p-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
 
-            {/* Shopify */}
-            <div className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-[6px] bg-[#96bf48] flex items-center justify-center flex-shrink-0">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M15.337 23.979l7.453-1.61S19.186 5.44 19.163 5.28a.326.326 0 0 0-.32-.28c-.146 0-2.718-.05-2.718-.05s-1.79-1.73-1.99-1.93v20.96zM11.43 6.08S10.64 5.8 9.6 5.8c-1.6 0-1.68.998-1.68 1.25 0 1.37 3.79 1.9 3.79 5.12 0 2.54-1.61 4.17-3.78 4.17-2.6 0-3.93-1.62-3.93-1.62l.7-2.3s1.37 1.17 2.52 1.17c.75 0 1.06-.59 1.06-1.02 0-1.79-3.11-1.87-3.11-4.82 0-2.48 1.79-4.88 5.38-4.88 1.38 0 2.07.4 2.07.4L11.43 6.08z"/></svg>
-                </div>
-                <span className="text-[0.82rem] font-semibold text-[var(--text)]">Shopify</span>
+        {/* ── Section label ── */}
+        <div className="px-6 pt-4 pb-1">
+          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text3)]">eCommerce</p>
+        </div>
+
+        {/* Shopify */}
+        <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)]">
+          <div className="w-8 h-8 rounded-[7px] bg-[#96bf48] flex items-center justify-center flex-shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M15.337 23.979l7.453-1.61S19.186 5.44 19.163 5.28a.326.326 0 0 0-.32-.28c-.146 0-2.718-.05-2.718-.05s-1.79-1.73-1.99-1.93v20.96zM11.43 6.08S10.64 5.8 9.6 5.8c-1.6 0-1.68.998-1.68 1.25 0 1.37 3.79 1.9 3.79 5.12 0 2.54-1.61 4.17-3.78 4.17-2.6 0-3.93-1.62-3.93-1.62l.7-2.3s1.37 1.17 2.52 1.17c.75 0 1.06-.59 1.06-1.02 0-1.79-3.11-1.87-3.11-4.82 0-2.48 1.79-4.88 5.38-4.88 1.38 0 2.07.4 2.07.4L11.43 6.08z"/></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[0.85rem] font-semibold text-[var(--text)]">Shopify</p>
+            {brand?.shopify_store_url
+              ? <p className="text-[0.78rem] text-[var(--text3)] font-mono truncate">{brand.shopify_store_url}</p>
+              : <p className="text-[0.78rem] text-[var(--text3)]">No store configured</p>}
+          </div>
+          {brand?.shopify_store_url ? (
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className={`flex items-center gap-1.5 text-[0.78rem] font-medium ${shopifyConnected ? 'text-[var(--accent2)]' : 'text-[#ff9f0a]'}`}>
+                <div className="w-[5px] h-[5px] rounded-full flex-shrink-0" style={{ background: shopifyConnected ? 'var(--accent2)' : '#ff9f0a' }} />
+                {shopifyConnected ? 'Connected' : 'Auth needed'}
               </div>
-              {brand?.shopify_store_url ? (
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className={`flex items-center gap-1.5 text-[0.8rem] font-medium ${shopifyConnected ? 'text-[var(--accent2)]' : 'text-[#ff9f0a]'}`}>
-                    <div className="w-[5px] h-[5px] rounded-full flex-shrink-0" style={{ background: shopifyConnected ? 'var(--accent2)' : '#ff9f0a' }} />
-                    {shopifyConnected ? 'Connected' : 'Auth needed'}
-                  </div>
-                  <p className="text-[0.77rem] text-[var(--text3)] truncate">{brand.shopify_store_url}</p>
-                  <div className="flex flex-col gap-1 mt-auto">
-                    <a href={`/api/shopify/connect?brand_id=${brand.id}&shop=${encodeURIComponent(brand.shopify_store_url)}`} className="btn btn-ghost btn-sm text-[0.8rem] text-center">
-                      {shopifyConnected ? 'Re-authorise' : 'Connect Shopify'}
-                    </a>
-                    {onDisconnectShopify && (
-                      <button type="button" onClick={onDisconnectShopify} className="text-[0.77rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors text-center">Disconnect</button>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex-1 flex flex-col gap-2">
-                  <p className="text-[0.8rem] text-[var(--text3)]">No store configured</p>
-                  <input className="input text-[0.82rem] font-mono" placeholder="your-store.myshopify.com" value={form.shopify_store_url} onChange={(e) => onFormChange({ shopify_store_url: e.target.value })} />
-                  {form.shopify_store_url.trim() && (
-                    <a href={`/api/shopify/connect?brand_id=${brand!.id}&shop=${encodeURIComponent(form.shopify_store_url.trim())}`} className="btn btn-primary btn-sm text-[0.8rem] text-center">Connect Shopify</a>
-                  )}
-                </div>
+              <a href={`/api/shopify/connect?brand_id=${brand.id}&shop=${encodeURIComponent(brand.shopify_store_url)}`} className="btn btn-ghost btn-sm text-[0.8rem]">
+                {shopifyConnected ? 'Re-authorise' : 'Connect'}
+              </a>
+              {onDisconnectShopify && (
+                <button type="button" onClick={onDisconnectShopify} className="text-[0.78rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Disconnect</button>
               )}
             </div>
-
-            {/* Cin7 Core */}
-            <div className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)]">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-[6px] flex items-center justify-center flex-shrink-0" style={{ background: '#00b4d8' }}>
-                    <span className="text-white font-bold text-[0.7rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>C7</span>
-                  </div>
-                  <span className="text-[0.82rem] font-semibold text-[var(--text)]">Cin7 Core</span>
-                </div>
-                <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[6px] py-[2px] rounded-full border border-[var(--line2)] text-[var(--text3)]">Soon</span>
-              </div>
-              <div className="flex flex-col gap-2 flex-1">
-                <input
-                  className="input text-[0.82rem] font-mono"
-                  placeholder="Account ID"
-                  value={form.cin7_account_id}
-                  onChange={(e) => onFormChange({ cin7_account_id: e.target.value })}
-                  autoComplete="off"
-                />
-                <input
-                  className="input text-[0.82rem] font-mono"
-                  type="password"
-                  placeholder="Application Key"
-                  value={form.cin7_application_key}
-                  onChange={(e) => onFormChange({ cin7_application_key: e.target.value })}
-                  autoComplete="new-password"
-                />
-              </div>
-              <p className="text-[0.75rem] text-[var(--text3)]">Pulls your product catalogue and pushes enriched copy + images back to Cin7.</p>
+          ) : (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <input className="input text-[0.82rem] font-mono w-[220px]" placeholder="your-store.myshopify.com" value={form.shopify_store_url} onChange={(e) => onFormChange({ shopify_store_url: e.target.value })} />
+              {form.shopify_store_url.trim() && (
+                <a href={`/api/shopify/connect?brand_id=${brand!.id}&shop=${encodeURIComponent(form.shopify_store_url.trim())}`} className="btn btn-primary btn-sm text-[0.8rem]">Connect</a>
+              )}
             </div>
+          )}
+        </div>
 
-            {/* Apparel21 */}
-            <div className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)] opacity-60">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-[6px] flex items-center justify-center flex-shrink-0" style={{ background: '#1a1a2e' }}>
-                    <span className="text-white font-bold text-[0.65rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>A21</span>
-                  </div>
-                  <span className="text-[0.82rem] font-semibold text-[var(--text)]">Apparel21</span>
-                </div>
-                <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[6px] py-[2px] rounded-full border border-[var(--line2)] text-[var(--text3)]">Soon</span>
-              </div>
-              <div className="flex-1 flex flex-col gap-1">
-                <div className="flex items-center gap-1.5 text-[0.8rem] text-[var(--text3)]">
-                  <div className="w-[5px] h-[5px] rounded-full bg-[var(--bg4)] flex-shrink-0" />
-                  Coming soon
-                </div>
-                <p className="text-[0.75rem] text-[var(--text3)]">Pulls styles from A21 and pushes enriched copy + images back.</p>
-              </div>
-              <button disabled className="btn btn-ghost btn-sm text-[0.8rem] cursor-not-allowed self-start">Connect</button>
-            </div>
+        {/* ── Section label ── */}
+        <div className="px-6 pt-4 pb-1">
+          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text3)]">ERP / Inventory</p>
+        </div>
 
-            {/* THE ICONIC — credential fields wired, disabled until live */}
-            <div className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)]">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-[6px] bg-[var(--bg)] border border-[var(--line2)] flex items-center justify-center flex-shrink-0">
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="1.5" y="5" width="8" height="5" rx="0.8"/><path d="M3.5 5V3.5a2 2 0 014 0V5"/></svg>
-                  </div>
-                  <span className="text-[0.82rem] font-semibold text-[var(--text)]">THE ICONIC</span>
-                </div>
-                <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[6px] py-[2px] rounded-full border border-[var(--line2)] text-[var(--text3)]">Soon</span>
-              </div>
-              <div className="flex flex-col gap-2 opacity-50 pointer-events-none select-none flex-1">
-                <input className="input text-[0.82rem]" placeholder="seller@yourbrand.com" value={form.iconic_user_id} onChange={(e) => onFormChange({ iconic_user_id: e.target.value })} disabled autoComplete="off" />
-                <input className="input text-[0.82rem] font-mono" type="password" placeholder="API key" value={form.iconic_api_key} onChange={(e) => onFormChange({ iconic_api_key: e.target.value })} disabled autoComplete="new-password" />
-              </div>
-              <p className="text-[0.75rem] text-[var(--text3)]">SellerCenter API — no OAuth required.</p>
-            </div>
-
-            {/* Myer + David Jones */}
-            {COMING_SOON_MARKETS.filter((m) => m.id !== 'iconic').map((market) => (
-              <div key={market.id} className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)] opacity-50">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-[6px] bg-[var(--bg)] border border-[var(--line2)] flex items-center justify-center flex-shrink-0">
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="1.5" y="5" width="8" height="5" rx="0.8"/><path d="M3.5 5V3.5a2 2 0 014 0V5"/></svg>
-                  </div>
-                  <span className="text-[0.82rem] font-semibold text-[var(--text)]">{market.name}</span>
-                </div>
-                <div className="flex-1 flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-[0.8rem] text-[var(--text3)]">
-                    <div className="w-[5px] h-[5px] rounded-full bg-[var(--bg4)] flex-shrink-0" />
-                    Coming soon
-                  </div>
-                  <p className="text-[0.77rem] text-[var(--text3)]">{market.api}</p>
-                </div>
-                <button disabled className="btn btn-ghost btn-sm text-[0.8rem] cursor-not-allowed self-start">Connect</button>
-              </div>
-            ))}
-
+        {/* Cin7 Core */}
+        <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)]">
+          <div className="w-8 h-8 rounded-[7px] flex items-center justify-center flex-shrink-0" style={{ background: '#00b4d8' }}>
+            <span className="text-white font-bold text-[0.72rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>C7</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[0.85rem] font-semibold text-[var(--text)]">Cin7 Core</p>
+            <p className="text-[0.78rem] text-[var(--text3)]">Pulls product catalogue · pushes enriched copy & images</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <input className="input text-[0.82rem] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => onFormChange({ cin7_account_id: e.target.value })} autoComplete="off" />
+            <input className="input text-[0.82rem] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => onFormChange({ cin7_application_key: e.target.value })} autoComplete="new-password" />
+            <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
           </div>
         </div>
+
+        {/* Apparel21 */}
+        <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)] opacity-50">
+          <div className="w-8 h-8 rounded-[7px] flex items-center justify-center flex-shrink-0" style={{ background: '#1a1a2e' }}>
+            <span className="text-white font-bold text-[0.65rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>A21</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[0.85rem] font-semibold text-[var(--text)]">Apparel21</p>
+            <p className="text-[0.78rem] text-[var(--text3)]">Pulls styles from A21 · pushes enriched copy & images</p>
+          </div>
+          <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
+        </div>
+
+        {/* ── Section label ── */}
+        <div className="px-6 pt-4 pb-1">
+          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text3)]">Marketplaces</p>
+        </div>
+
+        {/* THE ICONIC */}
+        <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)] opacity-60">
+          <div className="w-8 h-8 rounded-[7px] bg-[var(--bg4)] border border-[var(--line2)] flex items-center justify-center flex-shrink-0">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="1.5" y="5" width="8" height="5" rx="0.8"/><path d="M3.5 5V3.5a2 2 0 014 0V5"/></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[0.85rem] font-semibold text-[var(--text)]">THE ICONIC</p>
+            <p className="text-[0.78rem] text-[var(--text3)]">SellerCenter API — no OAuth required</p>
+          </div>
+          <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
+        </div>
+
+        {/* Myer + David Jones */}
+        {COMING_SOON_MARKETS.filter((m) => m.id !== 'iconic').map((market, i, arr) => (
+          <div key={market.id} className={`px-6 py-3 flex items-center gap-4 opacity-60 ${i < arr.length - 1 ? 'border-b border-[var(--line)]' : ''}`}>
+            <div className="w-8 h-8 rounded-[7px] bg-[var(--bg4)] border border-[var(--line2)] flex items-center justify-center flex-shrink-0">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="1.5" y="5" width="8" height="5" rx="0.8"/><path d="M3.5 5V3.5a2 2 0 014 0V5"/></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[0.85rem] font-semibold text-[var(--text)]">{market.name}</p>
+              <p className="text-[0.78rem] text-[var(--text3)]">{market.api}</p>
+            </div>
+            <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
+          </div>
+        ))}
+
       </div>
-      {/* end Card 2: Marketplace Integrations */}
+      {/* end Card 2: Platform Connections */}
 
     </div>
   )
