@@ -267,10 +267,13 @@ export async function processFiles(
     }
   })
 
-  // Step 2b: Generate compressed thumbnails in batches of 8.
+  // Step 2b: Generate compressed thumbnails in small batches.
   // Each thumbnail is ~30-60KB vs 10-25MB for the source file, preventing the
   // browser from decoding hundreds of full-res images into GPU memory at once.
-  const THUMB_CONCURRENCY = 8
+  // Concurrency is capped low for large files — a 15MB JPEG decompresses to
+  // ~150-200MB in RAM, so 8 concurrent would spike to 1.5GB+ and freeze the tab.
+  const avgSizeBytes = files.reduce((s, f) => s + f.size, 0) / (files.length || 1)
+  const THUMB_CONCURRENCY = avgSizeBytes > 8 * 1024 * 1024 ? 2 : avgSizeBytes > 4 * 1024 * 1024 ? 4 : 8
   let thumbDone = 0
   onProgress({ phase: 'Generating previews…', done: 0, total })
   for (let i = 0; i < images.length; i += THUMB_CONCURRENCY) {
