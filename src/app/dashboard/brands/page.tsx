@@ -776,15 +776,22 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         </div>
 
         {/* THE ICONIC */}
-        <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)] opacity-60">
-          <div className="w-8 h-8 rounded-[7px] bg-[var(--bg4)] border border-[var(--line2)] flex items-center justify-center flex-shrink-0">
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="1.5" y="5" width="8" height="5" rx="0.8"/><path d="M3.5 5V3.5a2 2 0 014 0V5"/></svg>
+        <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)]">
+          <div className="w-8 h-8 rounded-[7px] bg-black flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-[0.6rem] tracking-tight" style={{ fontFamily: 'var(--font-dm-mono)' }}>TI</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[0.85rem] font-semibold text-[var(--text)]">THE ICONIC</p>
             <p className="text-[0.78rem] text-[var(--text3)]">SellerCenter API — no OAuth required</p>
           </div>
-          <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <input className="input text-[0.82rem] font-mono w-[160px]" placeholder="User ID" value={form.iconic_user_id} onChange={(e) => onFormChange({ iconic_user_id: e.target.value })} autoComplete="off" />
+            <input className="input text-[0.82rem] font-mono w-[160px]" type="password" placeholder="API Key" value={form.iconic_api_key} onChange={(e) => onFormChange({ iconic_api_key: e.target.value })} autoComplete="new-password" />
+            {form.iconic_user_id && form.iconic_api_key
+              ? <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--accent2)] text-[var(--accent2)] flex-shrink-0">Connected</span>
+              : null
+            }
+          </div>
         </div>
 
         {/* Myer + David Jones */}
