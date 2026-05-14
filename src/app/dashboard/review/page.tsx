@@ -1875,17 +1875,24 @@ function ExportPanel({
     const { width, height } = firstRule.image_dimensions
     const bgColor = firstRule.background_color ?? '#ffffff'
     const quality = (firstRule.quality ?? 100) / 100
+    const brandId = activeBrand.id
+    const currentStyleList = useSession.getState().styleList
 
-    const results: { sku: string; status: string; message?: string }[] = []
+    // Pre-allocate one result slot per cluster so parallel updates don't collide
+    const results: { sku: string; status: string; message?: string }[] =
+      confirmedClusters.map((c) => ({ sku: c.sku || c.label, status: 'pending' }))
+    setCin7Results([...results])
 
-    for (const cluster of confirmedClusters) {
+    const processCluster = async (cluster: typeof confirmedClusters[0], idx: number) => {
+      const sku = cluster.sku || cluster.label
       const tempPaths: string[] = []
       try {
         const images: { src: string; filename: string }[] = []
 
         for (let i = 0; i < cluster.images.length; i++) {
           const img = cluster.images[i]
-          setCin7Results([...results, { sku: cluster.sku || cluster.label, status: 'uploading', message: `Processing image ${i + 1}/${cluster.images.length}…` }])
+          results[idx] = { sku, status: 'uploading', message: `${i + 1}/${cluster.images.length} images…` }
+          setCin7Results([...results])
 
           let buffer: ArrayBuffer
           try {
@@ -1908,9 +1915,7 @@ function ExportPanel({
 
         const { data: { session: freshSession } } = await supabase.auth.getSession()
         const copy = clusterCopy[cluster.id]
-        const styleEntry = useSession.getState().styleList.find(
-          (e) => e.sku.toUpperCase() === (cluster.sku || '').toUpperCase()
-        )
+        const styleEntry = currentStyleList.find((e) => e.sku.toUpperCase() === sku.toUpperCase())
 
         const apiRes = await fetch('/api/cin7/upload', {
           method: 'POST',
@@ -1919,10 +1924,10 @@ function ExportPanel({
             ...((freshSession?.access_token ?? session?.access_token) ? { Authorization: `Bearer ${freshSession?.access_token ?? session?.access_token}` } : {}),
           },
           body: JSON.stringify({
-            brand_id: activeBrand.id,
+            brand_id: brandId,
             clusters: [{
-              sku: cluster.sku || cluster.label,
-              productName: cluster.productName || cluster.sku || cluster.label,
+              sku,
+              productName: cluster.productName || sku,
               color: cluster.color || '',
               colourCode: cluster.colourCode || '',
               styleNumber: cluster.styleNumber || '',
@@ -1949,16 +1954,26 @@ function ExportPanel({
 
         const parsed = await apiRes.json().catch(() => null)
         if (!apiRes.ok || !parsed) {
-          results.push({ sku: cluster.sku || cluster.label, status: 'error', message: `HTTP ${apiRes.status}` })
+          results[idx] = { sku, status: 'error', message: `HTTP ${apiRes.status}` }
           await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
         } else {
-          results.push(...(parsed.data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))
+          results[idx] = parsed.data?.results?.[0] ?? { sku, status: 'error', message: 'No response' }
         }
       } catch (err) {
-        results.push({ sku: cluster.sku || cluster.label, status: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+        results[idx] = { sku, status: 'error', message: err instanceof Error ? err.message : 'Unknown error' }
         if (tempPaths.length) await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
       }
       setCin7Results([...results])
+    }
+
+    // Process 4 clusters concurrently — 4× faster than sequential
+    const CIN7_CONCURRENCY = 4
+    for (let i = 0; i < confirmedClusters.length; i += CIN7_CONCURRENCY) {
+      await Promise.all(
+        confirmedClusters.slice(i, i + CIN7_CONCURRENCY).map((cluster, j) =>
+          processCluster(cluster, i + j)
+        )
+      )
     }
 
     setCin7Uploading(false)
