@@ -264,11 +264,22 @@ function MarketplacesInner() {
                             </div>
                           </div>
 
-                          {/* Right: pill rows — fills same space as Required Views pills */}
+                          {/* Right: pill rows */}
                           <div className="flex-1 flex flex-col gap-[8px]">
-                            {/* Default row */}
-                            <div className="flex items-start gap-2">
-                              <span className="text-[0.72rem] text-[var(--text3)] w-[64px] flex-shrink-0 font-medium mt-[5px]">Default</span>
+                            {/* Default row — no label when no overrides, label appears only when overrides exist */}
+                            {(rule.category_overrides ?? []).length > 0 ? (
+                              <div className="flex items-start gap-2">
+                                <span className="text-[0.72rem] text-[var(--text3)] w-[90px] flex-shrink-0 font-medium mt-[5px]">Default</span>
+                                <AnglePillRow
+                                  views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
+                                  allViews={ALL_VIEWS}
+                                  rowKey={`${id}:default`}
+                                  dragState={dragState}
+                                  setDragState={setDragState}
+                                  onChange={(next) => updateRule(id, { angle_order: next })}
+                                />
+                              </div>
+                            ) : (
                               <AnglePillRow
                                 views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
                                 allViews={ALL_VIEWS}
@@ -277,7 +288,7 @@ function MarketplacesInner() {
                                 setDragState={setDragState}
                                 onChange={(next) => updateRule(id, { angle_order: next })}
                               />
-                            </div>
+                            )}
 
                             {/* Category override rows */}
                             {(rule.category_overrides ?? []).length > 0 && (
@@ -286,7 +297,7 @@ function MarketplacesInner() {
                             {(rule.category_overrides ?? []).map((ov) => (
                               <div key={ov.id} className="flex items-start gap-2">
                                 <select
-                                  className="text-[0.72rem] w-[64px] flex-shrink-0 input py-[3px] cursor-pointer"
+                                  className="text-[0.72rem] w-[90px] flex-shrink-0 input py-[3px] cursor-pointer"
                                   value={ov.category}
                                   onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
                                 >
@@ -550,7 +561,6 @@ function AnglePillRow({
       {/* Inactive — click to add back */}
       {inactive.length > 0 && (
         <div className="flex flex-wrap items-center gap-[5px]">
-          <span className="text-[0.7rem] flex-shrink-0" style={{ color: 'var(--text3)' }}>Not included:</span>
           {inactive.map((v) => (
             <button
               key={v}
