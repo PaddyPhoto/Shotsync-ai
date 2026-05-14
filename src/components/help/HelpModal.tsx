@@ -67,6 +67,10 @@ const SECTIONS: Section[] = [
         a: 'Yes. Click the angle label beneath any image in a cluster to reassign it from your brand\'s configured angle sequence. Dragging an image to a different position also updates its angle label automatically.',
       },
       {
+        q: 'What does the Tops / Bottoms button do?',
+        a: 'It controls how the {VIEW_NUM} token is numbered in your file naming template. Topwear uses Full-Length=1, Side=2, Back=3, Mood=4, Front=5. Bottomwear (pants, skirts, shorts) uses Front=1, Side=2, Back=3, Mood=4, Full-Length=5 — because front is the hero shot for bottoms. You rarely need to set this manually: selecting a garment category (Pants, Skirts, Shorts, Swimwear) automatically switches the cluster to Bottoms, and any other category switches it back to Tops.',
+      },
+      {
         q: 'What does the garment category dropdown do?',
         a: 'It does two things. First, if you\'ve set up a per-category shoot sequence in Brand Settings, selecting the category immediately relabels the cluster\'s angle thumbnails to match — so you get instant visual feedback. Second, at export time it applies any matching category override from Marketplace Settings, which reorders the exported images into the sequence that specific marketplace expects for that garment type.',
       },
