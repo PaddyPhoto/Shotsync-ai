@@ -1748,6 +1748,7 @@ function ExportPanel({
     console.log('[shopify v4] dimensions', { width, height, bgColor, quality })
 
     const results: { sku: string; status: string; adminUrl?: string; message?: string }[] = []
+    const shopifyStyleList = useSession.getState().styleList
 
     for (const cluster of confirmedClusters) {
       const tempPaths: string[] = []
@@ -1790,6 +1791,8 @@ function ExportPanel({
         // session.access_token can expire mid-export on large jobs (50+ clusters).
         const { data: { session: freshSession } } = await supabase.auth.getSession()
         const copy = clusterCopy[cluster.id]
+        const sku = cluster.sku || cluster.label
+        const styleEntry = shopifyStyleList.find((e) => e.sku.toUpperCase() === sku.toUpperCase())
         let apiRes: Response
         try {
           apiRes = await fetch('/api/shopify/upload', {
@@ -1802,14 +1805,30 @@ function ExportPanel({
               brand_id: activeBrand.id,
               vendor: activeBrand.name,
               clusters: [{
-                sku: cluster.sku || cluster.label,
-                productName: cluster.productName || cluster.sku || cluster.label,
+                sku,
+                productName: cluster.productName || sku,
                 color: cluster.color || '',
+                colourCode: cluster.colourCode || '',
+                styleNumber: cluster.styleNumber || '',
+                garmentCategory: cluster.garmentCategory || null,
                 images,
                 ...(copy?.title || cluster.productName ? { copy: {
                   title: copy?.title || cluster.productName || '',
                   description: copy?.description || cluster.copyDescription || '',
                   bullets: copy?.bullets?.length ? copy.bullets : (cluster.copyBullets ?? []),
+                } } : {}),
+                ...(styleEntry ? { styleEntry: {
+                  composition: styleEntry.composition,
+                  care: styleEntry.care,
+                  fit: styleEntry.fit,
+                  length: styleEntry.length,
+                  rrp: styleEntry.rrp,
+                  season: styleEntry.season,
+                  occasion: styleEntry.occasion,
+                  gender: styleEntry.gender,
+                  subCategory: styleEntry.subCategory,
+                  origin: styleEntry.origin,
+                  sizeRange: styleEntry.sizeRange,
                 } } : {}),
               }],
               tempPaths,

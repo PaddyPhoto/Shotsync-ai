@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient, getAuthUser } from '@/lib/supabase/server'
-import { ShopifyClient } from '@/lib/shopify/client'
+import { ShopifyClient, type ShopifyMetafield } from '@/lib/shopify/client'
 
 export const maxDuration = 60
 
@@ -8,23 +8,9 @@ export const maxDuration = 60
  * POST /api/shopify/upload
  *
  * Creates Shopify draft product listings from confirmed clusters.
- * Images are passed as public Supabase Storage URLs (uploaded directly
- * from the browser — no image data passes through this function).
- * Temp storage files are deleted after Shopify confirms each product.
- *
- * Body:
- * {
- *   brand_id: string
- *   vendor?: string
- *   clusters: [{
- *     sku: string
- *     productName: string
- *     color: string
- *     images: [{ src: string; filename: string }]
- *     copy?: { title: string; description: string; bullets: string[] }
- *   }]
- *   tempPaths: string[]   // Supabase Storage paths to delete after upload
- * }
+ * Images are passed as public Supabase Storage URLs.
+ * Full enrichment flows through: price, product_type, and metafields
+ * for all style list metadata (composition, care, fit, etc.).
  */
 export async function POST(req: NextRequest) {
   console.log('[shopify-upload] POST received')
@@ -33,7 +19,6 @@ export async function POST(req: NextRequest) {
     console.log('[shopify-upload] auth failed — no user')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  console.log('[shopify-upload] authed as', user.id)
 
   const service = createServiceClient()
 
@@ -45,8 +30,24 @@ export async function POST(req: NextRequest) {
       sku: string
       productName: string
       color: string
+      colourCode?: string
+      styleNumber?: string
+      garmentCategory?: string | null
       images: { src?: string; base64?: string; filename: string }[]
       copy?: { title: string; description: string; bullets: string[] }
+      styleEntry?: {
+        composition?: string
+        care?: string
+        fit?: string
+        length?: string
+        rrp?: string
+        season?: string
+        occasion?: string
+        gender?: string
+        subCategory?: string
+        origin?: string
+        sizeRange?: string
+      }
     }[]
     tempPaths?: string[]
   }
@@ -77,14 +78,15 @@ export async function POST(req: NextRequest) {
 
   for (const cluster of clusters) {
     try {
-      // Check if a product with this SKU already exists in Shopify.
-      // If so, append the new images rather than creating a duplicate listing.
       const existing = await client.findProductBySku(cluster.sku)
 
       if (existing) {
         await client.appendImages(existing.id, cluster.images)
         results.push({ sku: cluster.sku, status: 'updated', adminUrl: existing.adminUrl })
       } else {
+        const se = cluster.styleEntry ?? {}
+
+        // AI copy → body HTML
         let bodyHtml = ''
         if (cluster.copy?.description) {
           const bulletHtml = cluster.copy.bullets?.length
@@ -93,12 +95,36 @@ export async function POST(req: NextRequest) {
           bodyHtml = `<p>${cluster.copy.description}</p>${bulletHtml}`
         }
 
+        // RRP → variant price
+        const price = se.rrp ? parseFloat(se.rrp.replace(/[^0-9.]/g, '')) || 0 : 0
+
+        // Build metafields from all available enrichment
+        const metafields: ShopifyMetafield[] = []
+        const addMeta = (key: string, value: string | undefined) => {
+          if (value) metafields.push({ namespace: 'custom', key, value, type: 'single_line_text_field' })
+        }
+        addMeta('composition', se.composition)
+        addMeta('care_instructions', se.care)
+        addMeta('fit', se.fit)
+        addMeta('length', se.length)
+        addMeta('season', se.season)
+        addMeta('gender', se.gender)
+        addMeta('occasion', se.occasion)
+        addMeta('sub_category', se.subCategory)
+        addMeta('country_of_origin', se.origin)
+        addMeta('size_range', se.sizeRange)
+        addMeta('colour_code', cluster.colourCode)
+        addMeta('style_number', cluster.styleNumber)
+
         const result = await client.createProduct({
           title: cluster.copy?.title || cluster.productName || cluster.sku,
           sku: cluster.sku,
           vendor: brandVendor,
           color: cluster.color || undefined,
           bodyHtml,
+          price,
+          productType: cluster.garmentCategory || '',
+          metafields,
           images: cluster.images,
         })
 
@@ -114,7 +140,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Clean up temp Supabase Storage files regardless of Shopify outcome
   if (tempPaths.length > 0) {
     await service.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
   }

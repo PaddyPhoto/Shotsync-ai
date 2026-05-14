@@ -1,3 +1,10 @@
+export interface ShopifyMetafield {
+  namespace: string
+  key: string
+  value: string
+  type: 'single_line_text_field' | 'number_decimal'
+}
+
 export class ShopifyClient {
   private baseUrl: string
   private headers: Record<string, string>
@@ -83,9 +90,8 @@ export class ShopifyClient {
   }
 
   /**
-   * Create a new Shopify product as a draft.
-   * Images are uploaded in the same request — one API call per cluster.
-   * The ecommerce coordinator can then review, set a price, and publish.
+   * Create a new Shopify product as a draft with full enrichment:
+   * price, product_type, metafields, and images in one API call.
    */
   async createProduct(opts: {
     title: string
@@ -93,6 +99,9 @@ export class ShopifyClient {
     vendor?: string
     color?: string
     bodyHtml?: string
+    price?: number
+    productType?: string
+    metafields?: ShopifyMetafield[]
     images: { src?: string; base64?: string; filename: string }[]
   }): Promise<{ id: string; adminUrl: string } | null> {
     const url = `${this.baseUrl}/products.json`
@@ -100,7 +109,7 @@ export class ShopifyClient {
     const options = opts.color ? [{ name: 'Color', values: [opts.color] }] : []
     const variant: Record<string, unknown> = {
       sku: opts.sku,
-      price: '0.00',
+      price: opts.price ? String(opts.price.toFixed(2)) : '0.00',
       inventory_management: null,
     }
     if (opts.color) variant.option1 = opts.color
@@ -110,6 +119,7 @@ export class ShopifyClient {
         title: opts.title || opts.sku,
         body_html: opts.bodyHtml ?? '',
         vendor: opts.vendor ?? '',
+        product_type: opts.productType ?? '',
         status: 'draft',
         options,
         variants: [variant],
@@ -118,6 +128,7 @@ export class ShopifyClient {
           filename: img.filename,
           position: i + 1,
         })),
+        ...(opts.metafields?.length ? { metafields: opts.metafields } : {}),
       },
     }
 
