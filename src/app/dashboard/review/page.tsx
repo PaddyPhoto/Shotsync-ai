@@ -13,6 +13,11 @@ import { applyNamingTemplate } from '@/lib/brands'
 import { detectColourFromFilename } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
+
+const BOTTOMWEAR_CATEGORY_LABELS = new Set([
+  'Mens Pants', 'Mens Shorts', 'Mens Swimwear',
+  'Womens Pants', 'Womens Skirts', 'Womens Shorts', 'Womens Swimwear',
+])
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
 import { ClusterTour, useClusterTour } from '@/components/onboarding/ClusterTour'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
@@ -902,6 +907,7 @@ function ReviewPage() {
                       onChange={(e) => {
                         const newCat = e.target.value || null
                         setClusterGarmentCategory(cluster.id, newCat)
+                        setClusterBottomwear(cluster.id, newCat ? BOTTOMWEAR_CATEGORY_LABELS.has(newCat) : false)
                         if (newCat) {
                           const catSeq = activeBrand?.category_angle_sequences?.find(
                             (s) => s.category.trim().toLowerCase() === newCat.trim().toLowerCase()
