@@ -74,7 +74,7 @@ function ReviewPage() {
   const searchParams = useSearchParams()
   const { activeBrand } = useBrand()
   const {
-    jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
+    jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, angleSequence, isReady,
     setSession, setStyleList,
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
@@ -240,7 +240,8 @@ function ReviewPage() {
   // For on-model (or unknown category), uses the default clothing sequence.
   const getViewSequence = (cluster: SessionCluster): ViewLabel[] => {
     const cat = getCategoryForCluster(cluster)
-    return cat ? (cat.angles as ViewLabel[]) : DEFAULT_VIEW_SEQUENCE
+    if (cat) return cat.angles as ViewLabel[]
+    return angleSequence.length > 0 ? angleSequence : DEFAULT_VIEW_SEQUENCE
   }
 
   // Returns all angles a user can assign to an image via the per-image dropdown.
