@@ -350,38 +350,55 @@ export function Sidebar() {
         </Suspense>
 
         {/* Cluster list — visible on review page when session has clusters */}
-        {onReviewPage && hasSession && (
-          <div style={{ padding: '8px 10px 6px', borderTop: '0.5px solid rgba(255,255,255,0.06)', marginTop: '4px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px', marginBottom: '4px' }}>
-              <p style={SL}>{clusters.length} Clusters</p>
-              <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{confirmedCount}/{clusters.length}</span>
+        {onReviewPage && hasSession && (() => {
+          const sorted = [...clusters].sort((a, b) => {
+            const labelA = a.sku || a.label || ''
+            const labelB = b.sku || b.label || ''
+            const numA = parseInt(labelA.match(/(\d+)/)?.[1] ?? '0', 10)
+            const numB = parseInt(labelB.match(/(\d+)/)?.[1] ?? '0', 10)
+            if (numA !== numB) return numA - numB
+            return labelA.localeCompare(labelB)
+          })
+          return (
+            <div style={{ padding: '8px 10px 6px', borderTop: '1.5px solid rgba(255,255,255,0.1)', marginTop: '4px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', overflow: 'hidden' }}>
+                {/* Section header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px 6px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <p style={{ ...SL, padding: 0, marginBottom: 0 }}>{clusters.length} Clusters</p>
+                  <span style={{ fontSize: '11px', color: 'var(--text3)', fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ color: confirmedCount === clusters.length ? '#30d158' : 'var(--text2)' }}>{confirmedCount}</span>
+                    <span style={{ color: 'rgba(255,255,255,0.2)' }}>/{clusters.length}</span>
+                  </span>
+                </div>
+                {/* Scrollable list */}
+                <div style={{ maxHeight: '200px', overflowY: 'auto', padding: '4px' }}>
+                  {sorted.map((c) => {
+                    const dot = c.confirmed ? '#30d158' : 'rgba(255,255,255,0.2)'
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('shotsync:select-cluster', { detail: { id: c.id } }))
+                          setTimeout(() => document.getElementById(`cluster-${c.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+                        }}
+                        className="flex items-center gap-[8px] w-full text-left rounded-[6px] transition-all duration-150"
+                        style={{ padding: '4px 7px', color: 'var(--text3)' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
+                      >
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, background: dot, border: c.confirmed ? 'none' : '1px solid rgba(255,255,255,0.25)' }} />
+                        <span style={{ fontSize: '12.5px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {c.sku || c.label || '—'}
+                        </span>
+                        <span style={{ fontSize: '10.5px', color: 'rgba(255,255,255,0.22)', flexShrink: 0 }}>{c.images.length} img</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
-            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-              {clusters.map((c, i) => {
-                const dot = c.confirmed ? '#30d158' : 'rgba(255,255,255,0.2)'
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => {
-                      window.dispatchEvent(new CustomEvent('shotsync:select-cluster', { detail: { id: c.id } }))
-                      setTimeout(() => document.getElementById(`cluster-${c.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
-                    }}
-                    className="flex items-center gap-[8px] w-full text-left rounded-[7px] transition-all duration-150"
-                    style={{ padding: '5px 8px', color: 'var(--text3)' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
-                  >
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, background: dot, border: c.confirmed ? 'none' : '1px solid rgba(255,255,255,0.25)' }} />
-                    <span style={{ fontSize: '13px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {c.sku || c.label || `Look ${i + 1}`}
-                    </span>
-                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{c.images.length} img</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Parked Jobs */}
         {parkedJobs.length > 0 && (
