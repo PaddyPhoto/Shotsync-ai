@@ -1313,49 +1313,32 @@ function ReviewPage() {
                     </div>
                   </div>
 
-                  {/* Product details from style sheet — collapsible */}
+                  {/* Product details from style sheet — always visible compact grid */}
                   {(() => {
                     const entry = styleList.find((e) => e.sku.toUpperCase() === cluster.sku.toUpperCase())
                     const fields = entry ? [
-                      entry.composition && { label: 'Composition', value: entry.composition },
-                      entry.care        && { label: 'Care',        value: entry.care },
+                      entry.rrp         && { label: 'RRP',         value: `$${entry.rrp}` },
+                      entry.season      && { label: 'Season',      value: entry.season },
+                      entry.gender      && { label: 'Gender',      value: entry.gender },
                       entry.fit         && { label: 'Fit',         value: entry.fit },
                       entry.sizeRange   && { label: 'Sizes',       value: entry.sizeRange },
-                      entry.gender      && { label: 'Gender',      value: entry.gender },
-                      entry.category    && { label: 'Category',    value: entry.category },
+                      entry.composition && { label: 'Fabric',      value: entry.composition },
+                      entry.care        && { label: 'Care',        value: entry.care },
                       entry.occasion    && { label: 'Occasion',    value: entry.occasion },
-                      entry.season      && { label: 'Season',      value: entry.season },
                       entry.origin      && { label: 'Origin',      value: entry.origin },
-                      entry.rrp         && { label: 'RRP',         value: `$${entry.rrp}` },
+                      entry.category    && { label: 'Category',    value: entry.category },
                     ].filter(Boolean) as { label: string; value: string }[] : []
                     if (!fields.length) return null
-                    const key = `details-${cluster.id}`
-                    const open = expandedDetails.has(key)
                     return (
-                      <div className="border-t border-[var(--line)]">
-                        <button
-                          className="w-full flex items-center justify-between px-3 py-[7px] text-left hover:bg-[var(--bg3)] transition-colors"
-                          onClick={() => setExpandedDetails((prev) => {
-                            const next = new Set(prev)
-                            next.has(key) ? next.delete(key) : next.add(key)
-                            return next
-                          })}
-                        >
-                          <span className="text-[0.85rem] text-[var(--text3)]">Product details</span>
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--text3)" strokeWidth="1.5" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
-                            <path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                        {open && (
-                          <div className="px-3 pb-3 grid grid-cols-2 gap-x-4 gap-y-[5px]">
-                            {fields.map(({ label, value }) => (
-                              <div key={label} className="flex flex-col">
-                                <span className="text-[0.69rem] text-[var(--text3)] uppercase tracking-wide leading-tight">{label}</span>
-                                <span className="text-[0.85rem] text-[var(--text2)] leading-snug">{value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                      <div className="px-3 pb-[10px] border-t border-[var(--line)] pt-[8px]">
+                        <div className="flex flex-wrap gap-x-4 gap-y-[5px]">
+                          {fields.map(({ label, value }) => (
+                            <div key={label} className="flex flex-col min-w-[60px]">
+                              <span className="text-[0.67rem] text-[var(--text3)] uppercase tracking-wide leading-tight">{label}</span>
+                              <span className="text-[0.82rem] text-[var(--text)] leading-snug font-medium">{value}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )
                   })()}
@@ -1473,12 +1456,12 @@ function ReviewPage() {
                                 </div>
                                 <div>
                                   <label className="text-[0.86rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Bullet Points</label>
-                                  <div className="flex flex-col gap-[5px]">
+                                  <div className="flex flex-col gap-[2px]">
                                     {copy.bullets.map((bullet, i) => (
-                                      <div key={i} className="flex items-center gap-[6px]">
-                                        <span className="text-[var(--text3)] text-[0.8rem] flex-shrink-0">·</span>
+                                      <div key={i} className="flex items-start gap-[6px]">
+                                        <span className="text-[var(--text3)] text-[0.8rem] flex-shrink-0 mt-[4px]">·</span>
                                         <input
-                                          className="input text-[0.85rem] py-[4px] flex-1"
+                                          className="text-[0.84rem] text-[var(--text2)] flex-1 bg-transparent border border-transparent rounded-[4px] px-[5px] py-[3px] focus:outline-none focus:border-[var(--line2)] hover:border-[var(--line2)] transition-colors leading-snug"
                                           value={bullet}
                                           onChange={(e) => {
                                             const next = [...copy.bullets]
@@ -1500,26 +1483,6 @@ function ReviewPage() {
                                   </svg>
                                   Regenerate
                                 </button>
-                                {/* From your product data — verbatim CSV fields, not AI-generated */}
-                                {styleList.length > 0 && (() => {
-                                  const entry = styleList.find((e) => e.sku.toUpperCase() === cluster.sku.toUpperCase())
-                                  const fields = [
-                                    { label: 'Fabric', value: entry?.composition },
-                                    { label: 'Care', value: entry?.care },
-                                    { label: 'RRP', value: entry?.rrp ? `$${entry.rrp}` : undefined },
-                                  ]
-                                  return (
-                                    <div className="border-t border-[var(--line)] pt-[8px] mt-[2px]">
-                                      <p className="text-[0.69rem] text-[var(--text3)] uppercase tracking-wide mb-[6px]">From your product data</p>
-                                      {fields.map(({ label, value }) => (
-                                        <div key={label} className="flex items-start gap-[8px] mb-[4px]">
-                                          <span className="text-[0.69rem] text-[var(--text3)] uppercase tracking-wide w-[40px] flex-shrink-0 mt-[2px]">{label}</span>
-                                          <span className={`text-[0.85rem] leading-snug ${value ? 'text-[var(--text2)]' : 'text-[var(--text3)]'}`}>{value || '—'}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )
-                                })()}
                               </>
                             ) : (
                               <button
