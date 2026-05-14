@@ -20,6 +20,8 @@ export interface Brand {
   still_life_angle_sequences: Record<string, string[]>  // keyed by accessory category id
   naming_template: string
   gm_position: 'first' | 'last' | null
+  cin7_account_id: string | null
+  cin7_application_key: string | null
   /** Cloud storage connections (Dropbox, Google Drive, S3) stored per brand */
   cloud_connections: CloudConnections | null
   voice_brief: string | null
@@ -184,6 +186,8 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
+    cin7_account_id: null,
+    cin7_application_key: null,
     cloud_connections: null,
     voice_brief: null,
     copy_examples: null,
@@ -205,6 +209,8 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
+    cin7_account_id: null,
+    cin7_application_key: null,
     cloud_connections: null,
     voice_brief: null,
     copy_examples: null,
@@ -226,6 +232,8 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_angle_sequences: {},
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
+    cin7_account_id: null,
+    cin7_application_key: null,
     cloud_connections: null,
     voice_brief: null,
     copy_examples: null,

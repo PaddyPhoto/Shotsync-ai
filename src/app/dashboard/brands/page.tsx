@@ -48,6 +48,8 @@ type BrandForm = {
   gm_position: 'first' | 'last'
   voice_brief: string
   copy_examples: string[]
+  cin7_account_id: string
+  cin7_application_key: string
 }
 
 const DEFAULT_FORM: BrandForm = {
@@ -64,6 +66,8 @@ const DEFAULT_FORM: BrandForm = {
   gm_position: 'last',
   voice_brief: '',
   copy_examples: [],
+  cin7_account_id: '',
+  cin7_application_key: '',
 }
 
 function brandToForm(b: Brand): BrandForm {
@@ -81,6 +85,8 @@ function brandToForm(b: Brand): BrandForm {
     gm_position: (b.gm_position ?? 'last') as 'first' | 'last',
     voice_brief: b.voice_brief ?? '',
     copy_examples: b.copy_examples ?? [],
+    cin7_account_id: b.cin7_account_id ?? '',
+    cin7_application_key: b.cin7_application_key ?? '',
   }
 }
 
@@ -669,7 +675,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
           <p className="text-[0.85rem] text-[var(--text3)] mt-[3px]">Connect platforms to push images directly from any export.</p>
         </div>
         <div className="p-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
 
             {/* Shopify */}
             <div className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)]">
@@ -704,6 +710,37 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Cin7 Core */}
+            <div className="flex flex-col gap-3 p-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg3)]">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-[6px] flex items-center justify-center flex-shrink-0" style={{ background: '#00b4d8' }}>
+                    <span className="text-white font-bold text-[0.7rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>C7</span>
+                  </div>
+                  <span className="text-[0.82rem] font-semibold text-[var(--text)]">Cin7 Core</span>
+                </div>
+                <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[6px] py-[2px] rounded-full border border-[var(--line2)] text-[var(--text3)]">Soon</span>
+              </div>
+              <div className="flex flex-col gap-2 flex-1">
+                <input
+                  className="input text-[0.82rem] font-mono"
+                  placeholder="Account ID"
+                  value={form.cin7_account_id}
+                  onChange={(e) => onFormChange({ cin7_account_id: e.target.value })}
+                  autoComplete="off"
+                />
+                <input
+                  className="input text-[0.82rem] font-mono"
+                  type="password"
+                  placeholder="Application Key"
+                  value={form.cin7_application_key}
+                  onChange={(e) => onFormChange({ cin7_application_key: e.target.value })}
+                  autoComplete="new-password"
+                />
+              </div>
+              <p className="text-[0.75rem] text-[var(--text3)]">Pulls your product catalogue and pushes enriched copy + images back to Cin7.</p>
             </div>
 
             {/* THE ICONIC — credential fields wired, disabled until live */}
