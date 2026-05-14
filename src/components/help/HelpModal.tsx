@@ -105,6 +105,10 @@ const SECTIONS: Section[] = [
         a: 'In Brand Settings → Platforms, enter your Cin7 Account ID and Application Key. You\'ll also need to create a custom attribute set in Cin7 Core named "ShotSync Apparel" with fields: Colour, ColourCode, StyleNumber, Composition, Care, Fit, Length, Season, Gender, Occasion, SubCategory, Origin, SizeRange.',
       },
       {
+        q: 'How do I confirm Cin7 is ready before pushing?',
+        a: 'In Brand Settings → Platform Connections, enter your Account ID and Application Key then click "Test connection". The test runs two checks: first it verifies your credentials are accepted by Cin7, then it looks for the ShotSync Apparel attribute set in your account. Two green ticks means you\'re ready to push. An amber warning on the second check means the credentials are valid but the attribute set hasn\'t been created yet — set it up in Cin7 Core → Settings → Attribute Sets before your first push.',
+      },
+      {
         q: 'How does Shopify integration work?',
         a: 'Enter your Shopify store URL and Admin API key in Brand Settings → Platforms. After confirming clusters, use the Export panel to push products directly to your Shopify store with processed images, metadata, and AI-generated copy.',
       },
