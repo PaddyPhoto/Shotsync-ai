@@ -7,6 +7,7 @@ import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
 import type { Brand } from '@/lib/brands'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
+import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
 
 function toggleToken(template: string, token: string): string {
@@ -44,6 +45,7 @@ type BrandForm = {
   images_per_look: number
   on_model_angle_sequence: string[]
   still_life_angle_sequences: Record<string, string[]>
+  category_angle_sequences: { category: string; angles: string[] }[]
   naming_template: string
   gm_position: 'first' | 'last'
   voice_brief: string
@@ -62,6 +64,7 @@ const DEFAULT_FORM: BrandForm = {
   images_per_look: 4,
   on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
   still_life_angle_sequences: {},
+  category_angle_sequences: [],
   naming_template: '{BRAND}_{SEQ}_{VIEW}',
   gm_position: 'last',
   voice_brief: '',
@@ -81,6 +84,7 @@ function brandToForm(b: Brand): BrandForm {
     images_per_look: b.images_per_look ?? 4,
     on_model_angle_sequence: b.on_model_angle_sequence?.length ? b.on_model_angle_sequence : DEFAULT_FORM.on_model_angle_sequence,
     still_life_angle_sequences: b.still_life_angle_sequences ?? {},
+    category_angle_sequences: b.category_angle_sequences ?? [],
     naming_template: b.naming_template ?? DEFAULT_FORM.naming_template,
     gm_position: (b.gm_position ?? 'last') as 'first' | 'last',
     voice_brief: b.voice_brief ?? '',
@@ -572,6 +576,77 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                       </div>
                     )
                   })}
+                </div>
+              </div>
+
+              {/* Per-garment-category angle sequences */}
+              <div className="mt-4">
+                <p className="text-[0.85rem] text-[var(--text2)] mb-1">Per-Category Shoot Sequences</p>
+                <p className="text-[0.8rem] text-[var(--text3)] mb-3">Optional. If a garment category is shot in a different angle order, define it here. Selecting that category on a cluster will relabel its angles automatically.</p>
+                <div className="flex flex-col gap-2">
+                  {form.category_angle_sequences.map((row, rowIdx) => (
+                    <div key={rowIdx} className="border border-[var(--line2)] rounded-sm overflow-hidden">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg3)]">
+                        <select
+                          value={row.category}
+                          onChange={(e) => {
+                            const next = [...form.category_angle_sequences]
+                            next[rowIdx] = { ...next[rowIdx], category: e.target.value }
+                            onFormChange({ category_angle_sequences: next })
+                          }}
+                          className="flex-1 bg-[var(--bg)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
+                        >
+                          <option value="">— select category —</option>
+                          {GARMENT_CATEGORIES.map((cat) => (
+                            <option key={cat.id} value={cat.label}>{cat.label}</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => onFormChange({ category_angle_sequences: form.category_angle_sequences.filter((_, i) => i !== rowIdx) })}
+                          className="text-[var(--text3)] hover:text-[#ff3b30] transition-colors px-1"
+                          title="Remove"
+                        >×</button>
+                      </div>
+                      <div className="px-3 pb-3 pt-2 border-t border-[var(--line)]">
+                        <div className="flex flex-col gap-[5px] mb-2">
+                          {row.angles.map((angle, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <span className="w-5 text-[0.82rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
+                              <select
+                                value={angle}
+                                onChange={(e) => {
+                                  const next = [...form.category_angle_sequences]
+                                  const angles = [...next[rowIdx].angles]; angles[idx] = e.target.value
+                                  next[rowIdx] = { ...next[rowIdx], angles }
+                                  onFormChange({ category_angle_sequences: next })
+                                }}
+                                className="flex-1 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
+                              >
+                                {['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay'].map((a) => <option key={a} value={a}>{a}</option>)}
+                              </select>
+                              <button type="button" disabled={idx === 0} onClick={() => { const next = [...form.category_angle_sequences]; const angles = [...next[rowIdx].angles]; [angles[idx - 1], angles[idx]] = [angles[idx], angles[idx - 1]]; next[rowIdx] = { ...next[rowIdx], angles }; onFormChange({ category_angle_sequences: next }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▲</button>
+                              <button type="button" disabled={idx >= row.angles.length - 1} onClick={() => { const next = [...form.category_angle_sequences]; const angles = [...next[rowIdx].angles]; [angles[idx], angles[idx + 1]] = [angles[idx + 1], angles[idx]]; next[rowIdx] = { ...next[rowIdx], angles }; onFormChange({ category_angle_sequences: next }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▼</button>
+                              <button type="button" onClick={() => { const next = [...form.category_angle_sequences]; const angles = next[rowIdx].angles.filter((_, i) => i !== idx); next[rowIdx] = { ...next[rowIdx], angles }; onFormChange({ category_angle_sequences: next }) }} className="text-[var(--text3)] hover:text-[var(--accent3)] px-1">×</button>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { const next = [...form.category_angle_sequences]; next[rowIdx] = { ...next[rowIdx], angles: [...next[rowIdx].angles, 'front'] }; onFormChange({ category_angle_sequences: next }) }}
+                          className="text-[0.82rem] text-[var(--accent)] hover:underline"
+                        >+ Add angle</button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => onFormChange({ category_angle_sequences: [...form.category_angle_sequences, { category: '', angles: [...form.on_model_angle_sequence.slice(0, form.images_per_look)] }] })}
+                    className="text-[0.82rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-1"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
+                    Add category sequence
+                  </button>
                 </div>
               </div>
             </Section>

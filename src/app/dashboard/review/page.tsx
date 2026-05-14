@@ -896,11 +896,22 @@ function ReviewPage() {
                     <span className="text-[0.86rem] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                       {cluster.label}
                     </span>
-                    {/* Garment category — shared predefined list, matches against marketplace export overrides */}
+                    {/* Garment category — tags cluster for export overrides + relabels angles if a per-category shoot sequence is configured */}
                     <select
                       value={cluster.garmentCategory ?? ''}
-                      onChange={(e) => setClusterGarmentCategory(cluster.id, e.target.value || null)}
-                      title="Garment category — applies matching marketplace export overrides"
+                      onChange={(e) => {
+                        const newCat = e.target.value || null
+                        setClusterGarmentCategory(cluster.id, newCat)
+                        if (newCat) {
+                          const catSeq = activeBrand?.category_angle_sequences?.find(
+                            (s) => s.category.trim().toLowerCase() === newCat.trim().toLowerCase()
+                          )
+                          if (catSeq?.angles?.length) {
+                            relabelCluster(cluster.id, catSeq.angles as ViewLabel[])
+                          }
+                        }
+                      }}
+                      title="Garment category — relabels angles if a per-category shoot sequence is configured in Brand Settings"
                       className="text-[0.78rem] px-[5px] py-[1px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer hover:border-[var(--line3)] transition-colors"
                     >
                       <option value="">— category —</option>

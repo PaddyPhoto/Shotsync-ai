@@ -29,7 +29,7 @@ export async function PATCH(
     const { createServiceClient } = await import('@/lib/supabase/server')
     const service = createServiceClient()
 
-    const allowed = ['name', 'brand_code', 'shopify_store_url', 'shopify_access_token', 'logo_color', 'images_per_look', 'naming_template', 'on_model_angle_sequence', 'still_life_angle_sequences', 'gm_position', 'cloud_connections']
+    const allowed = ['name', 'brand_code', 'shopify_store_url', 'shopify_access_token', 'logo_color', 'images_per_look', 'naming_template', 'on_model_angle_sequence', 'still_life_angle_sequences', 'category_angle_sequences', 'gm_position', 'cloud_connections']
     const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
     if (updates.brand_code) {

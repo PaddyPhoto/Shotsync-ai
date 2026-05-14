@@ -18,6 +18,7 @@ export interface Brand {
   still_life_images_per_look: number
   on_model_angle_sequence: string[]
   still_life_angle_sequences: Record<string, string[]>  // keyed by accessory category id
+  category_angle_sequences: { category: string; angles: string[] }[] | null  // per garment-category shoot sequences
   naming_template: string
   gm_position: 'first' | 'last' | null
   cin7_account_id: string | null
@@ -184,6 +185,7 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_images_per_look: 2,
     on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
     still_life_angle_sequences: {},
+    category_angle_sequences: null,
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     cin7_account_id: null,
@@ -207,6 +209,7 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_images_per_look: 2,
     on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
     still_life_angle_sequences: {},
+    category_angle_sequences: null,
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     cin7_account_id: null,
@@ -230,6 +233,7 @@ export const DEMO_BRANDS: Brand[] = [
     still_life_images_per_look: 2,
     on_model_angle_sequence: ['full-length', 'front', 'side', 'mood', 'detail', 'back'],
     still_life_angle_sequences: {},
+    category_angle_sequences: null,
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     cin7_account_id: null,
