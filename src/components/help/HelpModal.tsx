@@ -135,7 +135,7 @@ const SECTIONS: Section[] = [
     items: [
       {
         q: 'What export options are available?',
-        a: 'ZIP download (images named and organised per marketplace rules), direct push to Shopify, direct push to Cin7 Core, and THE ICONIC export. Select which confirmed clusters to include before exporting.',
+        a: 'ZIP download (images named and organised per marketplace rules), direct push to Shopify, direct push to Cin7 Core, and THE ICONIC export. Select which confirmed clusters to include before exporting. Two toggles control folder and naming behaviour: Flat export puts all images into one folder per marketplace instead of a subfolder per SKU — useful when your downstream system expects a flat file drop. Keep original filenames skips renaming entirely and exports the cropped images using their original filenames — useful when your files are already named correctly and you just need the crops.',
       },
       {
         q: 'How are images named in the ZIP?',
