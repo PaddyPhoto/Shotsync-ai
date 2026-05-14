@@ -329,6 +329,32 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
   const isNew = id === 'new'
   const shopifyConnected = !!brand?.shopify_authenticated
   const shopifyUrlSaved = !!brand?.shopify_store_url
+  const [cin7TestStatus, setCin7TestStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle')
+  const [cin7TestMsg, setCin7TestMsg] = useState('')
+
+  const testCin7 = async () => {
+    setCin7TestStatus('testing')
+    setCin7TestMsg('')
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/cin7/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+        body: JSON.stringify({ account_id: form.cin7_account_id, application_key: form.cin7_application_key }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (json.ok) {
+        setCin7TestStatus('ok')
+      } else {
+        setCin7TestStatus('error')
+        setCin7TestMsg(json.error ?? 'Connection failed')
+      }
+    } catch {
+      setCin7TestStatus('error')
+      setCin7TestMsg('Network error')
+    }
+  }
 
   // ── NEW BRAND: single card ───────────────────────────────────────────────
   if (isNew) {
@@ -811,14 +837,31 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
               <p className="text-[0.78rem] text-[var(--text3)]">Push enriched products — metadata, AI copy & images — directly into Cin7</p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <input className="input text-[0.82rem] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => onFormChange({ cin7_account_id: e.target.value })} autoComplete="off" />
-              <input className="input text-[0.82rem] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => onFormChange({ cin7_application_key: e.target.value })} autoComplete="new-password" />
-              {form.cin7_account_id && form.cin7_application_key
-                ? <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--accent2)] text-[var(--accent2)] flex-shrink-0">Connected</span>
-                : null
-              }
+              <input className="input text-[0.82rem] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => { onFormChange({ cin7_account_id: e.target.value }); setCin7TestStatus('idle') }} autoComplete="off" />
+              <input className="input text-[0.82rem] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => { onFormChange({ cin7_application_key: e.target.value }); setCin7TestStatus('idle') }} autoComplete="new-password" />
+              {form.cin7_account_id && form.cin7_application_key && (
+                <button
+                  type="button"
+                  onClick={testCin7}
+                  disabled={cin7TestStatus === 'testing'}
+                  className="flex-shrink-0 text-[0.78rem] font-medium px-3 py-[5px] rounded-sm border transition-colors disabled:opacity-50"
+                  style={
+                    cin7TestStatus === 'ok'
+                      ? { borderColor: 'rgba(48,209,88,0.5)', color: '#30d158', background: 'rgba(48,209,88,0.08)' }
+                      : cin7TestStatus === 'error'
+                      ? { borderColor: 'rgba(255,59,48,0.5)', color: '#ff3b30', background: 'rgba(255,59,48,0.08)' }
+                      : { borderColor: 'var(--line2)', color: 'var(--text2)', background: 'transparent' }
+                  }
+                >
+                  {cin7TestStatus === 'testing' ? 'Testing…' : cin7TestStatus === 'ok' ? '✓ Connected' : cin7TestStatus === 'error' ? '✗ Failed' : 'Test connection'}
+                </button>
+              )}
             </div>
           </div>
+          {/* Test failure message */}
+          {cin7TestStatus === 'error' && cin7TestMsg && (
+            <p className="mx-6 mb-2 text-[0.78rem] text-[#ff3b30]">{cin7TestMsg}</p>
+          )}
           {/* One-time setup guide — shown when credentials are filled */}
           {form.cin7_account_id && form.cin7_application_key && (
             <div className="mx-6 mb-3 px-4 py-3 rounded-sm border border-[var(--line2)] bg-[var(--bg3)]">
