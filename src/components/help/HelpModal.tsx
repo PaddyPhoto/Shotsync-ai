@@ -109,6 +109,10 @@ const SECTIONS: Section[] = [
         a: 'Enter your Shopify store URL and Admin API key in Brand Settings → Platforms. After confirming clusters, use the Export panel to push products directly to your Shopify store with processed images, metadata, and AI-generated copy.',
       },
       {
+        q: 'What happens when I push ghost mannequin images for a product already in Shopify?',
+        a: 'ShotSync checks whether a product with that SKU already exists in your Shopify store before creating anything. If it finds a match, the new images are appended to the existing listing — no duplicate product is created. This means you can process your on-model and ghost mannequin shoots as separate jobs, push each to Shopify, and the GM images land directly on the existing on-model product listing.',
+      },
+      {
         q: 'What is THE ICONIC integration for?',
         a: 'THE ICONIC is a premium Australian fashion marketplace. Add your User ID and API Key in Brand Settings → Platforms to export product listings directly in THE ICONIC\'s required format, including correct image sequencing and metadata fields.',
       },
