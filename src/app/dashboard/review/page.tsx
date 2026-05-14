@@ -1677,6 +1677,8 @@ function ExportPanel({
   const [done, setDone] = useState(false)
   const [shopifyUploading, setShopifyUploading] = useState(false)
   const [shopifyResults, setShopifyResults] = useState<{ sku: string; status: string; adminUrl?: string; message?: string }[] | null>(null)
+  const [cin7Uploading, setCin7Uploading] = useState(false)
+  const [cin7Results, setCin7Results] = useState<{ sku: string; status: string; message?: string }[] | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const folderRef = useRef<any>(null)
   const [folderName, setFolderName] = useState<string | null>(null)
@@ -1847,6 +1849,119 @@ function ExportPanel({
     }
 
     setShopifyUploading(false)
+  }
+
+  const handleCin7Upload = async () => {
+    if (!activeBrand?.id || !confirmedClusters.length) return
+    setCin7Uploading(true)
+    setCin7Results(null)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let supabase: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let session: any = null
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      supabase = createClient()
+      const { data } = await supabase.auth.getSession()
+      session = data.session
+    } catch (e) {
+      setCin7Results([{ sku: 'auth', status: 'error', message: `Auth failed: ${e instanceof Error ? e.message : e}` }])
+      setCin7Uploading(false)
+      return
+    }
+
+    const firstRule = Object.values(marketplaceRules)[0] ?? Object.values(MARKETPLACE_RULES)[0]
+    const { width, height } = firstRule.image_dimensions
+    const bgColor = firstRule.background_color ?? '#ffffff'
+    const quality = (firstRule.quality ?? 100) / 100
+
+    const results: { sku: string; status: string; message?: string }[] = []
+
+    for (const cluster of confirmedClusters) {
+      const tempPaths: string[] = []
+      try {
+        const images: { src: string; filename: string }[] = []
+
+        for (let i = 0; i < cluster.images.length; i++) {
+          const img = cluster.images[i]
+          setCin7Results([...results, { sku: cluster.sku || cluster.label, status: 'uploading', message: `Processing image ${i + 1}/${cluster.images.length}…` }])
+
+          let buffer: ArrayBuffer
+          try {
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''))
+          } catch (e) {
+            throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
+          }
+          const blob = new Blob([buffer], { type: 'image/jpeg' })
+
+          const path = `cin7/${session?.user.id}/${Date.now()}-${cluster.id}-${i}.jpg`
+          const uploadRes = await supabase.storage
+            .from('shopify-temp')
+            .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
+          if (uploadRes.error) throw new Error(`Storage: ${uploadRes.error.message}`)
+
+          tempPaths.push(path)
+          const { data: { publicUrl } } = supabase.storage.from('shopify-temp').getPublicUrl(path)
+          images.push({ src: publicUrl, filename: img.filename.replace(/\.[^.]+$/, '.jpg') })
+        }
+
+        const { data: { session: freshSession } } = await supabase.auth.getSession()
+        const copy = clusterCopy[cluster.id]
+        const styleEntry = useSession.getState().styleList.find(
+          (e) => e.sku.toUpperCase() === (cluster.sku || '').toUpperCase()
+        )
+
+        const apiRes = await fetch('/api/cin7/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...((freshSession?.access_token ?? session?.access_token) ? { Authorization: `Bearer ${freshSession?.access_token ?? session?.access_token}` } : {}),
+          },
+          body: JSON.stringify({
+            brand_id: activeBrand.id,
+            clusters: [{
+              sku: cluster.sku || cluster.label,
+              productName: cluster.productName || cluster.sku || cluster.label,
+              color: cluster.color || '',
+              colourCode: cluster.colourCode || '',
+              styleNumber: cluster.styleNumber || '',
+              garmentCategory: cluster.garmentCategory || null,
+              images,
+              ...(copy?.title ? { copy: { title: copy.title, description: copy.description, bullets: copy.bullets } } : {}),
+              ...(styleEntry ? { styleEntry: {
+                composition: styleEntry.composition,
+                care: styleEntry.care,
+                fit: styleEntry.fit,
+                length: styleEntry.length,
+                rrp: styleEntry.rrp,
+                season: styleEntry.season,
+                occasion: styleEntry.occasion,
+                gender: styleEntry.gender,
+                subCategory: styleEntry.subCategory,
+                origin: styleEntry.origin,
+                sizeRange: styleEntry.sizeRange,
+              }} : {}),
+            }],
+            tempPaths,
+          }),
+        })
+
+        const parsed = await apiRes.json().catch(() => null)
+        if (!apiRes.ok || !parsed) {
+          results.push({ sku: cluster.sku || cluster.label, status: 'error', message: `HTTP ${apiRes.status}` })
+          await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
+        } else {
+          results.push(...(parsed.data?.results ?? [{ sku: cluster.sku || cluster.label, status: 'error', message: 'No response' }]))
+        }
+      } catch (err) {
+        results.push({ sku: cluster.sku || cluster.label, status: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+        if (tempPaths.length) await supabase.storage.from('shopify-temp').remove(tempPaths).catch(() => {})
+      }
+      setCin7Results([...results])
+    }
+
+    setCin7Uploading(false)
   }
 
   const handleExport = async () => {
@@ -2658,6 +2773,42 @@ function ExportPanel({
                     {shopifyUploading
                       ? <><svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Creating drafts…</>
                       : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>Create {confirmedClusters.length} draft{confirmedClusters.length !== 1 ? 's' : ''} in Shopify</>
+                    }
+                  </button>
+                </div>
+              )}
+
+              {/* Cin7 — show inline when connected */}
+              {activeBrand?.cin7_account_id && activeBrand?.cin7_application_key && (
+                <div className="flex-shrink-0 border border-[var(--line)] rounded-sm px-4 py-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-[4px] flex items-center justify-center flex-shrink-0" style={{ background: '#00b4d8' }}>
+                        <span className="text-white font-bold" style={{ fontSize: '8px', fontFamily: 'var(--font-dm-mono)' }}>C7</span>
+                      </div>
+                      <p className="text-[1rem] font-medium text-[var(--text)]">Cin7 Core</p>
+                    </div>
+                    <span className="text-[0.83rem] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
+                  </div>
+                  <p className="text-[0.8rem] text-[var(--text3)] mb-3 leading-relaxed">
+                    Creates a new product in Cin7 for each cluster — all metadata, AI copy and images included. New SKUs only; existing SKUs are skipped.
+                  </p>
+                  {cin7Results && (
+                    <div className="bg-[var(--bg3)] rounded-sm p-2.5 mb-3 flex flex-col gap-1 max-h-[100px] overflow-y-auto">
+                      {cin7Results.map((r) => (
+                        <div key={r.sku} className="flex items-center justify-between text-[0.85rem]">
+                          <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.sku}</span>
+                          <span className={r.status === 'created' ? 'text-[var(--accent2)]' : r.status === 'skipped' ? 'text-[var(--text3)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
+                            {r.status === 'created' ? '✓ Created' : r.status === 'skipped' ? '— Already exists' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={handleCin7Upload} disabled={cin7Uploading || !confirmedClusters.length} className="btn btn-ghost btn-sm w-full justify-center">
+                    {cin7Uploading
+                      ? <><svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Pushing to Cin7…</>
+                      : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>Push {confirmedClusters.length} product{confirmedClusters.length !== 1 ? 's' : ''} to Cin7</>
                     }
                   </button>
                 </div>

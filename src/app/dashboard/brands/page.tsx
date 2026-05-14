@@ -720,19 +720,40 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         </div>
 
         {/* Cin7 Core */}
-        <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)]">
-          <div className="w-8 h-8 rounded-[7px] flex items-center justify-center flex-shrink-0" style={{ background: '#00b4d8' }}>
-            <span className="text-white font-bold text-[0.72rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>C7</span>
+        <div className="border-b border-[var(--line)]">
+          <div className="px-6 py-3 flex items-center gap-4">
+            <div className="w-8 h-8 rounded-[7px] flex items-center justify-center flex-shrink-0" style={{ background: '#00b4d8' }}>
+              <span className="text-white font-bold text-[0.72rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>C7</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[0.85rem] font-semibold text-[var(--text)]">Cin7 Core</p>
+              <p className="text-[0.78rem] text-[var(--text3)]">Push enriched products — metadata, AI copy & images — directly into Cin7</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <input className="input text-[0.82rem] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => onFormChange({ cin7_account_id: e.target.value })} autoComplete="off" />
+              <input className="input text-[0.82rem] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => onFormChange({ cin7_application_key: e.target.value })} autoComplete="new-password" />
+              {form.cin7_account_id && form.cin7_application_key
+                ? <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--accent2)] text-[var(--accent2)] flex-shrink-0">Connected</span>
+                : null
+              }
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[0.85rem] font-semibold text-[var(--text)]">Cin7 Core</p>
-            <p className="text-[0.78rem] text-[var(--text3)]">Pulls product catalogue · pushes enriched copy & images</p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <input className="input text-[0.82rem] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => onFormChange({ cin7_account_id: e.target.value })} autoComplete="off" />
-            <input className="input text-[0.82rem] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => onFormChange({ cin7_application_key: e.target.value })} autoComplete="new-password" />
-            <span className="text-[0.72rem] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
-          </div>
+          {/* One-time setup guide — shown when credentials are filled */}
+          {form.cin7_account_id && form.cin7_application_key && (
+            <div className="mx-6 mb-3 px-4 py-3 rounded-sm border border-[var(--line2)] bg-[var(--bg3)]">
+              <p className="text-[0.78rem] font-semibold text-[var(--text2)] mb-2">One-time Cin7 setup required</p>
+              <p className="text-[0.75rem] text-[var(--text3)] mb-2 leading-relaxed">
+                In Cin7 Core, go to <strong className="text-[var(--text2)]">Settings → Attribute Sets</strong> and create a set called exactly:
+              </p>
+              <code className="block text-[0.78rem] text-[var(--accent)] bg-[var(--bg)] px-3 py-1.5 rounded-sm mb-2 font-mono">ShotSync Apparel</code>
+              <p className="text-[0.75rem] text-[var(--text3)] mb-2">Add these attributes to the set:</p>
+              <div className="flex flex-wrap gap-1">
+                {['Colour','ColourCode','StyleNumber','Composition','Care','Fit','Length','RRP','Season','Gender','Occasion','Origin','SizeRange','SubCategory'].map((f) => (
+                  <span key={f} className="text-[0.72rem] font-mono px-2 py-[2px] rounded-sm bg-[var(--bg)] border border-[var(--line2)] text-[var(--text2)]">{f}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Apparel21 */}
