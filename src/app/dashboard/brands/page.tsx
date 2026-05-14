@@ -677,7 +677,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
         {/* ── Section label ── */}
         <div className="px-6 pt-4 pb-1">
-          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text3)]">eCommerce</p>
+          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text)]">eCommerce</p>
         </div>
 
         {/* Shopify */}
@@ -716,7 +716,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
         {/* ── Section label ── */}
         <div className="px-6 pt-4 pb-1">
-          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text3)]">ERP / Inventory</p>
+          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text)]">ERP / Inventory</p>
         </div>
 
         {/* Cin7 Core */}
@@ -770,7 +770,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
         {/* ── Section label ── */}
         <div className="px-6 pt-4 pb-1">
-          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text3)]">Marketplaces</p>
+          <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text)]">Marketplaces</p>
         </div>
 
         {/* THE ICONIC */}
