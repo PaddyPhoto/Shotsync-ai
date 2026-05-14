@@ -110,7 +110,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: 'How does Shopify integration work?',
-        a: 'Enter your Shopify store URL and Admin API key in Brand Settings → Platforms. After confirming clusters, use the Export panel to push products directly to your Shopify store with processed images, metadata, and AI-generated copy.',
+        a: 'Enter your Shopify store URL and Admin API key in Brand Settings → Platforms. After confirming clusters, use the Export panel to push products directly to your Shopify store. Every confirmed cluster pushes as a draft listing with: processed images, AI-generated title and description, RRP as the variant price, garment category as the product type, and all style list metadata (composition, care, fit, length, season, gender, occasion, sub-category, origin, size range, colour code, style number) written as Shopify metafields under the custom namespace — ready for your theme and apps to use.',
       },
       {
         q: 'What happens when I push ghost mannequin images for a product already in Shopify?',
