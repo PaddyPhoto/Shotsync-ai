@@ -434,10 +434,11 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             <button
               type="button"
               onClick={onToggle}
-              className="w-full flex items-center justify-center gap-1.5 py-[10px] text-[0.85rem] text-[var(--text3)] hover:text-[var(--text)] transition-colors border-t border-[var(--line)]"
+              className="w-full flex items-center justify-center gap-2 py-[11px] text-[0.85rem] font-medium text-[var(--accent)] hover:text-[var(--accent)] hover:bg-[rgba(255,255,255,0.04)] transition-colors border-t-2 border-[var(--line2)]"
             >
-              <span>Expand to edit</span>
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 5l4 4 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <span>Edit brand settings</span>
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 5l4 4 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
           </div>
         )}
