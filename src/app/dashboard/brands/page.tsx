@@ -331,10 +331,12 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
   const shopifyUrlSaved = !!brand?.shopify_store_url
   const [cin7TestStatus, setCin7TestStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle')
   const [cin7TestMsg, setCin7TestMsg] = useState('')
+  const [cin7AttrSet, setCin7AttrSet] = useState<'found' | 'missing' | 'unknown' | null>(null)
 
   const testCin7 = async () => {
     setCin7TestStatus('testing')
     setCin7TestMsg('')
+    setCin7AttrSet(null)
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const { data: { session } } = await createClient().auth.getSession()
@@ -346,6 +348,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
       const json = await res.json().catch(() => ({}))
       if (json.ok) {
         setCin7TestStatus('ok')
+        setCin7AttrSet(json.attributeSet ?? 'unknown')
       } else {
         setCin7TestStatus('error')
         setCin7TestMsg(json.error ?? 'Connection failed')
@@ -837,8 +840,8 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
               <p className="text-[0.78rem] text-[var(--text3)]">Push enriched products — metadata, AI copy & images — directly into Cin7</p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <input className="input text-[0.82rem] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => { onFormChange({ cin7_account_id: e.target.value }); setCin7TestStatus('idle') }} autoComplete="off" />
-              <input className="input text-[0.82rem] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => { onFormChange({ cin7_application_key: e.target.value }); setCin7TestStatus('idle') }} autoComplete="new-password" />
+              <input className="input text-[0.82rem] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => { onFormChange({ cin7_account_id: e.target.value }); setCin7TestStatus('idle'); setCin7AttrSet(null) }} autoComplete="off" />
+              <input className="input text-[0.82rem] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => { onFormChange({ cin7_application_key: e.target.value }); setCin7TestStatus('idle'); setCin7AttrSet(null) }} autoComplete="new-password" />
               {form.cin7_account_id && form.cin7_application_key && (
                 <button
                   type="button"
@@ -858,9 +861,35 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
               )}
             </div>
           </div>
-          {/* Test failure message */}
+          {/* Test results */}
           {cin7TestStatus === 'error' && cin7TestMsg && (
             <p className="mx-6 mb-2 text-[0.78rem] text-[#ff3b30]">{cin7TestMsg}</p>
+          )}
+          {cin7TestStatus === 'ok' && (
+            <div className="mx-6 mb-3 flex flex-col gap-[5px]">
+              <div className="flex items-center gap-2 text-[0.78rem]" style={{ color: '#30d158' }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5l3 3 6-6"/></svg>
+                Credentials verified
+              </div>
+              {cin7AttrSet === 'found' && (
+                <div className="flex items-center gap-2 text-[0.78rem]" style={{ color: '#30d158' }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5l3 3 6-6"/></svg>
+                  ShotSync Apparel attribute set found — ready to push
+                </div>
+              )}
+              {cin7AttrSet === 'missing' && (
+                <div className="flex items-center gap-2 text-[0.78rem]" style={{ color: '#ff9f0a' }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="6.5" cy="6.5" r="5.5"/><path d="M6.5 4v3M6.5 9h.01"/></svg>
+                  ShotSync Apparel attribute set not found — create it in Cin7 before pushing
+                </div>
+              )}
+              {cin7AttrSet === 'unknown' && (
+                <div className="flex items-center gap-2 text-[0.78rem]" style={{ color: 'var(--text3)' }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="6.5" cy="6.5" r="5.5"/><path d="M6.5 4v3M6.5 9h.01"/></svg>
+                  Could not verify attribute set — confirm it exists in Cin7 before pushing
+                </div>
+              )}
+            </div>
           )}
           {/* One-time setup guide — shown when credentials are filled */}
           {form.cin7_account_id && form.cin7_application_key && (
