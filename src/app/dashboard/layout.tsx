@@ -3,6 +3,7 @@ import { BrandProvider } from '@/context/BrandContext'
 import { PlanProvider } from '@/context/PlanContext'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal'
+import { HelpModal } from '@/components/help/HelpModal'
 import { MobileGate } from '@/components/layout/MobileGate'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <UpgradeModal />
           <WelcomeModal />
+          <HelpModal />
         </PlanProvider>
       </BrandProvider>
     </MobileGate>

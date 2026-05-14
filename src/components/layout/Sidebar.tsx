@@ -12,6 +12,7 @@ import { BrandSwitcher } from './BrandSwitcher'
 import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
 import { openWelcomeModal } from '@/components/onboarding/WelcomeModal'
+import { openHelpModal } from '@/components/help/HelpModal'
 import type { SessionHeader } from '@/lib/session-store'
 
 interface NavItem {
@@ -419,10 +420,10 @@ export function Sidebar() {
           </div>
         )}
 
-        {/* Quick Guide */}
+        {/* Help & FAQ */}
         <div style={{ padding: '8px 10px 0', borderTop: '0.5px solid rgba(255,255,255,0.06)', marginTop: '4px' }}>
           <button
-            onClick={openWelcomeModal}
+            onClick={openHelpModal}
             className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[14px] w-full transition-all duration-150"
             style={{ color: 'var(--text3)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
@@ -435,7 +436,7 @@ export function Sidebar() {
                 <circle cx="8" cy="12.5" r="0.5" fill="currentColor" stroke="none"/>
               </svg>
             </span>
-            Quick Guide
+            Help & FAQ
           </button>
         </div>
 
