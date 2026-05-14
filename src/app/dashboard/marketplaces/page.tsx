@@ -264,8 +264,8 @@ function MarketplacesInner() {
                           </div>
 
                           {/* Default row */}
-                          <div className="flex items-center gap-3 mb-[6px]">
-                            <span className="text-[0.78rem] text-[var(--text3)] w-[160px] flex-shrink-0 font-medium">Default</span>
+                          <div className="flex items-start gap-3 mb-[6px]">
+                            <span className="text-[0.78rem] text-[var(--text3)] w-[160px] flex-shrink-0 font-medium mt-[5px]">Default</span>
                             <AnglePillRow
                               views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
                               allViews={ALL_VIEWS}
@@ -281,7 +281,7 @@ function MarketplacesInner() {
                             <div className="mt-2 mb-1 h-px bg-[var(--line)] mx-0" />
                           )}
                           {(rule.category_overrides ?? []).map((ov) => (
-                            <div key={ov.id} className="flex items-center gap-3 mt-[6px]">
+                            <div key={ov.id} className="flex items-start gap-3 mt-[6px]">
                               <select
                                 className="text-[0.78rem] w-[160px] flex-shrink-0 input py-[3px] cursor-pointer"
                                 value={ov.category}
@@ -499,51 +499,54 @@ function AnglePillRow({
   const isThisRow = dragState?.rowKey === rowKey
 
   return (
-    <div className="flex flex-wrap items-center gap-[6px] flex-1 min-h-[26px]">
-      {views.map((v, i) => {
-        const isDragging = isThisRow && dragState.fromIdx === i
-        const isTarget = isThisRow && dragState.overIdx === i && dragState.fromIdx !== i
-        return (
-          <div
-            key={`${v}-${i}`}
-            draggable
-            onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDragState({ rowKey, fromIdx: i, overIdx: i }) }}
-            onDragOver={(e) => { e.preventDefault(); if (isThisRow) setDragState({ rowKey, fromIdx: dragState!.fromIdx, overIdx: i }) }}
-            onDrop={(e) => {
-              e.preventDefault()
-              if (!isThisRow) return
-              const next = [...views]
-              const [moved] = next.splice(dragState!.fromIdx, 1)
-              next.splice(dragState!.overIdx, 0, moved)
-              onChange(next)
-              setDragState(null)
-            }}
-            onDragEnd={() => setDragState(null)}
-            className={`group relative cursor-grab active:cursor-grabbing transition-all ${isDragging ? 'opacity-25 scale-95' : ''} ${isTarget ? 'ring-2 ring-[var(--accent)] ring-offset-1 ring-offset-[var(--bg)]' : ''}`}
-          >
-            <span className={`shot-pill select-none pointer-events-none flex items-center gap-[5px] pr-[8px] ${VIEW_PILL_CLS[v] ?? ''}`}>
-              {/* Position number */}
-              <span className="text-[10px] font-bold opacity-50 leading-none w-[14px] text-center flex-shrink-0">{i + 1}</span>
-              {/* Grip dots */}
-              <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor" className="opacity-40 flex-shrink-0">
-                <circle cx="1.5" cy="1.5" r="1"/><circle cx="4.5" cy="1.5" r="1"/>
-                <circle cx="1.5" cy="4" r="1"/><circle cx="4.5" cy="4" r="1"/>
-                <circle cx="1.5" cy="6.5" r="1"/><circle cx="4.5" cy="6.5" r="1"/>
-              </svg>
-              {v}
-            </span>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onChange(views.filter((x, j) => j !== i)) }}
-              className="hidden group-hover:flex absolute -top-[5px] -right-[5px] w-[14px] h-[14px] bg-[var(--bg2)] border border-[var(--line2)] rounded-full items-center justify-center text-[0.6rem] text-[var(--text3)] hover:bg-[#ff3b30] hover:text-white hover:border-[#ff3b30] transition-colors z-10"
-              title="Remove from sequence"
-            >×</button>
-          </div>
-        )
-      })}
+    <div className="flex flex-col gap-[6px] flex-1">
+      {/* Active sequence */}
+      <div className="flex flex-wrap gap-[6px]">
+        {views.map((v, i) => {
+          const isDragging = isThisRow && dragState.fromIdx === i
+          const isTarget = isThisRow && dragState.overIdx === i && dragState.fromIdx !== i
+          return (
+            <div
+              key={`${v}-${i}`}
+              draggable
+              onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDragState({ rowKey, fromIdx: i, overIdx: i }) }}
+              onDragOver={(e) => { e.preventDefault(); if (isThisRow) setDragState({ rowKey, fromIdx: dragState!.fromIdx, overIdx: i }) }}
+              onDrop={(e) => {
+                e.preventDefault()
+                if (!isThisRow) return
+                const next = [...views]
+                const [moved] = next.splice(dragState!.fromIdx, 1)
+                next.splice(dragState!.overIdx, 0, moved)
+                onChange(next)
+                setDragState(null)
+              }}
+              onDragEnd={() => setDragState(null)}
+              className={`group relative cursor-grab active:cursor-grabbing transition-all ${isDragging ? 'opacity-25 scale-95' : ''} ${isTarget ? 'ring-2 ring-[var(--accent)] ring-offset-1 ring-offset-[var(--bg)]' : ''}`}
+            >
+              <span className={`shot-pill select-none pointer-events-none flex items-center gap-[5px] pr-[8px] ${VIEW_PILL_CLS[v] ?? ''}`}>
+                <span className="text-[10px] font-bold opacity-50 leading-none w-[14px] text-center flex-shrink-0">{i + 1}</span>
+                <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor" className="opacity-40 flex-shrink-0">
+                  <circle cx="1.5" cy="1.5" r="1"/><circle cx="4.5" cy="1.5" r="1"/>
+                  <circle cx="1.5" cy="4" r="1"/><circle cx="4.5" cy="4" r="1"/>
+                  <circle cx="1.5" cy="6.5" r="1"/><circle cx="4.5" cy="6.5" r="1"/>
+                </svg>
+                {v}
+              </span>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onChange(views.filter((x, j) => j !== i)) }}
+                className="hidden group-hover:flex absolute -top-[5px] -right-[5px] w-[14px] h-[14px] bg-[var(--bg2)] border border-[var(--line2)] rounded-full items-center justify-center text-[0.6rem] text-[var(--text3)] hover:bg-[#ff3b30] hover:text-white hover:border-[#ff3b30] transition-colors z-10"
+                title="Remove from sequence"
+              >×</button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Inactive — click to add back */}
       {inactive.length > 0 && (
-        <>
-          {views.length > 0 && <div className="h-[20px] w-px bg-[var(--line2)] mx-[2px] self-center flex-shrink-0" />}
+        <div className="flex flex-wrap items-center gap-[5px]">
+          <span className="text-[0.7rem] flex-shrink-0" style={{ color: 'var(--text3)' }}>Not included:</span>
           {inactive.map((v) => (
             <button
               key={v}
@@ -557,7 +560,7 @@ function AnglePillRow({
               {v}
             </button>
           ))}
-        </>
+        </div>
       )}
     </div>
   )
