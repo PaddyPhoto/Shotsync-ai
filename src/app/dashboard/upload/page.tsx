@@ -1019,7 +1019,7 @@ export default function UploadPage() {
                 </div>
                 {/* Benefit line */}
                 <p style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5, marginBottom: '12px' }}>
-                  SKU-named images? <strong style={{ color: 'var(--text)' }}>All clusters fill automatically</strong> — zero typing. Otherwise auto-suggests SKU, name &amp; colour as you confirm each cluster.
+                  Upload your style sheet and ShotSync matches each cluster to its SKU, product name, colour, and spec data automatically. If your images are already SKU-named, <strong style={{ color: 'var(--text)' }}>clusters fill with zero typing</strong>. Without a style list, all fields are manual.
                 </p>
                 {/* Action row */}
                 {styleList.length === 0 ? (
