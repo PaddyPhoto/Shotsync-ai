@@ -199,6 +199,8 @@ function ReviewPage() {
           subCategory: styleEntry?.subCategory ?? '',
           origin: styleEntry?.origin ?? '',
           sizeRange: styleEntry?.sizeRange ?? '',
+          voiceBrief: activeBrand?.voice_brief ?? '',
+          copyExamples: activeBrand?.copy_examples ?? [],
         }),
       })
       // Read as text first — if the server returns a non-JSON error page (e.g. 413 "Request Entity

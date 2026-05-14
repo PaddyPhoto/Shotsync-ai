@@ -42,13 +42,16 @@ export async function POST(req: NextRequest) {
     } catch {}
   }
 
-  const { sku, productName, color, brandName, angles, heroImage, composition, care, fit, length, rrp, season, occasion, gender, category, subCategory, origin, sizeRange } = await req.json()
+  const { sku, productName, color, brandName, angles, heroImage, composition, care, fit, length, rrp, season, occasion, gender, category, subCategory, origin, sizeRange, voiceBrief, copyExamples } = await req.json()
 
   const OpenAI = (await import('openai')).default
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
   const angleList = Array.isArray(angles) ? angles.join(', ') : 'front, back'
   const brand = brandName || ''
+
+  const voiceBriefTrimmed = typeof voiceBrief === 'string' ? voiceBrief.trim() : ''
+  const examplesList: string[] = Array.isArray(copyExamples) ? copyExamples.filter((e: unknown) => typeof e === 'string' && (e as string).trim()) : []
 
   const systemPrompt = `You are a fashion eCommerce copywriter for premium Australian fashion brands.
 You write precise, editorial, confident product descriptions modelled on the style of top ANZ retailers.
@@ -61,7 +64,7 @@ DESCRIPTION STRUCTURE — follow this exactly, 4–5 sentences:
 5. Styling close: One specific, garment-appropriate styling suggestion. NOT a generic "from business to casual" or "day to night" line — make it concrete and relevant to this exact garment.
 
 TONE: Confident, precise, editorial. No filler. No vague superlatives.
-ACCURACY: Never invent details not provided or visible. State fabric composition verbatim when provided.`
+ACCURACY: Never invent details not provided or visible. State fabric composition verbatim when provided.${voiceBriefTrimmed ? `\n\nBRAND VOICE: ${voiceBriefTrimmed}` : ''}${examplesList.length ? `\n\nEXAMPLE DESCRIPTIONS IN THIS BRAND'S VOICE — mirror their tone, sentence structure, and vocabulary:\n${examplesList.map((ex, i) => `Example ${i + 1}:\n${ex.trim()}`).join('\n\n')}` : ''}`
 
   const specLines = [
     sku          && `- SKU: ${sku}`,

@@ -22,6 +22,8 @@ export interface Brand {
   gm_position: 'first' | 'last' | null
   /** Cloud storage connections (Dropbox, Google Drive, S3) stored per brand */
   cloud_connections: CloudConnections | null
+  voice_brief: string | null
+  copy_examples: string[] | null
   created_at: string
 }
 
@@ -183,6 +185,8 @@ export const DEMO_BRANDS: Brand[] = [
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     cloud_connections: null,
+    voice_brief: null,
+    copy_examples: null,
     created_at: new Date().toISOString(),
   },
   {
@@ -202,6 +206,8 @@ export const DEMO_BRANDS: Brand[] = [
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     cloud_connections: null,
+    voice_brief: null,
+    copy_examples: null,
     created_at: new Date().toISOString(),
   },
   {
@@ -221,6 +227,8 @@ export const DEMO_BRANDS: Brand[] = [
     naming_template: DEFAULT_NAMING_TEMPLATE,
     gm_position: 'last',
     cloud_connections: null,
+    voice_brief: null,
+    copy_examples: null,
     created_at: new Date().toISOString(),
   },
 ]

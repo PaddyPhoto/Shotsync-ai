@@ -46,6 +46,8 @@ type BrandForm = {
   still_life_angle_sequences: Record<string, string[]>
   naming_template: string
   gm_position: 'first' | 'last'
+  voice_brief: string
+  copy_examples: string[]
 }
 
 const DEFAULT_FORM: BrandForm = {
@@ -60,6 +62,8 @@ const DEFAULT_FORM: BrandForm = {
   still_life_angle_sequences: {},
   naming_template: '{BRAND}_{SEQ}_{VIEW}',
   gm_position: 'last',
+  voice_brief: '',
+  copy_examples: [],
 }
 
 function brandToForm(b: Brand): BrandForm {
@@ -75,6 +79,8 @@ function brandToForm(b: Brand): BrandForm {
     still_life_angle_sequences: b.still_life_angle_sequences ?? {},
     naming_template: b.naming_template ?? DEFAULT_FORM.naming_template,
     gm_position: (b.gm_position ?? 'last') as 'first' | 'last',
+    voice_brief: b.voice_brief ?? '',
+    copy_examples: b.copy_examples ?? [],
   }
 }
 
@@ -577,6 +583,59 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                   {form.naming_template.replace('{BRAND}', form.brand_code.toUpperCase() || 'BRAND').replace('{SEQ}', '001').replace('{SKU}', 'TOP-BLK-001').replace('{COLOR}', 'BLACK').replace('{VIEW_NUM}', '5').replace('{VIEW}', 'FRONT').replace('{INDEX}', '01')}.jpg
                 </span>
               </p>
+            </Section>
+
+            {/* Brand Voice */}
+            <Section title="Brand Voice" help={<span>Personalises AI-generated product copy to match your brand's tone.<br /><br /><strong>Tone brief:</strong> describe how your brand sounds — words you use, words to avoid, personality.<br /><strong>Example copy:</strong> paste 1–3 product descriptions you&apos;re happy with. The AI will mirror their structure and vocabulary closely.</span>}>
+              <div className="mb-4">
+                <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Tone Brief</label>
+                <textarea
+                  className="input text-[0.85rem] leading-relaxed resize-none"
+                  rows={3}
+                  placeholder={'e.g. Confident and editorial. We lead with the garment name, never with "Elevate" or "Discover". We avoid the word "timeless". We say "relaxed fit" not "relaxed silhouette".'}
+                  value={form.voice_brief}
+                  onChange={(e) => onFormChange({ voice_brief: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Example Descriptions <span className="text-[var(--text3)]">(1–3 product descriptions in your brand&apos;s voice)</span></label>
+                <div className="flex flex-col gap-2">
+                  {(form.copy_examples.length ? form.copy_examples : ['']).map((ex, i) => (
+                    <div key={i} className="flex gap-2 items-start">
+                      <textarea
+                        className="input text-[0.85rem] leading-relaxed resize-none flex-1"
+                        rows={4}
+                        placeholder={`Example ${i + 1} — paste a product description you're happy with`}
+                        value={ex}
+                        onChange={(e) => {
+                          const next = [...form.copy_examples]
+                          next[i] = e.target.value
+                          onFormChange({ copy_examples: next })
+                        }}
+                      />
+                      {form.copy_examples.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => onFormChange({ copy_examples: form.copy_examples.filter((_, j) => j !== i) })}
+                          className="mt-[6px] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors flex-shrink-0"
+                          title="Remove example"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {form.copy_examples.length < 3 && (
+                  <button
+                    type="button"
+                    onClick={() => onFormChange({ copy_examples: [...form.copy_examples, ''] })}
+                    className="mt-2 text-[0.82rem] text-[var(--accent)] hover:underline"
+                  >
+                    + Add example
+                  </button>
+                )}
+              </div>
             </Section>
 
             {/* Footer */}
