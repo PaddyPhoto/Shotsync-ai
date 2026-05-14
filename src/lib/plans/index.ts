@@ -96,7 +96,7 @@ export const PLANS: Record<PlanId, Plan> = {
       exportsPerMonth: -1,
       brands: 2,
       seats: 5,
-      shopifyStores: 1,
+      shopifyStores: 2,
       shopify: true,
       aiCopy: true,
       bgRemoval: true,
@@ -104,7 +104,7 @@ export const PLANS: Record<PlanId, Plan> = {
     highlights: [
       'Up to 1,000 SKUs processed / month',
       '2 brands',
-      '1 Shopify store integration',
+      '2 Shopify store integrations',
       'Export to all ANZ marketplaces',
       'AI product listing copy generation',
       '5 team seats',
