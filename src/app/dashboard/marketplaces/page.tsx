@@ -207,7 +207,8 @@ function MarketplacesInner() {
                 )}
               </div>
             </div>
-            <p className="text-[0.85rem] text-[var(--text3)] mb-5">Changes save automatically to your browser.</p>
+            <p className="text-[0.85rem] text-[var(--text3)] mb-1">Changes save automatically to your browser.</p>
+            <p className="text-[0.82rem] text-[var(--text3)] mb-5 leading-relaxed">Each marketplace receives images in its own required order — independent of how your photographer shoots. ShotSync uses the angle labels assigned to each image in the cluster, then re-sequences the export files to match what the marketplace expects.</p>
 
             <div className="flex flex-col gap-8">
               {(Object.keys(rules) as MarketplaceName[]).map((id) => {
