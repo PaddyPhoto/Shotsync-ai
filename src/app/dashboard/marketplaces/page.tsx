@@ -243,19 +243,20 @@ function MarketplacesInner() {
                         </div>
 
                         {/* Angle Sequence — default order + per-category overrides in one view */}
-                        <div className="col-span-2 py-[12px] border-b border-[var(--line)]">
-                          <div className="mb-3">
+                        <div className="col-span-2 flex items-start justify-between gap-8 py-[12px] border-b border-[var(--line)]">
+                          {/* Left: label + legend — mirrors Required Views label column width */}
+                          <div className="flex-shrink-0 w-[200px]">
                             <p className="text-[0.8rem] text-[var(--text2)] flex items-center gap-1 mb-2">
                               Angle Sequence
                               <HelpTooltip position="right" width={290} content="Controls the order images are exported. Drag pills to reorder. Faded pills are excluded — click to add back. Add category rows for garment-specific sequences that override the default." />
                             </p>
-                            <div className="flex flex-wrap gap-x-4 gap-y-1">
+                            <div className="flex flex-col gap-[5px]">
                               {[
                                 { icon: <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor"><circle cx="1.5" cy="1.5" r="1"/><circle cx="4.5" cy="1.5" r="1"/><circle cx="1.5" cy="4" r="1"/><circle cx="4.5" cy="4" r="1"/><circle cx="1.5" cy="6.5" r="1"/><circle cx="4.5" cy="6.5" r="1"/></svg>, label: 'Drag to reorder' },
                                 { icon: <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>, label: 'Hover pill to remove' },
-                                { icon: <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 2v6M2 5h6"/></svg>, label: 'Click faded angle to add' },
+                                { icon: <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 2v6M2 5h6"/></svg>, label: 'Click faded to add' },
                               ].map(({ icon, label }) => (
-                                <span key={label} className="flex items-center gap-[5px] text-[0.75rem]" style={{ color: 'var(--text3)' }}>
+                                <span key={label} className="flex items-center gap-[5px] text-[0.73rem]" style={{ color: 'var(--text3)' }}>
                                   <span className="opacity-60">{icon}</span>
                                   {label}
                                 </span>
@@ -263,71 +264,74 @@ function MarketplacesInner() {
                             </div>
                           </div>
 
-                          {/* Default row */}
-                          <div className="flex items-start gap-3 mb-[6px]">
-                            <span className="text-[0.78rem] text-[var(--text3)] w-[160px] flex-shrink-0 font-medium mt-[5px]">Default</span>
-                            <AnglePillRow
-                              views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
-                              allViews={ALL_VIEWS}
-                              rowKey={`${id}:default`}
-                              dragState={dragState}
-                              setDragState={setDragState}
-                              onChange={(next) => updateRule(id, { angle_order: next })}
-                            />
-                          </div>
-
-                          {/* Category override rows */}
-                          {(rule.category_overrides ?? []).length > 0 && (
-                            <div className="mt-2 mb-1 h-px bg-[var(--line)] mx-0" />
-                          )}
-                          {(rule.category_overrides ?? []).map((ov) => (
-                            <div key={ov.id} className="flex items-start gap-3 mt-[6px]">
-                              <select
-                                className="text-[0.78rem] w-[160px] flex-shrink-0 input py-[3px] cursor-pointer"
-                                value={ov.category}
-                                onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
-                              >
-                                <option value="">— category —</option>
-                                {GARMENT_CATEGORIES.map((cat) => (
-                                  <option key={cat.id} value={cat.label}>{cat.label}</option>
-                                ))}
-                              </select>
+                          {/* Right: pill rows — fills same space as Required Views pills */}
+                          <div className="flex-1 flex flex-col gap-[8px]">
+                            {/* Default row */}
+                            <div className="flex items-start gap-2">
+                              <span className="text-[0.72rem] text-[var(--text3)] w-[64px] flex-shrink-0 font-medium mt-[5px]">Default</span>
                               <AnglePillRow
-                                views={ov.angle_order ?? [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)]}
+                                views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
                                 allViews={ALL_VIEWS}
-                                rowKey={`${id}:${ov.id}`}
+                                rowKey={`${id}:default`}
                                 dragState={dragState}
                                 setDragState={setDragState}
-                                onChange={(next) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, angle_order: next } : o) })}
+                                onChange={(next) => updateRule(id, { angle_order: next })}
                               />
-                              <button
-                                type="button"
-                                onClick={() => updateRule(id, { category_overrides: (rule.category_overrides ?? []).filter((o) => o.id !== ov.id) })}
-                                className="flex-shrink-0 text-[var(--text3)] hover:text-[#ff3b30] transition-colors"
-                                title="Remove category override"
-                              >
-                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
-                              </button>
                             </div>
-                          ))}
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newOv: CategoryOverride = {
-                                id: `override-${Date.now()}`,
-                                category: '',
-                                label: '',
-                                angle_order: [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)],
-                              }
-                              updateRule(id, { category_overrides: [...(rule.category_overrides ?? []), newOv] })
-                            }}
-                            className="text-[0.8rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-3"
-                          >
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
-                            Add category override
-                          </button>
-                        </div>
+                            {/* Category override rows */}
+                            {(rule.category_overrides ?? []).length > 0 && (
+                              <div className="h-px bg-[var(--line)]" />
+                            )}
+                            {(rule.category_overrides ?? []).map((ov) => (
+                              <div key={ov.id} className="flex items-start gap-2">
+                                <select
+                                  className="text-[0.72rem] w-[64px] flex-shrink-0 input py-[3px] cursor-pointer"
+                                  value={ov.category}
+                                  onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
+                                >
+                                  <option value="">— cat —</option>
+                                  {GARMENT_CATEGORIES.map((cat) => (
+                                    <option key={cat.id} value={cat.label}>{cat.label}</option>
+                                  ))}
+                                </select>
+                                <AnglePillRow
+                                  views={ov.angle_order ?? [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)]}
+                                  allViews={ALL_VIEWS}
+                                  rowKey={`${id}:${ov.id}`}
+                                  dragState={dragState}
+                                  setDragState={setDragState}
+                                  onChange={(next) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, angle_order: next } : o) })}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => updateRule(id, { category_overrides: (rule.category_overrides ?? []).filter((o) => o.id !== ov.id) })}
+                                  className="flex-shrink-0 text-[var(--text3)] hover:text-[#ff3b30] transition-colors mt-[5px]"
+                                  title="Remove category override"
+                                >
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
+                                </button>
+                              </div>
+                            ))}
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newOv: CategoryOverride = {
+                                  id: `override-${Date.now()}`,
+                                  category: '',
+                                  label: '',
+                                  angle_order: [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)],
+                                }
+                                updateRule(id, { category_overrides: [...(rule.category_overrides ?? []), newOv] })
+                              }}
+                              className="text-[0.8rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-1"
+                            >
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
+                              Add category override
+                            </button>
+                          </div>{/* end right column */}
+                        </div>{/* end angle sequence row */}
 
                         <SRow label="Width (px)" sub="Output image width"><input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.width} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, width: Number(e.target.value) } })} /></SRow>
                         <SRow label="Height (px)" sub="Output image height"><input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.height} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, height: Number(e.target.value) } })} /></SRow>
