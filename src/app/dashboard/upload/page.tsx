@@ -42,6 +42,33 @@ const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = 
   'back-3/4':    { bg: 'rgba(0,122,255,0.09)',   color: '#4da3ff', dot: '#4da3ff' },
 }
 
+// Generates a 120px thumbnail blob URL for the upload preview grid.
+// Caps the longer dimension at 120px, preserving aspect ratio.
+// The full-size object URL is created briefly for the Image load, then immediately revoked.
+async function generateThumb(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const src = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(src)
+      const maxPx = 120
+      const scale = Math.min(1, maxPx / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
+      const w = Math.round((img.naturalWidth || maxPx) * scale)
+      const h = Math.round((img.naturalHeight || maxPx) * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      canvas.toBlob((blob) => {
+        if (blob) resolve(URL.createObjectURL(blob))
+        else reject(new Error('toBlob failed'))
+      }, 'image/jpeg', 0.8)
+    }
+    img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('load failed')) }
+    img.src = src
+  })
+}
+
 export default function UploadPage() {
   const router = useRouter()
   const { activeBrand } = useBrand()
@@ -149,7 +176,7 @@ export default function UploadPage() {
     } catch { /* non-critical */ }
     resetSession()
     setResumeDismissed(true)
-    setFiles([])
+    clearFiles()
     setJobName('')
     setParkingJob(false)
   }
@@ -274,6 +301,14 @@ export default function UploadPage() {
   }, [])
 
   const [files, setFiles] = useState<File[]>([])
+  const [thumbVersion, setThumbVersion] = useState(0)
+  const filePreviewUrls = useRef<Map<string, string>>(new Map())
+  const clearFiles = useCallback(() => {
+    filePreviewUrls.current.forEach((url) => URL.revokeObjectURL(url))
+    filePreviewUrls.current.clear()
+    setFiles([])
+    setThumbVersion(0)
+  }, [])
   const imageGridRef = useRef<HTMLDivElement>(null)
 
   const [progress, setProgress] = useState<ProcessProgress>({ phase: '', done: 0, total: 0 })
@@ -548,13 +583,32 @@ export default function UploadPage() {
 
     setRejectedFiles(rejected)
     if (!accepted.length) return
+
+    // Filter out duplicates using the preview URL map (always current — no stale closure)
+    const toQueue = accepted.filter((f) => !filePreviewUrls.current.has(f.name + f.size))
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => f.name + f.size))
-      const unique = accepted.filter((f) => !existing.has(f.name + f.size))
-      return [...prev, ...unique]
+      return [...prev, ...accepted.filter((f) => !existing.has(f.name + f.size))]
     })
+
+    // Generate 120px thumbnails 3 at a time — decoding all 40+ large files at once
+    // causes memory spikes and browser freezes; serialising the decode avoids this.
+    let active = 0
+    let i = 0
+    const runNext = () => {
+      while (active < 3 && i < toQueue.length) {
+        const file = toQueue[i++]
+        active++
+        generateThumb(file)
+          .then((url) => { filePreviewUrls.current.set(file.name + file.size, url); setThumbVersion((v) => v + 1) })
+          .catch(() => {})
+          .finally(() => { active--; runNext() })
+      }
+    }
+    runNext()
+
     setTimeout(() => imageGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -780,7 +834,7 @@ export default function UploadPage() {
                 onClick={() => {
                   resetSession()
                   import('@/lib/session-store').then(({ deleteSession }) => deleteSession('draft').catch(() => {}))
-                  setResumeDismissed(true); setFiles([]); setJobName('')
+                  setResumeDismissed(true); clearFiles(); setJobName('')
                 }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 14px', fontSize: '12px', fontWeight: 500, color: 'var(--accent3)', background: 'transparent', border: 'none', cursor: 'pointer' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,59,48,0.07)'}
@@ -1046,13 +1100,13 @@ export default function UploadPage() {
                       <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text2)' }}>{files.length} images queued</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button onClick={() => inputRef.current?.click()} style={{ fontSize: '13px', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>+ Add more</button>
-                        <button onClick={() => setFiles([])} style={{ fontSize: '13px', color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer' }}>Clear all</button>
+                        <button onClick={() => clearFiles()} style={{ fontSize: '13px', color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer' }}>Clear all</button>
                       </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(52px, 1fr))', gap: '3px' }}>
                       {files.slice(0, 80).map((f, i) => (
                         <div key={i} style={{ aspectRatio: '1', borderRadius: '3px', overflow: 'hidden', background: 'var(--bg4)' }}>
-                          <img src={URL.createObjectURL(f)} alt={f.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)} />
+                          <img src={filePreviewUrls.current.get(f.name + f.size) ?? ''} alt={f.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         </div>
                       ))}
                       {files.length > 80 && (
@@ -1429,7 +1483,7 @@ export default function UploadPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => setFiles([])} className="btn btn-ghost btn-sm">
+            <button onClick={() => clearFiles()} className="btn btn-ghost btn-sm">
               Clear
             </button>
             {reimportMeta ? (

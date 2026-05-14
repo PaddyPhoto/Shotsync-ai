@@ -39,6 +39,31 @@ const VIEW_CLS: Record<ViewLabel, string> = {
 }
 
 // ReviewPage uses useSearchParams() which requires a Suspense boundary in Next.js App Router.
+// Generates a medium-resolution blob URL from a File for lightbox display.
+// Caps the longer dimension at maxPx, preserving aspect ratio.
+async function generateMediumRes(file: File, maxPx = 1400): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const src = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(src)
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+      const w = Math.round(img.width * scale)
+      const h = Math.round(img.height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      canvas.toBlob((blob) => {
+        if (blob) resolve(URL.createObjectURL(blob))
+        else reject(new Error('toBlob failed'))
+      }, 'image/jpeg', 0.88)
+    }
+    img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('load failed')) }
+    img.src = src
+  })
+}
+
 // The wrapper is the default export; the actual page logic lives in ReviewPage below.
 export default function ReviewPageWrapper() {
   return <Suspense><ReviewPage /></Suspense>
@@ -80,6 +105,8 @@ function ReviewPage() {
   const [skuMatches, setSkuMatches] = useState<Record<string, StyleListEntry[]>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null)
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
+  const lightboxUrlCache = useRef<Map<string, string>>(new Map())
   const [mergeMenuOpen, setMergeMenuOpen] = useState<string | null>(null)
 
   const [expandedDetails, setExpandedDetails] = useState<Set<string>>(new Set())
@@ -461,6 +488,36 @@ function ReviewPage() {
     }
     window.addEventListener('shotsync:select-cluster', handleSelectCluster)
     return () => window.removeEventListener('shotsync:select-cluster', handleSelectCluster)
+  }, [])
+
+  // On-demand medium-res generation for lightbox — show thumbnail immediately,
+  // then upgrade to ~1400px as soon as the canvas render is done.
+  useEffect(() => {
+    if (!lightboxImageId) { setLightboxUrl(null); return }
+    const allImages = clusters.flatMap((c) => c.images)
+    const img = allImages.find((i) => i.id === lightboxImageId)
+    if (!img) { setLightboxUrl(null); return }
+
+    const cached = lightboxUrlCache.current.get(lightboxImageId)
+    if (cached) { setLightboxUrl(cached); return }
+
+    // Show the 420px thumbnail immediately so there's no blank flash.
+    setLightboxUrl(img.previewUrl)
+
+    let cancelled = false
+    generateMediumRes(img.file).then((url) => {
+      if (cancelled) { URL.revokeObjectURL(url); return }
+      lightboxUrlCache.current.set(lightboxImageId, url)
+      setLightboxUrl(url)
+    }).catch(() => {})
+
+    return () => { cancelled = true }
+  }, [lightboxImageId, clusters])
+
+  // Revoke all cached medium-res URLs on unmount.
+  useEffect(() => {
+    const cache = lightboxUrlCache.current
+    return () => { cache.forEach((url) => URL.revokeObjectURL(url)) }
   }, [])
 
   const confirmedCount = clusters.filter((c) => c.confirmed).length
@@ -1526,20 +1583,16 @@ function ReviewPage() {
         if (!current) return null
         const prev = currentIdx > 0 ? allImages[currentIdx - 1] : null
         const next = currentIdx < allImages.length - 1 ? allImages[currentIdx + 1] : null
-        // Use the original File for full-resolution display — previewUrl is a 420px thumbnail
-        const fullResUrl = URL.createObjectURL(current.file)
-        const closeLightbox = () => { URL.revokeObjectURL(fullResUrl); setLightboxImageId(null) }
-        const goTo = (id: string) => { URL.revokeObjectURL(fullResUrl); setLightboxImageId(id) }
         return (
           <div
             className="fixed inset-0 z-[200] flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.92)' }}
-            onClick={closeLightbox}
+            onClick={() => setLightboxImageId(null)}
           >
             {prev && (
               <button
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                onClick={(e) => { e.stopPropagation(); goTo(prev.id) }}
+                onClick={(e) => { e.stopPropagation(); setLightboxImageId(prev.id) }}
                 title="Previous image"
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M11 4L6 9l5 5"/></svg>
@@ -1547,7 +1600,7 @@ function ReviewPage() {
             )}
             <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
               <img
-                src={fullResUrl}
+                src={lightboxUrl ?? current.previewUrl}
                 alt={current.filename}
                 className="max-w-full max-h-[82vh] object-contain rounded-[6px] shadow-2xl"
                 style={{ userSelect: 'none' }}
@@ -1561,7 +1614,7 @@ function ReviewPage() {
             {next && (
               <button
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                onClick={(e) => { e.stopPropagation(); goTo(next.id) }}
+                onClick={(e) => { e.stopPropagation(); setLightboxImageId(next.id) }}
                 title="Next image"
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M7 4l5 5-5 5"/></svg>
@@ -1569,7 +1622,7 @@ function ReviewPage() {
             )}
             <button
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              onClick={closeLightbox}
+              onClick={() => setLightboxImageId(null)}
               title="Close (Esc or Space)"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
