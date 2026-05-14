@@ -744,7 +744,7 @@ export default function UploadPage() {
     setSession(name, clusters, marketplaces, imagesPerLook, (effectiveAngleSeq ?? []) as import('@/types').ViewLabel[])
 
     import('@/lib/session-store').then(({ saveSession }) =>
-      saveSession('draft', name, clusters, marketplaces, activeBrand?.id ?? null)
+      saveSession('draft', name, clusters, marketplaces, activeBrand?.id ?? null, styleList)
     ).catch(() => { /* non-critical */ })
 
     router.push('/dashboard/review')
