@@ -160,7 +160,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: 'Does AI copy get included in exports?',
-        a: 'Yes. When pushing to Shopify, the AI title becomes the product title and the description populates the product body. When pushing to Cin7, the copy maps to the product Name and Description fields.',
+        a: 'Yes. When pushing to Shopify, the AI title becomes the product title and the description and bullet points populate the product body as HTML. When pushing to Cin7, the AI title becomes the product Name and the description and bullet points are written to the Description field as HTML — a paragraph followed by a bulleted list.',
       },
     ],
   },
