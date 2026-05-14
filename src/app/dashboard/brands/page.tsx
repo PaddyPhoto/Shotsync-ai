@@ -483,7 +483,9 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
             {/* Shot Configuration */}
             <Section title="Shot Configuration">
-              <p className="text-[0.82rem] text-[var(--text3)] mb-4 leading-relaxed">Set the order your photographer shoots each look. ShotSync uses this sequence to automatically label incoming images by angle — so the first image becomes angle 1, the second becomes angle 2, and so on. Export order per marketplace is configured separately in <strong className="text-[var(--text2)]">Marketplace Settings</strong>.</p>
+              <div className="mb-4 px-3 py-2.5 rounded-[8px] text-[0.82rem] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
+                Set the order your photographer shoots each look. ShotSync uses this sequence to automatically label incoming images by angle — so the first image becomes angle 1, the second becomes angle 2, and so on. Export order per marketplace is configured separately in <strong style={{ color: 'var(--text)' }}>Marketplace Settings</strong>.
+              </div>
               <div className="mb-4">
                 <label className="text-[0.85rem] text-[var(--text2)] mb-2 block">Images per Look — On-Model</label>
                 <div className="flex gap-2 flex-wrap mb-3">
