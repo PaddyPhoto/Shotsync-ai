@@ -75,7 +75,7 @@ function ReviewPage() {
   const { activeBrand } = useBrand()
   const {
     jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, isReady,
-    setSession,
+    setSession, setStyleList,
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber,
     setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
@@ -303,6 +303,7 @@ function ReviewPage() {
     ).then((result) => {
       if (result && result.clusters.length > 0) {
         setSession(result.jobName, result.clusters, result.marketplaces)
+        if (result.styleList.length > 0) setStyleList(result.styleList)
       }
     }).catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -427,7 +428,7 @@ function ReviewPage() {
     if (!isReady || clusters.length === 0) return
     const timer = setTimeout(() => {
       import('@/lib/session-store').then(({ saveSession }) =>
-        saveSession('draft', jobName || 'Untitled Job', clusters, sessionMarketplaces, activeBrand?.id ?? null)
+        saveSession('draft', jobName || 'Untitled Job', clusters, sessionMarketplaces, activeBrand?.id ?? null, styleList)
       ).catch(() => {})
     }, 1500)
     return () => clearTimeout(timer)
@@ -2327,7 +2328,7 @@ function ExportPanel({
 
         import('@/lib/session-store').then(({ saveSession, deleteSession }) =>
           Promise.all([
-            saveSession(histId, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null),
+            saveSession(histId, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null, useSession.getState().styleList),
             deleteSession('draft'),
           ])
         ).catch(() => { /* non-critical */ })

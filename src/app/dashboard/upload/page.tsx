@@ -171,6 +171,7 @@ export default function UploadPage() {
         existingSession.clusters,
         existingSession.marketplaces,
         activeBrand?.id ?? null,
+        existingSession.styleList,
       )
       await deleteSession('draft').catch(() => {})
     } catch { /* non-critical */ }
@@ -710,6 +711,7 @@ export default function UploadPage() {
           existingSession.clusters,
           existingSession.marketplaces,
           activeBrand?.id ?? null,
+          existingSession.styleList,
         )
       )
     }

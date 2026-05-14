@@ -188,12 +188,14 @@ const ANGLE_DOT: Record<string, string> = {
 
 export function Sidebar() {
   const { planId, plan, usage } = usePlan()
-  const { isReady, clusters, jobName, marketplaces, setSession } = useSession((s) => ({
+  const { isReady, clusters, jobName, marketplaces, styleList, setSession, setStyleList } = useSession((s) => ({
     isReady: s.isReady,
     clusters: s.clusters,
     jobName: s.jobName,
     marketplaces: s.marketplaces,
+    styleList: s.styleList,
     setSession: s.setSession,
+    setStyleList: s.setStyleList,
   }))
   const allExported = clusters.length > 0 && clusters.every((c) => c.exported)
   const hasSession = isReady && clusters.length > 0 && !allExported
@@ -237,11 +239,12 @@ export function Sidebar() {
     try {
       const { parkJob, resumeParkedJob } = await import('@/lib/session-store')
       if (clusters.length > 0) {
-        await parkJob(jobName || 'Untitled Job', clusters, marketplaces, null)
+        await parkJob(jobName || 'Untitled Job', clusters, marketplaces, null, styleList)
       }
       const result = await resumeParkedJob(parkId)
       if (result) {
         setSession(result.jobName, result.clusters, result.marketplaces)
+        if (result.styleList.length > 0) setStyleList(result.styleList)
         router.push('/dashboard/review')
       }
       await reloadParked()

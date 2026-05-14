@@ -11,7 +11,7 @@
  *   files     — one record per image file (ArrayBuffer), indexed by sessionId
  */
 
-import type { SessionCluster } from '@/store/session'
+import type { SessionCluster, StyleListEntry } from '@/store/session'
 import type { ViewLabel } from '@/types'
 
 const DB_NAME = 'shotsync-sessions'
@@ -39,6 +39,7 @@ interface StoredSession {
   brandId: string | null
   clusterCount: number
   imageCount: number
+  styleList?: StyleListEntry[]
 }
 
 interface StoredClusterImage {
@@ -179,6 +180,7 @@ export async function saveSession(
   clusters: SessionCluster[],
   marketplaces: string[],
   brandId: string | null,
+  styleList: StyleListEntry[] = [],
 ): Promise<void> {
   // Step 1: Read all file ArrayBuffers BEFORE opening the IDB transaction.
   // IDB transactions auto-commit when there are no pending IDB requests — doing
@@ -219,6 +221,7 @@ export async function saveSession(
     brandId,
     clusterCount: clusters.length,
     imageCount: totalImages,
+    styleList,
   } as StoredSession)
 
   for (const cluster of clusters) {
@@ -275,6 +278,7 @@ export async function loadSession(jobId: string): Promise<{
   jobName: string
   clusters: SessionCluster[]
   marketplaces: string[]
+  styleList: StyleListEntry[]
 } | null> {
   const db = await openDB()
 
@@ -329,7 +333,7 @@ export async function loadSession(jobId: string): Promise<{
     }).filter(Boolean) as SessionCluster['images'],
   })).filter((c) => c.images.length > 0)
 
-  return { jobName: header.jobName, clusters, marketplaces: header.marketplaces }
+  return { jobName: header.jobName, clusters, marketplaces: header.marketplaces, styleList: header.styleList ?? [] }
 }
 
 /**
@@ -404,9 +408,10 @@ export async function parkJob(
   clusters: SessionCluster[],
   marketplaces: string[],
   brandId: string | null,
+  styleList: StyleListEntry[] = [],
 ): Promise<string> {
   const id = `park::${crypto.randomUUID()}`
-  await saveSession(id, jobName, clusters, marketplaces, brandId)
+  await saveSession(id, jobName, clusters, marketplaces, brandId, styleList)
   bumpParkedVersion()
   return id
 }
@@ -429,6 +434,7 @@ export async function resumeParkedJob(parkId: string): Promise<{
   jobName: string
   clusters: SessionCluster[]
   marketplaces: string[]
+  styleList: StyleListEntry[]
 } | null> {
   const result = await loadSession(parkId)
   if (result) {
