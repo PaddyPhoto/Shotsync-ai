@@ -676,7 +676,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         </div>
 
         {/* ── Section label ── */}
-        <div className="px-6 pt-4 pb-1">
+        <div className="px-6 pt-4 pb-1 border-t-2 border-[var(--line2)]">
           <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text)]">eCommerce</p>
         </div>
 
@@ -715,7 +715,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         </div>
 
         {/* ── Section label ── */}
-        <div className="px-6 pt-4 pb-1">
+        <div className="px-6 pt-4 pb-1 border-t-2 border-[var(--line2)]">
           <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text)]">ERP / Inventory</p>
         </div>
 
@@ -769,7 +769,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         </div>
 
         {/* ── Section label ── */}
-        <div className="px-6 pt-4 pb-1">
+        <div className="px-6 pt-4 pb-1 border-t-2 border-[var(--line2)]">
           <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text)]">Marketplaces</p>
         </div>
 
