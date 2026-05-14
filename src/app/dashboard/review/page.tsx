@@ -222,10 +222,14 @@ function ReviewPage() {
         }))
         return false
       }
+      const aiTitle = (data.title as string) ?? ''
       setClusterCopy((prev) => ({
         ...prev,
-        [cluster.id]: { title: (data.title as string) ?? '', description: (data.description as string) ?? '', bullets: Array.isArray(data.bullets) ? data.bullets as string[] : [], loading: false, open: true, error: undefined },
+        [cluster.id]: { title: aiTitle, description: (data.description as string) ?? '', bullets: Array.isArray(data.bullets) ? data.bullets as string[] : [], loading: false, open: true, error: undefined },
       }))
+      // Persist AI title to the cluster's productName so it survives page refreshes
+      // and is available as a fallback in Shopify/Cin7 pushes even if clusterCopy is cleared.
+      if (aiTitle) updateClusterSku(cluster.id, cluster.sku, aiTitle)
       return true
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Network error'
