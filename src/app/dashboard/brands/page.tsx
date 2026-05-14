@@ -177,6 +177,7 @@ function BrandsPage() {
         if (!res.ok) { setErrors((e) => ({ ...e, [id]: d.error ?? 'Failed to update brand' })); return }
         const updated = d.data ?? { ...brand, ...form }
         setBrands(brands.map((b) => (b.id === id ? updated : b)))
+        setExpandedId(null)
         setToastOk(true); setToast('Brand saved.')
         setTimeout(() => setToast(null), 2500)
       }
