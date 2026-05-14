@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PLANS } from '@/lib/plans'
-import type { PlanId } from '@/lib/plans'
 import { sendEmail, teamInviteEmail } from '@/lib/email'
 
 async function getServiceClientAndUser(request: NextRequest) {
@@ -34,29 +32,6 @@ export async function POST(request: NextRequest) {
 
   if (!membership) {
     return NextResponse.json({ error: 'You do not have permission to invite members' }, { status: 403 })
-  }
-
-  // Check seat limit against current members + pending invites
-  const { data: orgData } = await supabase
-    .from('orgs')
-    .select('plan')
-    .eq('id', membership.org_id)
-    .single()
-
-  const planId = (orgData?.plan ?? 'free') as PlanId
-  const seatLimit = PLANS[planId].limits.seats
-  if (seatLimit !== -1) {
-    const [{ count: memberCount }, { count: pendingCount }] = await Promise.all([
-      supabase.from('org_members').select('*', { count: 'exact', head: true }).eq('org_id', membership.org_id),
-      supabase.from('org_invites').select('*', { count: 'exact', head: true })
-        .eq('org_id', membership.org_id).is('accepted_at', null).gt('expires_at', new Date().toISOString()),
-    ])
-
-    if ((memberCount ?? 0) + (pendingCount ?? 0) >= seatLimit) {
-      return NextResponse.json({
-        error: `Your ${PLANS[planId].name} plan includes ${seatLimit} seat${seatLimit !== 1 ? 's' : ''}. Upgrade to add more team members.`
-      }, { status: 403 })
-    }
   }
 
   // Check if user is already a member (look up by email via auth admin)

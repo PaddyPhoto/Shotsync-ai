@@ -443,7 +443,6 @@ export default function DashboardPage() {
                   {[
                     { label: 'Exports per month', val: plan.limits.exportsPerMonth },
                     { label: 'Brands', val: plan.limits.brands },
-                    { label: 'Team seats', val: plan.limits.seats },
                   ].map(({ label, val }) => (
                     <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderTop: '0.5px solid var(--line)' }}>
                       <span style={{ fontSize: '13px', color: 'var(--text3)' }}>{label}</span>

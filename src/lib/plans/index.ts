@@ -7,7 +7,6 @@ export interface PlanLimits {
   marketplaces: number       // max selectable per export
   exportsPerMonth: number    // -1 = unlimited
   brands: number             // -1 = unlimited
-  seats: number              // -1 = unlimited
   shopifyStores: number      // -1 = unlimited, 0 = not included
   shopify: boolean
   aiCopy: boolean
@@ -39,7 +38,6 @@ export const PLANS: Record<PlanId, Plan> = {
       marketplaces: 1,
       exportsPerMonth: 3,
       brands: 1,
-      seats: 1,
       shopifyStores: 0,
       shopify: true,
       aiCopy: false,
@@ -50,7 +48,7 @@ export const PLANS: Record<PlanId, Plan> = {
       'Up to 3 exports',
       'Shopify export (ZIP / folder only)',
       'ANZ marketplaces locked — Launch and above',
-      '1 brand, 1 seat',
+      '1 brand',
     ],
     forNote: 'Try the workflow before you commit',
   },
@@ -66,7 +64,6 @@ export const PLANS: Record<PlanId, Plan> = {
       marketplaces: 2,
       exportsPerMonth: -1,
       brands: 1,
-      seats: 2,
       shopifyStores: 1,
       shopify: true,
       aiCopy: false,
@@ -78,7 +75,6 @@ export const PLANS: Record<PlanId, Plan> = {
       '1 Shopify store connection',
       'Product folder export (Shopify-ready structure)',
       'Export to 2 ANZ marketplaces',
-      '2 team seats',
       '30-day free trial',
     ],
     forNote: 'Small DTC brands, early-stage Shopify stores, new collections',
@@ -95,7 +91,6 @@ export const PLANS: Record<PlanId, Plan> = {
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 2,
-      seats: 5,
       shopifyStores: 2,
       shopify: true,
       aiCopy: true,
@@ -107,7 +102,6 @@ export const PLANS: Record<PlanId, Plan> = {
       '2 Shopify store integrations',
       'Export to all ANZ marketplaces',
       'AI product listing copy generation',
-      '5 team seats',
       'Background removal add-on ($0.16/image)',
       '30-day free trial',
     ],
@@ -125,7 +119,6 @@ export const PLANS: Record<PlanId, Plan> = {
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: 5,
-      seats: 10,
       shopifyStores: 5,
       shopify: true,
       aiCopy: true,
@@ -139,7 +132,6 @@ export const PLANS: Record<PlanId, Plan> = {
       'AI product listing copy generation',
       'Background removal add-on ($0.16/image)',
       'Priority processing workflow',
-      '10 team seats',
       '30-day free trial',
     ],
     forNote: 'Enterprise DTC groups, multi-label brands, high SKU throughput teams',
@@ -156,7 +148,6 @@ export const PLANS: Record<PlanId, Plan> = {
       marketplaces: 4,
       exportsPerMonth: -1,
       brands: -1,
-      seats: -1,
       shopifyStores: -1,
       shopify: true,
       aiCopy: true,
