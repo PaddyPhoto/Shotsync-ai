@@ -29,6 +29,12 @@ const NAMING_TOKENS = [
   { token: '{CUSTOM_TEXT}',  color: 'var(--text3)',   desc: 'Fixed text' },
 ]
 
+const STILL_LIFE_GROUPS = [
+  { label: 'Bags & Footwear',       ids: ['bags', 'shoes'] },
+  { label: 'Jewellery & Eyewear',   ids: ['jewellery', 'sunglasses'] },
+  { label: 'Apparel Accessories',   ids: ['accessories', 'ties', 'caps', 'scarves', 'belts', 'socks'] },
+]
+
 const COMING_SOON_MARKETS = [
   { id: 'iconic',      name: 'THE ICONIC',  api: 'SellerCenter API' },
   { id: 'myer',        name: 'Myer',        api: 'Supplier Portal API' },
@@ -332,6 +338,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
   const [cin7TestStatus, setCin7TestStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle')
   const [cin7TestMsg, setCin7TestMsg] = useState('')
   const [cin7AttrSet, setCin7AttrSet] = useState<'found' | 'missing' | 'unknown' | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const testCin7 = async () => {
     setCin7TestStatus('testing')
@@ -635,44 +642,54 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
               <div className="mt-4">
                 <p className="text-[0.85rem] text-[var(--text2)] mb-1">Still Life Angle Sequences</p>
-                <p className="text-[0.8rem] text-[var(--text3)] mb-2">Override the default angle order per accessory category. Leave blank to use category defaults.</p>
-                <div className="flex flex-col gap-2">
-                  {ACCESSORY_CATEGORIES.filter((cat) => cat.id !== 'ghost-mannequin').map((cat) => {
-                    const customSeq = form.still_life_angle_sequences[cat.id]
-                    const isOpen = expandedStillLife === cat.id
-                    const hasCustom = customSeq && customSeq.length > 0
+                <p className="text-[0.8rem] text-[var(--text3)] mb-3">Override the default angle order per accessory category. Leave blank to use category defaults.</p>
+                <div className="flex flex-col gap-4">
+                  {STILL_LIFE_GROUPS.map((group) => {
+                    const cats = group.ids.map((gid) => ACCESSORY_CATEGORIES.find((c) => c.id === gid)).filter(Boolean) as typeof ACCESSORY_CATEGORIES
                     return (
-                      <div key={cat.id} className="border border-[var(--line2)] rounded-sm overflow-hidden">
-                        <button type="button" onClick={() => onSetStillLife(cat.id)} className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[var(--bg3)] transition-colors">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[0.85rem] text-[var(--text)]">{cat.label}</span>
-                            {hasCustom
-                              ? <span className="text-[0.77rem] text-[var(--accent)] bg-[rgba(74,158,255,0.1)] px-[6px] py-[1px] rounded-full">custom</span>
-                              : <span className="text-[0.8rem] text-[var(--text3)]">{cat.angles.join(' · ')}</span>}
-                          </div>
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-[var(--text3)] transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </button>
-                        {isOpen && (
-                          <div className="px-3 pb-3 pt-1 bg-[var(--bg3)] border-t border-[var(--line)]">
-                            <div className="flex flex-col gap-[5px] mb-2">
-                              {(customSeq?.length ? customSeq : cat.angles).map((angle, idx) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                  <span className="w-5 text-[0.82rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
-                                  <select value={angle} onChange={(e) => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; seq[idx] = e.target.value; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="flex-1 bg-[var(--bg)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]">
-                                    {['front', 'back', 'side', 'detail', 'inside', 'flat-lay', 'top-down', 'front-3/4', 'back-3/4'].map((a) => <option key={a} value={a}>{a}</option>)}
-                                  </select>
-                                  <button type="button" disabled={idx === 0} onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; [seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▲</button>
-                                  <button type="button" disabled={idx >= (customSeq?.length || cat.angles.length) - 1} onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; [seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▼</button>
-                                  <button type="button" onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; seq.splice(idx, 1); onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--accent3)] px-1">×</button>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <button type="button" onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles), 'front']; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[0.82rem] text-[var(--accent)] hover:underline">+ Add angle</button>
-                              {hasCustom && <button type="button" onClick={() => { const s = { ...form.still_life_angle_sequences }; delete s[cat.id]; onFormChange({ still_life_angle_sequences: s }) }} className="text-[0.82rem] text-[var(--text3)] hover:text-[var(--accent3)] ml-auto">Reset to default</button>}
-                            </div>
-                          </div>
-                        )}
+                      <div key={group.label}>
+                        <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text3)] mb-2 px-[1px]">{group.label}</p>
+                        <div className="flex flex-col gap-2">
+                          {cats.map((cat) => {
+                            const customSeq = form.still_life_angle_sequences[cat.id]
+                            const isOpen = expandedStillLife === cat.id
+                            const hasCustom = customSeq && customSeq.length > 0
+                            return (
+                              <div key={cat.id} className="border border-[var(--line2)] rounded-sm overflow-hidden">
+                                <button type="button" onClick={() => onSetStillLife(cat.id)} className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[var(--bg3)] transition-colors">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[0.85rem] text-[var(--text)]">{cat.label}</span>
+                                    {hasCustom
+                                      ? <span className="text-[0.77rem] text-[var(--accent)] bg-[rgba(74,158,255,0.1)] px-[6px] py-[1px] rounded-full">custom</span>
+                                      : <span className="text-[0.8rem] text-[var(--text3)]">{cat.angles.join(' · ')}</span>}
+                                  </div>
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-[var(--text3)] transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                </button>
+                                {isOpen && (
+                                  <div className="px-3 pb-3 pt-1 bg-[var(--bg3)] border-t border-[var(--line)]">
+                                    <div className="flex flex-col gap-[5px] mb-2">
+                                      {(customSeq?.length ? customSeq : cat.angles).map((angle, idx) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                          <span className="w-5 text-[0.82rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
+                                          <select value={angle} onChange={(e) => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; seq[idx] = e.target.value; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="flex-1 bg-[var(--bg)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]">
+                                            {['front', 'back', 'side', 'detail', 'inside', 'flat-lay', 'top-down', 'front-3/4', 'back-3/4'].map((a) => <option key={a} value={a}>{a}</option>)}
+                                          </select>
+                                          <button type="button" disabled={idx === 0} onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; [seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▲</button>
+                                          <button type="button" disabled={idx >= (customSeq?.length || cat.angles.length) - 1} onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; [seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▼</button>
+                                          <button type="button" onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; seq.splice(idx, 1); onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--accent3)] px-1">×</button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <button type="button" onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles), 'front']; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[0.82rem] text-[var(--accent)] hover:underline">+ Add angle</button>
+                                      {hasCustom && <button type="button" onClick={() => { const s = { ...form.still_life_angle_sequences }; delete s[cat.id]; onFormChange({ still_life_angle_sequences: s }) }} className="text-[0.82rem] text-[var(--text3)] hover:text-[var(--accent3)] ml-auto">Reset to default</button>}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
                     )
                   })}
@@ -756,21 +773,43 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
             {/* Footer */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--line)] bg-[var(--bg3)]">
-              <div>
+              <div className="flex flex-col gap-[6px]">
                 {error && <p className="text-[0.85rem] text-[#ff3b30]">{error}</p>}
-              </div>
-              <div className="flex items-center gap-3">
-                {onDelete && (
-                  <button type="button" onClick={onDelete} disabled={deletingId === id} className="text-[0.85rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors disabled:opacity-40">
-                    {deletingId === id ? 'Deleting…' : 'Delete brand'}
+                {onDelete && !confirmDelete && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(true)}
+                    className="text-[0.82rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors text-left"
+                  >
+                    Delete brand
                   </button>
                 )}
-                <button onClick={onSave} disabled={saving} className="btn btn-primary">
-                  {saving
-                    ? <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Saving…</>
-                    : 'Save Changes'}
-                </button>
+                {onDelete && confirmDelete && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[0.82rem] text-[#ff3b30]">Delete this brand?</span>
+                    <button
+                      type="button"
+                      onClick={() => { setConfirmDelete(false); onDelete() }}
+                      disabled={deletingId === id}
+                      className="text-[0.82rem] font-semibold text-[#ff3b30] border border-[rgba(255,59,48,0.4)] px-2 py-[2px] rounded-sm hover:bg-[rgba(255,59,48,0.1)] transition-colors disabled:opacity-40"
+                    >
+                      {deletingId === id ? 'Deleting…' : 'Confirm'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(false)}
+                      className="text-[0.82rem] text-[var(--text3)] hover:text-[var(--text)] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
+              <button onClick={onSave} disabled={saving} className="btn btn-primary">
+                {saving
+                  ? <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Saving…</>
+                  : 'Save Changes'}
+              </button>
             </div>
 
           </div>
