@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
       colourCode?: string
       styleNumber?: string
       garmentCategory?: string | null
+      gmPosition?: 'first' | 'last'
       images: { src?: string; base64?: string; filename: string }[]
       copy?: { title: string; description: string; bullets: string[] }
       styleEntry?: {
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
       const existing = await client.findProductBySku(cluster.sku)
 
       if (existing) {
-        await client.appendImages(existing.id, cluster.images)
+        await client.appendImages(existing.id, cluster.images, cluster.gmPosition ?? 'last')
         results.push({ sku: cluster.sku, status: 'updated', adminUrl: existing.adminUrl })
       } else {
         const se = cluster.styleEntry ?? {}

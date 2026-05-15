@@ -65,22 +65,27 @@ export class ShopifyClient {
   /**
    * Append images to an existing product — one REST call per image.
    * Existing images are untouched.
+   * gmPosition 'first' posts each image with an explicit position (1, 2, …) so
+   * Shopify renumbers existing images behind them, making the new images the hero.
+   * gmPosition 'last' (default) lets Shopify auto-assign end positions.
    */
   async appendImages(
     productId: string,
     images: { src?: string; base64?: string; filename: string }[],
+    gmPosition: 'first' | 'last' = 'last',
   ): Promise<void> {
     const url = `${this.baseUrl}/products/${productId}/images.json`
-    for (const img of images) {
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i]
+      const body: Record<string, unknown> = {
+        ...(img.base64 ? { attachment: img.base64 } : { src: img.src }),
+        filename: img.filename,
+      }
+      if (gmPosition === 'first') body.position = i + 1
       const res = await fetch(url, {
         method: 'POST',
         headers: this.headers,
-        body: JSON.stringify({
-          image: {
-            ...(img.base64 ? { attachment: img.base64 } : { src: img.src }),
-            filename: img.filename,
-          },
-        }),
+        body: JSON.stringify({ image: body }),
       })
       if (!res.ok) {
         const errText = await res.text().catch(() => '')
