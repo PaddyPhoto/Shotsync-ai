@@ -1535,6 +1535,7 @@ function ReviewPage() {
           marketplaceRules={marketplaceRules}
           namingTemplate={activeTemplate}
           clusterCopy={clusterCopy}
+          shootType={shootType}
           onClose={() => setShowExportPanel(false)}
           onStartNewJob={() => { reset(); router.push('/dashboard/upload') }}
           onBackToDashboard={() => { reset(); router.push('/dashboard') }}
@@ -1642,6 +1643,7 @@ function ExportPanel({
   marketplaceRules,
   namingTemplate,
   clusterCopy,
+  shootType,
   onClose,
   onStartNewJob,
   onBackToDashboard,
@@ -1653,6 +1655,7 @@ function ExportPanel({
   marketplaceRules: EditableRules
   namingTemplate: string
   clusterCopy: Record<string, { title: string; description: string; bullets: string[]; loading: boolean; open: boolean }>
+  shootType: string
   onClose: () => void
   onStartNewJob: () => void
   onBackToDashboard: () => void
@@ -1762,7 +1765,7 @@ function ExportPanel({
           // Step 1: canvas resize
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''))
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''))
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -1915,7 +1918,7 @@ function ExportPanel({
 
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''))
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''))
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -2530,7 +2533,7 @@ function ExportPanel({
   const totalSourceImages = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
   const ANZ_MARKETPLACES: MarketplaceName[] = ['the-iconic', 'myer', 'david-jones']
   const lockedMarketplaces: MarketplaceName[] = plan.limits.marketplaces < 2 ? ANZ_MARKETPLACES : []
-  const hasBgRemoval = selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background)
+  const hasBgRemoval = shootType === 'still-life' && selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background)
   const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
   const estBgMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
   const bgCostAud = (bgCount * 0.16).toFixed(2)
