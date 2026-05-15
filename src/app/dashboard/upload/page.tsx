@@ -730,6 +730,51 @@ export default function UploadPage() {
 
     const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
 
+    // AI angle detection — replaces positional labels with vision-classified angles.
+    // Uses GPT-4o-mini at detail:low (~$0.000046/image). Falls back to positional on any error.
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session: authSession } } = await createClient().auth.getSession()
+      if (authSession?.access_token) {
+        const allImages = clusters.flatMap((c) => c.images)
+        setProgress({ phase: 'Detecting angles…', done: 0, total: allImages.length })
+
+        // Convert thumbnail blob URLs to base64 in small chunks
+        const payloads: { imageId: string; base64: string }[] = []
+        for (let i = 0; i < allImages.length; i++) {
+          const img = allImages[i]
+          try {
+            const blob = await fetch(img.previewUrl).then((r) => r.blob())
+            const ab = await blob.arrayBuffer()
+            const bytes = new Uint8Array(ab)
+            let binary = ''
+            for (let b = 0; b < bytes.byteLength; b++) binary += String.fromCharCode(bytes[b])
+            payloads.push({ imageId: img.id, base64: btoa(binary) })
+          } catch { /* skip unreadable thumbnails */ }
+          setProgress({ phase: 'Detecting angles…', done: i + 1, total: allImages.length })
+        }
+
+        const res = await fetch('/api/jobs/detect-angles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authSession.access_token}` },
+          body: JSON.stringify({ images: payloads }),
+        })
+        if (res.ok) {
+          const { results } = await res.json() as { results: { imageId: string; viewLabel: string; confidence: number }[] }
+          const labelMap = new Map(results.map((r) => [r.imageId, r]))
+          for (const cluster of clusters) {
+            for (const img of cluster.images) {
+              const hit = labelMap.get(img.id)
+              if (hit && hit.confidence > 0) {
+                img.viewLabel = hit.viewLabel as ViewLabel
+                img.viewConfidence = hit.confidence
+              }
+            }
+          }
+        }
+      }
+    } catch { /* non-critical — positional labels remain */ }
+
     // Record image usage server-side (fire and forget — non-blocking)
     import('@/lib/supabase/client').then(({ createClient }) =>
       createClient().auth.getSession()
