@@ -527,7 +527,11 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                 Set the order your photographer shoots each look. ShotSync uses this sequence to automatically label incoming images by angle — so the first image becomes angle 1, the second becomes angle 2, and so on. Export order per marketplace is configured separately in <strong style={{ color: 'var(--text)' }}>Marketplace Settings</strong>.
               </div>
               <div className="mb-4">
-                <label className="text-[0.85rem] text-[var(--text2)] mb-2 block">Images per Look — On-Model</label>
+                <div className="flex items-center gap-2 mb-3">
+                  <h4 className="text-[0.95rem] font-semibold text-[var(--text)] tracking-[-0.2px]">On-Model</h4>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(232,217,122,0.1)', color: 'var(--accent)', border: '1px solid rgba(232,217,122,0.2)' }}>Apparel</span>
+                </div>
+                <label className="text-[0.82rem] text-[var(--text3)] mb-2 block">Images per Look</label>
                 <div className="flex gap-2 flex-wrap mb-3">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                     <button
@@ -628,9 +632,12 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                 </div>
               </div>
 
-              <div className="mt-4">
-                <p className="text-[0.85rem] text-[var(--text2)] mb-1">Ghost Mannequin Position</p>
-                <p className="text-[0.8rem] text-[var(--text3)] mb-2">Controls where the GM shot appears in ZIP exports and when GM images are pushed to an existing Shopify product listing — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes the GM the hero shot, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after the on-model images.</p>
+              <div className="mt-2 pt-5 border-t border-[var(--line)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="text-[0.95rem] font-semibold text-[var(--text)] tracking-[-0.2px]">Ghost Mannequin</h4>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(48,209,88,0.08)', color: 'var(--accent2)', border: '1px solid rgba(48,209,88,0.2)' }}>GM</span>
+                </div>
+                <p className="text-[0.8rem] text-[var(--text3)] mb-3">Controls where the GM shot appears in ZIP exports and when GM images are pushed to an existing Shopify product listing — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes the GM the hero shot, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after the on-model images.</p>
                 <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
                   {(['first', 'last'] as const).map((pos) => (
                     <button key={pos} type="button" onClick={() => onFormChange({ gm_position: pos })} className={`px-4 py-[5px] rounded-sm text-[0.85rem] font-medium transition-all ${form.gm_position === pos ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`}>
@@ -640,8 +647,11 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                 </div>
               </div>
 
-              <div className="mt-4">
-                <p className="text-[0.85rem] text-[var(--text2)] mb-1">Still Life Angle Sequences</p>
+              <div className="mt-2 pt-5 border-t border-[var(--line)]">
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="text-[0.95rem] font-semibold text-[var(--text)] tracking-[-0.2px]">Still Life</h4>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(74,158,255,0.08)', color: '#4a9eff', border: '1px solid rgba(74,158,255,0.2)' }}>Accessories</span>
+                </div>
                 <p className="text-[0.8rem] text-[var(--text3)] mb-3">Override the default angle order per accessory category. Leave blank to use category defaults.</p>
                 <div className="flex flex-col gap-4">
                   {STILL_LIFE_GROUPS.map((group) => {
