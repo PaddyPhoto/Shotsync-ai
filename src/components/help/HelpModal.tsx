@@ -117,6 +117,10 @@ const SECTIONS: Section[] = [
         a: 'ShotSync checks whether a product with that SKU already exists in your Shopify store before creating anything. If it finds a match, the new images are appended to the existing listing — no duplicate product is created. This means you can process your on-model and ghost mannequin shoots as separate jobs, push each to Shopify, and the GM images land directly on the existing on-model product listing.',
       },
       {
+        q: 'Where do GM images appear on an existing Shopify product when pushed?',
+        a: 'That\'s controlled by the Ghost Mannequin Position setting in Brand Settings. Set to Image 1 (Hero) and ShotSync will place the GM images at the front of the listing, making them the hero shots — your on-model images shift back. Set to Last Image and the GM images are appended after the existing on-model images. The same setting also controls where the GM shot appears in ZIP exports.',
+      },
+      {
         q: 'What is THE ICONIC integration for?',
         a: 'THE ICONIC is a premium Australian fashion marketplace. Add your User ID and API Key in Brand Settings → Platforms to export product listings directly in THE ICONIC\'s required format, including correct image sequencing and metadata fields.',
       },

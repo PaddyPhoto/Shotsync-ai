@@ -630,7 +630,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
               <div className="mt-4">
                 <p className="text-[0.85rem] text-[var(--text2)] mb-1">Ghost Mannequin Position</p>
-                <p className="text-[0.8rem] text-[var(--text3)] mb-2">Where the GM shot appears in the exported image sequence</p>
+                <p className="text-[0.8rem] text-[var(--text3)] mb-2">Controls where the GM shot appears in ZIP exports and when GM images are pushed to an existing Shopify product listing — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes the GM the hero shot, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after the on-model images.</p>
                 <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
                   {(['first', 'last'] as const).map((pos) => (
                     <button key={pos} type="button" onClick={() => onFormChange({ gm_position: pos })} className={`px-4 py-[5px] rounded-sm text-[0.85rem] font-medium transition-all ${form.gm_position === pos ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`}>
