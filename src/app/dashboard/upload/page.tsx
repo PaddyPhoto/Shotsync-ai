@@ -756,22 +756,28 @@ export default function UploadPage() {
           setProgress({ phase: 'Detecting angles…', done: i + 1, total: allImages.length })
         }
 
-        // Send in batches of 30 to stay under Vercel's 4.5MB request limit
-        const CLIENT_BATCH = 30
+        // Split into chunks of 50, send 3 in parallel — stays under Vercel's 4.5MB limit
+        // and cuts total time vs sequential batching
+        const CLIENT_BATCH = 50
+        const PARALLEL = 3
+        const chunks: typeof payloads[] = []
+        for (let b = 0; b < payloads.length; b += CLIENT_BATCH) chunks.push(payloads.slice(b, b + CLIENT_BATCH))
         const allResults: { imageId: string; viewLabel: string; confidence: number; garmentKey: string }[] = []
-        for (let b = 0; b < payloads.length; b += CLIENT_BATCH) {
-          const chunk = payloads.slice(b, b + CLIENT_BATCH)
-          console.log('[detect-angles] sending batch', Math.floor(b / CLIENT_BATCH) + 1, 'of', Math.ceil(payloads.length / CLIENT_BATCH))
-          const res = await fetch('/api/jobs/detect-angles', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authSession.access_token}` },
-            body: JSON.stringify({ images: chunk }),
-          })
-          console.log('[detect-angles] batch status:', res.status)
-          if (res.ok) {
+        for (let g = 0; g < chunks.length; g += PARALLEL) {
+          const group = chunks.slice(g, g + PARALLEL)
+          console.log('[detect-angles] sending group', Math.floor(g / PARALLEL) + 1, 'of', Math.ceil(chunks.length / PARALLEL))
+          const groupResults = await Promise.all(group.map(async (chunk) => {
+            const res = await fetch('/api/jobs/detect-angles', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authSession.access_token}` },
+              body: JSON.stringify({ images: chunk }),
+            })
+            console.log('[detect-angles] batch status:', res.status)
+            if (!res.ok) return []
             const { results } = await res.json() as { results: { imageId: string; viewLabel: string; confidence: number; garmentKey: string }[] }
-            allResults.push(...results)
-          }
+            return results
+          }))
+          allResults.push(...groupResults.flat())
         }
         if (allResults.length > 0) {
           const labelMap = new Map(allResults.map((r) => [r.imageId, r]))
@@ -786,11 +792,11 @@ export default function UploadPage() {
             }
           }
 
-          // Re-cluster by garment key: split mixed clusters, then merge adjacent same-garment clusters.
-          // Normalise to first 2 words ("beige knit sweater" → "beige knit") so minor wording
-          // differences across angles of the same garment don't create false splits.
+          // Re-cluster by garment color: split mixed clusters, then merge small overflow clusters
+          // back with the rest of the same garment. Use only the first word (color) so "navy skirt"
+          // and "navy knit" both normalise to "navy" — same garment, different angle descriptions.
           const normKey = (k: string | undefined) =>
-            k ? k.trim().toLowerCase().split(/\s+/).slice(0, 2).join(' ') : null
+            k ? k.trim().toLowerCase().split(/\s+/)[0] : null
 
           // Step 1 — split each cluster wherever the garment key changes
           const splitClusters: import('@/store/session').SessionCluster[] = []
@@ -818,7 +824,9 @@ export default function UploadPage() {
             const k = normKey(cluster.images.find(i => i.garmentKey)?.garmentKey)
             const prev = merged[merged.length - 1]
             const prevK = normKey(prev?.images.find(i => i.garmentKey)?.garmentKey)
-            if (prev && k && prevK && k === prevK) {
+            // Only merge into prev if prev is a small overflow cluster (< imagesPerLook).
+            // This prevents two full same-color garment clusters from collapsing into one.
+            if (prev && k && prevK && k === prevK && prev.images.length < imagesPerLook) {
               prev.images = [...prev.images, ...cluster.images]
             } else {
               merged.push({ ...cluster })

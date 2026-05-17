@@ -34,9 +34,9 @@ const CLASSIFICATION_PROMPT = `You are classifying a fashion product photograph.
    - back-3/4: diagonal back angle
    - ghost-mannequin: invisible mannequin effect
 
-2. garment — 2-3 words: primary color + garment type (e.g. "black dress", "beige knit", "olive skirt", "navy blazer")
+2. color — ONE word: primary color of the main garment (e.g. "navy", "beige", "black", "olive", "cream", "white")
 
-{"angle":"front","garment":"black dress"}`
+{"angle":"front","color":"navy"}`
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser(req)
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
             const parsed = JSON.parse(raw)
             const a = typeof parsed.angle === 'string' ? parsed.angle.trim().toLowerCase() : ''
             angle = VALID_LABELS.has(a) ? a : 'front'
-            garmentKey = typeof parsed.garment === 'string' ? parsed.garment.trim().toLowerCase() : ''
+            garmentKey = typeof parsed.color === 'string' ? parsed.color.trim().toLowerCase().split(/\s+/)[0] : ''
           } catch {
             const plain = raw.toLowerCase()
             angle = VALID_LABELS.has(plain) ? plain : 'front'
