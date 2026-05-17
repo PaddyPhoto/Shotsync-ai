@@ -5,7 +5,7 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.shotsync.ai'),
   title: {
-    default: 'ShotSync — Fashion Post-Production Automation',
+    default: 'ShotSync — Fashion Post-Production Automation Tool',
     template: '%s | ShotSync',
   },
   description: 'ShotSync automates fashion eCommerce post-production. Sort shoot images by product, rename files by SKU, label shot angles, and export to Shopify, THE ICONIC, Myer, and Cin7 — in minutes, not hours.',
@@ -22,20 +22,20 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://www.shotsync.ai',
     siteName: 'ShotSync',
-    title: 'ShotSync — Fashion Post-Production Automation',
+    title: 'ShotSync — Fashion Post-Production Automation Tool',
     description: 'Sort shoot images by product, rename by SKU, and export to Shopify, THE ICONIC, Myer, and Cin7 — in minutes, not hours.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'ShotSync — Fashion Post-Production Automation',
+        alt: 'ShotSync — Fashion Post-Production Automation Tool',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ShotSync — Fashion Post-Production Automation',
+    title: 'ShotSync — Fashion Post-Production Automation Tool',
     description: 'Sort shoot images by product, rename by SKU, and export to Shopify, THE ICONIC, Myer, and Cin7 — in minutes, not hours.',
     images: ['/og-image.png'],
   },
