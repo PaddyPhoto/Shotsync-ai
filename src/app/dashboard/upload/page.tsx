@@ -756,16 +756,25 @@ export default function UploadPage() {
           setProgress({ phase: 'Detecting angles…', done: i + 1, total: allImages.length })
         }
 
-        console.log('[detect-angles] sending', payloads.length, 'payloads to API')
-        const res = await fetch('/api/jobs/detect-angles', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authSession.access_token}` },
-          body: JSON.stringify({ images: payloads }),
-        })
-        console.log('[detect-angles] API response status:', res.status)
-        if (res.ok) {
-          const { results } = await res.json() as { results: { imageId: string; viewLabel: string; confidence: number; garmentKey: string }[] }
-          const labelMap = new Map(results.map((r) => [r.imageId, r]))
+        // Send in batches of 30 to stay under Vercel's 4.5MB request limit
+        const CLIENT_BATCH = 30
+        const allResults: { imageId: string; viewLabel: string; confidence: number; garmentKey: string }[] = []
+        for (let b = 0; b < payloads.length; b += CLIENT_BATCH) {
+          const chunk = payloads.slice(b, b + CLIENT_BATCH)
+          console.log('[detect-angles] sending batch', Math.floor(b / CLIENT_BATCH) + 1, 'of', Math.ceil(payloads.length / CLIENT_BATCH))
+          const res = await fetch('/api/jobs/detect-angles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authSession.access_token}` },
+            body: JSON.stringify({ images: chunk }),
+          })
+          console.log('[detect-angles] batch status:', res.status)
+          if (res.ok) {
+            const { results } = await res.json() as { results: { imageId: string; viewLabel: string; confidence: number; garmentKey: string }[] }
+            allResults.push(...results)
+          }
+        }
+        if (allResults.length > 0) {
+          const labelMap = new Map(allResults.map((r) => [r.imageId, r]))
           for (const cluster of clusters) {
             for (const img of cluster.images) {
               const hit = labelMap.get(img.id)
