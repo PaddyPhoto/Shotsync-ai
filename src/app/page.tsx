@@ -227,7 +227,7 @@ export default function LandingPage() {
               { value: '3',        label: 'ANZ marketplaces',       color: '#1d1d1f' },
             ].map(({ value, label, color }, i) => (
               <div key={i} className="hero-stat-cell" style={{ padding: '24px 36px', textAlign: 'center', borderRight: '0.5px solid rgba(0,0,0,0.08)', flex: 1 }}>
-                <div style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-1px', color, marginBottom: '4px', lineHeight: 1 }}>{value}</div>
+                <div style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-1px', color, marginBottom: '4px', lineHeight: 1, whiteSpace: 'nowrap' }}>{value}</div>
                 <div style={{ fontSize: '13px', color: '#4a4a4f', letterSpacing: '-.1px' }}>{label}</div>
               </div>
             ))}
