@@ -630,6 +630,7 @@ export default function UploadPage() {
         garmentCategory: null,
         isBottomwear: sc.is_bottomwear,
         confirmed: sc.confirmed,
+        incomplete: false,
         exported: false,
         images: items
           .sort((a, b) => a.img.image_order - b.img.image_order)

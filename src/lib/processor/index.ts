@@ -345,6 +345,7 @@ export async function processFiles(
       garmentCategory: null,
       isBottomwear: false,
       confirmed: false,
+      incomplete: false,
       exported: false,
     })
   }

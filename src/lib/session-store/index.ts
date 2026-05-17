@@ -64,6 +64,7 @@ interface StoredCluster {
   garmentCategory?: string | null
   isBottomwear?: boolean
   confirmed: boolean
+  incomplete?: boolean
   exported: boolean
   copyDescription?: string
   copyBullets?: string[]
@@ -241,6 +242,7 @@ export async function saveSession(
       garmentCategory: cluster.garmentCategory ?? null,
       isBottomwear: cluster.isBottomwear ?? false,
       confirmed: cluster.confirmed,
+      incomplete: cluster.incomplete ?? false,
       exported: cluster.exported ?? false,
       copyDescription: cluster.copyDescription ?? '',
       copyBullets: cluster.copyBullets ?? [],
@@ -316,6 +318,7 @@ export async function loadSession(jobId: string): Promise<{
     garmentCategory: sc.garmentCategory ?? null,
     isBottomwear: sc.isBottomwear ?? false,
     confirmed: sc.confirmed,
+    incomplete: sc.incomplete ?? false,
     exported: sc.exported ?? false,
     copyDescription: sc.copyDescription ?? '',
     copyBullets: sc.copyBullets ?? [],

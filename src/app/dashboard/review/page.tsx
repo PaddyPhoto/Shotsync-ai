@@ -83,7 +83,7 @@ function ReviewPage() {
     setSession, setStyleList,
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber, setClusterCopyText,
-    setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, unconfirmCluster, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
+    setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, unconfirmCluster, setClusterIncomplete, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
   } = useSession()
 
   // Resolves the AccessoryCategory config for a cluster.
@@ -537,6 +537,8 @@ function ReviewPage() {
   }, [])
 
   const confirmedCount = clusters.filter((c) => c.confirmed).length
+  const incompleteCount = clusters.filter((c) => c.incomplete).length
+  const confirmableClusters = clusters.filter((c) => !c.incomplete)
 
   // ── SKU input ──────────────────────────────────────────────────────────────
   const applyStyleEntry = (clusterId: string, entry: StyleListEntry) => {
@@ -732,22 +734,27 @@ function ReviewPage() {
           <div className="flex items-center gap-2">
             <span className="text-[0.85rem] text-[var(--text3)] flex items-center gap-1">
               {confirmedCount}/{clusters.length} confirmed
+              {incompleteCount > 0 && (
+                <span className="text-[0.79rem] font-medium ml-1" style={{ color: '#ff9f0a' }}>
+                  · {incompleteCount} incomplete
+                </span>
+              )}
               <HelpTooltip
                 position="bottom"
-                width={230}
+                width={250}
                 content={
                   <span>
-                    Only <strong>confirmed</strong> clusters are included in the export. Enter the SKU and verify the angles, then click <strong>Confirm</strong> on each cluster — or use <strong>Confirm all</strong> to confirm everything at once.
+                    Only <strong>confirmed</strong> clusters are included in the export. Enter the SKU and verify the angles, then click <strong>Confirm</strong> on each cluster — or use <strong>Confirm all</strong> to confirm everything at once. Clusters marked <strong>Incomplete</strong> are skipped by Confirm all.
                   </span>
                 }
               />
             </span>
             <button
               onClick={() => {
-                const confirming = confirmedCount < clusters.length
+                const confirming = confirmedCount < confirmableClusters.length
                 if (confirming) {
                   // Flush any typed-but-unsaved SKUs from local input state to the store
-                  clusters.forEach((c) => {
+                  confirmableClusters.forEach((c) => {
                     const typed = skuInput[c.id]?.trim().toUpperCase()
                     if (typed) updateClusterSku(c.id, typed)
                   })
@@ -755,9 +762,13 @@ function ReviewPage() {
                 setAllConfirmed(confirming)
               }}
               className="btn btn-ghost btn-sm"
-              title={confirmedCount < clusters.length ? 'Confirm all' : 'Unconfirm all'}
+              title={
+                confirmedCount < confirmableClusters.length
+                  ? incompleteCount > 0 ? `Confirm all (skips ${incompleteCount} incomplete)` : 'Confirm all'
+                  : 'Unconfirm all'
+              }
             >
-              {confirmedCount < clusters.length ? (
+              {confirmedCount < confirmableClusters.length ? (
                 <>
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="2 6 5 9 10 3"/>
@@ -893,7 +904,9 @@ function ReviewPage() {
                   data-tour={clusterIdx === 0 ? 'cluster-card' : undefined}
                   style={{ background: '#3a3a3a' }}
                   className={`rounded-md border transition-all duration-150 overflow-hidden ${
-                    cluster.confirmed
+                    cluster.incomplete
+                      ? 'border-[#ff9f0a] opacity-70'
+                      : cluster.confirmed
                       ? 'border-[var(--accent2)]'
                       : isDropTarget
                       ? 'border-[var(--accent)] shadow-[0_0_0_2px_rgba(232,217,122,0.2)]'
@@ -1160,7 +1173,18 @@ function ReviewPage() {
                     >
                       {cluster.isBottomwear ? 'Bottoms' : 'Tops'}
                     </button>
-                    {cluster.confirmed ? (
+                    {cluster.incomplete ? (
+                      <button
+                        onClick={() => setClusterIncomplete(cluster.id, false)}
+                        title="Marked incomplete — click to unmark"
+                        className="group flex items-center gap-1 flex-shrink-0 text-[0.79rem] font-semibold px-[8px] py-[3px] rounded-[5px] border transition-colors"
+                        style={{ color: '#ff9f0a', borderColor: 'rgba(255,159,10,0.35)', background: 'rgba(255,159,10,0.08)' }}
+                      >
+                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 1v5M6 8.5h.01"/></svg>
+                        <span className="group-hover:hidden">Incomplete</span>
+                        <span className="hidden group-hover:inline">Unmark</span>
+                      </button>
+                    ) : cluster.confirmed ? (
                       <button
                         onClick={() => unconfirmCluster(cluster.id)}
                         title="Click to unconfirm"
@@ -1172,12 +1196,22 @@ function ReviewPage() {
                         <span className="hidden group-hover:inline">Unconfirm</span>
                       </button>
                     ) : (
-                      <button
-                        onClick={() => handleConfirm(cluster.id)}
-                        className="btn btn-primary btn-sm flex-shrink-0"
-                      >
-                        Confirm
-                      </button>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => setClusterIncomplete(cluster.id, true)}
+                          title="Mark as incomplete — skips this cluster when confirming all"
+                          className="btn btn-ghost btn-sm text-[0.75rem]"
+                          style={{ color: 'var(--text3)' }}
+                        >
+                          Incomplete
+                        </button>
+                        <button
+                          onClick={() => handleConfirm(cluster.id)}
+                          className="btn btn-primary btn-sm"
+                        >
+                          Confirm
+                        </button>
+                      </div>
                     )}
                   </div>
 

@@ -24,6 +24,7 @@ export interface SessionCluster {
   garmentCategory: string | null // clothing category e.g. 'Mens Suits' — drives marketplace category overrides
   isBottomwear: boolean          // true for pants, skirts, etc. — affects {VIEW_NUM} numbering
   confirmed: boolean
+  incomplete: boolean
   exported: boolean
   copyDescription?: string
   copyBullets?: string[]
@@ -80,6 +81,7 @@ interface SessionState {
   setImageViewLabel: (imageId: string, clusterId: string, label: ViewLabel) => void
   confirmCluster: (clusterId: string) => void
   unconfirmCluster: (clusterId: string) => void
+  setClusterIncomplete: (clusterId: string, incomplete: boolean) => void
   setAllConfirmed: (confirmed: boolean) => void
   markClustersExported: (ids: string[]) => void
   deleteCluster: (clusterId: string) => void
@@ -212,6 +214,7 @@ export const useSession = create<SessionState>((set, get) => ({
       garmentCategory: from.garmentCategory,
       isBottomwear: from.isBottomwear,
       confirmed: false,
+      incomplete: false,
       exported: false,
     }
     const clusters = state.clusters.map((c) =>
@@ -290,8 +293,14 @@ export const useSession = create<SessionState>((set, get) => ({
     ),
   })),
 
+  setClusterIncomplete: (clusterId, incomplete) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId ? { ...c, incomplete, confirmed: incomplete ? false : c.confirmed } : c
+    ),
+  })),
+
   setAllConfirmed: (confirmed) => set((state) => ({
-    clusters: state.clusters.map((c) => ({ ...c, confirmed })),
+    clusters: state.clusters.map((c) => c.incomplete ? c : { ...c, confirmed }),
   })),
 
   markClustersExported: (ids) => set((state) => {
@@ -400,19 +409,20 @@ export const useSession = create<SessionState>((set, get) => ({
       ...cluster,
       images: relabel(keepImages),
       confirmed: false,
+      incomplete: false,
     }
 
     // Build new clusters for reflowed chunks, reusing existing cluster metadata where available
     const reflowedClusters: SessionCluster[] = chunks.map((chunk, i) => {
       const existing = state.clusters[clusterIdx + 1 + i]
       return existing
-        ? { ...existing, images: relabel(chunk), confirmed: false }
+        ? { ...existing, images: relabel(chunk), confirmed: false, incomplete: false }
         : {
             id: `cluster-reflow-${Date.now()}-${i}`,
             images: relabel(chunk),
             sku: '', productName: '', color: '', colourCode: '', styleNumber: '',
             label: `Look ${_nextClusterNum++}`,
-            category: null, garmentCategory: null, isBottomwear: false, confirmed: false, exported: false,
+            category: null, garmentCategory: null, isBottomwear: false, confirmed: false, incomplete: false, exported: false,
           }
     })
 
