@@ -42,32 +42,6 @@ const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = 
   'back-3/4':    { bg: 'rgba(0,122,255,0.09)',   color: '#4da3ff', dot: '#4da3ff' },
 }
 
-// Generates a 120px thumbnail blob URL for the upload preview grid.
-// Caps the longer dimension at 120px, preserving aspect ratio.
-// The full-size object URL is created briefly for the Image load, then immediately revoked.
-async function generateThumb(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const src = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(src)
-      const maxPx = 120
-      const scale = Math.min(1, maxPx / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
-      const w = Math.round((img.naturalWidth || maxPx) * scale)
-      const h = Math.round((img.naturalHeight || maxPx) * scale)
-      const canvas = document.createElement('canvas')
-      canvas.width = w
-      canvas.height = h
-      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
-      canvas.toBlob((blob) => {
-        if (blob) resolve(URL.createObjectURL(blob))
-        else reject(new Error('toBlob failed'))
-      }, 'image/jpeg', 0.8)
-    }
-    img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('load failed')) }
-    img.src = src
-  })
-}
 
 export default function UploadPage() {
   const router = useRouter()
@@ -586,27 +560,19 @@ export default function UploadPage() {
     if (!accepted.length) return
 
     // Filter out duplicates using the preview URL map (always current — no stale closure)
-    const toQueue = accepted.filter((f) => !filePreviewUrls.current.has(f.name + f.size))
+    const toAdd = accepted.filter((f) => !filePreviewUrls.current.has(f.name + f.size))
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => f.name + f.size))
       return [...prev, ...accepted.filter((f) => !existing.has(f.name + f.size))]
     })
 
-    // Generate 120px thumbnails 3 at a time — decoding all 40+ large files at once
-    // causes memory spikes and browser freezes; serialising the decode avoids this.
-    let active = 0
-    let i = 0
-    const runNext = () => {
-      while (active < 3 && i < toQueue.length) {
-        const file = toQueue[i++]
-        active++
-        generateThumb(file)
-          .then((url) => { filePreviewUrls.current.set(file.name + file.size, url); setThumbVersion((v) => v + 1) })
-          .catch(() => {})
-          .finally(() => { active--; runNext() })
-      }
+    // Object URLs are instant — the browser decodes lazily at display size via CSS.
+    // Canvas thumbnail generation was decoding full 5MB JPEGs on the main thread,
+    // causing seconds of delay for large batches.
+    for (const file of toAdd) {
+      filePreviewUrls.current.set(file.name + file.size, URL.createObjectURL(file))
     }
-    runNext()
+    setThumbVersion((v) => v + 1)
 
     setTimeout(() => imageGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -1108,7 +1074,7 @@ export default function UploadPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(52px, 1fr))', gap: '3px' }}>
                       {files.slice(0, 80).map((f, i) => (
                         <div key={i} style={{ aspectRatio: '1', borderRadius: '3px', overflow: 'hidden', background: 'var(--bg4)' }}>
-                          <img src={filePreviewUrls.current.get(f.name + f.size) ?? ''} alt={f.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          <img src={filePreviewUrls.current.get(f.name + f.size) ?? ''} alt={f.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         </div>
                       ))}
                       {files.length > 80 && (
