@@ -1,44 +1,5 @@
-/**
- * Step 2: Generate image embeddings using OpenAI Vision API
- * Falls back to mock embeddings when API key is not set.
- */
-
 export async function generateEmbedding(imageUrl: string): Promise<number[]> {
-  if (!process.env.OPENAI_API_KEY) {
-    return generateMockEmbedding(imageUrl)
-  }
-
-  // Use OpenAI's text-embedding-3-small with an image description
-  // For production, use a proper vision embedding model or CLIP
-  const OpenAI = (await import('openai')).default
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
-  // Describe the image first, then embed the description
-  const vision = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'image_url', image_url: { url: imageUrl, detail: 'low' } },
-          {
-            type: 'text',
-            text: 'Describe this fashion product image in detail: garment type, colour, style, visible details. Be specific and consistent.',
-          },
-        ],
-      },
-    ],
-    max_tokens: 200,
-  })
-
-  const description = vision.choices[0]?.message?.content ?? ''
-
-  const embedding = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
-    input: description,
-  })
-
-  return embedding.data[0].embedding
+  return generateMockEmbedding(imageUrl)
 }
 
 /**

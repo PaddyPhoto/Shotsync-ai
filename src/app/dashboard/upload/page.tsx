@@ -728,10 +728,10 @@ export default function UploadPage() {
       ? angleSequence
       : (brandStillLifeSeq?.length ? brandStillLifeSeq : undefined)
 
-    const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
+    let clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
 
     // AI angle detection — replaces positional labels with vision-classified angles.
-    // Uses GPT-4o-mini at detail:low (~$0.000046/image). Falls back to positional on any error.
+    // Uses Claude Haiku 4.5 vision. Falls back silently to positional labels on any error.
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const { data: { session: authSession } } = await createClient().auth.getSession()
@@ -760,7 +760,7 @@ export default function UploadPage() {
           body: JSON.stringify({ images: payloads }),
         })
         if (res.ok) {
-          const { results } = await res.json() as { results: { imageId: string; viewLabel: string; confidence: number }[] }
+          const { results } = await res.json() as { results: { imageId: string; viewLabel: string; confidence: number; garmentKey: string }[] }
           const labelMap = new Map(results.map((r) => [r.imageId, r]))
           for (const cluster of clusters) {
             for (const img of cluster.images) {
@@ -768,9 +768,40 @@ export default function UploadPage() {
               if (hit && hit.confidence > 0) {
                 img.viewLabel = hit.viewLabel as ViewLabel
                 img.viewConfidence = hit.confidence
+                img.garmentKey = hit.garmentKey
               }
             }
           }
+
+          // Re-cluster: split any cluster where AI detected different garments
+          const reclustered: import('@/store/session').SessionCluster[] = []
+          let lookNum = 0
+          const isProduct = shootType === 'still-life'
+          for (const cluster of clusters) {
+            const bySeq = [...cluster.images].sort((a, b) => a.seqIndex - b.seqIndex)
+            const runs: (typeof bySeq)[] = []
+            let run: typeof bySeq = []
+            let runKey: string | null = null
+            for (const img of bySeq) {
+              const k = img.garmentKey?.trim().toLowerCase() || null
+              if (run.length > 0 && k && runKey && k !== runKey) {
+                runs.push(run); run = []; runKey = null
+              }
+              run.push(img)
+              if (runKey === null && k) runKey = k
+            }
+            if (run.length > 0) runs.push(run)
+            for (const imgs of runs) {
+              lookNum++
+              reclustered.push({
+                ...cluster,
+                id: `cluster-${lookNum}`,
+                label: isProduct ? `Product ${lookNum}` : `Look ${lookNum}`,
+                images: imgs,
+              })
+            }
+          }
+          clusters = reclustered
         }
       }
     } catch { /* non-critical — positional labels remain */ }

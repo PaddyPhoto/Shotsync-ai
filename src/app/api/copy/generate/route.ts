@@ -1,11 +1,12 @@
 /**
  * POST /api/copy/generate
  *
- * Generates AI product listing copy for a confirmed cluster.
- * Sends the hero image to GPT-4o vision so it can identify the garment,
- * then writes title, description, and bullet points from what it sees.
+ * Generates AI product listing copy for a confirmed cluster using Claude Sonnet 4.6.
+ * Optionally accepts a hero image (base64 JPEG) for vision-assisted copy.
  *
- * Body: { sku, productName, color, brandName, angles, heroImage?: string (base64 JPEG) }
+ * Body: { sku, productName, color, brandName, angles, heroImage?, composition, care,
+ *         fit, length, rrp, season, occasion, gender, category, subCategory, origin,
+ *         sizeRange, voiceBrief, copyExamples }
  * Response: { title, description, bullets }
  */
 
@@ -17,14 +18,12 @@ import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rateLimit'
 export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
-  // 20 AI copy requests per minute per IP
   if (!rateLimit(getClientIp(req), 20, 60_000)) return rateLimitResponse()
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: 'AI copywriting not configured' }, { status: 503 })
   }
 
-  // Enforce aiCopy plan gate
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co') {
     try {
       const { createClient } = await import('@/lib/supabase/server')
@@ -35,23 +34,28 @@ export async function POST(req: NextRequest) {
         const planId = (orgData?.plan ?? 'free') as PlanId
         if (!PLANS[planId].limits.aiCopy) {
           return NextResponse.json({
-            error: `AI copywriting is available on the Brand plan and above. Upgrade to unlock this feature.`
+            error: 'AI copywriting is available on the Brand plan and above. Upgrade to unlock this feature.'
           }, { status: 403 })
         }
       }
     } catch {}
   }
 
-  const { sku, productName, color, brandName, angles, heroImage, composition, care, fit, length, rrp, season, occasion, gender, category, subCategory, origin, sizeRange, voiceBrief, copyExamples } = await req.json()
+  const {
+    sku, productName, color, brandName, angles, heroImage,
+    composition, care, fit, length, rrp, season, occasion, gender,
+    category, subCategory, origin, sizeRange, voiceBrief, copyExamples,
+  } = await req.json()
 
-  const OpenAI = (await import('openai')).default
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  const Anthropic = (await import('@anthropic-ai/sdk')).default
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
   const angleList = Array.isArray(angles) ? angles.join(', ') : 'front, back'
   const brand = brandName || ''
-
   const voiceBriefTrimmed = typeof voiceBrief === 'string' ? voiceBrief.trim() : ''
-  const examplesList: string[] = Array.isArray(copyExamples) ? copyExamples.filter((e: unknown) => typeof e === 'string' && (e as string).trim()) : []
+  const examplesList: string[] = Array.isArray(copyExamples)
+    ? copyExamples.filter((e: unknown) => typeof e === 'string' && (e as string).trim())
+    : []
 
   const systemPrompt = `You are a fashion eCommerce copywriter for premium Australian fashion brands.
 You write precise, editorial, confident product descriptions modelled on the style of top ANZ retailers.
@@ -103,7 +107,7 @@ ${factualNote ? `These are factual spec sheet values — use them verbatim, neve
 
 Write exactly 4–5 sentences following the structure in your instructions. Do not start the description with "Elevate", "Upgrade", "Discover", or any generic phrase — open with the product name in a specific, seasonal or occasion-driven sentence.
 
-Return ONLY valid JSON:
+Return ONLY valid JSON with no markdown or code fences:
 {
   "title": "Concise product title max 80 chars — lead with garment type and key detail, no generic adjectives",
   "description": "4–5 sentences. Follow the structure: specific opener with product name → fabric/material → design features → functional details → concrete styling close. No generic filler. No 'business to casual' endings.",
@@ -117,32 +121,24 @@ Return ONLY valid JSON:
 }`
 
   try {
-    const messages: Parameters<typeof openai.chat.completions.create>[0]['messages'] = [
-      { role: 'system', content: systemPrompt },
-      {
-        role: 'user',
-        content: heroImage
-          ? [
-              {
-                type: 'image_url' as const,
-                image_url: { url: `data:image/jpeg;base64,${heroImage}`, detail: 'low' as const },
-              },
-              { type: 'text' as const, text: userText },
-            ]
-          : userText,
-      },
-    ]
+    const content = heroImage
+      ? [
+          { type: 'image' as const, source: { type: 'base64' as const, media_type: 'image/jpeg' as const, data: heroImage as string } },
+          { type: 'text' as const, text: userText },
+        ]
+      : userText
 
-    const response = await openai.chat.completions.create({
-      model: heroImage ? 'gpt-4o' : 'gpt-4o-mini',
-      messages,
-      response_format: { type: 'json_object' },
-      temperature: 0.65,
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
       max_tokens: 700,
+      system: systemPrompt,
+      messages: [{ role: 'user', content }],
     })
 
-    const content = response.choices[0].message.content ?? '{}'
-    const parsed = JSON.parse(content)
+    const raw = response.content[0]?.type === 'text' ? response.content[0].text : '{}'
+    // Strip any accidental markdown fences Claude might add
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+    const parsed = JSON.parse(cleaned)
 
     return NextResponse.json({
       title: parsed.title ?? '',

@@ -9,6 +9,7 @@ export interface SessionImage {
   seqIndex: number
   viewLabel: ViewLabel
   viewConfidence: number
+  garmentKey?: string  // AI-assigned garment descriptor, used for cluster boundary detection
 }
 
 export interface SessionCluster {
