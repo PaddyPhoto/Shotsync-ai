@@ -2,8 +2,9 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'FAQ — ShotSync.ai',
-  description: 'Frequently asked questions about ShotSync — image privacy, marketplace support, Shopify integration and more.',
+  title: 'FAQ',
+  description: 'Frequently asked questions about ShotSync — how image grouping works, which marketplaces are supported, Shopify integration, privacy, and pricing.',
+  alternates: { canonical: 'https://www.shotsync.ai/faq' },
 }
 
 const FAQS = [
