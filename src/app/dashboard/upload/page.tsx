@@ -731,12 +731,14 @@ export default function UploadPage() {
     let clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
 
     // AI angle detection — replaces positional labels with vision-classified angles.
-    // Uses Claude Haiku 4.5 vision. Falls back silently to positional labels on any error.
+    // Uses Claude Haiku 4.5 vision. Falls back to positional labels on any error.
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const { data: { session: authSession } } = await createClient().auth.getSession()
+      console.log('[detect-angles] auth session:', authSession ? 'ok' : 'missing')
       if (authSession?.access_token) {
         const allImages = clusters.flatMap((c) => c.images)
+        console.log('[detect-angles] processing', allImages.length, 'images')
         setProgress({ phase: 'Detecting angles…', done: 0, total: allImages.length })
 
         // Convert thumbnail blob URLs to base64 in small chunks
@@ -754,11 +756,13 @@ export default function UploadPage() {
           setProgress({ phase: 'Detecting angles…', done: i + 1, total: allImages.length })
         }
 
+        console.log('[detect-angles] sending', payloads.length, 'payloads to API')
         const res = await fetch('/api/jobs/detect-angles', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authSession.access_token}` },
           body: JSON.stringify({ images: payloads }),
         })
+        console.log('[detect-angles] API response status:', res.status)
         if (res.ok) {
           const { results } = await res.json() as { results: { imageId: string; viewLabel: string; confidence: number; garmentKey: string }[] }
           const labelMap = new Map(results.map((r) => [r.imageId, r]))
@@ -821,7 +825,7 @@ export default function UploadPage() {
           }))
         }
       }
-    } catch { /* non-critical — positional labels remain */ }
+    } catch (err) { console.error('[detect-angles] failed:', err) }
 
     // Record image usage server-side (fire and forget — non-blocking)
     import('@/lib/supabase/client').then(({ createClient }) =>
