@@ -773,17 +773,21 @@ export default function UploadPage() {
             }
           }
 
-          // Re-cluster: split any cluster where AI detected different garments
-          const reclustered: import('@/store/session').SessionCluster[] = []
-          let lookNum = 0
-          const isProduct = shootType === 'still-life'
+          // Re-cluster by garment key: split mixed clusters, then merge adjacent same-garment clusters.
+          // Normalise to first 2 words ("beige knit sweater" → "beige knit") so minor wording
+          // differences across angles of the same garment don't create false splits.
+          const normKey = (k: string | undefined) =>
+            k ? k.trim().toLowerCase().split(/\s+/).slice(0, 2).join(' ') : null
+
+          // Step 1 — split each cluster wherever the garment key changes
+          const splitClusters: import('@/store/session').SessionCluster[] = []
           for (const cluster of clusters) {
             const bySeq = [...cluster.images].sort((a, b) => a.seqIndex - b.seqIndex)
             const runs: (typeof bySeq)[] = []
             let run: typeof bySeq = []
             let runKey: string | null = null
             for (const img of bySeq) {
-              const k = img.garmentKey?.trim().toLowerCase() || null
+              const k = normKey(img.garmentKey)
               if (run.length > 0 && k && runKey && k !== runKey) {
                 runs.push(run); run = []; runKey = null
               }
@@ -791,17 +795,30 @@ export default function UploadPage() {
               if (runKey === null && k) runKey = k
             }
             if (run.length > 0) runs.push(run)
-            for (const imgs of runs) {
-              lookNum++
-              reclustered.push({
-                ...cluster,
-                id: `cluster-${lookNum}`,
-                label: isProduct ? `Product ${lookNum}` : `Look ${lookNum}`,
-                images: imgs,
-              })
+            for (const imgs of runs) splitClusters.push({ ...cluster, images: imgs })
+          }
+
+          // Step 2 — merge consecutive clusters that share the same garment key
+          // (fixes the cascade: garment A had 4 shots → overflow B images merge back with the rest of B)
+          const merged: import('@/store/session').SessionCluster[] = []
+          for (const cluster of splitClusters) {
+            const k = normKey(cluster.images.find(i => i.garmentKey)?.garmentKey)
+            const prev = merged[merged.length - 1]
+            const prevK = normKey(prev?.images.find(i => i.garmentKey)?.garmentKey)
+            if (prev && k && prevK && k === prevK) {
+              prev.images = [...prev.images, ...cluster.images]
+            } else {
+              merged.push({ ...cluster })
             }
           }
-          clusters = reclustered
+
+          // Step 3 — renumber
+          const isProduct = shootType === 'still-life'
+          clusters = merged.map((c, i) => ({
+            ...c,
+            id: `cluster-${i + 1}`,
+            label: isProduct ? `Product ${i + 1}` : `Look ${i + 1}`,
+          }))
         }
       }
     } catch { /* non-critical — positional labels remain */ }
