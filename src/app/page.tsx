@@ -107,7 +107,7 @@ export default function LandingPage() {
         .eyebrow-dot  { animation: eyebrowPulse 2s infinite; }
         .nav-link { font-size:13px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
         .nav-link:hover { color:#1d1d1f; }
-        .footer-link { font-size:13px;color:#aeaeb2;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
+        .footer-link { font-size:14px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
         .footer-link:hover { color:#1d1d1f; }
         .price-cta-btn { display:block;text-align:center;margin-top:24px;padding:10px;border-radius:8px;font-size:13px;font-weight:500;letter-spacing:-.2px;text-decoration:none;transition:opacity .15s;background:rgba(0,0,0,0.06);color:#1d1d1f; }
         .price-cta-btn:hover { opacity:.8; }
@@ -733,13 +733,13 @@ export default function LandingPage() {
         </section>
 
         {/* ── FOOTER ── */}
-        <footer className="section-pad" style={{ padding: '40px', borderTop: '0.5px solid rgba(0,0,0,0.08)', position: 'relative' }}>
-          <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1200px', margin: '0 auto' }}>
+        <footer className="section-pad" style={{ padding: 'clamp(36px,4vw,60px) 40px', borderTop: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', position: 'relative' }}>
+          <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1440px', margin: '0 auto' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-              <img src="/icon.png" alt="ShotSync" style={{ width: '24px', height: '24px', borderRadius: '6px' }} />
-              <span style={{ fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', color: '#1d1d1f', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
+              <img src="/icon.png" alt="ShotSync" style={{ width: '28px', height: '28px', borderRadius: '7px' }} />
+              <span style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '-.3px', color: '#1d1d1f', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#6e6e73' }}>Sync</span></span>
             </Link>
-            <div className="footer-links" style={{ display: 'flex', gap: '24px' }}>
+            <div className="footer-links" style={{ display: 'flex', gap: 'clamp(20px,2.5vw,36px)' }}>
               {[
                 { label: 'How it works', href: '#how-it-works' },
                 { label: 'Features',     href: '#features' },
@@ -751,7 +751,7 @@ export default function LandingPage() {
                 <a key={label} href={href} className="footer-link">{label}</a>
               ))}
             </div>
-            <p style={{ fontSize: '13px', color: '#aeaeb2' }}>© 2026 ShotSync.ai</p>
+            <p style={{ fontSize: '14px', color: '#6e6e73', letterSpacing: '-.1px' }}>© 2026 ShotSync.ai</p>
           </div>
         </footer>
 
