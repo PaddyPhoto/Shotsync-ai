@@ -630,14 +630,14 @@ export default function LandingPage() {
               const saving = planKey !== 'free' && annual ? Math.round((1 - p.priceAudAnnual / p.priceAud) * 100) : 0
               const cardBg = featured
                 ? 'linear-gradient(155deg, #0d1a2e 0%, #151e30 40%, #1d1d1f 100%)'
-                : '#fff'
+                : planKey === 'free' ? 'rgba(0,0,0,0.025)' : '#fff'
               return (
                 <div key={planKey} style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column', borderTop: `3px solid ${accent}` }}>
                   <div style={{ padding: 'clamp(24px,2.8vw,40px) clamp(24px,2.5vw,36px)', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div style={{ display: 'inline-block', background: featured ? badgeBg : badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: featured ? badgeColor : badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
+                    <div style={{ display: 'inline-block', background: badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
                     <div style={{ fontSize: 'clamp(16px,1.5vw,20px)', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{p.name}</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
-                      <div style={{ fontSize: 'clamp(32px,3vw,46px)', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : accent === '#aeaeb2' ? '#1d1d1f' : accent, lineHeight: 1 }}>{price}</div>
+                      <div style={{ fontSize: 'clamp(32px,3vw,46px)', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : '#1d1d1f', lineHeight: 1 }}>{price}</div>
                       {saving > 0 && <span style={{ fontSize: '11px', background: 'rgba(48,209,88,0.18)', color: '#1a8a35', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>-{saving}%</span>}
                     </div>
                     <div style={{ fontSize: '13px', color: featured ? 'rgba(255,255,255,0.5)' : '#6e6e73', marginBottom: '24px', letterSpacing: '-.1px' }}>{period}</div>
