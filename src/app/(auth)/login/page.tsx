@@ -292,12 +292,6 @@ if (authError) {
               </Link>
             </div>
 
-            {/* Demo bypass */}
-            <div className="mt-3 pt-3 border-t border-[var(--line)] text-center">
-              <Link href="/dashboard" className="text-[0.82rem] text-[var(--text3)] hover:text-[var(--text2)]">
-                Continue as demo →
-              </Link>
-            </div>
           </div>
         </div>
       </div>
