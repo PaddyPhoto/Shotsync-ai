@@ -618,11 +618,11 @@ export default function LandingPage() {
             }}
           >
             {([
-              { planKey: 'free'   as const, badge: 'Free',         featured: false, accent: '#aeaeb2', badgeBg: 'rgba(0,0,0,0.06)',        badgeColor: '#6e6e73', cta: 'Get started free',  href: '/signup' },
-              { planKey: 'launch' as const, badge: 'Launch',       featured: false, accent: '#007aff', badgeBg: 'rgba(0,122,255,0.10)',    badgeColor: '#0062cc', cta: 'Start with Launch', href: '/signup?plan=launch' },
-              { planKey: 'growth' as const, badge: 'Most popular', featured: true,  accent: '#30d158', badgeBg: 'rgba(48,209,88,0.18)',    badgeColor: '#30d158', cta: 'Start with Growth', href: '/signup?plan=growth' },
-              { planKey: 'scale'  as const, badge: 'Scale',        featured: false, accent: '#ff9f0a', badgeBg: 'rgba(255,159,10,0.12)',   badgeColor: '#b86e00', cta: 'Start with Scale',  href: '/signup?plan=scale' },
-            ]).map(({ planKey, badge, featured, accent, badgeBg, badgeColor, cta, href }) => {
+              { planKey: 'free'   as const, badge: 'Free',         featured: false, badgeBg: 'rgba(255,59,48,0.10)',     badgeColor: '#c9302a', cta: 'Get started free',  href: '/signup' },
+              { planKey: 'launch' as const, badge: 'Launch',       featured: false, badgeBg: 'rgba(0,122,255,0.10)',     badgeColor: '#0062cc', cta: 'Start with Launch', href: '/signup?plan=launch' },
+              { planKey: 'growth' as const, badge: 'Most popular', featured: true,  badgeBg: 'rgba(48,209,88,0.18)',     badgeColor: '#30d158', cta: 'Start with Growth', href: '/signup?plan=growth' },
+              { planKey: 'scale'  as const, badge: 'Scale',        featured: false, badgeBg: 'rgba(255,159,10,0.12)',    badgeColor: '#b86e00', cta: 'Start with Scale',  href: '/signup?plan=scale' },
+            ]).map(({ planKey, badge, featured, badgeBg, badgeColor, cta, href }) => {
               const isLoading = checkoutLoading === planKey
               const p = PLANS[planKey]
               const price = planKey === 'free' ? '$0' : `$${annual ? p.priceAudAnnual : p.priceAud}`
@@ -630,9 +630,9 @@ export default function LandingPage() {
               const saving = planKey !== 'free' && annual ? Math.round((1 - p.priceAudAnnual / p.priceAud) * 100) : 0
               const cardBg = featured
                 ? 'linear-gradient(155deg, #0d1a2e 0%, #151e30 40%, #1d1d1f 100%)'
-                : planKey === 'free' ? 'rgba(0,0,0,0.025)' : '#fff'
+                : '#fff'
               return (
-                <div key={planKey} style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column', borderTop: `3px solid ${accent}` }}>
+                <div key={planKey} style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ padding: 'clamp(24px,2.8vw,40px) clamp(24px,2.5vw,36px)', display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <div style={{ display: 'inline-block', background: badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
                     <div style={{ fontSize: 'clamp(16px,1.5vw,20px)', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{p.name}</div>
@@ -644,8 +644,8 @@ export default function LandingPage() {
                     <div style={{ height: '0.5px', background: featured ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
                     {p.highlights.map((f) => (
                       <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '13px', color: featured ? 'rgba(255,255,255,0.75)' : '#4a4a4f', letterSpacing: '-.1px' }}>
-                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: featured ? `${accent}30` : `${accent}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
-                          <svg viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
+                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: featured ? 'rgba(48,209,88,0.2)' : 'rgba(48,209,88,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
                         </div>
                         {f}
                       </div>
