@@ -3,7 +3,7 @@ import crypto from 'crypto'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
-  const shop = searchParams.get('shop')?.trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '')
+  const shop = searchParams.get('shop')?.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '')
   const brand_id = searchParams.get('brand_id')
 
   if (!shop || !brand_id) {
