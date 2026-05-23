@@ -551,7 +551,9 @@ export default function USLandingPage() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="#6e6e73" strokeWidth="1.8" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <p style={{ fontSize: '13px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px', margin: 0 }}>
-                Already selling into Nordstrom, Macy&apos;s, or Bloomingdale&apos;s through an ERP? ShotSync enriches your product data before it enters your ERP — your ERP handles the retailer connection. Your operations stack stays intact.
+                Brands with an ERP — Cin7 or AIMS360 — use ShotSync to enrich product data before it enters their system. Their ERP then handles distribution to retail partners like Nordstrom and Macy&apos;s.
+                <br /><br />
+                Brands without an ERP use ShotSync to push enriched listings directly to Shopify and marketplace platforms. Your stack, your way.
               </p>
             </div>
 
