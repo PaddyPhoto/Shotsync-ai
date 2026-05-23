@@ -137,7 +137,7 @@ export default function LandingPage() {
           .footer-links { flex-wrap: wrap !important; gap: 12px !important; }
           .nav-bar { padding: 0 20px !important; }
         }
-        @media (max-width: 480px) {
+        @media (max-width: 600px) {
           .hero-stat-cell { flex: 1 1 100% !important; }
           .pricing-grid {
             display: flex !important;
@@ -154,7 +154,7 @@ export default function LandingPage() {
           }
           .pricing-grid::-webkit-scrollbar { display: none !important; }
           .pricing-dots { display: flex !important; }
-          .pricing-grid > div {
+          .pricing-card {
             flex: 0 0 82vw !important;
             scroll-snap-align: center !important;
             border-radius: 16px !important;
@@ -632,7 +632,7 @@ export default function LandingPage() {
                 ? 'linear-gradient(155deg, #0d1a2e 0%, #151e30 40%, #1d1d1f 100%)'
                 : '#fff'
               return (
-                <div key={planKey} style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div key={planKey} className="pricing-card" style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <div style={{ display: 'inline-block', background: badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
                     <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{p.name}</div>
