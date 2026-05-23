@@ -815,12 +815,13 @@ export default function USLandingPage() {
             </Link>
             <div className="footer-links" style={{ display: 'flex', gap: 'clamp(20px,2.5vw,36px)' }}>
               {[
-                { label: 'How it works', href: '#how-it-works' },
-                { label: 'Features',     href: '#features' },
-                { label: 'Pricing',      href: '#pricing' },
-                { label: 'FAQ',          href: '/faq' },
-                { label: 'Contact',      href: 'mailto:hello@shotsync.ai' },
-                { label: 'Privacy',      href: '/privacy' },
+                { label: 'How it works',     href: '#how-it-works' },
+                { label: 'Features',         href: '#features' },
+                { label: 'Pricing',          href: '#pricing' },
+                { label: 'What is ShotSync', href: '/us/what-is-shotsync' },
+                { label: 'FAQ',              href: '/faq' },
+                { label: 'Contact',          href: 'mailto:hello@shotsync.ai' },
+                { label: 'Privacy',          href: '/privacy' },
               ].map(({ label, href }) => (
                 <a key={label} href={href} className="footer-link">{label}</a>
               ))}
