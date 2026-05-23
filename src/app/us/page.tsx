@@ -707,11 +707,9 @@ export default function USLandingPage() {
                 : '#fff'
               return (
                 <div key={key} className="pricing-card" style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                  {featured && (
-                    <div style={{ background: '#1d1d1f', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '8px', textAlign: 'center', fontSize: '11px', fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#fff' }}>
-                      Most Popular
-                    </div>
-                  )}
+                  <div style={{ background: featured ? '#1d1d1f' : 'transparent', borderBottom: featured ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent', padding: '8px', textAlign: 'center', fontSize: '11px', fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#fff' }}>
+                    {featured ? 'Most Popular' : ''}
+                  </div>
                   <div style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <div style={{ display: 'inline-block', background: badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{featured ? 'Growth' : badge}</div>
                     <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{name}</div>
