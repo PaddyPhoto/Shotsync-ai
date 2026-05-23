@@ -204,9 +204,9 @@ export default function USLandingPage() {
             Now available for US fashion brands
           </div>
           <h1 className="hero-h1" style={{ fontSize: 'clamp(32px,3.2vw,64px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '900px', marginBottom: '20px' }}>
-            From photographer delivery to{' '}
+            From images to{' '}
             <span style={{ fontWeight: 700 }}>fully enriched product listings</span>
-            <span style={{ color: '#8e8e93', whiteSpace: 'nowrap' }}> — automatically.</span>
+            <span style={{ color: '#8e8e93', whiteSpace: 'nowrap' }}> — in minutes</span>
           </h1>
           <p className="hero-sub" style={{ fontSize: 'clamp(16px,1.8vw,22px)', color: '#3a3a3c', maxWidth: '640px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '36px' }}>
             Upload your shoot images and product CSV. ShotSync builds structured SKU clusters, enriches every listing, and pushes directly to Shopify and your ERP — in minutes, not days.
