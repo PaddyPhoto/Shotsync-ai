@@ -224,7 +224,7 @@ export default function USLandingPage() {
           {/* Stats bar */}
           <div className="hero-stats" style={{ display: 'flex', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', marginTop: '44px', overflow: 'hidden' }}>
             {[
-              { value: '2–3 days', label: 'Manual post-production', color: '#1d1d1f' },
+              { value: <>2<span style={{fontSize:'0.6em',verticalAlign:'middle'}}>–</span>3 days</>, label: 'Manual post-production', color: '#1d1d1f' },
               { value: '25 min',   label: 'With ShotSync',          color: '#30d158' },
               { value: '500+',     label: 'Images per job',         color: '#1d1d1f' },
               { value: '1-click',  label: 'Shopify & ERP push',      color: '#1d1d1f' },
