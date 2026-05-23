@@ -95,7 +95,7 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/' && !isAuthenticated) {
     const country = request.headers.get('x-vercel-ip-country') ?? ''
     if (country === 'US') {
-      return NextResponse.rewrite(new URL('/us', request.url))
+      return NextResponse.redirect(new URL('/us', request.url))
     }
   }
 

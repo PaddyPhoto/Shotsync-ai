@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     'REVOLVE brand portal', 'Nordstrom vendor integration', 'fashion DTC brand tools',
   ],
   alternates: {
-    canonical: 'https://www.shotsync.ai',
+    canonical: 'https://www.shotsync.ai/us',
   },
   openGraph: {
     type: 'website',
