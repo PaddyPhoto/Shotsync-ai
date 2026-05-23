@@ -202,7 +202,7 @@ export default function LandingPage() {
             Now in early access — ANZ fashion brands
           </div>
           <h1 className="hero-h1" style={{ fontSize: 'clamp(36px,3.8vw,76px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '1000px', marginBottom: '20px' }}>
-            From Shoot to Live Product Listings<span style={{ color: '#8e8e93' }}> – In Minutes</span>
+            From Shoot to Live Product Listings<span style={{ color: '#8e8e93', whiteSpace: 'nowrap' }}> – In Minutes</span>
           </h1>
           <p className="hero-sub" style={{ fontSize: 'clamp(16px,1.8vw,22px)', color: '#3a3a3c', maxWidth: '640px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '36px' }}>
             Automatically rename images, generate product copy, and publish to Shopify and marketplaces—without days of manual work.
