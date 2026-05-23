@@ -91,6 +91,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(DASHBOARD_PREFIX, request.url))
   }
 
+  // Geo-routing: US visitors see the US landing page
+  if (pathname === '/' && !isAuthenticated) {
+    const country = request.headers.get('x-vercel-ip-country') ?? ''
+    if (country === 'US') {
+      return NextResponse.rewrite(new URL('/us', request.url))
+    }
+  }
+
   if (isDashboard && !isAuthenticated) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
