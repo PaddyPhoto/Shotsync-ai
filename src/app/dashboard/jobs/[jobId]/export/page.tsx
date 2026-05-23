@@ -59,6 +59,49 @@ const DESCRIPTIONS: Record<MarketplaceName, string> = {
 type DraftStatus = 'queued' | 'creating' | 'created' | 'error'
 interface DraftItem { id: string; label: string; sku: string; status: DraftStatus; adminUrl?: string; message?: string }
 
+// ── Product data CSV builder ─────────────────────────────────────────────────
+const ANGLE_COLUMNS = ['front', 'back', 'side', 'detail', 'mood', 'full-length'] as const
+
+function buildProductCsv(
+  clusters: ReturnType<typeof useSession.getState>['clusters'],
+  brandCode: string,
+  resolveFn: (tpl: string, vars: { brand: string; seq: number; sku: string; color?: string; view: string; index: number; isBottomwear: boolean }) => string
+): string {
+  const escape = (v: string) => `"${String(v ?? '').replace(/"/g, '""')}"`
+
+  const headers = [
+    'SKU', 'Product Name', 'Colour', 'Colour Code', 'Style Number', 'Category',
+    'Description', 'Key Points',
+    'Front Image', 'Back Image', 'Side Image', 'Detail Image', 'Mood Image', 'Full Length Image',
+  ]
+
+  const rows = clusters.map((cluster, ci) => {
+    const angleMap: Record<string, string> = {}
+    cluster.images.forEach((img, ii) => {
+      if (!img.viewLabel || angleMap[img.viewLabel]) return
+      angleMap[img.viewLabel] = resolveFn(img.filename, {
+        brand: brandCode, seq: ci + 1, sku: cluster.sku,
+        color: cluster.color ?? undefined, view: img.viewLabel,
+        index: ii + 1, isBottomwear: cluster.isBottomwear,
+      }) + '.jpg'
+    })
+
+    return [
+      cluster.sku,
+      cluster.productName,
+      cluster.color ?? '',
+      cluster.colourCode ?? '',
+      cluster.styleNumber ?? '',
+      cluster.category ?? '',
+      cluster.copyDescription ?? '',
+      (cluster.copyBullets ?? []).join('; '),
+      ...ANGLE_COLUMNS.map(a => angleMap[a] ?? ''),
+    ]
+  })
+
+  return [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))].join('\n')
+}
+
 // ── Image processing (canvas resize + crop to fit) ───────────────────────────
 async function processImage(file: File, w: number, h: number, bg = '#ffffff'): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -243,7 +286,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             brand_id: shopifyBrand.id,
             clusters: [{
               sku: draftSku,
-              productName: cluster.label ?? draftSku,
+              productName: cluster.productName || cluster.label || draftSku,
               color: cluster.color ?? '',
               images,
             }],
@@ -408,6 +451,8 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               done++; setDownloadProgress(Math.round((done / total) * 80))
             }
           }
+          const brandCode = shopifyBrand?.brand_code ?? activeBrand?.brand_code ?? 'BRAND'
+          folder.file('product_data.csv', buildProductCsv(confirmedClusters, brandCode, resolveFilename))
         }
         setDownloadStatus('Compressing…')
         setDownloadProgress(85)
@@ -516,6 +561,13 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               setFolderProgress(Math.round((done / total) * 100))
             }
           }
+          // Write product_data.csv to marketplace folder
+          const csv = buildProductCsv(clustersToExport, brandCode, resolveFilename)
+          const csvHandle = await mpHandle.getFileHandle('product_data.csv', { create: true })
+          const csvWriter = await csvHandle.createWritable()
+          await csvWriter.write(new Blob([csv], { type: 'text/csv' }))
+          await csvWriter.close()
+
           results.push({ marketplace: mpFolderName, count: mpCount })
         }
         setFolderProgress(100); setFolderStatus('Done')

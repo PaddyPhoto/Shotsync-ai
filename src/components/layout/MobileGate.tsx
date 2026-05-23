@@ -64,7 +64,7 @@ export function MobileGate({ children }: { children: React.ReactNode }) {
         style={{
           background: 'none',
           border: 'none',
-          color: '#aeaeb2',
+          color: '#3a3a3c',
           fontSize: '13px',
           cursor: 'pointer',
           letterSpacing: '-.1px',
