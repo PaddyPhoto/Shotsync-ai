@@ -199,7 +199,7 @@ export default function LandingPage() {
         <section className="hero-section" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '80px 40px 60px', position: 'relative' }}>
           <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '22px' }}>
             <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
-            Now in early access — ANZ fashion brands
+            Now in early access — fashion brands
           </div>
           <h1 className="hero-h1" style={{ fontSize: 'clamp(36px,3.8vw,76px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '1000px', marginBottom: '20px' }}>
             From Shoot to Live Product Listings<span style={{ color: '#8e8e93', whiteSpace: 'nowrap' }}> – In Minutes</span>
@@ -224,7 +224,7 @@ export default function LandingPage() {
               { value: '2 – 3 days', label: 'Manual post-production', color: '#1d1d1f' },
               { value: '25 min',   label: 'With ShotSync',          color: '#30d158' },
               { value: '500+',     label: 'Images per job',         color: '#1d1d1f' },
-              { value: '3',        label: 'ANZ marketplaces',       color: '#1d1d1f' },
+              { value: '1-click',  label: 'ERP & platform push',    color: '#1d1d1f' },
             ].map(({ value, label, color }, i) => (
               <div key={i} className="hero-stat-cell" style={{ padding: '24px 36px', textAlign: 'center', borderRight: '0.5px solid rgba(0,0,0,0.08)', flex: 1 }}>
                 <div style={{ fontSize: 'clamp(28px,3vw,42px)', fontWeight: 500, letterSpacing: '-1px', color, marginBottom: '4px', lineHeight: 1, whiteSpace: 'nowrap' }}>{value}</div>
@@ -524,7 +524,7 @@ export default function LandingPage() {
 
         {/* ── MARKETPLACE LOGOS ── */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Built for ANZ&apos;s top fashion marketplaces</p>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Integrates with the platforms you already use</p>
           <div className="mp-logos-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
             {[
               { name: 'THE ICONIC', sub: "Australia's largest fashion retailer" },
@@ -708,7 +708,7 @@ export default function LandingPage() {
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 500, color: '#6e6e73', flexShrink: 0 }}>KC</div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Kat C.</div>
-                <div style={{ fontSize: '13px', color: '#6e6e73' }}>eCommerce Coordinator, ANZ fashion brand</div>
+                <div style={{ fontSize: '13px', color: '#6e6e73' }}>eCommerce Coordinator, fashion brand</div>
               </div>
             </div>
           </div>
