@@ -236,7 +236,7 @@ export default function LandingPage() {
 
         {/* ── APP MOCKUP ── */}
         <section className="app-mockup-section" style={{ padding: '0 40px 100px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-          <div style={{ width: '100%', maxWidth: '1200px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
+          <div style={{ width: '100%', maxWidth: 'clamp(1200px,75vw,1440px)', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
             {/* Browser bar */}
             <div style={{ padding: '12px 16px', background: 'rgba(245,245,247,0.8)', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -353,7 +353,7 @@ export default function LandingPage() {
           <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '580px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
             Drop your shoot. ShotSync handles everything between the photographer&apos;s delivery and your marketplace upload.
           </p>
-          <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '1050px', margin: '0 auto' }}>
+          <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: 'clamp(1050px,75vw,1280px)', margin: '0 auto' }}>
             {[
               {
                 icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
@@ -384,7 +384,7 @@ export default function LandingPage() {
 
         {/* ── FEATURES ── */}
         <section id="features" className="section-pad" style={{ padding: '0 40px 100px', position: 'relative' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ maxWidth: 'clamp(1200px,75vw,1440px)', margin: '0 auto' }}>
             <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden' }}>
 
               {/* Feature 1: Auto-rename */}
@@ -525,7 +525,7 @@ export default function LandingPage() {
         {/* ── MARKETPLACE LOGOS ── */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Built for ANZ&apos;s top fashion marketplaces</p>
-          <div className="mp-logos-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '860px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
+          <div className="mp-logos-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
             {[
               { name: 'THE ICONIC', sub: "Australia's largest fashion retailer" },
               { name: 'Myer',       sub: 'PIM direct upload ready' },
@@ -544,7 +544,7 @@ export default function LandingPage() {
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Built for brands with unreleased product imagery</p>
           <h2 style={{ fontSize: 'clamp(28px,4vw,42px)', fontWeight: 500, letterSpacing: '-1.2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '780px', margin: '0 auto 16px' }}>Your images never leave your device.</h2>
           <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '560px', margin: '0 auto 48px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Everything — clustering, renaming, resizing, export packaging — runs entirely in your browser.</p>
-          <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '20px', overflow: 'hidden', maxWidth: '860px', margin: '0 auto' }}>
+          <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '20px', overflow: 'hidden', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto' }}>
             {[
               {
                 icon: (
@@ -610,7 +610,7 @@ export default function LandingPage() {
           <div
             ref={pricingScrollRef}
             className="pricing-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: '1200px', margin: '0 auto 16px' }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: 'clamp(1200px,75vw,1440px)', margin: '0 auto 16px' }}
             onScroll={(e) => {
               const el = e.currentTarget
               const cardWidth = el.scrollWidth / 4
