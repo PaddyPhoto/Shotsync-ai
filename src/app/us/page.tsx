@@ -784,6 +784,7 @@ export default function USLandingPage() {
                 { label: 'How it works', href: '#how-it-works' },
                 { label: 'Features',     href: '#features' },
                 { label: 'Pricing',      href: '#pricing' },
+                { label: 'FAQ',          href: '/faq' },
                 { label: 'Contact',      href: 'mailto:hello@shotsync.ai' },
                 { label: 'Privacy',      href: '/privacy' },
               ].map(({ label, href }) => (

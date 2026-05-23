@@ -68,16 +68,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
-      </head>
-      <Script src="https://www.googletagmanager.com/gtag/js?id=G-DXWDXL7ZDC" strategy="afterInteractive" />
-      <Script id="ga4-init" strategy="afterInteractive">{`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-DXWDXL7ZDC');
-      `}</Script>
-      <body>
-        {children}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -169,6 +159,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }),
           }}
         />
+      </head>
+      <Script src="https://www.googletagmanager.com/gtag/js?id=G-DXWDXL7ZDC" strategy="afterInteractive" />
+      <Script id="ga4-init" strategy="afterInteractive">{`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-DXWDXL7ZDC');
+      `}</Script>
+      <body>
+        {children}
       </body>
     </html>
   )
