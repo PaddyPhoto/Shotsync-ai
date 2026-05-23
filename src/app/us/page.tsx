@@ -501,54 +501,60 @@ export default function USLandingPage() {
 
         {/* US INTEGRATIONS */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '48px' }}>Integrates with the platforms you already run on</p>
-          <div style={{ maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto' }}>
-            <div className="integrations-row" style={{ display: 'flex', gap: '48px', textAlign: 'left', marginBottom: '32px', flexWrap: 'wrap' }}>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Integrates with the platforms you already run on</p>
+          <div style={{ maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '20px', overflow: 'hidden' }}>
 
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '12px' }}>Ecommerce</div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.10)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 500, color: '#1d1d1f' }}>
-                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
-                    Shopify
-                  </div>
+            {/* Three columns */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '0.5px solid rgba(0,0,0,0.08)' }}>
+
+              <div style={{ padding: '28px 28px', borderRight: '0.5px solid rgba(0,0,0,0.08)' }}>
+                <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '14px' }}>Ecommerce</div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(48,209,88,0.06)', border: '0.5px solid rgba(48,209,88,0.2)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 500, color: '#1d1d1f' }}>
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
+                  Shopify
                 </div>
               </div>
 
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '12px' }}>ERP / Inventory</div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.10)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 500, color: '#1d1d1f' }}>
+              <div style={{ padding: '28px 28px', borderRight: '0.5px solid rgba(0,0,0,0.08)' }}>
+                <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '14px' }}>ERP / Inventory</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(48,209,88,0.06)', border: '0.5px solid rgba(48,209,88,0.2)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 500, color: '#1d1d1f', alignSelf: 'flex-start' }}>
                     <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
                     Cin7 Core
                   </div>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 500, color: '#aeaeb2' }}>
-                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#aeaeb2', flexShrink: 0 }} />
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.02)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 400, color: '#aeaeb2', alignSelf: 'flex-start' }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#d1d1d6', flexShrink: 0 }} />
                     AIMS360
-                    <span style={{ fontSize: '10px', background: 'rgba(0,0,0,0.06)', color: '#6e6e73', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>Coming soon</span>
+                    <span style={{ fontSize: '10px', background: 'rgba(0,0,0,0.05)', color: '#8e8e93', padding: '2px 7px', borderRadius: '4px', fontWeight: 500, letterSpacing: '-.1px' }}>Coming soon</span>
                   </div>
                 </div>
               </div>
 
-              <div style={{ flex: 2, minWidth: '260px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '12px' }}>Wholesale Marketplaces</div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ padding: '28px 28px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '14px' }}>Wholesale Marketplaces</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {['REVOLVE', 'Shopbop', 'NuORDER'].map((name) => (
-                    <div key={name} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 500, color: '#aeaeb2' }}>
-                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#aeaeb2', flexShrink: 0 }} />
+                    <div key={name} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.02)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 400, color: '#aeaeb2', alignSelf: 'flex-start' }}>
+                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#d1d1d6', flexShrink: 0 }} />
                       {name}
-                      <span style={{ fontSize: '10px', background: 'rgba(0,0,0,0.06)', color: '#6e6e73', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>Coming soon</span>
+                      <span style={{ fontSize: '10px', background: 'rgba(0,0,0,0.05)', color: '#8e8e93', padding: '2px 7px', borderRadius: '4px', fontWeight: 500, letterSpacing: '-.1px' }}>Coming soon</span>
                     </div>
                   ))}
                 </div>
               </div>
+
             </div>
 
-            <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', padding: '20px 24px', textAlign: 'left' }}>
-              <p style={{ fontSize: '14px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px', margin: 0 }}>
+            {/* Callout row */}
+            <div style={{ padding: '20px 28px', background: 'rgba(0,0,0,0.015)', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#6e6e73" strokeWidth="1.8" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <p style={{ fontSize: '13px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px', margin: 0 }}>
                 Already selling into Nordstrom, Macy&apos;s, or Bloomingdale&apos;s through an ERP? ShotSync enriches your product data before it enters your ERP — your ERP handles the retailer connection. Your operations stack stays intact.
               </p>
             </div>
+
           </div>
         </section>
 
