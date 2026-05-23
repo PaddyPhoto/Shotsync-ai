@@ -1,0 +1,22 @@
+name = "ShotSync"
+client_id = "6a9b8dcd7cc0cbb67764b6da6903e602"
+application_url = "https://www.shotsync.ai/api/shopify/install"
+embedded = false
+
+[access_scopes]
+scopes = "read_products,write_products"
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = [
+  "https://www.shotsync.ai/api/shopify/callback",
+  "https://www.shotsync.ai/api/shopify/app-callback"
+]
+
+[webhooks]
+api_version = "2026-04"
+
+[webhooks.privacy_compliance]
+customer_data_request_url = "https://www.shotsync.ai/api/shopify/webhooks/customers-data-request"
+customer_deletion_url = "https://www.shotsync.ai/api/shopify/webhooks/customers-redact"
+shop_deletion_url = "https://www.shotsync.ai/api/shopify/webhooks/shop-redact"
