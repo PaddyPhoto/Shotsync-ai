@@ -31,10 +31,10 @@ function Orb({ color, size, top, left, speed }: {
 
 // Only what differs for the US market — USD prices, badge UI, CTA copy
 const US_PLAN_UI = {
-  free:   { priceUsd: 0,   annualUsd: 0,   badge: 'FREE',         badgeBg: 'rgba(255,59,48,0.10)',  badgeColor: '#c9302a', featured: false, cta: 'Get started free',        href: '/signup' },
-  launch: { priceUsd: 68,  annualUsd: 49,  badge: 'LAUNCH',       badgeBg: 'rgba(0,122,255,0.10)',  badgeColor: '#0062cc', featured: false, cta: 'Start 30-day free trial', href: '/signup?plan=launch' },
-  growth: { priceUsd: 138, annualUsd: 99,  badge: 'MOST POPULAR', badgeBg: 'rgba(48,209,88,0.18)',  badgeColor: '#30d158', featured: true,  cta: 'Start 30-day free trial', href: '/signup?plan=growth' },
-  scale:  { priceUsd: 399, annualUsd: 299, badge: 'SCALE',        badgeBg: 'rgba(255,159,10,0.12)', badgeColor: '#b86e00', featured: false, cta: 'Start 30-day free trial', href: '/signup?plan=scale' },
+  free:   { priceUsd: 0,   annualUsd: 0,   badge: 'Free',         badgeBg: 'rgba(255,59,48,0.10)',  badgeColor: '#c9302a', featured: false, cta: 'Get started free',  href: '/signup' },
+  launch: { priceUsd: 68,  annualUsd: 49,  badge: 'Launch',       badgeBg: 'rgba(0,122,255,0.10)',  badgeColor: '#0062cc', featured: false, cta: 'Start with Launch', href: '/signup?plan=launch' },
+  growth: { priceUsd: 138, annualUsd: 99,  badge: 'Most popular', badgeBg: 'rgba(48,209,88,0.18)',  badgeColor: '#30d158', featured: true,  cta: 'Start with Growth', href: '/signup?plan=growth' },
+  scale:  { priceUsd: 399, annualUsd: 299, badge: 'Scale',        badgeBg: 'rgba(255,159,10,0.12)', badgeColor: '#b86e00', featured: false, cta: 'Start with Scale',  href: '/signup?plan=scale' },
 } as const
 
 // Substitute or drop AU-specific highlight strings for the US market (null = omit)
@@ -707,11 +707,8 @@ export default function USLandingPage() {
                 : '#fff'
               return (
                 <div key={key} className="pricing-card" style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ background: featured ? '#1d1d1f' : 'transparent', borderBottom: featured ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent', padding: '8px', textAlign: 'center', fontSize: '11px', fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#fff' }}>
-                    {featured ? 'Most Popular' : ''}
-                  </div>
                   <div style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div style={{ display: 'inline-block', background: badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{featured ? 'Growth' : badge}</div>
+                    <div style={{ display: 'inline-block', background: badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
                     <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{name}</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
                       <div style={{ fontSize: '36px', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : '#1d1d1f', lineHeight: 1 }}>{displayPrice}</div>
