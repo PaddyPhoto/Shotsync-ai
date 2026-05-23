@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { PLANS } from '@/lib/plans'
 
 function Orb({ color, size, top, left, speed }: {
   color: string; size: string; top: string; left: string; speed: number
@@ -28,56 +29,46 @@ function Orb({ color, size, top, left, speed }: {
   )
 }
 
-const US_PLANS = [
-  {
-    key: 'free',
-    name: 'Free',
-    badge: 'FREE',
-    badgeBg: 'rgba(255,59,48,0.10)',
-    badgeColor: '#c9302a',
-    monthlyPrice: 0,
-    featured: false,
-    cta: 'Get started free',
-    href: '/signup',
-    features: ['Up to 50 SKUs / month', 'Up to 3 exports', 'Shopify export (ZIP only)', '1 brand'],
-  },
-  {
-    key: 'launch',
-    name: 'Launch',
-    badge: 'LAUNCH',
-    badgeBg: 'rgba(0,122,255,0.10)',
-    badgeColor: '#0062cc',
-    monthlyPrice: 79,
-    featured: false,
-    cta: 'Start 30-day free trial',
-    href: '/signup?plan=launch',
-    features: ['Up to 200 SKUs / month', '1 brand', '1 Shopify store connection', 'Shopify-ready folder export', '1 ERP integration'],
-  },
-  {
-    key: 'growth',
-    name: 'Growth',
-    badge: 'MOST POPULAR',
-    badgeBg: 'rgba(48,209,88,0.18)',
-    badgeColor: '#30d158',
-    monthlyPrice: 179,
-    featured: true,
-    cta: 'Start 30-day free trial',
-    href: '/signup?plan=growth',
-    features: ['Up to 1,000 SKUs / month', '2 brands', '2 Shopify store integrations', 'All ERP integrations', 'AI copy trained on brand voice', 'Background removal add-on'],
-  },
-  {
-    key: 'scale',
-    name: 'Scale',
-    badge: 'SCALE',
-    badgeBg: 'rgba(255,159,10,0.12)',
-    badgeColor: '#b86e00',
-    monthlyPrice: 449,
-    featured: false,
-    cta: 'Start 30-day free trial',
-    href: '/signup?plan=scale',
-    features: ['Up to 2,500 SKUs / month', '5 brands', 'Up to 5 Shopify stores', 'All ERP integrations', 'AI copy trained on brand voice', 'Priority processing'],
-  },
-]
+// Only what differs for the US market — USD prices, badge UI, CTA copy
+const US_PLAN_UI = {
+  free:   { priceUsd: 0,   badge: 'FREE',         badgeBg: 'rgba(255,59,48,0.10)',  badgeColor: '#c9302a', featured: false, cta: 'Get started free',        href: '/signup' },
+  launch: { priceUsd: 79,  badge: 'LAUNCH',       badgeBg: 'rgba(0,122,255,0.10)',  badgeColor: '#0062cc', featured: false, cta: 'Start 30-day free trial', href: '/signup?plan=launch' },
+  growth: { priceUsd: 179, badge: 'MOST POPULAR', badgeBg: 'rgba(48,209,88,0.18)',  badgeColor: '#30d158', featured: true,  cta: 'Start 30-day free trial', href: '/signup?plan=growth' },
+  scale:  { priceUsd: 449, badge: 'SCALE',        badgeBg: 'rgba(255,159,10,0.12)', badgeColor: '#b86e00', featured: false, cta: 'Start 30-day free trial', href: '/signup?plan=scale' },
+} as const
+
+// Substitute or drop AU-specific highlight strings for the US market (null = omit)
+const US_HIGHLIGHT_SUBS: Record<string, string | null> = {
+  'ANZ marketplaces locked — Launch and above':      'US marketplaces locked — Launch and above',
+  'Export to 2 ANZ marketplaces':                    '1 ERP integration',
+  'Export to all ANZ marketplaces':                  'All ERP integrations',
+  'Full ANZ marketplace exports':                    'All ERP integrations',
+  'Product folder export (Shopify-ready structure)': 'Shopify-ready folder export',
+  "AI copy trained on your brand's voice & tone":    'AI copy trained on brand voice',
+  'Background removal add-on ($0.16/image)':         'Background removal add-on',
+  'Priority processing workflow':                    'Priority processing',
+  'Up to 5 Shopify store integrations':              'Up to 5 Shopify stores',
+  'Shopify export (ZIP / folder only)':              'Shopify export (ZIP only)',
+  '30-day free trial':                               null,
+}
+
+function usHighlights(planId: keyof typeof US_PLAN_UI): string[] {
+  return PLANS[planId].highlights
+    .map(h => {
+      const sub = US_HIGHLIGHT_SUBS[h]
+      if (sub === null) return null
+      return (sub ?? h).replace(' processed', '')
+    })
+    .filter((h): h is string => h !== null)
+}
+
+const US_PLANS = (['free', 'launch', 'growth', 'scale'] as const).map(id => ({
+  key: id,
+  name: PLANS[id].name,
+  monthlyPrice: US_PLAN_UI[id].priceUsd,
+  features: usHighlights(id),
+  ...US_PLAN_UI[id],
+}))
 
 export default function USLandingPage() {
   const [annual, setAnnual] = useState(false)
