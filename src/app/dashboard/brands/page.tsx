@@ -39,6 +39,7 @@ const COMING_SOON_MARKETS = [
   { id: 'iconic',      name: 'THE ICONIC',  api: 'SellerCenter API' },
   { id: 'myer',        name: 'Myer',        api: 'Supplier Portal API' },
   { id: 'david-jones', name: 'David Jones', api: 'Content API' },
+  { id: 'joor',        name: 'JOOR',        api: 'Wholesale B2B API' },
 ]
 
 type BrandForm = {
