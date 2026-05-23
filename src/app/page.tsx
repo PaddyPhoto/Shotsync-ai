@@ -223,7 +223,7 @@ export default function LandingPage() {
             {[
               { value: '2 – 3 days', label: 'Manual post-production', color: '#1d1d1f' },
               { value: '25 min',   label: 'With ShotSync',          color: '#30d158' },
-              { value: '500+',     label: 'Images per job',         color: '#1d1d1f' },
+              { value: <>500<span style={{fontSize:'0.75em',position:'relative',top:'-0.18em'}}>+</span></>, label: 'Images per job',         color: '#1d1d1f' },
               { value: '1-click',  label: 'ERP & platform push',    color: '#1d1d1f' },
             ].map(({ value, label, color }, i) => (
               <div key={i} className="hero-stat-cell" style={{ padding: '24px 36px', textAlign: 'center', borderRight: '0.5px solid rgba(0,0,0,0.08)', flex: 1 }}>
