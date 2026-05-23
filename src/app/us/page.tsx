@@ -31,10 +31,10 @@ function Orb({ color, size, top, left, speed }: {
 
 // Only what differs for the US market — USD prices, badge UI, CTA copy
 const US_PLAN_UI = {
-  free:   { priceUsd: 0,   badge: 'FREE',         badgeBg: 'rgba(255,59,48,0.10)',  badgeColor: '#c9302a', featured: false, cta: 'Get started free',        href: '/signup' },
-  launch: { priceUsd: 79,  badge: 'LAUNCH',       badgeBg: 'rgba(0,122,255,0.10)',  badgeColor: '#0062cc', featured: false, cta: 'Start 30-day free trial', href: '/signup?plan=launch' },
-  growth: { priceUsd: 179, badge: 'MOST POPULAR', badgeBg: 'rgba(48,209,88,0.18)',  badgeColor: '#30d158', featured: true,  cta: 'Start 30-day free trial', href: '/signup?plan=growth' },
-  scale:  { priceUsd: 449, badge: 'SCALE',        badgeBg: 'rgba(255,159,10,0.12)', badgeColor: '#b86e00', featured: false, cta: 'Start 30-day free trial', href: '/signup?plan=scale' },
+  free:   { priceUsd: 0,   annualUsd: 0,   badge: 'FREE',         badgeBg: 'rgba(255,59,48,0.10)',  badgeColor: '#c9302a', featured: false, cta: 'Get started free',        href: '/signup' },
+  launch: { priceUsd: 68,  annualUsd: 49,  badge: 'LAUNCH',       badgeBg: 'rgba(0,122,255,0.10)',  badgeColor: '#0062cc', featured: false, cta: 'Start 30-day free trial', href: '/signup?plan=launch' },
+  growth: { priceUsd: 138, annualUsd: 99,  badge: 'MOST POPULAR', badgeBg: 'rgba(48,209,88,0.18)',  badgeColor: '#30d158', featured: true,  cta: 'Start 30-day free trial', href: '/signup?plan=growth' },
+  scale:  { priceUsd: 399, annualUsd: 299, badge: 'SCALE',        badgeBg: 'rgba(255,159,10,0.12)', badgeColor: '#b86e00', featured: false, cta: 'Start 30-day free trial', href: '/signup?plan=scale' },
 } as const
 
 // Substitute or drop AU-specific highlight strings for the US market (null = omit)
@@ -66,6 +66,7 @@ const US_PLANS = (['free', 'launch', 'growth', 'scale'] as const).map(id => ({
   key: id,
   name: PLANS[id].name,
   monthlyPrice: US_PLAN_UI[id].priceUsd,
+  annualPrice: US_PLAN_UI[id].annualUsd,
   features: usHighlights(id),
   ...US_PLAN_UI[id],
 }))
@@ -697,8 +698,7 @@ export default function USLandingPage() {
               setActivePricingCard(Math.round(el.scrollLeft / cardWidth))
             }}
           >
-            {US_PLANS.map(({ key, name, badge, badgeBg, badgeColor, monthlyPrice, featured, cta, href, features }) => {
-              const annualPrice = monthlyPrice === 0 ? 0 : Math.round(monthlyPrice * 0.72)
+            {US_PLANS.map(({ key, name, badge, badgeBg, badgeColor, monthlyPrice, annualPrice, featured, cta, href, features }) => {
               const displayPrice = monthlyPrice === 0 ? '$0' : annual ? `$${annualPrice}` : `$${monthlyPrice}`
               const period = monthlyPrice === 0 ? 'forever' : annual ? 'USD / mo, billed annually' : 'USD / mo, billed monthly'
               const saving = monthlyPrice > 0 && annual ? Math.round((1 - annualPrice / monthlyPrice) * 100) : 0
