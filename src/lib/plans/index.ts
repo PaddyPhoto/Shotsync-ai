@@ -19,7 +19,10 @@ export interface Plan {
   priceAud: number           // AUD/month (monthly billing)
   priceAudAnnual: number     // AUD/month (annual billing)
   description: string
-  stripePriceId: string | null
+  stripePriceId: string | null          // AUD monthly
+  stripePriceIdAnnual: string | null    // AUD annual
+  stripePriceIdUsd: string | null       // USD monthly
+  stripePriceIdUsdAnnual: string | null // USD annual
   limits: PlanLimits
   highlights: string[]
   forNote: string            // "For: ..." line
@@ -33,6 +36,9 @@ export const PLANS: Record<PlanId, Plan> = {
     priceAudAnnual: 0,
     description: 'Try the full workflow before you commit',
     stripePriceId: null,
+    stripePriceIdAnnual: null,
+    stripePriceIdUsd: null,
+    stripePriceIdUsdAnnual: null,
     limits: {
       skusPerMonth: 50,
       marketplaces: 1,
@@ -59,6 +65,9 @@ export const PLANS: Record<PlanId, Plan> = {
     priceAudAnnual: 63,
     description: 'For emerging fashion brands starting to structure their eCommerce workflow',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? null,
+    stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID ?? null,
+    stripePriceIdUsd: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID_USD ?? null,
+    stripePriceIdUsdAnnual: process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID_USD ?? null,
     limits: {
       skusPerMonth: 200,
       marketplaces: 2,
@@ -86,6 +95,9 @@ export const PLANS: Record<PlanId, Plan> = {
     priceAudAnnual: 143,
     description: 'For growing fashion brands scaling regular drops and online sales',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID ?? null,
+    stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_BRAND_ANNUAL_PRICE_ID ?? null,
+    stripePriceIdUsd: process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID_USD ?? null,
+    stripePriceIdUsdAnnual: process.env.NEXT_PUBLIC_STRIPE_BRAND_ANNUAL_PRICE_ID_USD ?? null,
     limits: {
       skusPerMonth: 1000,
       marketplaces: 4,
@@ -114,6 +126,9 @@ export const PLANS: Record<PlanId, Plan> = {
     priceAudAnnual: 359,
     description: 'For high-volume or multi-brand fashion businesses operating at scale',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID ?? null,
+    stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_SCALE_ANNUAL_PRICE_ID ?? null,
+    stripePriceIdUsd: process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID_USD ?? null,
+    stripePriceIdUsdAnnual: process.env.NEXT_PUBLIC_STRIPE_SCALE_ANNUAL_PRICE_ID_USD ?? null,
     limits: {
       skusPerMonth: 2500,
       marketplaces: 4,
@@ -143,6 +158,9 @@ export const PLANS: Record<PlanId, Plan> = {
     priceAudAnnual: 0,
     description: 'Unlimited everything, custom contracts',
     stripePriceId: null,
+    stripePriceIdAnnual: null,
+    stripePriceIdUsd: null,
+    stripePriceIdUsdAnnual: null,
     limits: {
       skusPerMonth: -1,
       marketplaces: 4,

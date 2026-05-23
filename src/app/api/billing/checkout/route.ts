@@ -14,15 +14,19 @@ const SUPABASE_CONFIGURED =
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
 export async function POST(req: NextRequest) {
-  const body = await req.json() as { planId: PlanId }
-  const { planId } = body
+  const body = await req.json() as { planId: PlanId; annual?: boolean; currency?: 'aud' | 'usd' }
+  const { planId, annual = false, currency = 'aud' } = body
 
   if (!planId || planId === 'free') {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
   }
 
   const plan = PLANS[planId]
-  if (!plan.stripePriceId && STRIPE_CONFIGURED) {
+  const priceId = currency === 'usd'
+    ? (annual && plan.stripePriceIdUsdAnnual ? plan.stripePriceIdUsdAnnual : plan.stripePriceIdUsd)
+    : (annual && plan.stripePriceIdAnnual ? plan.stripePriceIdAnnual : plan.stripePriceId)
+
+  if (!priceId && STRIPE_CONFIGURED) {
     return NextResponse.json({ error: 'Price not configured' }, { status: 400 })
   }
 
@@ -101,7 +105,7 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
-      line_items: [{ price: plan.stripePriceId!, quantity: 1 }],
+      line_items: [{ price: priceId!, quantity: 1 }],
       success_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=success&plan=${planId}`,
       cancel_url: `${APP_URL}/dashboard/settings?tab=billing&checkout=cancelled`,
       metadata: { org_id: orgId, plan_id: planId, cancel_subs: existingSubIds },

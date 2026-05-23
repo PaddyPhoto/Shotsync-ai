@@ -71,10 +71,12 @@ const US_PLANS = (['free', 'launch', 'growth', 'scale'] as const).map(id => ({
 }))
 
 export default function USLandingPage() {
-  const [annual, setAnnual] = useState(false)
+  const [annual, setAnnual] = useState(true)
   const [demoOpen, setDemoOpen] = useState(false)
   const [activePricingCard, setActivePricingCard] = useState(0)
   const pricingScrollRef = useRef<HTMLDivElement>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -83,6 +85,45 @@ export default function USLandingPage() {
       window.location.replace('/auth/callback' + window.location.hash)
     }
   }, [])
+
+  useEffect(() => {
+    import('@/lib/supabase/client').then(({ createClient }) =>
+      createClient().auth.getSession()
+    ).then(({ data: { session } }) => {
+      if (session) setIsLoggedIn(true)
+    }).catch(() => {})
+  }, [])
+
+  const handlePlanCta = async (planKey: string, signupHref: string) => {
+    if (!isLoggedIn) {
+      window.location.href = signupHref
+      return
+    }
+    if (planKey === 'free') {
+      window.location.href = '/dashboard'
+      return
+    }
+    setCheckoutLoading(planKey)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ planId: planKey, annual, currency: 'usd' }),
+      })
+      const { url, error } = await res.json()
+      if (url) window.location.href = url
+      else window.location.href = signupHref
+    } catch {
+      window.location.href = signupHref
+    } finally {
+      setCheckoutLoading(null)
+    }
+  }
 
   return (
     <>
@@ -181,10 +222,10 @@ export default function USLandingPage() {
             <a href="#pricing" className="nav-link">Pricing</a>
           </div>
           <div className="nav-cta-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Link href="/login" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>Sign in</Link>
+            <Link href={isLoggedIn ? '/dashboard' : '/login'} style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>{isLoggedIn ? 'Go to dashboard' : 'Sign in'}</Link>
           </div>
           <div className="nav-mobile-signin" style={{ display: 'none', alignItems: 'center', gap: '8px' }}>
-            <Link href="/login" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>Sign in</Link>
+            <Link href={isLoggedIn ? '/dashboard' : '/login'} style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>{isLoggedIn ? 'Go to dashboard' : 'Sign in'}</Link>
           </div>
         </nav>
 
@@ -689,9 +730,14 @@ export default function USLandingPage() {
                       </div>
                     ))}
                     <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
-                      <Link href={href} className={`price-cta-btn${featured ? ' featured' : ''}`} style={{ width: '100%', display: 'block', textAlign: 'center' }}>
-                        {cta}
-                      </Link>
+                      <button
+                        onClick={() => handlePlanCta(key, href)}
+                        disabled={checkoutLoading === key}
+                        className={`price-cta-btn${featured ? ' featured' : ''}`}
+                        style={{ width: '100%', border: 'none', cursor: checkoutLoading === key ? 'wait' : 'pointer' }}
+                      >
+                        {checkoutLoading === key ? 'Loading…' : cta}
+                      </button>
                     </div>
                   </div>
                 </div>

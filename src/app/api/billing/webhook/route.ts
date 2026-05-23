@@ -43,13 +43,27 @@ async function sendPaymentFailedEmail(orgId: string, planId: PlanId, service: Aw
   await sendEmail(paymentFailedEmail(email, PLANS[planId].name))
 }
 
-// Map Stripe price IDs → plan IDs
+// Map Stripe price IDs → plan IDs (covers monthly + annual, AUD + USD)
 function priceIdToPlan(priceId: string): PlanId | null {
-  if (priceId === process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID) return 'launch'
-  if (priceId === process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID) return 'growth'
-  if (priceId === process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID) return 'scale'
-  if (priceId === process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID) return 'enterprise'
-  return null
+  const map: Record<string, PlanId> = {}
+  const add = (envKey: string, planId: PlanId) => {
+    const v = process.env[envKey]
+    if (v) map[v] = planId
+  }
+  add('NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID', 'launch')
+  add('NEXT_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID', 'launch')
+  add('NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID_USD', 'launch')
+  add('NEXT_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID_USD', 'launch')
+  add('NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID', 'growth')
+  add('NEXT_PUBLIC_STRIPE_BRAND_ANNUAL_PRICE_ID', 'growth')
+  add('NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID_USD', 'growth')
+  add('NEXT_PUBLIC_STRIPE_BRAND_ANNUAL_PRICE_ID_USD', 'growth')
+  add('NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID', 'scale')
+  add('NEXT_PUBLIC_STRIPE_SCALE_ANNUAL_PRICE_ID', 'scale')
+  add('NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID_USD', 'scale')
+  add('NEXT_PUBLIC_STRIPE_SCALE_ANNUAL_PRICE_ID_USD', 'scale')
+  add('NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID', 'enterprise')
+  return map[priceId] ?? null
 }
 
 export async function POST(req: NextRequest) {
