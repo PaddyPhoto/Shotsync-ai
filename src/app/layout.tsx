@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     default: 'ShotSync — Product Enrichment Workflow Automation for Fashion Brands',
     template: '%s | ShotSync',
   },
-  description: 'ShotSync automates product enrichment for fashion brands. Upload shoot images and a product CSV, build enriched SKU clusters, and publish fully enriched listings to Shopify and your ERP — in minutes, not days.',
+  description: 'ShotSync automates product enrichment for fashion brands. Upload shoot images and a product CSV, build enriched SKU clusters, and publish fully enriched listings to Shopify, Cin7, and your ERP — in minutes, not days.',
   keywords: [
     'ShotSync', 'product enrichment automation', 'fashion ecommerce workflow',
     'post-shoot product listing', 'SKU enrichment', 'fashion product data',
@@ -17,6 +17,10 @@ export const metadata: Metadata = {
     'product listing automation', 'fashion brand workflow', 'shoot to listing automation',
     'THE ICONIC integration', 'Myer supplier portal', 'David Jones PIM',
     'product enrichment workflow', 'fashion post-production',
+    'Cin7 product enrichment', 'Cin7 image upload automation', 'AIMS360 integration',
+    'ERP product data automation', 'fashion ERP integration', 'Cin7 fashion brands',
+    'product data ERP sync', 'Cin7 Shopify workflow', 'fashion brand ERP automation',
+    'post-shoot ERP sync',
   ],
   alternates: {
     canonical: 'https://www.shotsync.ai',
@@ -26,7 +30,7 @@ export const metadata: Metadata = {
     url: 'https://www.shotsync.ai',
     siteName: 'ShotSync',
     title: 'ShotSync — Product Enrichment Workflow Automation for Fashion Brands',
-    description: 'From photographer delivery to fully enriched product listings — automatically. ShotSync builds enriched SKU clusters from your shoot images and product CSV, then pushes directly to Shopify and your ERP.',
+    description: 'From photographer delivery to fully enriched product listings — automatically. ShotSync builds enriched SKU clusters and syncs directly to Shopify, Cin7, and your ERP.',
     images: [
       {
         url: '/og-image.png',
@@ -39,7 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'ShotSync — Product Enrichment Workflow Automation for Fashion Brands',
-    description: 'From photographer delivery to fully enriched product listings — automatically. ShotSync builds enriched SKU clusters from your shoot images and product CSV, then pushes directly to Shopify and your ERP.',
+    description: 'From photographer delivery to fully enriched product listings — automatically. ShotSync builds enriched SKU clusters and syncs directly to Shopify, Cin7, and your ERP.',
     images: ['/og-image.png'],
   },
   robots: {
@@ -134,7 +138,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   name: 'What does ShotSync integrate with?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'ShotSync integrates with Shopify, Cin7 Core, THE ICONIC, Myer, and David Jones. AIMS360, REVOLVE, Shopbop, and NuORDER integrations are coming soon.',
+                    text: 'ShotSync integrates directly with Shopify and Cin7 Core, pushing fully enriched product listings including images, AI-generated copy, and all product attributes directly into both platforms. AIMS360, Apparel21, REVOLVE, Shopbop, and NuORDER integrations are coming soon.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Does ShotSync integrate with Cin7?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Yes. ShotSync has a direct integration with Cin7 Core. After processing your shoot images and product CSV, ShotSync pushes fully enriched product records — including images, AI-generated copy, and all product attributes like colour, material, measurements, and care instructions — directly into Cin7. From there, Cin7 handles downstream distribution to your retail partners and marketplaces.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Does ShotSync work with ERPs?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Yes. ShotSync is designed to integrate with fashion ERPs rather than bypassing them. Brands with an ERP like Cin7 or AIMS360 use ShotSync to enrich product data at the point of shoot delivery, then push it into their ERP. The ERP then handles all downstream distribution — to Shopify, wholesale retailers, and marketplace platforms. This keeps your operations stack intact.',
                   },
                 },
                 {
