@@ -539,6 +539,41 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ── WHO IT'S FOR ── */}
+        <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Who it&apos;s for</p>
+          <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '780px', margin: '0 auto 48px' }}>
+            Built for the person who manages what happens after the shoot.
+          </h2>
+          <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto' }}>
+            {[
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+                title: 'eCommerce coordinators',
+                body: 'You receive the shoot, match the images, populate the attributes, write the listings, and push everything live. ShotSync automates the part that takes the longest — so you can focus on what actually needs your judgment.',
+              },
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+                title: 'Emerging DTC brands',
+                body: 'No marketplace account, no production team — just you, a Shopify store, and a seasonal shoot to turn into live product pages. ShotSync gives you the workflow automation of a much larger team, at a price built for growing brands.',
+              },
+              {
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>,
+                title: 'Mid-tier wholesale brands',
+                body: "Selling into THE ICONIC, Myer, or David Jones through Cin7? ShotSync enriches your product data before it enters the ERP — so what your retail partners receive is already compliant and publish-ready.",
+              },
+            ].map(({ icon, title, body }) => (
+              <div key={title} style={{ background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '16px', padding: '28px 24px', textAlign: 'left' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', border: '0.5px solid rgba(0,0,0,0.07)' }}>
+                  {icon}
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '10px' }}>{title}</div>
+                <div style={{ fontSize: '13px', color: '#4a4a4f', lineHeight: 1.7, letterSpacing: '-.1px' }}>{body}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* ── PRIVACY TRUST ── */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Built for brands with unreleased product imagery</p>
