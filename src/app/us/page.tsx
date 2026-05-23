@@ -39,7 +39,7 @@ const US_PLANS = [
     featured: false,
     cta: 'Get started free',
     href: '/signup',
-    features: ['Up to 10 SKUs / month', 'Up to 3 exports', 'Shopify export (ZIP only)', '1 brand'],
+    features: ['Up to 50 SKUs / month', 'Up to 3 exports', 'Shopify export (ZIP only)', '1 brand'],
   },
   {
     key: 'launch',

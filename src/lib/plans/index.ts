@@ -34,7 +34,7 @@ export const PLANS: Record<PlanId, Plan> = {
     description: 'Try the full workflow before you commit',
     stripePriceId: null,
     limits: {
-      skusPerMonth: 10,
+      skusPerMonth: 50,
       marketplaces: 1,
       exportsPerMonth: 3,
       brands: 1,
@@ -44,7 +44,7 @@ export const PLANS: Record<PlanId, Plan> = {
       bgRemoval: false,
     },
     highlights: [
-      'Up to 10 SKUs processed / month',
+      'Up to 50 SKUs processed / month',
       'Up to 3 exports',
       'Shopify export (ZIP / folder only)',
       'ANZ marketplaces locked — Launch and above',
