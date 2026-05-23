@@ -203,10 +203,10 @@ export default function USLandingPage() {
             <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
             Now available for US fashion brands
           </div>
-          <h1 className="hero-h1" style={{ fontSize: 'clamp(36px,3.8vw,76px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '1000px', marginBottom: '20px' }}>
+          <h1 className="hero-h1" style={{ fontSize: 'clamp(32px,3.2vw,64px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '900px', marginBottom: '20px' }}>
             From photographer delivery to{' '}
             <span style={{ fontWeight: 700 }}>fully enriched product listings</span>
-            <span style={{ color: '#8e8e93' }}> — automatically.</span>
+            <span style={{ color: '#8e8e93', whiteSpace: 'nowrap' }}> — automatically.</span>
           </h1>
           <p className="hero-sub" style={{ fontSize: 'clamp(16px,1.8vw,22px)', color: '#3a3a3c', maxWidth: '640px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '36px' }}>
             Upload your shoot images and product CSV. ShotSync builds structured SKU clusters, enriches every listing, and pushes directly to Shopify and your ERP — in minutes, not days.
@@ -227,7 +227,7 @@ export default function USLandingPage() {
               { value: '2–3 days', label: 'Manual post-production', color: '#1d1d1f' },
               { value: '25 min',   label: 'With ShotSync',          color: '#30d158' },
               { value: '500+',     label: 'Images per job',         color: '#1d1d1f' },
-              { value: '1-click',  label: 'ERP & Shopify push',     color: '#1d1d1f' },
+              { value: '1-click',  label: 'Shopify & ERP push',      color: '#1d1d1f' },
             ].map(({ value, label, color }, i) => (
               <div key={i} className="hero-stat-cell" style={{ padding: '24px 36px', textAlign: 'center', borderRight: '0.5px solid rgba(0,0,0,0.08)', flex: 1 }}>
                 <div style={{ fontSize: 'clamp(28px,3vw,42px)', fontWeight: 500, letterSpacing: '-1px', color, marginBottom: '4px', lineHeight: 1, whiteSpace: 'nowrap' }}>{value}</div>
