@@ -3,11 +3,40 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'FAQ',
-  description: 'Frequently asked questions about ShotSync — how image grouping works, which marketplaces are supported, Shopify integration, privacy, and pricing.',
+  description: 'Frequently asked questions about ShotSync — what it is, how it compares to Salsify and PIMs, which integrations are supported, privacy, and pricing.',
   alternates: { canonical: 'https://www.shotsync.ai/faq' },
 }
 
 const FAQS = [
+  {
+    category: 'What is ShotSync',
+    items: [
+      {
+        q: 'What is ShotSync?',
+        a: 'ShotSync is post-shoot product enrichment workflow automation software built for fashion brands. It takes two inputs — a folder of images from a photographer, and a product CSV — and automatically builds fully enriched, publish-ready product listings that push directly into Shopify and ERP systems like Cin7. A job that takes 2–3 days manually is done in 25 minutes.',
+      },
+      {
+        q: 'Is ShotSync a PIM?',
+        a: 'No. A PIM (like Salsify or Akeneo) is a system of record — a database where your product data lives permanently across its entire lifecycle. ShotSync is a workflow tool: it transforms raw shoot assets into enriched product records and pushes them downstream. Data passes through ShotSync; it lives in your ERP or PIM. Think of a PIM as a warehouse — ShotSync is the forklift that loads it after every shoot.',
+      },
+      {
+        q: 'How is ShotSync different from Salsify?',
+        a: 'Salsify is an enterprise PIM platform costing $40,000–$120,000 per year, built for large teams managing product data across hundreds of retail channels. ShotSync is purpose-built for fashion brands that need product enrichment automation without the enterprise price tag — starting free. ShotSync sits upstream of a PIM: it enriches product data at the point of shoot delivery and feeds it into your ERP or Shopify.',
+      },
+      {
+        q: 'What are the two ways to use ShotSync?',
+        a: 'Path A — Small brands with no ERP: ShotSync is your entire publishing pipeline. Enriched listings push directly from ShotSync to Shopify, THE ICONIC, and Myer simultaneously. Path B — Mid-tier brands with an ERP: ShotSync enriches your ERP (Cin7 or Apparel21). The ERP then handles all downstream distribution to Shopify, THE ICONIC, Myer, and David Jones. Your operations stack stays completely intact.',
+      },
+      {
+        q: 'Where does ShotSync fit in my tech stack?',
+        a: 'ShotSync sits between the photoshoot and your ERP or eCommerce platform. It does not replace any existing system — it fills the gap between photographer delivery and live product listing. Layer order: Photoshoot → ShotSync (enrichment) → Cin7 or Apparel21 (ERP) → Shopify, THE ICONIC, Myer, David Jones.',
+      },
+      {
+        q: 'Who is ShotSync for?',
+        a: 'The ideal ShotSync customer is a fashion brand with a small eCommerce team selling across 3–5 platforms simultaneously — too big for spreadsheets, too small for Salsify. Primary users are eCommerce coordinators, emerging DTC brands on Shopify, and mid-tier wholesale brands selling into THE ICONIC, Myer, or David Jones through Cin7 or Apparel21.',
+      },
+    ],
+  },
   {
     category: 'Privacy & Security',
     items: [
@@ -37,8 +66,8 @@ const FAQS = [
         a: 'No. Shopify integration is optional. You can upload a CSV style list instead, and export your processed images as a ZIP or directly to a folder on your computer. Shopify connection is only needed if you want to push images directly to product listings.',
       },
       {
-        q: 'Which marketplaces are supported?',
-        a: 'THE ICONIC, Myer PIM, and David Jones PIM are supported out of the box — including their specific image dimensions, naming conventions, and view requirements. Additional marketplaces can be configured in Settings.',
+        q: 'Which platforms does ShotSync integrate with?',
+        a: 'Shopify and Cin7 Core are live direct integrations — ShotSync pushes fully enriched product listings including images, AI-generated copy, and all product attributes directly into both. THE ICONIC is also live. Apparel21, Myer, and David Jones integrations are in development.',
       },
       {
         q: 'How does the Shopify push work?',
@@ -68,7 +97,7 @@ const FAQS = [
     items: [
       {
         q: 'Can I try ShotSync for free?',
-        a: 'Yes. The Free plan lets you process up to 25 images per job with no credit card required. It\'s a good way to test the workflow before upgrading.',
+        a: 'Yes. The Free plan lets you process up to 50 SKUs per month with no credit card required. It\'s enough to run a real small shoot and feel the full workflow before upgrading.',
       },
       {
         q: 'Are prices in AUD?',
