@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { PLANS } from '@/lib/plans'
+import { CheckoutModal } from '@/components/billing/CheckoutModal'
+import { PaymentLogos } from '@/components/billing/PaymentLogos'
 
 // Fixed-position orb — stays in viewport, drifts upward at `speed` rate as you scroll.
 // This creates true parallax: content scrolls at 1× while each orb drifts at a different speed.
@@ -38,6 +40,7 @@ export default function LandingPage() {
   const pricingScrollRef = useRef<HTMLDivElement>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [checkoutModal, setCheckoutModal] = useState<{ planKey: string; price: number; name: string; features: string[] } | null>(null)
 
   // Supabase may send #access_token=... to the site root when the callback
   // URL isn't matched. Detect and forward to the proper callback handler.
@@ -57,35 +60,13 @@ export default function LandingPage() {
     }).catch(() => {})
   }, [])
 
-  const handlePlanCta = async (planKey: string, signupHref: string) => {
-    if (!isLoggedIn) {
-      window.location.href = signupHref
-      return
-    }
-    if (planKey === 'free') {
-      window.location.href = '/dashboard'
-      return
-    }
-    setCheckoutLoading(planKey)
-    try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const { data: { session } } = await createClient().auth.getSession()
-      const res = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ planId: planKey, annual }),
-      })
-      const { url, error } = await res.json()
-      if (url) window.location.href = url
-      else alert(error ?? 'Could not start checkout.')
-    } catch {
-      alert('Something went wrong. Please try again.')
-    } finally {
-      setCheckoutLoading(null)
-    }
+  const handlePlanCta = (planKey: string, signupHref: string) => {
+    if (!isLoggedIn) { window.location.href = signupHref; return }
+    if (planKey === 'free') { window.location.href = '/dashboard'; return }
+    const plan = PLANS[planKey as keyof typeof PLANS]
+    if (!plan) return
+    const price = annual && plan.priceAudAnnual ? plan.priceAudAnnual : plan.priceAud
+    setCheckoutModal({ planKey, price, name: plan.name, features: plan.highlights })
   }
 
   return (
@@ -731,6 +712,12 @@ export default function LandingPage() {
             </a>
           </div>
 
+          {/* Payment method logos */}
+          <div style={{ maxWidth: '1200px', margin: '20px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-.1px' }}>Accepted payments</span>
+            <PaymentLogos />
+          </div>
+
         </section>
 
         {/* ── TESTIMONIAL ── */}
@@ -835,6 +822,18 @@ export default function LandingPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {checkoutModal && (
+        <CheckoutModal
+          planId={checkoutModal.planKey as any}
+          planName={checkoutModal.name}
+          annual={annual}
+          currency="aud"
+          price={checkoutModal.price}
+          features={checkoutModal.features}
+          onClose={() => setCheckoutModal(null)}
+        />
       )}
     </>
   )

@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { PLANS, type PlanId } from '@/lib/plans'
 import { usePlan } from '@/context/PlanContext'
+import { CheckoutModal } from '@/components/billing/CheckoutModal'
+import { PaymentLogos } from '@/components/billing/PaymentLogos'
 
 const STRIPE_CONFIGURED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
@@ -14,6 +16,7 @@ const PLAN_ORDER: PlanId[] = ['free', 'launch', 'growth', 'scale', 'enterprise']
 export function UpgradeModal() {
   const { upgradeReason, closeUpgrade, planId, refreshPlan } = usePlan()
   const [loading, setLoading] = useState<PlanId | null>(null)
+  const [checkoutPlan, setCheckoutPlan] = useState<PlanId | null>(null)
 
   if (!upgradeReason && upgradeReason !== '') return null
 
@@ -25,7 +28,6 @@ export function UpgradeModal() {
     setLoading(targetPlanId)
 
     if (!STRIPE_CONFIGURED) {
-      // Demo mode: just update local storage
       localStorage.setItem('shotsync:plan', targetPlanId)
       await refreshPlan()
       setLoading(null)
@@ -33,40 +35,9 @@ export function UpgradeModal() {
       return
     }
 
-    try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      let { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        const { data } = await supabase.auth.refreshSession()
-        session = data.session
-      }
-      // Final fallback: read token directly from SSR cookie
-      let accessToken = session?.access_token
-      if (!accessToken) {
-        try {
-          const raw = decodeURIComponent(
-            document.cookie.split(';')
-              .find(c => c.trim().startsWith('sb-') && c.includes('auth-token') && !c.includes('code-verifier'))
-              ?.split('=').slice(1).join('=') ?? '{}'
-          )
-          accessToken = JSON.parse(raw)?.access_token
-        } catch {}
-      }
-      const res = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        },
-        body: JSON.stringify({ planId: targetPlanId }),
-      })
-      const { url, error } = await res.json()
-      if (error) { setLoading(null); return }
-      if (url) window.location.href = url
-    } catch {
-      setLoading(null)
-    }
+    // Open embedded checkout instead of redirecting
+    setLoading(null)
+    setCheckoutPlan(targetPlanId)
   }
 
   const upgradePlans = (['launch', 'growth', 'scale', 'enterprise'] as PlanId[]).filter((id) => id !== planId)
@@ -183,13 +154,25 @@ export function UpgradeModal() {
           })}
         </div>
 
-        <div className="border-t border-[var(--line)] px-6 py-3 flex items-center justify-between">
+        <div className="border-t border-[var(--line)] px-6 py-3 flex items-center justify-between flex-wrap gap-3">
           <button onClick={closeUpgrade} className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
             {isChangingPlan ? 'Keep current plan' : 'Continue on Free'}
           </button>
-          <p className="text-[0.79rem] text-[var(--text3)]">{isChangingPlan ? 'Cancel anytime · No contracts' : '30-day free trial · Cancel anytime · No contracts'}</p>
+          <PaymentLogos style={{ gap: '6px' }} />
         </div>
       </div>
+
+      {checkoutPlan && checkoutPlan !== 'enterprise' && (
+        <CheckoutModal
+          planId={checkoutPlan}
+          planName={PLANS[checkoutPlan].name}
+          annual={false}
+          currency="aud"
+          price={PLANS[checkoutPlan].priceAud}
+          features={PLANS[checkoutPlan].highlights}
+          onClose={() => setCheckoutPlan(null)}
+        />
+      )}
     </div>
   )
 }

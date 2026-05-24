@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { PLANS } from '@/lib/plans'
+import { CheckoutModal } from '@/components/billing/CheckoutModal'
+import { PaymentLogos } from '@/components/billing/PaymentLogos'
 
 function Orb({ color, size, top, left, speed }: {
   color: string; size: string; top: string; left: string; speed: number
@@ -78,6 +80,7 @@ export default function USLandingPage() {
   const pricingScrollRef = useRef<HTMLDivElement>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [checkoutModal, setCheckoutModal] = useState<{ planKey: string; price: number; name: string; features: string[] } | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -95,35 +98,13 @@ export default function USLandingPage() {
     }).catch(() => {})
   }, [])
 
-  const handlePlanCta = async (planKey: string, signupHref: string) => {
-    if (!isLoggedIn) {
-      window.location.href = signupHref
-      return
-    }
-    if (planKey === 'free') {
-      window.location.href = '/dashboard'
-      return
-    }
-    setCheckoutLoading(planKey)
-    try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const { data: { session } } = await createClient().auth.getSession()
-      const res = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ planId: planKey, annual, currency: 'usd' }),
-      })
-      const { url, error } = await res.json()
-      if (url) window.location.href = url
-      else window.location.href = signupHref
-    } catch {
-      window.location.href = signupHref
-    } finally {
-      setCheckoutLoading(null)
-    }
+  const handlePlanCta = (planKey: string, signupHref: string) => {
+    if (!isLoggedIn) { window.location.href = signupHref; return }
+    if (planKey === 'free') { window.location.href = '/dashboard'; return }
+    const ui = US_PLAN_UI[planKey as keyof typeof US_PLAN_UI]
+    if (!ui) return
+    const price = annual ? ui.annualUsd : ui.priceUsd
+    setCheckoutModal({ planKey, price, name: PLANS[planKey as keyof typeof PLANS]?.name ?? planKey, features: usHighlights(planKey as keyof typeof US_PLAN_UI) })
   }
 
   return (
@@ -771,6 +752,13 @@ export default function USLandingPage() {
               Contact us
             </a>
           </div>
+
+          {/* Payment method logos */}
+          <div style={{ maxWidth: '1200px', margin: '20px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-.1px' }}>Accepted payments</span>
+            <PaymentLogos />
+          </div>
+
         </section>
 
         {/* TESTIMONIAL */}
@@ -838,6 +826,18 @@ export default function USLandingPage() {
             <button onClick={() => setDemoOpen(false)} style={{ position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: '0.5px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '18px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>×</button>
           </div>
         </div>
+      )}
+
+      {checkoutModal && (
+        <CheckoutModal
+          planId={checkoutModal.planKey as any}
+          planName={checkoutModal.name}
+          annual={annual}
+          currency="usd"
+          price={checkoutModal.price}
+          features={checkoutModal.features}
+          onClose={() => setCheckoutModal(null)}
+        />
       )}
     </>
   )

@@ -7,6 +7,7 @@ import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
 import { UsageBar } from '@/components/billing/UsageBar'
+import { UpdatePaymentModal } from '@/components/billing/UpdatePaymentModal'
 import { PLANS } from '@/lib/plans'
 
 type Tab = 'general' | 'billing' | 'team'
@@ -29,6 +30,7 @@ function SettingsInner() {
   const { plan, planId, usage, openUpgrade, refreshPlan } = usePlan()
   const { brands } = useBrand()
   const [portalLoading, setPortalLoading] = useState(false)
+  const [showUpdatePayment, setShowUpdatePayment] = useState(false)
   const [activatingPlan, setActivatingPlan] = useState<string | null>(null)
   const [planActivated, setPlanActivated] = useState(false)
 
@@ -242,7 +244,10 @@ function SettingsInner() {
               <div className="card-head">
                 <span className="card-title">Current Plan</span>
                 {planId !== 'free' && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY && (
-                  <button onClick={handleBillingPortal} disabled={portalLoading} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">{portalLoading ? 'Loading…' : 'Manage subscription →'}</button>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setShowUpdatePayment(true)} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">Update payment method</button>
+                    <button onClick={handleBillingPortal} disabled={portalLoading} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">{portalLoading ? 'Loading…' : 'Manage subscription →'}</button>
+                  </div>
                 )}
               </div>
               <div className="card-body">
@@ -416,6 +421,7 @@ function SettingsInner() {
           </div>
         )}
       </div>
+      {showUpdatePayment && <UpdatePaymentModal onClose={() => setShowUpdatePayment(false)} />}
     </div>
   )
 }

@@ -120,9 +120,40 @@ export async function POST(req: NextRequest) {
         break
       }
 
+      case 'invoice.payment_succeeded': {
+        // Fires for direct-subscription checkout (embedded Payment Element).
+        // Only activate plan on initial subscription creation to avoid re-processing renewals.
+        const invoice = event.data.object as {
+          billing_reason?: string
+          subscription?: string
+        }
+        if (invoice.billing_reason !== 'subscription_create' || !invoice.subscription) break
+
+        const sub = await stripe.subscriptions.retrieve(invoice.subscription)
+        const orgId = sub.metadata?.org_id
+        const planId = (sub.metadata?.plan_id as PlanId | undefined) ??
+          priceIdToPlan(sub.items.data[0]?.price?.id ?? '')
+        console.error('[webhook] invoice.payment_succeeded orgId:', orgId, 'planId:', planId)
+
+        if (orgId && planId) {
+          await service.from('orgs').update({ plan: planId, stripe_subscription_status: 'active' }).eq('id', orgId)
+
+          const cancelSubs = sub.metadata?.cancel_subs
+          if (cancelSubs) {
+            const subIds = cancelSubs.split(',').filter(Boolean).filter(id => id !== invoice.subscription)
+            await Promise.all(subIds.map(id => stripe.subscriptions.cancel(id).catch(() => {})))
+          }
+
+          logActivity(orgId, null, 'plan.upgraded', { plan_to: planId })
+          await sendSubscriptionEmails(orgId, planId, service)
+        }
+        break
+      }
+
       case 'customer.subscription.updated': {
         // Only update subscription status — plan is managed exclusively via
-        // checkout.session.completed so no event ordering issues can corrupt it.
+        // checkout.session.completed / invoice.payment_succeeded so no event
+        // ordering issues can corrupt it.
         const sub = event.data.object as {
           metadata?: { org_id?: string }
           status: string
