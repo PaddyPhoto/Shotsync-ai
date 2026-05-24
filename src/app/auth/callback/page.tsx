@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createOAuthClient } from '@/lib/supabase/client'
 
 function CallbackHandler() {
   const router = useRouter()
@@ -15,7 +15,7 @@ function CallbackHandler() {
     // PKCE flow: OAuth providers return a code param that must be exchanged for a session.
     const code = params.get('code')
     if (code) {
-      const supabase = createClient()
+      const supabase = createOAuthClient()
       supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
         if (error || !data.session) {
           window.location.href = '/auth/error?detail=oauth_exchange_failed'
