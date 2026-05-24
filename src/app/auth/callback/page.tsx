@@ -18,7 +18,8 @@ function CallbackHandler() {
       const supabase = createOAuthClient()
       supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
         if (error || !data.session) {
-          window.location.href = '/auth/error?detail=oauth_exchange_failed'
+          const msg = error?.message ?? 'no_session'
+          window.location.href = `/auth/error?detail=${encodeURIComponent(msg)}`
           return
         }
         // Persist session as SSR cookies so API routes and middleware can read it,
