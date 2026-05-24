@@ -7,7 +7,6 @@ import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
 import { UsageBar } from '@/components/billing/UsageBar'
-import { UpdatePaymentModal } from '@/components/billing/UpdatePaymentModal'
 import { PLANS } from '@/lib/plans'
 
 type Tab = 'general' | 'billing' | 'team'
@@ -30,7 +29,7 @@ function SettingsInner() {
   const { plan, planId, usage, openUpgrade, refreshPlan } = usePlan()
   const { brands } = useBrand()
   const [portalLoading, setPortalLoading] = useState(false)
-  const [showUpdatePayment, setShowUpdatePayment] = useState(false)
+  const [updatePaymentLoading, setUpdatePaymentLoading] = useState(false)
   const [activatingPlan, setActivatingPlan] = useState<string | null>(null)
   const [planActivated, setPlanActivated] = useState(false)
 
@@ -245,7 +244,18 @@ function SettingsInner() {
                 <span className="card-title">Current Plan</span>
                 {planId !== 'free' && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY && (
                   <div className="flex items-center gap-3">
-                    <button onClick={() => setShowUpdatePayment(true)} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">Update payment method</button>
+                    <button onClick={async () => {
+                      setUpdatePaymentLoading(true)
+                      try {
+                        const { createClient } = await import('@/lib/supabase/client')
+                        const { data: { session } } = await createClient().auth.getSession()
+                        const res = await fetch('/api/billing/portal', { method: 'POST', headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {} })
+                        const json = await res.json()
+                        if (json.url) window.location.href = json.url
+                      } catch { /* silent */ } finally { setUpdatePaymentLoading(false) }
+                    }} disabled={updatePaymentLoading} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
+                      {updatePaymentLoading ? 'Loading…' : 'Update payment method'}
+                    </button>
                     <button onClick={handleBillingPortal} disabled={portalLoading} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">{portalLoading ? 'Loading…' : 'Manage subscription →'}</button>
                   </div>
                 )}
@@ -421,7 +431,6 @@ function SettingsInner() {
           </div>
         )}
       </div>
-      {showUpdatePayment && <UpdatePaymentModal onClose={() => setShowUpdatePayment(false)} />}
     </div>
   )
 }
