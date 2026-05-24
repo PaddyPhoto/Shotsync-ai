@@ -12,7 +12,7 @@ interface Props {
 export function SocialAuthButtons({ nextPath = '/dashboard', label = 'Continue' }: Props) {
   const handleOAuth = async (provider: Provider) => {
     const supabase = createOAuthClient()
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
+    const redirectTo = `${window.location.origin}/api/auth/oauth-callback?next=${encodeURIComponent(nextPath)}`
     await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } })
   }
 
