@@ -18,10 +18,11 @@ function CallbackHandler() {
       const supabase = createClient()
       supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
         if (error || !data.session) {
-          router.replace('/auth/error?detail=oauth_exchange_failed')
+          window.location.href = '/auth/error?detail=oauth_exchange_failed'
           return
         }
-        // Persist session as SSR cookies so API routes and middleware can read it.
+        // Persist session as SSR cookies so API routes and middleware can read it,
+        // then do a full page reload so the browser sends the fresh cookies.
         fetch('/api/auth/set-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -29,7 +30,7 @@ function CallbackHandler() {
             access_token: data.session.access_token,
             refresh_token: data.session.refresh_token,
           }),
-        }).finally(() => router.replace(next))
+        }).finally(() => { window.location.href = next })
       })
       return
     }
@@ -53,12 +54,13 @@ function CallbackHandler() {
         return
       }
 
-      // Persist the session as SSR cookies so API routes and middleware can read it.
+      // Persist the session as SSR cookies so API routes and middleware can read it,
+      // then do a full page reload so the browser sends the fresh cookies.
       fetch('/api/auth/set-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ access_token, refresh_token }),
-      }).finally(() => router.replace(next))
+      }).finally(() => { window.location.href = next })
       return
     }
 

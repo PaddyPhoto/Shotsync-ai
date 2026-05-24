@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
+import { createOAuthClient } from '@/lib/supabase/client'
 
 type Provider = 'google' | 'apple' | 'azure'
 
@@ -11,7 +11,7 @@ interface Props {
 
 export function SocialAuthButtons({ nextPath = '/dashboard', label = 'Continue' }: Props) {
   const handleOAuth = async (provider: Provider) => {
-    const supabase = createClient()
+    const supabase = createOAuthClient()
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
     await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } })
   }
