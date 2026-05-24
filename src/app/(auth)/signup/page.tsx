@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type PlanId } from '@/lib/plans'
+import { SocialAuthButtons } from '@/components/auth/SocialAuthButtons'
 
 function SignupForm() {
   const router = useRouter()
@@ -96,6 +97,7 @@ function SignupForm() {
             </div>
           </div>
           <div className="card-body pt-4">
+            <SocialAuthButtons nextPath={planParam && planParam !== 'free' ? `/dashboard?plan=${planParam}` : '/dashboard'} label="Sign up" />
             <form onSubmit={handleSignup} className="flex flex-col gap-4">
               <div>
                 <label className="text-[0.85rem] text-[var(--text2)] mb-[6px] block">Company Name</label>

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 function CallbackHandler() {
   const router = useRouter()
@@ -10,6 +11,14 @@ function CallbackHandler() {
 
   useEffect(() => {
     const next = params.get('next') ?? '/dashboard'
+
+    // PKCE flow: OAuth providers return a code param that must be exchanged for a session.
+    const code = params.get('code')
+    if (code) {
+      const supabase = createClient()
+      supabase.auth.exchangeCodeForSession(code).finally(() => router.replace(next))
+      return
+    }
 
     // Implicit flow: Supabase puts tokens in the URL hash (#access_token=...&refresh_token=...)
     // Parse them directly — no Supabase client needed, no PKCE verifier required.

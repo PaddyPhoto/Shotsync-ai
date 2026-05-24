@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { SocialAuthButtons } from '@/components/auth/SocialAuthButtons'
 
 type Mode = 'password' | 'magic' | 'reset'
 
@@ -112,6 +113,7 @@ if (authError) {
           </div>
 
           <div className="card-body pt-4">
+            {mode !== 'reset' && <SocialAuthButtons nextPath={nextPath} label="Sign in" />}
             {/* Mode tabs */}
             <div className="flex gap-1 p-[3px] bg-[var(--bg2)] rounded-[8px] mb-5">
               {(['password', 'magic'] as Mode[]).map((m) => (
