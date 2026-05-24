@@ -16,7 +16,21 @@ function CallbackHandler() {
     const code = params.get('code')
     if (code) {
       const supabase = createClient()
-      supabase.auth.exchangeCodeForSession(code).finally(() => router.replace(next))
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+        if (error || !data.session) {
+          router.replace('/auth/error?detail=oauth_exchange_failed')
+          return
+        }
+        // Persist session as SSR cookies so API routes and middleware can read it.
+        fetch('/api/auth/set-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          }),
+        }).finally(() => router.replace(next))
+      })
       return
     }
 
