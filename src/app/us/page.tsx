@@ -753,11 +753,6 @@ export default function USLandingPage() {
             </a>
           </div>
 
-          {/* Payment method logos */}
-          <div style={{ maxWidth: '1200px', margin: '20px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', color: '#aeaeb2', letterSpacing: '-.1px' }}>Accepted payments</span>
-            <PaymentLogos />
-          </div>
 
         </section>
 
@@ -796,6 +791,10 @@ export default function USLandingPage() {
 
         {/* FOOTER */}
         <footer className="section-pad" style={{ padding: 'clamp(36px,4vw,60px) 40px', borderTop: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '28px' }}>
+            <span style={{ fontSize: '11px', color: '#aeaeb2', letterSpacing: '.05em', textTransform: 'uppercase' }}>Secure payments</span>
+            <PaymentLogos />
+          </div>
           <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1440px', margin: '0 auto' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <img src="/icon.png" alt="ShotSync" style={{ width: '28px', height: '28px', borderRadius: '7px' }} />
