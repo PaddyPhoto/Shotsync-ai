@@ -183,8 +183,11 @@ function MarketplacesInner() {
 
       <div className="p-7">
         <div className="mb-7">
-          <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Marketplaces</h1>
-          <p className="text-[0.88rem] text-[var(--text2)] mt-[6px]">Configure export rules and cloud storage per marketplace.</p>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Marketplaces</h1>
+            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] px-2 py-[3px] rounded-[5px]" style={{ background: 'rgba(48,209,88,0.12)', color: '#30d158', border: '1px solid rgba(48,209,88,0.2)' }}>Export Settings</span>
+          </div>
+          <p className="text-[0.88rem] text-[var(--text2)]">Angle sequence, image specs, and file naming — controls how images are delivered to each platform.</p>
         </div>
 
         <div className="flex flex-col gap-10 max-w-[760px]">

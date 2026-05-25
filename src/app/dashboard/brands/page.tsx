@@ -224,8 +224,11 @@ function BrandsPage() {
       <div className="p-7">
         <div className="mb-7 flex items-start justify-between">
           <div>
-            <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Brands</h1>
-            <p className="text-[0.88rem] text-[var(--text2)] mt-[6px]">Configure brand settings, naming templates, and platform connections.</p>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Brands</h1>
+              <span className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] px-2 py-[3px] rounded-[5px]" style={{ background: 'rgba(0,122,255,0.12)', color: '#4da3ff', border: '1px solid rgba(0,122,255,0.2)' }}>Import Settings</span>
+            </div>
+            <p className="text-[0.88rem] text-[var(--text2)]">Shoot sequence and angle labelling — controls how incoming images are processed.</p>
           </div>
           <button
             onClick={() => canAddBrand(brands.length) ? openExpand('new') : openUpgrade(`Your plan supports up to ${plan.limits.brands} brand${plan.limits.brands === 1 ? '' : 's'}. Upgrade to add more.`)}
