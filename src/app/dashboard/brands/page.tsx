@@ -10,24 +10,6 @@ import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
 
-function toggleToken(template: string, token: string): string {
-  const parts = template.split('_').filter(Boolean)
-  if (parts.includes(token)) return parts.filter((p) => p !== token).join('_')
-  return parts.length ? `${template}_${token}` : token
-}
-
-const NAMING_TOKENS = [
-  { token: '{BRAND}',        color: 'var(--accent3)', desc: 'Brand code' },
-  { token: '{SEQ}',          color: 'var(--accent)',  desc: 'Look #' },
-  { token: '{SKU}',          color: 'var(--accent)',  desc: 'SKU' },
-  { token: '{STYLE_NUMBER}', color: 'var(--accent)',  desc: 'Style #' },
-  { token: '{COLOR}',        color: 'var(--accent2)', desc: 'Colour' },
-  { token: '{COLOUR_CODE}',  color: 'var(--accent2)', desc: 'Colour code' },
-  { token: '{VIEW}',         color: 'var(--accent4)', desc: 'Angle (text)' },
-  { token: '{VIEW_NUM}',     color: 'var(--accent4)', desc: 'Angle (number)' },
-  { token: '{INDEX}',        color: 'var(--accent4)', desc: 'Image #' },
-  { token: '{CUSTOM_TEXT}',  color: 'var(--text3)',   desc: 'Fixed text' },
-]
 
 const STILL_LIFE_GROUPS = [
   { label: 'Bags & Footwear',       ids: ['bags', 'shoes'] },
@@ -707,26 +689,6 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                 </div>
               </div>
 
-            </Section>
-
-            {/* Naming Template */}
-            <Section title="Default Naming Template" help={<span>Pre-fills the naming template in the export panel. Click tokens to add or remove them.<br /><br /><strong>Example:</strong> <code style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>{'{SKU}_{COLOR}_{VIEW}'}</code> → <code style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>NS27502_BLACK_FRONT.jpg</code></span>}>
-              <div className="flex flex-wrap gap-[6px] mb-3">
-                {NAMING_TOKENS.map((t) => {
-                  const active = form.naming_template.includes(t.token)
-                  return (
-                    <button key={t.token} type="button" onClick={() => onFormChange({ naming_template: toggleToken(form.naming_template, t.token) })} title={t.desc} className={`px-2 py-[3px] rounded-sm border text-[0.82rem] font-mono transition-all ${active ? 'border-current opacity-100' : 'border-[var(--line2)] text-[var(--text3)] opacity-50 hover:opacity-80'}`} style={active ? { color: t.color, borderColor: t.color, background: `color-mix(in srgb, ${t.color} 10%, transparent)` } : {}}>
-                      {t.token}
-                    </button>
-                  )
-                })}
-              </div>
-              <input className="input font-mono" value={form.naming_template} onChange={(e) => onFormChange({ naming_template: e.target.value })} placeholder="{BRAND}_{SEQ}_{VIEW}" />
-              <p className="text-[0.8rem] text-[var(--text3)] mt-2">
-                Preview: <span className="text-[var(--text2)] font-mono">
-                  {form.naming_template.replace('{BRAND}', form.brand_code.toUpperCase() || 'BRAND').replace('{SEQ}', '001').replace('{SKU}', 'TOP-BLK-001').replace('{COLOR}', 'BLACK').replace('{VIEW_NUM}', '5').replace('{VIEW}', 'FRONT').replace('{INDEX}', '01')}.jpg
-                </span>
-              </p>
             </Section>
 
             {/* Brand Voice */}

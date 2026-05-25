@@ -97,7 +97,7 @@ export interface MarketplaceRule {
   angle_order: ViewLabel[]   // export sequence — images sorted in this order per marketplace
   category_overrides?: CategoryOverride[]  // per-category overrides on top of the default
   image_dimensions: { width: number; height: number }
-  file_format: 'jpg' | 'png'
+  file_format: 'jpg' | 'png' | 'webp'
   quality: number
   max_file_size_kb: number
   background_color: string

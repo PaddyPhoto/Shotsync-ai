@@ -15,11 +15,12 @@ import type { MarketplaceName, ViewLabel, CategoryOverride } from '@/types'
 
 const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'front-3/4', 'back-3/4']
 
-const VIEW_PILL_CLS: Record<ViewLabel, string> = {
-  front: 'shot-front', back: 'shot-back', side: 'shot-side', detail: 'shot-detail',
-  mood: 'shot-mood', 'full-length': 'shot-full-length', 'ghost-mannequin': 'shot-gm',
-  'flat-lay': 'shot-flat', 'top-down': 'shot-topdown', inside: 'shot-inside',
-  'front-3/4': 'shot-threequarter', 'back-3/4': 'shot-threequarter', unknown: 'shot-unknown',
+const PLATFORM_CONFIG: Record<string, { initials: string; accentColor: string; monoBg: string; monoColor: string }> = {
+  shopify:       { initials: 'S',  accentColor: '#96BF48', monoBg: 'rgba(150,191,72,0.18)',  monoColor: '#96BF48' },
+  'the-iconic':  { initials: 'TI', accentColor: '#e8e8e8', monoBg: 'rgba(255,255,255,0.12)', monoColor: '#e8e8e8' },
+  'david-jones': { initials: 'DJ', accentColor: '#6a9fd8', monoBg: 'rgba(107,159,216,0.18)', monoColor: '#6a9fd8' },
+  myer:          { initials: 'M',  accentColor: '#E31837', monoBg: 'rgba(227,24,55,0.18)',   monoColor: '#E31837' },
+  joor:          { initials: 'J',  accentColor: '#aaaaaa', monoBg: 'rgba(255,255,255,0.08)', monoColor: '#aaaaaa' },
 }
 
 const NAMING_TOKENS = [
@@ -50,14 +51,17 @@ export default function MarketplacesPage() {
 function MarketplacesInner() {
   const searchParams = useSearchParams()
   const { brands, refreshBrands, activeBrand } = useBrand()
-  const [confirmResetAll, setConfirmResetAll] = useState(false)
+  const [activeMarketplace, setActiveMarketplace] = useState<MarketplaceName>('shopify')
+  const [step, setStep] = useState(1)
+  const [showAdvanced, setShowAdvanced] = useState(true)
+  const switchMarketplace = (id: MarketplaceName) => { setActiveMarketplace(id); setStep(1); setShowAdvanced(true) }
 
   // Cloud storage — follows the global active brand from the top-left dropdown
   const [selectedBrandId, setSelectedBrandId] = useState(activeBrand?.id ?? brands[0]?.id ?? '')
   useEffect(() => {
     if (activeBrand?.id) setSelectedBrandId(activeBrand.id)
   }, [activeBrand?.id])
-  const { rules, updateRule, resetRule, resetAll, saved } = useMarketplaceRules(selectedBrandId || undefined)
+  const { rules, updateRule, resetRule, saved } = useMarketplaceRules(selectedBrandId || undefined)
   const [s3Form, setS3Form] = useState({ bucket: '', region: 'ap-southeast-2', access_key_id: '', secret_access_key: '', prefix: '' })
   const [s3Saving, setS3Saving] = useState(false)
   const [s3Saved, setS3Saved] = useState(false)
@@ -187,198 +191,324 @@ function MarketplacesInner() {
 
           {/* ── Marketplace Export Rules ─────────────────────────────────── */}
           <section>
-            <div className="flex items-center justify-between mb-1">
+            <div className="mb-1">
               <h2 className="text-[1rem] font-semibold text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Marketplace Export Rules</h2>
-              <div className="flex items-center gap-3">
-                {saved && !confirmResetAll && (
-                  <span className="text-[0.8rem] text-[var(--accent2)] flex items-center gap-1">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
-                    Saved
-                  </span>
-                )}
-                {confirmResetAll ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[0.8rem] text-[#ff3b30]">Reset all 4 rules to defaults?</span>
-                    <button onClick={() => { resetAll(); setConfirmResetAll(false) }} className="btn btn-sm" style={{ background: '#ff3b30', color: '#fff', borderColor: 'transparent' }}>Reset</button>
-                    <button onClick={() => setConfirmResetAll(false)} className="btn btn-ghost btn-sm">Cancel</button>
-                  </div>
-                ) : (
-                  <button onClick={() => setConfirmResetAll(true)} className="btn btn-ghost btn-sm">Reset all to defaults</button>
-                )}
-              </div>
             </div>
-            <p className="text-[0.85rem] text-[var(--text3)] mb-1">Changes save automatically to your browser.</p>
+            <p className="text-[0.85rem] text-[var(--text3)] mb-1">Changes save automatically.</p>
             <div className="mb-5 px-3 py-2.5 rounded-[8px] text-[0.82rem] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
-              Each marketplace receives images in its own required order — independent of how your photographer shoots. ShotSync uses the angle labels assigned to each image in the cluster, then re-sequences the export files to match what the marketplace expects.
+              Each marketplace receives images in its own required order. ShotSync re-sequences your export automatically using the angle labels assigned during processing.
             </div>
 
-            <div className="flex flex-col gap-8">
+            {/* Marketplace cards */}
+            <div className="grid gap-3 mb-6" style={{ gridTemplateColumns: `repeat(${Object.keys(rules).length}, 1fr)` }}>
               {(Object.keys(rules) as MarketplaceName[]).map((id) => {
-                const rule = rules[id]
-                const isModified = JSON.stringify(rule) !== JSON.stringify(MARKETPLACE_RULES[id])
+                const r = rules[id]
+                const isModified = JSON.stringify(r) !== JSON.stringify(MARKETPLACE_RULES[id])
+                const isActive = activeMarketplace === id
+                const platform = PLATFORM_CONFIG[id]
                 return (
-                  <div key={id} className="card">
-                    <div className="card-head">
-                      <div className="flex items-center gap-2">
-                        <span className="card-title">{rule.name}</span>
-                        {isModified && <span className="text-[0.83rem] font-semibold uppercase tracking-[0.05em] px-[6px] py-[2px] rounded-[4px] bg-[rgba(232,217,122,0.12)] text-[var(--accent)]">Modified</span>}
-                      </div>
-                      <button onClick={() => resetRule(id)} className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">Reset to default</button>
+                  <button
+                    key={id}
+                    onClick={() => switchMarketplace(id)}
+                    className="w-full flex flex-col items-start p-3 rounded-[10px] transition-all text-left relative"
+                    style={isActive
+                      ? { background: 'var(--bg)', border: '1px solid var(--line2)', borderTop: `2px solid ${platform.accentColor}`, boxShadow: '0 2px 10px rgba(0,0,0,0.25)' }
+                      : { background: 'var(--bg2)', border: '1px solid var(--line)', borderTop: '2px solid transparent' }}
+                  >
+                    {/* Monogram */}
+                    <div
+                      className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[0.72rem] font-bold mb-2.5 flex-shrink-0"
+                      style={{ background: platform.monoBg, color: platform.monoColor }}
+                    >
+                      {platform.initials}
                     </div>
-                    <div className="card-body">
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-0">
-                        <div className="col-span-2 flex items-start justify-between py-[12px] border-b border-[var(--line)]">
-                          <div>
-                            <p className="text-[0.8rem] text-[var(--text2)]">Required Views</p>
-                            <p className="text-[0.86rem] text-[var(--text3)] mt-[2px]">Shot angles mandatory for this marketplace</p>
+                    {/* Name */}
+                    <p className={`text-[0.99rem] leading-snug mb-2.5 ${isActive ? 'font-semibold text-[var(--text)]' : 'font-medium text-[var(--text3)]'}`}>
+                      {r.name}
+                    </p>
+                    {/* Status row */}
+                    <div className="flex items-center gap-1.5 w-full">
+                      <span className="w-[6px] h-[6px] rounded-full flex-shrink-0" style={{ background: isModified ? '#30d158' : 'var(--line2)' }} />
+                      <span className="text-[0.68rem] text-[var(--text3)] truncate">{isModified ? 'Configured' : 'Default'}</span>
+                      {isModified && <span className="ml-auto w-[6px] h-[6px] rounded-full flex-shrink-0" style={{ background: '#f59e0b' }} />}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Wizard for active marketplace */}
+            {(() => {
+              const id = activeMarketplace
+              const rule = rules[id]
+              const isModified = JSON.stringify(rule) !== JSON.stringify(MARKETPLACE_RULES[id])
+              const overrideCount = (rule.category_overrides ?? []).length
+              const platform = PLATFORM_CONFIG[id]
+              return (
+                <div className="pl-4 border-l-2 transition-all" style={{ borderColor: platform.accentColor }}>
+                  {/* Marketplace identity label */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-[5px] flex items-center justify-center text-[0.65rem] font-bold flex-shrink-0"
+                      style={{ background: platform.monoBg, color: platform.monoColor }}>
+                      {platform.initials}
+                    </div>
+                    <span className="text-[0.85rem] font-semibold text-[var(--text)]">{rule.name}</span>
+                    <span className="text-[0.75rem] text-[var(--text3)]">— export settings</span>
+                  </div>
+                  {/* Step header */}
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex rounded-[8px] overflow-hidden border border-[var(--line)]">
+                      {[
+                        { n: 1, label: 'Shot angles' },
+                        { n: 2, label: 'Image specs' },
+                        { n: 3, label: 'File naming' },
+                      ].map(({ n, label }, i) => (
+                        <button
+                          key={n}
+                          onClick={() => setStep(n)}
+                          className={`px-4 py-2 text-[0.8rem] font-medium transition-all text-left ${
+                            i > 0 ? 'border-l border-[var(--line)]' : ''
+                          } ${
+                            step === n
+                              ? 'text-[var(--text)]'
+                              : step > n
+                              ? 'bg-[var(--bg2)] text-[var(--text2)] hover:text-[var(--text)]'
+                              : 'bg-[var(--bg2)] text-[var(--text3)] hover:text-[var(--text2)]'
+                          }`}
+                          style={step === n ? { background: 'rgba(255,255,255,0.09)' } : {}}
+                        >
+                          <div className="text-[0.68rem] mb-[2px]" style={{ fontFamily: 'var(--font-dm-mono)', color: step > n ? 'var(--accent2)' : step === n ? 'var(--text2)' : 'var(--text3)' }}>
+                            {step > n ? `✓ Step ${n}` : `Step ${n}`}
                           </div>
-                          <div className="flex gap-2 flex-wrap justify-end">
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {saved && (
+                        <span className="text-[0.8rem] text-[var(--accent2)] flex items-center gap-1">
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
+                          Saved
+                        </span>
+                      )}
+                      {isModified && <span className="text-[0.83rem] font-semibold uppercase tracking-[0.05em] px-[6px] py-[2px] rounded-[4px]" style={{ background: 'rgba(245,158,11,0.14)', color: '#f59e0b' }}>Modified</span>}
+                      <button onClick={() => resetRule(id)} className="text-[0.8rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">Reset to default</button>
+                    </div>
+                  </div>
+
+                  {/* ─── Step 1: Shot Angles ─── */}
+                  {step === 1 && (
+                    <div>
+                      <div className="card mb-4">
+                        <div className="card-head">
+                          <span className="card-title">Required angles</span>
+                          <span className="text-[0.8rem] text-[var(--text3)]">Tap to include or exclude</span>
+                        </div>
+                        <div className="card-body">
+                          <div className="flex flex-wrap gap-2 mb-4">
                             {ALL_VIEWS.map((v) => {
-                              const active = rule.required_views.includes(v)
+                              const isSelected = rule.required_views.includes(v)
+                              const isRequired = MARKETPLACE_RULES[id].required_views.includes(v)
                               return (
-                                <button key={v} onClick={() => { const next = active ? rule.required_views.filter((x) => x !== v) : [...rule.required_views, v]; updateRule(id, { required_views: next }) }} className={`shot-pill transition-all ${active ? VIEW_PILL_CLS[v] : 'shot-missing opacity-50 hover:opacity-80'}`}>{v}</button>
+                                <button
+                                  key={v}
+                                  onClick={() => {
+                                    const next = isSelected ? rule.required_views.filter((x) => x !== v) : [...rule.required_views, v]
+                                    updateRule(id, { required_views: next })
+                                  }}
+                                  className="shot-pill transition-all cursor-pointer"
+                                  style={
+                                    isSelected && isRequired
+                                      ? { background: 'rgba(48,209,88,0.15)', color: '#30d158', border: '1px solid rgba(48,209,88,0.3)' }
+                                      : isSelected
+                                      ? { background: 'rgba(255,255,255,0.1)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.18)' }
+                                      : { background: 'rgba(255,255,255,0.03)', color: 'var(--text3)', border: '0.5px solid var(--line)', opacity: 0.5 }
+                                  }
+                                >
+                                  {v}
+                                </button>
                               )
                             })}
                           </div>
-                        </div>
-
-                        {/* Angle Sequence — default order + per-category overrides in one view */}
-                        <div className="col-span-2 flex items-start justify-between gap-8 py-[12px] border-b border-[var(--line)]">
-                          {/* Left: label + legend — mirrors Required Views label column width */}
-                          <div className="flex-shrink-0 w-[200px]">
-                            <p className="text-[0.8rem] text-[var(--text2)] flex items-center gap-1 mb-2">
-                              Angle Sequence
-                              <HelpTooltip position="right" width={290} content="Controls the order images are exported. Drag pills to reorder. Faded pills are excluded — click to add back. Add category rows for garment-specific sequences that override the default." />
-                            </p>
-                            <div className="flex flex-col gap-[5px]">
-                              {[
-                                { icon: <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor"><circle cx="1.5" cy="1.5" r="1"/><circle cx="4.5" cy="1.5" r="1"/><circle cx="1.5" cy="4" r="1"/><circle cx="4.5" cy="4" r="1"/><circle cx="1.5" cy="6.5" r="1"/><circle cx="4.5" cy="6.5" r="1"/></svg>, label: 'Drag to reorder' },
-                                { icon: <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>, label: 'Hover pill to remove' },
-                                { icon: <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 2v6M2 5h6"/></svg>, label: 'Click faded to add' },
-                              ].map(({ icon, label }) => (
-                                <span key={label} className="flex items-center gap-[5px] text-[0.73rem]" style={{ color: 'var(--text3)' }}>
-                                  <span className="opacity-60">{icon}</span>
-                                  {label}
-                                </span>
+                          <div className="h-px bg-[var(--line)] mb-4" />
+                          <div className="flex items-start justify-between mb-3">
+                            <p className="text-[0.85rem] font-medium text-[var(--text)]">Shot sequence</p>
+                            <div className="flex flex-col gap-[3px] items-end">
+                              {['Drag to reorder', 'Hover pill to remove', 'Click faded to add'].map((label) => (
+                                <span key={label} className="text-[0.72rem] text-[var(--text3)]">{label}</span>
                               ))}
                             </div>
                           </div>
-
-                          {/* Right: pill rows */}
-                          <div className="flex-1 flex flex-col gap-[8px]">
-                            {/* Default row — no label when no overrides, label appears only when overrides exist */}
-                            {(rule.category_overrides ?? []).length > 0 ? (
-                              <div className="flex items-start gap-2">
-                                <span className="text-[0.72rem] text-[var(--text3)] w-[90px] flex-shrink-0 font-medium mt-[5px]">Default</span>
-                                <AnglePillRow
-                                  views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
-                                  allViews={ALL_VIEWS}
-                                  rowKey={`${id}:default`}
-                                  dragState={dragState}
-                                  setDragState={setDragState}
-                                  onChange={(next) => updateRule(id, { angle_order: next })}
-                                />
-                              </div>
-                            ) : (
-                              <AnglePillRow
-                                views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
-                                allViews={ALL_VIEWS}
-                                rowKey={`${id}:default`}
-                                dragState={dragState}
-                                setDragState={setDragState}
-                                onChange={(next) => updateRule(id, { angle_order: next })}
-                              />
+                          <div className="bg-[var(--bg2)] rounded-[8px] border border-[var(--line)] p-3 mb-4">
+                            {overrideCount > 0 && (
+                              <p className="text-[0.7rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] mb-2">Default sequence</p>
                             )}
-
-                            {/* Category override rows */}
-                            {(rule.category_overrides ?? []).length > 0 && (
-                              <div className="h-px bg-[var(--line)]" />
+                            <AnglePillRow
+                              views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
+                              allViews={ALL_VIEWS}
+                              rowKey={`${id}:default`}
+                              dragState={dragState}
+                              setDragState={setDragState}
+                              onChange={(next) => updateRule(id, { angle_order: next })}
+                            />
+                          </div>
+                          {/* Category overrides accordion */}
+                          <button
+                            type="button"
+                            onClick={() => setShowAdvanced(!showAdvanced)}
+                            className="flex items-center gap-1.5 text-[0.87rem] text-[var(--text2)] hover:text-[var(--text)] transition-colors font-medium"
+                          >
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ transform: showAdvanced ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+                              <path d="M2 3.5l3 3 3-3" />
+                            </svg>
+                            Category overrides
+                            {overrideCount > 0 && (
+                              <span className="text-[0.7rem] px-[6px] py-[2px] bg-[var(--bg2)] border border-[var(--line)] rounded-[4px] text-[var(--text3)] ml-1">
+                                {overrideCount} active
+                              </span>
                             )}
-                            {(rule.category_overrides ?? []).map((ov) => (
-                              <div key={ov.id} className="flex items-start gap-2">
-                                <select
-                                  className="text-[0.72rem] w-[90px] flex-shrink-0 input py-[3px] cursor-pointer"
-                                  value={ov.category}
-                                  onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
-                                >
-                                  <option value="">— cat —</option>
-                                  {GARMENT_CATEGORIES.map((cat) => (
-                                    <option key={cat.id} value={cat.label}>{cat.label}</option>
-                                  ))}
-                                </select>
-                                <AnglePillRow
-                                  views={ov.angle_order ?? [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)]}
-                                  allViews={ALL_VIEWS}
-                                  rowKey={`${id}:${ov.id}`}
-                                  dragState={dragState}
-                                  setDragState={setDragState}
-                                  onChange={(next) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, angle_order: next } : o) })}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => updateRule(id, { category_overrides: (rule.category_overrides ?? []).filter((o) => o.id !== ov.id) })}
-                                  className="flex-shrink-0 text-[var(--text3)] hover:text-[#ff3b30] transition-colors mt-[5px]"
-                                  title="Remove category override"
-                                >
-                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
-                                </button>
-                              </div>
-                            ))}
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newOv: CategoryOverride = {
-                                  id: `override-${Date.now()}`,
-                                  category: '',
-                                  label: '',
-                                  angle_order: [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)],
-                                }
-                                updateRule(id, { category_overrides: [...(rule.category_overrides ?? []), newOv] })
-                              }}
-                              className="text-[0.8rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-1"
-                            >
-                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
-                              Add category override
-                            </button>
-                          </div>{/* end right column */}
-                        </div>{/* end angle sequence row */}
-
-                        <SRow label="Width (px)" sub="Output image width"><input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.width} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, width: Number(e.target.value) } })} /></SRow>
-                        <SRow label="Height (px)" sub="Output image height"><input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.height} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, height: Number(e.target.value) } })} /></SRow>
-                        <SRow label="File Format" sub="Output file type">
-                          <div className="inline-flex bg-[var(--bg3)] p-[2px] rounded-sm gap-[2px]">
-                            {(['jpg', 'png'] as const).map((fmt) => (
-                              <button key={fmt} onClick={() => updateRule(id, { file_format: fmt })} className={`px-3 py-[4px] rounded-[4px] text-[0.8rem] font-medium transition-all ${rule.file_format === fmt ? 'bg-[var(--bg)] text-[var(--text)]' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`} style={{ fontFamily: 'var(--font-dm-mono)' }}>{fmt.toUpperCase()}</button>
-                            ))}
-                          </div>
-                        </SRow>
-                        <SRow label="JPEG Quality" sub={`${rule.quality}% — affects file size`}>
-                          <div className="flex items-center gap-3 w-[180px]">
-                            <input type="range" min={50} max={100} step={1} value={rule.quality} onChange={(e) => updateRule(id, { quality: Number(e.target.value) })} className="flex-1 accent-[var(--accent)] h-[3px]" />
-                            <span className="text-[0.85rem] w-8 text-right text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.quality}%</span>
-                          </div>
-                        </SRow>
-                        <SRow label="Max File Size" sub="Soft limit in KB">
-                          <div className="flex items-center gap-2">
-                            <input type="number" className="input w-[100px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.max_file_size_kb} min={50} max={10000} onChange={(e) => updateRule(id, { max_file_size_kb: Number(e.target.value) })} />
-                            <span className="text-[0.8rem] text-[var(--text3)]">KB</span>
-                          </div>
-                        </SRow>
-                        <SRow label="Background Colour" sub="Fill colour for transparent areas">
-                          <div className="flex items-center gap-2">
-                            <input type="color" value={rule.background_color} onChange={(e) => updateRule(id, { background_color: e.target.value })} className="w-8 h-8 rounded-sm border border-[var(--line2)] bg-transparent cursor-pointer" />
-                            <input className="input w-[100px]" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.background_color} onChange={(e) => updateRule(id, { background_color: e.target.value })} />
-                          </div>
-                        </SRow>
-                        <SRow label="AI Background Removal" sub="Remove background during export. Required by Myer.">
-                          <button onClick={() => updateRule(id, { remove_background: !rule.remove_background })} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${rule.remove_background ? 'bg-[var(--accent2)]' : 'bg-[var(--line2)]'}`}>
-                            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${rule.remove_background ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
                           </button>
-                        </SRow>
-                        <div className="col-span-2 py-[12px] border-t border-[var(--line)]">
-                          <p className="text-[0.8rem] text-[var(--text2)] mb-2">Naming Convention</p>
-                          <div className="flex flex-wrap gap-[6px] mb-2">
+                          {showAdvanced && (
+                            <div className="mt-3 pl-4 border-l border-[var(--line)]">
+                              <p className="text-[0.8rem] text-[var(--text3)] mb-3">Set a different shot sequence for specific product categories.</p>
+                              {(rule.category_overrides ?? []).map((ov) => (
+                                <div key={ov.id} className="flex items-start gap-2 py-2.5 border-b border-[var(--line)]">
+                                  <select
+                                    className="text-[0.72rem] w-[90px] flex-shrink-0 input py-[3px] cursor-pointer font-medium"
+                                    style={{ borderColor: ov.category ? 'var(--line2)' : 'var(--accent2)', color: ov.category ? 'var(--text2)' : 'var(--accent2)', background: ov.category ? '' : 'rgba(48,209,88,0.07)' }}
+                                    value={ov.category}
+                                    onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
+                                  >
+                                    <option value="">— cat —</option>
+                                    {GARMENT_CATEGORIES.map((cat) => (
+                                      <option key={cat.id} value={cat.label}>{cat.label}</option>
+                                    ))}
+                                  </select>
+                                  <AnglePillRow
+                                    views={ov.angle_order ?? [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)]}
+                                    allViews={ALL_VIEWS}
+                                    rowKey={`${id}:${ov.id}`}
+                                    dragState={dragState}
+                                    setDragState={setDragState}
+                                    onChange={(next) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, angle_order: next } : o) })}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => updateRule(id, { category_overrides: (rule.category_overrides ?? []).filter((o) => o.id !== ov.id) })}
+                                    className="flex-shrink-0 text-[var(--text3)] hover:text-[#ff3b30] transition-colors mt-[5px]"
+                                  >
+                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newOv: CategoryOverride = {
+                                    id: `override-${Date.now()}`,
+                                    category: '',
+                                    label: '',
+                                    angle_order: [...(rule.angle_order ?? MARKETPLACE_RULES[id].angle_order)],
+                                  }
+                                  updateRule(id, { category_overrides: [...(rule.category_overrides ?? []), newOv] })
+                                }}
+                                className="text-[0.8rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-3"
+                              >
+                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
+                                Add category override
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
+                        <button onClick={() => setStep(2)} className="btn btn-primary text-[0.85rem]">Next: Image specs →</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ─── Step 2: Image Specs ─── */}
+                  {step === 2 && (
+                    <div>
+                      <div className="card mb-4">
+                        <div className="card-head">
+                          <span className="card-title">Output dimensions</span>
+                          <span className="text-[0.8rem] text-[var(--text3)]">Set once — applies to all exports</span>
+                        </div>
+                        <div className="card-body">
+                          <div className="grid grid-cols-2 gap-x-8 gap-y-0">
+                            <SRow label="Width (px)" sub="Output image width">
+                              <input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.width} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, width: Number(e.target.value) } })} />
+                            </SRow>
+                            <SRow label="Height (px)" sub="Output image height">
+                              <input type="number" className="input w-[120px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.image_dimensions.height} min={100} max={9999} onChange={(e) => updateRule(id, { image_dimensions: { ...rule.image_dimensions, height: Number(e.target.value) } })} />
+                            </SRow>
+                            <SRow label="File Format" sub="Output file type">
+                              <div className="inline-flex bg-[var(--bg3)] p-[2px] rounded-sm gap-[2px]">
+                                {(['jpg', 'png', 'webp'] as const).map((fmt) => (
+                                  <button key={fmt} onClick={() => updateRule(id, { file_format: fmt })} className={`px-3 py-[4px] rounded-[4px] text-[0.8rem] font-medium transition-all ${rule.file_format === fmt ? 'bg-[var(--bg)] text-[var(--text)]' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`} style={{ fontFamily: 'var(--font-dm-mono)' }}>{fmt.toUpperCase()}</button>
+                                ))}
+                              </div>
+                            </SRow>
+                            <SRow label="Max File Size" sub="Soft limit in KB">
+                              <div className="flex items-center gap-2">
+                                <input type="number" className="input w-[100px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.max_file_size_kb} min={50} max={10000} onChange={(e) => updateRule(id, { max_file_size_kb: Number(e.target.value) })} />
+                                <span className="text-[0.8rem] text-[var(--text3)]">KB</span>
+                              </div>
+                            </SRow>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="card mb-4">
+                        <div className="card-head">
+                          <span className="card-title">Quality &amp; background</span>
+                        </div>
+                        <div className="card-body">
+                          <div className="grid grid-cols-2 gap-x-8 gap-y-0">
+                            <SRow label="JPEG Quality" sub={`${rule.quality}% — affects file size`}>
+                              <div className="flex items-center gap-3 w-[180px]">
+                                <input type="range" min={50} max={100} step={1} value={rule.quality} onChange={(e) => updateRule(id, { quality: Number(e.target.value) })} className="flex-1 accent-[var(--accent)] h-[3px]" />
+                                <span className="text-[0.85rem] w-8 text-right text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.quality}%</span>
+                              </div>
+                            </SRow>
+                            <SRow label="Background Colour" sub="Fill for transparent areas">
+                              <div className="flex items-center gap-2">
+                                <input type="color" value={rule.background_color} onChange={(e) => updateRule(id, { background_color: e.target.value })} className="w-8 h-8 rounded-sm border border-[var(--line2)] bg-transparent cursor-pointer" />
+                                <input className="input w-[100px]" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.background_color} onChange={(e) => updateRule(id, { background_color: e.target.value })} />
+                              </div>
+                            </SRow>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="card mb-4">
+                        <div className="card-head">
+                          <span className="card-title">Processing options</span>
+                        </div>
+                        <div className="card-body">
+                          <SRow label="AI Background Removal" sub="Remove background during export. Required by Myer.">
+                            <button onClick={() => updateRule(id, { remove_background: !rule.remove_background })} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${rule.remove_background ? 'bg-[var(--accent2)]' : 'bg-[var(--line2)]'}`}>
+                              <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${rule.remove_background ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
+                            </button>
+                          </SRow>
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <button onClick={() => setStep(1)} className="btn btn-ghost text-[0.85rem]">← Back</button>
+                        <button onClick={() => setStep(3)} className="btn btn-primary text-[0.85rem]">Next: File naming →</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ─── Step 3: File Naming ─── */}
+                  {step === 3 && (
+                    <div>
+                      <div className="card mb-4">
+                        <div className="card-head">
+                          <span className="card-title">Naming convention</span>
+                          <span className="text-[0.8rem] text-[var(--text3)]">Click tokens to build your pattern</span>
+                        </div>
+                        <div className="card-body">
+                          <div className="flex flex-wrap gap-[6px] mb-3">
                             {NAMING_TOKENS.map((t) => {
                               const active = rule.naming_template.includes(t.token)
                               return (
@@ -386,21 +516,27 @@ function MarketplacesInner() {
                               )
                             })}
                           </div>
-                          <input className="input" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.naming_template} onChange={(e) => updateRule(id, { naming_template: e.target.value })} />
+                          <input className="input mb-3" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.naming_template} onChange={(e) => updateRule(id, { naming_template: e.target.value })} />
+                          <div className="flex items-center justify-between px-3 py-2.5 rounded-[8px] border border-[var(--line)]" style={{ background: 'var(--bg2)' }}>
+                            <span className="text-[0.8rem] text-[var(--text2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                              {applyNamingTemplate(rule.naming_template, { brand: activeBrand?.brand_code ?? 'BRAND', sku: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', color: 'BLACK', view: activeBrand?.on_model_angle_sequence?.[0] ?? 'front', seq: 1, index: 1, styleNumber: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', colourCode: '001', supplierCode: activeBrand?.brand_code ?? 'BRAND', season: 'SS25', customText: 'TEXT' })}.{rule.file_format}
+                            </span>
+                            <span className="text-[0.8rem] text-[var(--text3)] flex-shrink-0 ml-4" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.image_dimensions.width}×{rule.image_dimensions.height} · Q{rule.quality}</span>
+                          </div>
+                          <p className="text-[0.72rem] text-[var(--text3)] mt-1.5">Preview filename — extension added automatically</p>
                         </div>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-[var(--line)] flex items-center gap-3">
-                        <span className="text-[0.85rem] text-[var(--text3)] flex-shrink-0">Preview:</span>
-                        <span className="text-[0.8rem] text-[var(--text2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>
-                          {applyNamingTemplate(rule.naming_template, { brand: activeBrand?.brand_code ?? 'BRAND', sku: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', color: 'BLACK', view: activeBrand?.on_model_angle_sequence?.[0] ?? 'front', seq: 1, index: 1, styleNumber: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', colourCode: '001', supplierCode: activeBrand?.brand_code ?? 'BRAND', season: 'SS25', customText: 'TEXT' })}.{rule.file_format}
-                        </span>
-                        <span className="text-[0.86rem] text-[var(--text3)] flex-shrink-0 ml-auto" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.image_dimensions.width}×{rule.image_dimensions.height} · Q{rule.quality}</span>
+                      <div className="flex justify-between">
+                        <button onClick={() => setStep(2)} className="btn btn-ghost text-[0.85rem]">← Back</button>
+                        <button onClick={() => setStep(1)} className="btn btn-primary text-[0.85rem]">
+                          {saved ? '✓ Saved' : 'Done'}
+                        </button>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )}
+                </div>
+              )
+            })()}
           </section>
 
           {/* ── Cloud Storage ─────────────────────────────────────────────── */}
@@ -538,8 +674,8 @@ function AnglePillRow({
               onDragEnd={() => setDragState(null)}
               className={`group relative cursor-grab active:cursor-grabbing transition-all ${isDragging ? 'opacity-25 scale-95' : ''} ${isTarget ? 'ring-2 ring-[var(--accent)] ring-offset-1 ring-offset-[var(--bg)]' : ''}`}
             >
-              <span className={`shot-pill select-none pointer-events-none flex items-center gap-[5px] pr-[8px] ${VIEW_PILL_CLS[v] ?? ''}`}>
-                <span className="text-[10px] font-bold opacity-50 leading-none w-[14px] text-center flex-shrink-0">{i + 1}</span>
+              <span className="shot-pill select-none pointer-events-none flex items-center gap-[5px] pr-[8px]" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text)', border: '0.5px solid rgba(255,255,255,0.14)', fontWeight: 400 }}>
+                <span className="text-[10px] font-medium leading-none w-[14px] text-center flex-shrink-0" style={{ color: 'var(--text3)' }}>{i + 1}</span>
                 <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor" className="opacity-40 flex-shrink-0">
                   <circle cx="1.5" cy="1.5" r="1"/><circle cx="4.5" cy="1.5" r="1"/>
                   <circle cx="1.5" cy="4" r="1"/><circle cx="4.5" cy="4" r="1"/>
@@ -568,7 +704,8 @@ function AnglePillRow({
               draggable={false}
               onClick={() => onChange([...views, v])}
               title="Click to add to sequence"
-              className={`shot-pill opacity-30 hover:opacity-70 transition-opacity cursor-pointer select-none flex items-center gap-[4px] ${VIEW_PILL_CLS[v] ?? ''}`}
+              className="shot-pill opacity-25 hover:opacity-65 transition-opacity cursor-pointer select-none flex items-center gap-[4px]"
+              style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text3)', border: '0.5px dashed var(--line)' }}
             >
               <span className="text-[10px] font-bold leading-none">+</span>
               {v}
