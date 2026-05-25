@@ -289,7 +289,7 @@ function ReviewPage() {
   }
   const { rules: marketplaceRules } = useMarketplaceRules()
 
-  const activeTemplate = activeBrand?.naming_template || '{BRAND}_{SEQ}_{VIEW}'
+  const activeTemplate = '{SKU}_{VIEW}'
   const [showExportPanel, setShowExportPanel] = useState(false)
   const [confirmDeleteConfirmed, setConfirmDeleteConfirmed] = useState(false)
 
@@ -1697,9 +1697,7 @@ function ExportPanel({
   const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(
     marketplaces.length > 0 ? marketplaces : []
   )
-  const [localTemplate, setLocalTemplate] = useState(namingTemplate || '{BRAND}_{SEQ}_{VIEW}')
-  const [savingTemplate, setSavingTemplate] = useState(false)
-  const [templateSaved, setTemplateSaved] = useState(false)
+  const [localTemplate, setLocalTemplate] = useState('{SKU}_{VIEW}')
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
   const [exportError, setExportError] = useState<string | null>(null)
@@ -1735,24 +1733,6 @@ function ExportPanel({
     } catch { /* cancelled */ }
   }
 
-  const saveTemplateAsDefault = async () => {
-    if (!activeBrand?.id || !localTemplate.trim()) return
-    setSavingTemplate(true)
-    try {
-      const { data: { session } } = await import('@/lib/supabase/client').then(({ createClient }) => createClient().auth.getSession())
-      await fetch(`/api/brands/${activeBrand.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ naming_template: localTemplate.trim() }),
-      })
-      setTemplateSaved(true)
-      setTimeout(() => setTemplateSaved(false), 2500)
-    } catch { /* non-critical */ }
-    setSavingTemplate(false)
-  }
 
   const handleShopifyUpload = async () => {
     console.log('[shopify v4] handleShopifyUpload called', { brandId: activeBrand?.id, clusters: confirmedClusters.length })
@@ -2712,12 +2692,6 @@ function ExportPanel({
           <div className="flex-shrink-0 pt-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-[0.86rem] font-semibold text-[var(--text3)] uppercase tracking-wide">File naming</p>
-              {activeBrand && (
-                <button onClick={saveTemplateAsDefault} disabled={savingTemplate || localTemplate === namingTemplate}
-                  className="text-[0.86rem] text-[var(--accent)] hover:underline disabled:opacity-40 disabled:no-underline transition-opacity">
-                  {templateSaved ? '✓ Saved' : savingTemplate ? 'Saving…' : 'Save default'}
-                </button>
-              )}
             </div>
             <input className="input w-full mb-2" style={{ fontFamily: 'var(--font-dm-mono)', fontSize: '0.8rem' }}
               value={localTemplate} onChange={(e) => setLocalTemplate(e.target.value)} placeholder="{BRAND}_{SEQ}_{VIEW}" />

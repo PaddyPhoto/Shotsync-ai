@@ -138,7 +138,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   const [downloadZip, setDownloadZip] = useState(false)
   const [flatExport, setFlatExport] = useState(false)
   const [keepOriginalFilenames, setKeepOriginalFilenames] = useState(false)
-  const [namingTemplate, setNamingTemplate] = useState('{BRAND}_{SEQ}_{VIEW}')
+  const [namingTemplate, setNamingTemplate] = useState('{SKU}_{VIEW}')
 
   // Shopify push state
   const [drafts, setDrafts] = useState<DraftItem[]>([])
@@ -184,7 +184,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   useEffect(() => {
     const b = activeBrand ?? brands[0]
     if (b) {
-      setNamingTemplate(b.naming_template || '{BRAND}_{SEQ}_{VIEW}')
+      setNamingTemplate('{SKU}_{VIEW}')
       setSelectedBrandId(b.id)
     }
   }, [activeBrand, brands])
