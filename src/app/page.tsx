@@ -751,10 +751,6 @@ export default function LandingPage() {
 
         {/* ── FOOTER ── */}
         <footer className="section-pad" style={{ padding: 'clamp(36px,4vw,60px) 40px', borderTop: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '28px' }}>
-            <span style={{ fontSize: '11px', color: '#aeaeb2', letterSpacing: '.05em', textTransform: 'uppercase' }}>Secure payments</span>
-            <PaymentLogos />
-          </div>
           <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1440px', margin: '0 auto' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <img src="/icon.png" alt="ShotSync" style={{ width: '28px', height: '28px', borderRadius: '7px' }} />
@@ -773,7 +769,9 @@ export default function LandingPage() {
                 <a key={label} href={href} className="footer-link">{label}</a>
               ))}
             </div>
-            <p style={{ fontSize: '14px', color: '#6e6e73', letterSpacing: '-.1px' }}>© 2026 ShotSync.ai</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <PaymentLogos />
+            </div>
           </div>
         </footer>
 
