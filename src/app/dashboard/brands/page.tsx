@@ -340,15 +340,7 @@ function AnglePills({ angles, onChange, options = ANGLE_OPTIONS }: { angles: str
             <circle cx="2" cy="2" r="1"/><circle cx="5" cy="2" r="1"/><circle cx="2" cy="5" r="1"/>
             <circle cx="5" cy="5" r="1"/><circle cx="2" cy="8" r="1"/><circle cx="5" cy="8" r="1"/>
           </svg>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)', lineHeight: 1, flexShrink: 0 }}>{idx + 1}</span>
-          <select
-            value={angle}
-            onChange={(e) => { const next = [...angles]; next[idx] = e.target.value; onChange(next) }}
-            onClick={(e) => e.stopPropagation()}
-            style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.82rem', color: 'var(--text)', cursor: 'pointer', padding: 0 }}
-          >
-            {options.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
+          <span style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1 }}>{angle}</span>
           <button type="button" onClick={(e) => { e.stopPropagation(); onChange(angles.filter((_, i) => i !== idx)) }}
             className="hover:text-[#ff3b30] transition-colors" style={{ color: 'var(--text3)', lineHeight: 1, fontSize: '1rem', flexShrink: 0 }}>×</button>
         </div>
