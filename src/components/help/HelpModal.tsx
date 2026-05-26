@@ -17,6 +17,10 @@ const SECTIONS: Section[] = [
         a: 'ShotSync automates post-production for fashion brands. Upload your shoot images and ShotSync AI groups them into product clusters with correct angles, SKUs, and colours — ready to export directly to your ERP (Cin7, Apparel21) or marketplace (Shopify, THE ICONIC).',
       },
       {
+        q: 'How does a typical fashion ecommerce shoot translate into ShotSync sessions?',
+        a: 'A typical season involves three separate shoots — on-model, ghost mannequin, and accessories — each delivered as its own folder of full-resolution JPEGs from the photographer (with or without SKU naming in the filenames). Each folder is processed as its own ShotSync session: upload, review and confirm clusters, then export or push to Shopify. The on-model session runs first and creates the product listings in Shopify. The ghost mannequin session runs separately — ShotSync matches each cluster to the existing Shopify listing by SKU and appends the GM images at the position you configured (hero or last). The accessories session runs independently using the Still Life angle sequences set up in Brand Settings. The three sessions are never combined into one upload.',
+      },
+      {
         q: 'What do I need to set up first?',
         a: 'Go to Brand Settings and configure your brand name, colour codes, SKU naming template, shot configuration (angle sequence), and marketplace export rules. This is a one-time setup — done once and used on every job.',
       },
@@ -47,7 +51,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: 'How do ghost mannequin shoots work in ShotSync?',
-        a: 'A ghost mannequin shoot is processed as a completely normal job. Your GM images will typically be named with the SKU and colour — no special naming or keywords required. Upload the GM shoot, ShotSync clusters and labels the images as usual, you confirm the SKUs (which should match the SKUs already on Shopify from your on-model shoot), then push to Shopify. ShotSync matches each cluster to the existing product listing by SKU and appends the GM images directly — no duplicate products are created.',
+        a: 'Ghost mannequin images are processed as a completely separate ShotSync session from your on-model shoot — never combined. The photographer delivers a folder of GM images (front only, or front and back) which may be named with SKU and colour or simply shot sequentially with no naming. Upload that folder as a new job, ShotSync clusters the images, and on the Review page you confirm each cluster and make sure the SKU matches the corresponding on-model product already in Shopify. Then push to Shopify — ShotSync finds the existing listing by SKU and appends the GM images at the position set in Brand Settings → Still Life (Image 1 Hero or Last Image). No duplicate listings are created.',
       },
     ],
   },
@@ -118,11 +122,11 @@ const SECTIONS: Section[] = [
       },
       {
         q: 'What is the Ghost Mannequin pipeline end-to-end?',
-        a: 'The GM pipeline works in four steps. (1) Upload — shoot your GM images and upload them as a normal job. No special file naming is needed; images are typically named with SKU and colour just like your on-model shoot. (2) Process & confirm — ShotSync clusters the images and labels angles from your configured shoot sequence. Confirm the clusters and assign the correct SKUs — these must match the SKU already on the existing Shopify product listing from your on-model shoot. (3) Positioning — the Ghost Mannequin Position setting in Brand Settings → Still Life controls whether GM images land at Image 1 (Hero) or Last Image on the Shopify listing. This applies to both ZIP exports and Shopify pushes. (4) Push to Shopify — ShotSync checks whether a product with that SKU already exists. If found, the GM images are appended to the existing listing at the configured position, with no duplicate product created. If not found, a new draft product is created.',
+        a: 'Ghost mannequin is always a separate ShotSync session from your on-model shoot. The pipeline: (1) Your photographer delivers a folder of GM images — front only or front and back — typically named with SKU and colour, or shot sequentially with no naming. (2) Upload that folder as a new ShotSync job. Do not combine it with the on-model session. (3) ShotSync clusters the images by visual similarity into one cluster per product. On the Review page, confirm each cluster and ensure the SKU matches the product already in Shopify from your on-model session — assign SKUs manually if the images were not named. (4) Push to Shopify. ShotSync checks each SKU against your store: if the product exists (from your earlier on-model push), the GM images are appended at the position set in Brand Settings → Still Life — Image 1 makes them the hero shots, Last Image appends them after the on-model images. If the SKU is not found, a new draft product is created.',
       },
       {
         q: 'What happens when I push ghost mannequin images for a product already in Shopify?',
-        a: 'ShotSync checks whether a product with that SKU already exists in your Shopify store before creating anything. If it finds a match, the new images are appended to the existing listing — no duplicate product is created. This means you can process your on-model and ghost mannequin shoots as separate jobs, push each to Shopify, and the GM images land directly on the existing on-model product listing.',
+        a: 'ShotSync checks whether a product with that SKU already exists in your store before creating anything. If it finds a match — which it will if you already pushed your on-model session — the GM images are appended to that existing listing. No duplicate product is created. The on-model and GM sessions are always separate uploads; the SKU is what ties them together in Shopify.',
       },
       {
         q: 'Where do GM images appear on an existing Shopify product when pushed?',
