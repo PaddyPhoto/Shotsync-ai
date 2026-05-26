@@ -580,8 +580,8 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             {/* ── Step 2: Shot Configuration ── */}
             {step === 2 && (
               <div className="px-6 pb-5">
-                <div className="mb-4 px-3 py-2.5 rounded-[8px] text-[0.82rem] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
-                  Set the order your photographer shoots each look. ShotSync uses this sequence to automatically label incoming images by angle. Export order per marketplace is configured separately in <strong style={{ color: 'var(--text)' }}>Marketplace Settings</strong>.
+                <div className="mb-5 px-4 py-3 rounded-[10px] text-[0.83rem] leading-relaxed" style={{ background: 'var(--accent-glow)', border: '1px solid rgba(0,122,255,0.3)', color: 'var(--text)' }}>
+                  <span className="font-semibold">Set the order your photographer shoots each look.</span> ShotSync uses this sequence to automatically label incoming images by angle. Export order per marketplace is configured separately in <strong style={{ color: 'var(--accent)' }}>Marketplace Settings</strong>.
                 </div>
                 {/* On-model sequence */}
                 <div className="mb-5">
