@@ -612,23 +612,6 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                   />
                 </div>
 
-                {/* Ghost Mannequin */}
-                <div className="mb-5 pt-4 border-t border-[var(--line)]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="text-[1.01rem] font-semibold text-[var(--text)] tracking-[-0.2px]">Ghost Mannequin</h4>
-                    <span className="text-[0.74rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(48,209,88,0.08)', color: 'var(--accent2)', border: '1px solid rgba(48,209,88,0.2)' }}>GM</span>
-                  </div>
-                  <p className="text-[0.86rem] text-[var(--text3)] mb-3">Controls where the GM shot appears in ZIP exports — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes it the hero, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after on-model images.</p>
-                  <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
-                    {(['first', 'last'] as const).map((pos) => (
-                      <button key={pos} type="button" onClick={() => onFormChange({ gm_position: pos })}
-                        className={`px-4 py-[5px] rounded-sm text-[0.91rem] font-medium transition-all ${form.gm_position === pos ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`}>
-                        {pos === 'first' ? 'Image 1 (Hero)' : 'Last Image'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Per-category sequences */}
                 <div className="pt-4 border-t border-[var(--line)]">
                   <p className="text-[1.01rem] font-semibold text-[var(--text)] mb-1 tracking-[-0.2px]">Per-Category Sequences</p>
@@ -668,6 +651,24 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             {/* ── Step 3: Still Life & Accessories ── */}
             {step === 3 && (
               <div className="px-6 pb-5">
+
+                {/* Ghost Mannequin */}
+                <div className="mb-6 pb-6 border-b border-[var(--line)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="text-[1.01rem] font-semibold text-[var(--text)] tracking-[-0.2px]">Ghost Mannequin</h4>
+                    <span className="text-[0.74rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(48,209,88,0.08)', color: 'var(--accent2)', border: '1px solid rgba(48,209,88,0.2)' }}>GM</span>
+                  </div>
+                  <p className="text-[0.86rem] text-[var(--text3)] mb-3">Controls where the GM shot appears in ZIP exports — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes it the hero, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after on-model images.</p>
+                  <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
+                    {(['first', 'last'] as const).map((pos) => (
+                      <button key={pos} type="button" onClick={() => onFormChange({ gm_position: pos })}
+                        className={`px-4 py-[5px] rounded-sm text-[0.91rem] font-medium transition-all ${form.gm_position === pos ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`}>
+                        {pos === 'first' ? 'Image 1 (Hero)' : 'Last Image'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <p className="text-[0.88rem] text-[var(--text3)] mb-4">Override the default angle order per accessory category. Expand a category to customise its shot sequence.</p>
                 <div className="flex flex-col gap-5">
                   {STILL_LIFE_GROUPS.map((group) => {
