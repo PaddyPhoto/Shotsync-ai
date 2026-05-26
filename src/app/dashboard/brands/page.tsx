@@ -535,22 +535,31 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
           <div className="border-t border-[var(--line)]">
 
             {/* Step navigator */}
-            <div className="px-6 pt-5 pb-4 flex items-center">
-              {BRAND_STEPS.map((s, i) => (
-                <div key={s.n} className="flex items-center" style={{ flex: i < BRAND_STEPS.length - 1 ? 1 : undefined }}>
-                  <button type="button" onClick={() => setStep(s.n)} className="flex items-center gap-[7px] shrink-0">
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-[0.7rem] font-bold transition-all"
-                      style={{
-                        background: step === s.n ? 'var(--accent)' : step > s.n ? 'rgba(0,122,255,0.15)' : 'var(--bg4)',
-                        color: step === s.n ? '#fff' : step > s.n ? 'var(--accent)' : 'var(--text3)',
-                      }}
-                    >{step > s.n ? '✓' : s.n}</div>
-                    <span className="text-[0.82rem] font-medium transition-colors" style={{ color: step === s.n ? 'var(--text)' : 'var(--text3)' }}>{s.label}</span>
+            <div className="px-6 pt-5 pb-4">
+              <div className="flex rounded-[8px] overflow-hidden border border-[var(--line)]">
+                {BRAND_STEPS.map((s, i) => (
+                  <button
+                    key={s.n}
+                    type="button"
+                    onClick={() => setStep(s.n)}
+                    className={`flex-1 px-4 py-2 text-[0.8rem] font-medium transition-all text-left ${
+                      i > 0 ? 'border-l border-[var(--line)]' : ''
+                    } ${
+                      step === s.n
+                        ? 'text-[var(--text)]'
+                        : step > s.n
+                        ? 'bg-[var(--bg2)] text-[var(--text2)] hover:text-[var(--text)]'
+                        : 'bg-[var(--bg2)] text-[var(--text3)] hover:text-[var(--text2)]'
+                    }`}
+                    style={step === s.n ? { background: 'rgba(255,255,255,0.09)' } : {}}
+                  >
+                    <div className="text-[0.68rem] mb-[2px]" style={{ fontFamily: 'var(--font-dm-mono)', color: step > s.n ? 'var(--accent2)' : step === s.n ? 'var(--text2)' : 'var(--text3)' }}>
+                      {step > s.n ? `✓ Step ${s.n}` : `Step ${s.n}`}
+                    </div>
+                    {s.label}
                   </button>
-                  {i < BRAND_STEPS.length - 1 && <div className="flex-1 h-px bg-[var(--line2)] mx-3" />}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* ── Step 1: Brand Identity ── */}
