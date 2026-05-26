@@ -298,6 +298,71 @@ function BrandsPage() {
   )
 }
 
+// ── Brand card helpers ────────────────────────────────────────────────────────
+
+const BRAND_STEPS = [
+  { n: 1, label: 'Brand Identity' },
+  { n: 2, label: 'Shot Configuration' },
+  { n: 3, label: 'Still Life' },
+  { n: 4, label: 'Brand Voice' },
+] as const
+
+const ANGLE_OPTIONS = ['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay']
+const ALL_ON_MODEL = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
+const STILL_LIFE_ANGLES = ['front', 'back', 'side', 'detail', 'inside', 'flat-lay', 'top-down', 'front-3/4', 'back-3/4']
+
+function AnglePills({ angles, onChange, options = ANGLE_OPTIONS }: { angles: string[]; onChange: (next: string[]) => void; options?: string[] }) {
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null)
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  return (
+    <div className="flex flex-wrap gap-2 items-center">
+      {angles.map((angle, idx) => (
+        <div
+          key={idx}
+          draggable
+          onDragStart={() => setDraggingIdx(idx)}
+          onDragEnd={() => { setDraggingIdx(null); setDragOverIdx(null) }}
+          onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx) }}
+          onDrop={() => {
+            if (draggingIdx === null || draggingIdx === idx) { setDraggingIdx(null); setDragOverIdx(null); return }
+            const next = [...angles]; const [moved] = next.splice(draggingIdx, 1); next.splice(idx, 0, moved)
+            onChange(next); setDraggingIdx(null); setDragOverIdx(null)
+          }}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '5px',
+            padding: '4px 8px 4px 6px', borderRadius: '20px',
+            background: draggingIdx === idx ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.07)',
+            border: `1px solid ${dragOverIdx === idx && draggingIdx !== idx ? 'var(--accent)' : 'rgba(255,255,255,0.12)'}`,
+            cursor: 'grab', opacity: draggingIdx === idx ? 0.4 : 1, transition: 'opacity 0.15s',
+          }}
+        >
+          <svg width="7" height="10" viewBox="0 0 7 10" fill="currentColor" style={{ color: 'var(--text3)', flexShrink: 0 }}>
+            <circle cx="2" cy="2" r="1"/><circle cx="5" cy="2" r="1"/><circle cx="2" cy="5" r="1"/>
+            <circle cx="5" cy="5" r="1"/><circle cx="2" cy="8" r="1"/><circle cx="5" cy="8" r="1"/>
+          </svg>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)', lineHeight: 1, flexShrink: 0 }}>{idx + 1}</span>
+          <select
+            value={angle}
+            onChange={(e) => { const next = [...angles]; next[idx] = e.target.value; onChange(next) }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.82rem', color: 'var(--text)', cursor: 'pointer', padding: 0 }}
+          >
+            {options.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onChange(angles.filter((_, i) => i !== idx)) }}
+            className="hover:text-[#ff3b30] transition-colors" style={{ color: 'var(--text3)', lineHeight: 1, fontSize: '1rem', flexShrink: 0 }}>×</button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...angles, options[0] ?? 'front'])}
+        className="hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '4px 10px', borderRadius: '20px', background: 'transparent', border: '1px dashed rgba(255,255,255,0.2)', fontSize: '0.8rem', color: 'var(--text3)', cursor: 'pointer' }}
+      >+ add</button>
+    </div>
+  )
+}
+
 // ── Brand card ────────────────────────────────────────────────────────────────
 
 interface BrandCardProps {
@@ -320,11 +385,13 @@ interface BrandCardProps {
 function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife, deletingId, onToggle, onFormChange, onSave, onDelete, onDisconnectShopify, onSetStillLife }: BrandCardProps) {
   const isNew = id === 'new'
   const shopifyConnected = !!brand?.shopify_authenticated
-  const shopifyUrlSaved = !!brand?.shopify_store_url
+  const [step, setStep] = useState(1)
   const [cin7TestStatus, setCin7TestStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle')
   const [cin7TestMsg, setCin7TestMsg] = useState('')
   const [cin7AttrSet, setCin7AttrSet] = useState<'found' | 'missing' | 'unknown' | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+
+  useEffect(() => { if (!expanded) setStep(1) }, [expanded])
 
   const testCin7 = async () => {
     setCin7TestStatus('testing')
@@ -437,10 +504,6 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             <div className="relative overflow-hidden" style={{ maxHeight: '86px' }}>
               <div className="px-6 pt-4 pb-2 grid grid-cols-2 gap-x-6 gap-y-3">
                 <div>
-                  <p className="text-[0.73rem] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Naming template</p>
-                  <p className="text-[0.85rem] font-mono text-[var(--text2)]">{brand!.naming_template || '—'}</p>
-                </div>
-                <div>
                   <p className="text-[0.73rem] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Shots per look</p>
                   <p className="text-[0.85rem] text-[var(--text2)]">{brand!.images_per_look ?? 4} on-model</p>
                 </div>
@@ -448,12 +511,9 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                   <p className="text-[0.73rem] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">GM position</p>
                   <p className="text-[0.85rem] text-[var(--text2)] capitalize">{brand!.gm_position ?? 'last'}</p>
                 </div>
-                <div>
-                  <p className="text-[0.73rem] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Accent colour</p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-sm flex-shrink-0" style={{ background: brand!.logo_color }} />
-                    <p className="text-[0.85rem] font-mono text-[var(--text2)]">{brand!.logo_color}</p>
-                  </div>
+                <div className="col-span-2">
+                  <p className="text-[0.73rem] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">On-model sequence</p>
+                  <p className="text-[0.85rem] text-[var(--text2)]">{(brand!.on_model_angle_sequence ?? DEFAULT_FORM.on_model_angle_sequence).slice(0, brand!.images_per_look ?? 4).join(' · ')}</p>
                 </div>
               </div>
               <div className="absolute bottom-0 inset-x-0 h-[40px] pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, var(--bg2))' }} />
@@ -470,216 +530,192 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
           </div>
         )}
 
-        {/* Full edit form — expanded only */}
+        {/* ── Expanded wizard ── */}
         {expanded && (
           <div className="border-t border-[var(--line)]">
 
-            {/* Brand Identity */}
-            <Section title="Brand Identity">
-              <div className="flex items-center gap-4 p-4 rounded-[8px] bg-[var(--bg3)] border border-[var(--line)] mb-4">
-                <div
-                  className="w-12 h-12 rounded-[8px] flex items-center justify-center text-[0.9rem] font-bold flex-shrink-0 transition-all"
-                  style={{ background: form.logo_color || '#e8d97a', color: '#000', fontFamily: 'var(--font-dm-mono)' }}
-                >
-                  {form.brand_code.toUpperCase().slice(0, 3) || '??'}
-                </div>
-                <div>
-                  <p className="text-[0.95rem] font-semibold text-[var(--text)]">{form.name || 'Brand Name'}</p>
-                  <p className="text-[0.82rem] text-[var(--text3)] font-mono">{form.brand_code.toUpperCase() || 'CODE'}</p>
-                </div>
+            {/* Brand identity strip — persistent above steps */}
+            <div className="px-6 py-4 flex items-center gap-4 bg-[var(--bg3)] border-b border-[var(--line)]">
+              <div
+                className="w-12 h-12 rounded-[8px] flex items-center justify-center text-[0.9rem] font-bold flex-shrink-0 transition-all"
+                style={{ background: form.logo_color || '#e8d97a', color: '#000', fontFamily: 'var(--font-dm-mono)' }}
+              >
+                {form.brand_code.toUpperCase().slice(0, 3) || '??'}
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Brand Name *</label>
-                  <input className="input" placeholder="e.g. Studio Label" value={form.name} onChange={(e) => onFormChange({ name: e.target.value })} />
+              <div>
+                <p className="text-[0.95rem] font-semibold text-[var(--text)]">{form.name || 'Brand Name'}</p>
+                <p className="text-[0.82rem] text-[var(--text3)] font-mono">{form.brand_code.toUpperCase() || 'CODE'} · {form.logo_color}</p>
+              </div>
+            </div>
+
+            {/* Step navigator */}
+            <div className="px-6 pt-5 pb-4 flex items-center">
+              {BRAND_STEPS.map((s, i) => (
+                <div key={s.n} className="flex items-center" style={{ flex: i < BRAND_STEPS.length - 1 ? 1 : undefined }}>
+                  <button type="button" onClick={() => setStep(s.n)} className="flex items-center gap-[7px] shrink-0">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-[0.7rem] font-bold transition-all"
+                      style={{
+                        background: step === s.n ? 'var(--accent)' : step > s.n ? 'rgba(0,122,255,0.15)' : 'var(--bg4)',
+                        color: step === s.n ? '#fff' : step > s.n ? 'var(--accent)' : 'var(--text3)',
+                      }}
+                    >{step > s.n ? '✓' : s.n}</div>
+                    <span className="text-[0.82rem] font-medium transition-colors" style={{ color: step === s.n ? 'var(--text)' : 'var(--text3)' }}>{s.label}</span>
+                  </button>
+                  {i < BRAND_STEPS.length - 1 && <div className="flex-1 h-px bg-[var(--line2)] mx-3" />}
                 </div>
-                <div>
-                  <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Brand Code * <span className="text-[var(--text3)]">(max 6 chars)</span></label>
-                  <input className="input font-mono" placeholder="SL" maxLength={6} value={form.brand_code} onChange={(e) => onFormChange({ brand_code: e.target.value.toUpperCase() })} />
-                </div>
-                <div>
-                  <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Accent Colour</label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={form.logo_color} onChange={(e) => onFormChange({ logo_color: e.target.value })} className="w-9 h-9 rounded-sm border border-[var(--line2)] bg-transparent cursor-pointer flex-shrink-0" />
-                    <input className="input flex-1 font-mono" value={form.logo_color} onChange={(e) => onFormChange({ logo_color: e.target.value })} />
+              ))}
+            </div>
+
+            {/* ── Step 1: Brand Identity ── */}
+            {step === 1 && (
+              <div className="px-6 pb-5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Brand Name *</label>
+                    <input className="input" placeholder="e.g. Studio Label" value={form.name} onChange={(e) => onFormChange({ name: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Brand Code * <span className="text-[var(--text3)]">(max 6 chars)</span></label>
+                    <input className="input font-mono" placeholder="SL" maxLength={6} value={form.brand_code} onChange={(e) => onFormChange({ brand_code: e.target.value.toUpperCase() })} />
+                  </div>
+                  <div>
+                    <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Accent Colour</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={form.logo_color} onChange={(e) => onFormChange({ logo_color: e.target.value })} className="w-9 h-9 rounded-sm border border-[var(--line2)] bg-transparent cursor-pointer flex-shrink-0" />
+                      <input className="input flex-1 font-mono" value={form.logo_color} onChange={(e) => onFormChange({ logo_color: e.target.value })} />
+                    </div>
                   </div>
                 </div>
               </div>
-            </Section>
+            )}
 
-            {/* Shot Configuration */}
-            <Section title="Shot Configuration">
-              <div className="mb-4 px-3 py-2.5 rounded-[8px] text-[0.82rem] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
-                Set the order your photographer shoots each look. ShotSync uses this sequence to automatically label incoming images by angle — so the first image becomes angle 1, the second becomes angle 2, and so on. Export order per marketplace is configured separately in <strong style={{ color: 'var(--text)' }}>Marketplace Settings</strong>.
-              </div>
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <h4 className="text-[0.95rem] font-semibold text-[var(--text)] tracking-[-0.2px]">On-Model</h4>
-                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(232,217,122,0.1)', color: 'var(--accent)', border: '1px solid rgba(232,217,122,0.2)' }}>Apparel</span>
+            {/* ── Step 2: Shot Configuration ── */}
+            {step === 2 && (
+              <div className="px-6 pb-5">
+                <div className="mb-4 px-3 py-2.5 rounded-[8px] text-[0.82rem] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
+                  Set the order your photographer shoots each look. ShotSync uses this sequence to automatically label incoming images by angle. Export order per marketplace is configured separately in <strong style={{ color: 'var(--text)' }}>Marketplace Settings</strong>.
                 </div>
-                <label className="text-[0.82rem] text-[var(--text3)] mb-2 block">Images per Look</label>
-                <div className="flex gap-2 flex-wrap mb-3">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => {
-                        const seq = [...form.on_model_angle_sequence]
-                        const ALL_ON_MODEL = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
-                        while (seq.length < n) seq.push(ALL_ON_MODEL[seq.length] ?? 'front')
-                        onFormChange({ images_per_look: n, on_model_angle_sequence: seq.slice(0, n) })
-                      }}
-                      className={`w-9 h-9 rounded-sm border text-[0.8rem] font-medium transition-all ${form.images_per_look === n ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.1)] text-[var(--accent)]' : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)]'}`}
-                    >{n}</button>
-                  ))}
+                {/* On-model sequence */}
+                <div className="mb-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <h4 className="text-[0.95rem] font-semibold text-[var(--text)] tracking-[-0.2px]">On-Model</h4>
+                    <span className="text-[0.68rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(232,217,122,0.1)', color: 'var(--accent)', border: '1px solid rgba(232,217,122,0.2)' }}>Apparel</span>
+                  </div>
+                  <label className="text-[0.82rem] text-[var(--text3)] mb-2 block">Images per Look</label>
+                  <div className="flex gap-2 flex-wrap mb-4">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <button key={n} type="button"
+                        onClick={() => {
+                          const seq = [...form.on_model_angle_sequence]
+                          while (seq.length < n) seq.push(ALL_ON_MODEL[seq.length] ?? 'front')
+                          onFormChange({ images_per_look: n, on_model_angle_sequence: seq })
+                        }}
+                        className={`w-9 h-9 rounded-sm border text-[0.8rem] font-medium transition-all ${form.images_per_look === n ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.1)] text-[var(--accent)]' : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)]'}`}
+                      >{n}</button>
+                    ))}
+                  </div>
+                  <label className="text-[0.82rem] text-[var(--text3)] mb-2 block">Shot Sequence — drag to reorder</label>
+                  <AnglePills
+                    angles={form.on_model_angle_sequence.slice(0, form.images_per_look)}
+                    onChange={(next) => {
+                      const tail = form.on_model_angle_sequence.slice(form.images_per_look)
+                      onFormChange({ on_model_angle_sequence: [...next, ...tail], images_per_look: next.length })
+                    }}
+                  />
                 </div>
-                <div className="space-y-1">
-                  {form.on_model_angle_sequence.slice(0, form.images_per_look).map((angle, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="w-5 text-[0.82rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
-                      <select value={angle} onChange={(e) => { const seq = [...form.on_model_angle_sequence]; seq[idx] = e.target.value; onFormChange({ on_model_angle_sequence: seq }) }} className="flex-1 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]">
-                        {['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay'].map((a) => <option key={a} value={a}>{a}</option>)}
-                      </select>
-                      <button type="button" disabled={idx === 0} onClick={() => { const seq = [...form.on_model_angle_sequence]; [seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]; onFormChange({ on_model_angle_sequence: seq }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▲</button>
-                      <button type="button" disabled={idx >= form.images_per_look - 1} onClick={() => { const seq = [...form.on_model_angle_sequence]; [seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]; onFormChange({ on_model_angle_sequence: seq }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▼</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Per-garment-category angle sequences */}
-              <div className="mt-4">
-                <p className="text-[0.85rem] text-[var(--text2)] mb-1">Per-Category Shoot Sequences</p>
-                <p className="text-[0.8rem] text-[var(--text3)] mb-3">Optional. If a garment category is shot in a different angle order, define it here. Selecting that category on a cluster will relabel its angles automatically.</p>
-                <div className="flex flex-col gap-2">
-                  {form.category_angle_sequences.map((row, rowIdx) => (
-                    <div key={rowIdx} className="border border-[var(--line2)] rounded-sm overflow-hidden">
-                      <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg3)]">
-                        <select
-                          value={row.category}
-                          onChange={(e) => {
-                            const next = [...form.category_angle_sequences]
-                            next[rowIdx] = { ...next[rowIdx], category: e.target.value }
-                            onFormChange({ category_angle_sequences: next })
-                          }}
-                          className="flex-1 bg-[var(--bg)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
-                        >
-                          <option value="">— select category —</option>
-                          {GARMENT_CATEGORIES.map((cat) => (
-                            <option key={cat.id} value={cat.label}>{cat.label}</option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => onFormChange({ category_angle_sequences: form.category_angle_sequences.filter((_, i) => i !== rowIdx) })}
-                          className="text-[var(--text3)] hover:text-[#ff3b30] transition-colors px-1"
-                          title="Remove"
-                        >×</button>
-                      </div>
-                      <div className="px-3 pb-3 pt-2 border-t border-[var(--line)]">
-                        <div className="flex flex-col gap-[5px] mb-2">
-                          {row.angles.map((angle, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <span className="w-5 text-[0.82rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
-                              <select
-                                value={angle}
-                                onChange={(e) => {
-                                  const next = [...form.category_angle_sequences]
-                                  const angles = [...next[rowIdx].angles]; angles[idx] = e.target.value
-                                  next[rowIdx] = { ...next[rowIdx], angles }
-                                  onFormChange({ category_angle_sequences: next })
-                                }}
-                                className="flex-1 bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
-                              >
-                                {['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay'].map((a) => <option key={a} value={a}>{a}</option>)}
-                              </select>
-                              <button type="button" disabled={idx === 0} onClick={() => { const next = [...form.category_angle_sequences]; const angles = [...next[rowIdx].angles]; [angles[idx - 1], angles[idx]] = [angles[idx], angles[idx - 1]]; next[rowIdx] = { ...next[rowIdx], angles }; onFormChange({ category_angle_sequences: next }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▲</button>
-                              <button type="button" disabled={idx >= row.angles.length - 1} onClick={() => { const next = [...form.category_angle_sequences]; const angles = [...next[rowIdx].angles]; [angles[idx], angles[idx + 1]] = [angles[idx + 1], angles[idx]]; next[rowIdx] = { ...next[rowIdx], angles }; onFormChange({ category_angle_sequences: next }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▼</button>
-                              <button type="button" onClick={() => { const next = [...form.category_angle_sequences]; const angles = next[rowIdx].angles.filter((_, i) => i !== idx); next[rowIdx] = { ...next[rowIdx], angles }; onFormChange({ category_angle_sequences: next }) }} className="text-[var(--text3)] hover:text-[var(--accent3)] px-1">×</button>
-                            </div>
-                          ))}
+                {/* Ghost Mannequin */}
+                <div className="mb-5 pt-4 border-t border-[var(--line)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="text-[0.95rem] font-semibold text-[var(--text)] tracking-[-0.2px]">Ghost Mannequin</h4>
+                    <span className="text-[0.68rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(48,209,88,0.08)', color: 'var(--accent2)', border: '1px solid rgba(48,209,88,0.2)' }}>GM</span>
+                  </div>
+                  <p className="text-[0.8rem] text-[var(--text3)] mb-3">Controls where the GM shot appears in ZIP exports — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes it the hero, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after on-model images.</p>
+                  <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
+                    {(['first', 'last'] as const).map((pos) => (
+                      <button key={pos} type="button" onClick={() => onFormChange({ gm_position: pos })}
+                        className={`px-4 py-[5px] rounded-sm text-[0.85rem] font-medium transition-all ${form.gm_position === pos ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`}>
+                        {pos === 'first' ? 'Image 1 (Hero)' : 'Last Image'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Per-category sequences */}
+                <div className="pt-4 border-t border-[var(--line)]">
+                  <p className="text-[0.95rem] font-semibold text-[var(--text)] mb-1 tracking-[-0.2px]">Per-Category Sequences</p>
+                  <p className="text-[0.8rem] text-[var(--text3)] mb-3">Optional overrides for garment categories shot in a different angle order.</p>
+                  <div className="flex flex-col gap-2">
+                    {form.category_angle_sequences.map((row, rowIdx) => (
+                      <div key={rowIdx} className="border border-[var(--line2)] rounded-sm overflow-hidden">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg3)]">
+                          <select value={row.category}
+                            onChange={(e) => { const next = [...form.category_angle_sequences]; next[rowIdx] = { ...next[rowIdx], category: e.target.value }; onFormChange({ category_angle_sequences: next }) }}
+                            className="flex-1 bg-[var(--bg)] border rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
+                            style={{ borderColor: row.category ? 'var(--line2)' : 'rgba(48,209,88,0.5)', background: row.category ? '' : 'rgba(48,209,88,0.05)' }}>
+                            <option value="">— select category —</option>
+                            {GARMENT_CATEGORIES.map((cat) => <option key={cat.id} value={cat.label}>{cat.label}</option>)}
+                          </select>
+                          <button type="button" onClick={() => onFormChange({ category_angle_sequences: form.category_angle_sequences.filter((_, i) => i !== rowIdx) })}
+                            className="text-[var(--text3)] hover:text-[#ff3b30] transition-colors px-1">×</button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => { const next = [...form.category_angle_sequences]; next[rowIdx] = { ...next[rowIdx], angles: [...next[rowIdx].angles, 'front'] }; onFormChange({ category_angle_sequences: next }) }}
-                          className="text-[0.82rem] text-[var(--accent)] hover:underline"
-                        >+ Add angle</button>
+                        <div className="px-3 pb-3 pt-2 border-t border-[var(--line)]">
+                          <AnglePills angles={row.angles}
+                            onChange={(next) => { const updated = [...form.category_angle_sequences]; updated[rowIdx] = { ...updated[rowIdx], angles: next }; onFormChange({ category_angle_sequences: updated }) }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => onFormChange({ category_angle_sequences: [...form.category_angle_sequences, { category: '', angles: [...form.on_model_angle_sequence.slice(0, form.images_per_look)] }] })}
-                    className="text-[0.82rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-1"
-                  >
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
-                    Add category sequence
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-2 pt-5 border-t border-[var(--line)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="text-[0.95rem] font-semibold text-[var(--text)] tracking-[-0.2px]">Ghost Mannequin</h4>
-                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(48,209,88,0.08)', color: 'var(--accent2)', border: '1px solid rgba(48,209,88,0.2)' }}>GM</span>
-                </div>
-                <p className="text-[0.8rem] text-[var(--text3)] mb-3">Controls where the GM shot appears in ZIP exports and when GM images are pushed to an existing Shopify product listing — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes the GM the hero shot, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after the on-model images.</p>
-                <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
-                  {(['first', 'last'] as const).map((pos) => (
-                    <button key={pos} type="button" onClick={() => onFormChange({ gm_position: pos })} className={`px-4 py-[5px] rounded-sm text-[0.85rem] font-medium transition-all ${form.gm_position === pos ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`}>
-                      {pos === 'first' ? 'Image 1 (Hero)' : 'Last Image'}
+                    ))}
+                    <button type="button"
+                      onClick={() => onFormChange({ category_angle_sequences: [...form.category_angle_sequences, { category: '', angles: [...form.on_model_angle_sequence.slice(0, form.images_per_look)] }] })}
+                      className="text-[0.82rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-1">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
+                      Add category sequence
                     </button>
-                  ))}
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className="mt-2 pt-5 border-t border-[var(--line)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="text-[0.95rem] font-semibold text-[var(--text)] tracking-[-0.2px]">Still Life</h4>
-                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(74,158,255,0.08)', color: '#4a9eff', border: '1px solid rgba(74,158,255,0.2)' }}>Accessories</span>
-                </div>
-                <p className="text-[0.8rem] text-[var(--text3)] mb-3">Override the default angle order per accessory category. Leave blank to use category defaults.</p>
-                <div className="flex flex-col gap-4">
+            {/* ── Step 3: Still Life & Accessories ── */}
+            {step === 3 && (
+              <div className="px-6 pb-5">
+                <p className="text-[0.82rem] text-[var(--text3)] mb-4">Override the default angle order per accessory category. Expand a category to customise its shot sequence.</p>
+                <div className="flex flex-col gap-5">
                   {STILL_LIFE_GROUPS.map((group) => {
                     const cats = group.ids.map((gid) => ACCESSORY_CATEGORIES.find((c) => c.id === gid)).filter(Boolean) as typeof ACCESSORY_CATEGORIES
                     return (
                       <div key={group.label}>
                         <p className="text-[0.72rem] uppercase tracking-[0.06em] text-[var(--text3)] mb-2 px-[1px]">{group.label}</p>
-                        <div className="flex flex-col gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {cats.map((cat) => {
                             const customSeq = form.still_life_angle_sequences[cat.id]
                             const isOpen = expandedStillLife === cat.id
                             const hasCustom = customSeq && customSeq.length > 0
                             return (
-                              <div key={cat.id} className="border border-[var(--line2)] rounded-sm overflow-hidden">
+                              <div key={cat.id} className="border border-[var(--line2)] rounded-sm overflow-hidden" style={{ gridColumn: isOpen ? 'span 2' : undefined }}>
                                 <button type="button" onClick={() => onSetStillLife(cat.id)} className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[var(--bg3)] transition-colors">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[0.85rem] text-[var(--text)]">{cat.label}</span>
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-[0.85rem] text-[var(--text)] truncate">{cat.label}</span>
                                     {hasCustom
-                                      ? <span className="text-[0.77rem] text-[var(--accent)] bg-[rgba(74,158,255,0.1)] px-[6px] py-[1px] rounded-full">custom</span>
-                                      : <span className="text-[0.8rem] text-[var(--text3)]">{cat.angles.join(' · ')}</span>}
+                                      ? <span className="text-[0.72rem] text-[var(--accent)] bg-[rgba(74,158,255,0.1)] px-[5px] py-[1px] rounded-full flex-shrink-0">custom</span>
+                                      : <span className="text-[0.75rem] text-[var(--text3)] flex-shrink-0 truncate">{cat.angles.slice(0, 3).join(' · ')}{cat.angles.length > 3 ? ' …' : ''}</span>}
                                   </div>
-                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-[var(--text3)] transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-[var(--text3)] transition-transform flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`}><path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </button>
                                 {isOpen && (
-                                  <div className="px-3 pb-3 pt-1 bg-[var(--bg3)] border-t border-[var(--line)]">
-                                    <div className="flex flex-col gap-[5px] mb-2">
-                                      {(customSeq?.length ? customSeq : cat.angles).map((angle, idx) => (
-                                        <div key={idx} className="flex items-center gap-2">
-                                          <span className="w-5 text-[0.82rem] text-[var(--text3)] text-right shrink-0">{idx + 1}</span>
-                                          <select value={angle} onChange={(e) => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; seq[idx] = e.target.value; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="flex-1 bg-[var(--bg)] border border-[var(--line2)] rounded-sm px-2 py-[4px] text-[0.85rem] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]">
-                                            {['front', 'back', 'side', 'detail', 'inside', 'flat-lay', 'top-down', 'front-3/4', 'back-3/4'].map((a) => <option key={a} value={a}>{a}</option>)}
-                                          </select>
-                                          <button type="button" disabled={idx === 0} onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; [seq[idx - 1], seq[idx]] = [seq[idx], seq[idx - 1]]; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▲</button>
-                                          <button type="button" disabled={idx >= (customSeq?.length || cat.angles.length) - 1} onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; [seq[idx], seq[idx + 1]] = [seq[idx + 1], seq[idx]]; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--text)] disabled:opacity-20 px-1">▼</button>
-                                          <button type="button" onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles)]; seq.splice(idx, 1); onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[var(--text3)] hover:text-[var(--accent3)] px-1">×</button>
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                      <button type="button" onClick={() => { const seq = [...(customSeq?.length ? customSeq : cat.angles), 'front']; onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: seq } }) }} className="text-[0.82rem] text-[var(--accent)] hover:underline">+ Add angle</button>
-                                      {hasCustom && <button type="button" onClick={() => { const s = { ...form.still_life_angle_sequences }; delete s[cat.id]; onFormChange({ still_life_angle_sequences: s }) }} className="text-[0.82rem] text-[var(--text3)] hover:text-[var(--accent3)] ml-auto">Reset to default</button>}
-                                    </div>
+                                  <div className="px-3 pb-3 pt-2 bg-[var(--bg3)] border-t border-[var(--line)]">
+                                    <AnglePills
+                                      angles={customSeq?.length ? customSeq : cat.angles}
+                                      options={STILL_LIFE_ANGLES}
+                                      onChange={(next) => onFormChange({ still_life_angle_sequences: { ...form.still_life_angle_sequences, [cat.id]: next } })}
+                                    />
+                                    {hasCustom && (
+                                      <button type="button"
+                                        onClick={() => { const s = { ...form.still_life_angle_sequences }; delete s[cat.id]; onFormChange({ still_life_angle_sequences: s }) }}
+                                        className="mt-2 text-[0.78rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Reset to default</button>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -691,107 +727,81 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                   })}
                 </div>
               </div>
+            )}
 
-            </Section>
-
-            {/* Brand Voice */}
-            <Section title="Brand Voice" help={<span>Personalises AI-generated product copy to match your brand's tone.<br /><br /><strong>Tone brief:</strong> describe how your brand sounds — words you use, words to avoid, personality.<br /><strong>Example copy:</strong> paste 1–3 product descriptions you&apos;re happy with. The AI will mirror their structure and vocabulary closely.</span>}>
-              <div className="mb-4">
-                <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Tone Brief</label>
-                <textarea
-                  className="input text-[0.85rem] leading-relaxed resize-none"
-                  rows={3}
-                  placeholder={'e.g. Confident and editorial. We lead with the garment name, never with "Elevate" or "Discover". We avoid the word "timeless". We say "relaxed fit" not "relaxed silhouette".'}
-                  value={form.voice_brief}
-                  onChange={(e) => onFormChange({ voice_brief: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Example Descriptions <span className="text-[var(--text3)]">(1–3 product descriptions in your brand&apos;s voice)</span></label>
-                <div className="flex flex-col gap-2">
-                  {(form.copy_examples.length ? form.copy_examples : ['']).map((ex, i) => (
-                    <div key={i} className="flex gap-2 items-start">
-                      <textarea
-                        className="input text-[0.85rem] leading-relaxed resize-none flex-1"
-                        rows={4}
-                        placeholder={`Example ${i + 1} — paste a product description you're happy with`}
-                        value={ex}
-                        onChange={(e) => {
-                          const next = [...form.copy_examples]
-                          next[i] = e.target.value
-                          onFormChange({ copy_examples: next })
-                        }}
-                      />
-                      {form.copy_examples.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => onFormChange({ copy_examples: form.copy_examples.filter((_, j) => j !== i) })}
-                          className="mt-[6px] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors flex-shrink-0"
-                          title="Remove example"
-                        >
-                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
-                        </button>
-                      )}
-                    </div>
-                  ))}
+            {/* ── Step 4: Brand Voice ── */}
+            {step === 4 && (
+              <div className="px-6 pb-5">
+                <div className="mb-4 px-3 py-2.5 rounded-[8px] text-[0.82rem] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
+                  Personalises AI-generated product copy to match your brand&apos;s tone. <strong style={{ color: 'var(--text)' }}>Tone brief</strong>: describe how your brand sounds — words you use, words to avoid, personality. <strong style={{ color: 'var(--text)' }}>Examples</strong>: paste 1–3 product descriptions you&apos;re happy with and the AI will mirror their structure closely.
                 </div>
-                {form.copy_examples.length < 3 && (
-                  <button
-                    type="button"
-                    onClick={() => onFormChange({ copy_examples: [...form.copy_examples, ''] })}
-                    className="mt-2 text-[0.82rem] text-[var(--accent)] hover:underline"
-                  >
-                    + Add example
-                  </button>
-                )}
+                <div className="mb-4">
+                  <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Tone Brief</label>
+                  <textarea className="input text-[0.85rem] leading-relaxed resize-none" rows={3}
+                    placeholder={'e.g. Confident and editorial. We lead with the garment name, never with "Elevate" or "Discover". We avoid the word "timeless". We say "relaxed fit" not "relaxed silhouette".'}
+                    value={form.voice_brief} onChange={(e) => onFormChange({ voice_brief: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-[0.85rem] text-[var(--text2)] mb-[5px] block">Example Descriptions <span className="text-[var(--text3)]">(1–3 product descriptions in your brand&apos;s voice)</span></label>
+                  <div className="flex flex-col gap-2">
+                    {(form.copy_examples.length ? form.copy_examples : ['']).map((ex, i) => (
+                      <div key={i} className="flex gap-2 items-start">
+                        <textarea className="input text-[0.85rem] leading-relaxed resize-none flex-1" rows={4}
+                          placeholder={`Example ${i + 1} — paste a product description you're happy with`}
+                          value={ex} onChange={(e) => { const next = [...form.copy_examples]; next[i] = e.target.value; onFormChange({ copy_examples: next }) }} />
+                        {form.copy_examples.length > 0 && (
+                          <button type="button" onClick={() => onFormChange({ copy_examples: form.copy_examples.filter((_, j) => j !== i) })}
+                            className="mt-[6px] text-[var(--text3)] hover:text-[#ff3b30] transition-colors flex-shrink-0">
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {form.copy_examples.length < 3 && (
+                    <button type="button" onClick={() => onFormChange({ copy_examples: [...form.copy_examples, ''] })}
+                      className="mt-2 text-[0.82rem] text-[var(--accent)] hover:underline">+ Add example</button>
+                  )}
+                </div>
               </div>
-            </Section>
+            )}
 
-            {/* Footer */}
+            {/* Footer: navigation + save */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--line)] bg-[var(--bg3)]">
-              <div className="flex flex-col gap-[6px]">
-                {error && <p className="text-[0.85rem] text-[#ff3b30]">{error}</p>}
-                {onDelete && !confirmDelete && (
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDelete(true)}
-                    className="text-[0.82rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors text-left"
-                  >
-                    Delete brand
-                  </button>
+              <div className="flex items-center gap-4">
+                {step > 1 && (
+                  <button type="button" onClick={() => setStep(s => s - 1)} className="btn btn-ghost btn-sm">← Back</button>
                 )}
-                {onDelete && confirmDelete && (
+                {step === 1 && onDelete && !confirmDelete && (
+                  <button type="button" onClick={() => setConfirmDelete(true)}
+                    className="text-[0.82rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Delete brand</button>
+                )}
+                {step === 1 && onDelete && confirmDelete && (
                   <div className="flex items-center gap-2">
                     <span className="text-[0.82rem] text-[#ff3b30]">Delete this brand?</span>
-                    <button
-                      type="button"
-                      onClick={() => { setConfirmDelete(false); onDelete() }}
-                      disabled={deletingId === id}
-                      className="text-[0.82rem] font-semibold text-[#ff3b30] border border-[rgba(255,59,48,0.4)] px-2 py-[2px] rounded-sm hover:bg-[rgba(255,59,48,0.1)] transition-colors disabled:opacity-40"
-                    >
+                    <button type="button" onClick={() => { setConfirmDelete(false); onDelete() }} disabled={deletingId === id}
+                      className="text-[0.82rem] font-semibold text-[#ff3b30] border border-[rgba(255,59,48,0.4)] px-2 py-[2px] rounded-sm hover:bg-[rgba(255,59,48,0.1)] transition-colors disabled:opacity-40">
                       {deletingId === id ? 'Deleting…' : 'Confirm'}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(false)}
-                      className="text-[0.82rem] text-[var(--text3)] hover:text-[var(--text)] transition-colors"
-                    >
-                      Cancel
-                    </button>
+                    <button type="button" onClick={() => setConfirmDelete(false)}
+                      className="text-[0.82rem] text-[var(--text3)] hover:text-[var(--text)] transition-colors">Cancel</button>
                   </div>
                 )}
+                {error && <p className="text-[0.85rem] text-[#ff3b30]">{error}</p>}
               </div>
-              <button onClick={onSave} disabled={saving} className="btn btn-primary">
-                {saving
-                  ? <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Saving…</>
-                  : 'Save Changes'}
-              </button>
+              {step < 4
+                ? <button type="button" onClick={() => setStep(s => s + 1)} className="btn btn-primary">Next →</button>
+                : <button onClick={onSave} disabled={saving} className="btn btn-primary">
+                    {saving ? <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Saving…</> : 'Save Changes'}
+                  </button>
+              }
             </div>
 
           </div>
         )}
       </div>
       {/* end Card 1: Brand Settings */}
+
 
       {/* ═══ Card 2: Platform Connections ═══════════════════════════════════ */}
       <div className="card overflow-hidden" style={{ borderLeft: `3px solid ${brand!.logo_color}` }}>
