@@ -534,20 +534,6 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         {expanded && (
           <div className="border-t border-[var(--line)]">
 
-            {/* Brand identity strip — persistent above steps */}
-            <div className="px-6 py-4 flex items-center gap-4 bg-[var(--bg3)] border-b border-[var(--line)]">
-              <div
-                className="w-12 h-12 rounded-[8px] flex items-center justify-center text-[0.9rem] font-bold flex-shrink-0 transition-all"
-                style={{ background: form.logo_color || '#e8d97a', color: '#000', fontFamily: 'var(--font-dm-mono)' }}
-              >
-                {form.brand_code.toUpperCase().slice(0, 3) || '??'}
-              </div>
-              <div>
-                <p className="text-[0.95rem] font-semibold text-[var(--text)]">{form.name || 'Brand Name'}</p>
-                <p className="text-[0.82rem] text-[var(--text3)] font-mono">{form.brand_code.toUpperCase() || 'CODE'} · {form.logo_color}</p>
-              </div>
-            </div>
-
             {/* Step navigator */}
             <div className="px-6 pt-5 pb-4 flex items-center">
               {BRAND_STEPS.map((s, i) => (
