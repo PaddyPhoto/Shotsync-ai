@@ -288,6 +288,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               sku: draftSku,
               productName: cluster.productName || cluster.label || draftSku,
               color: cluster.color ?? '',
+              gmPosition: shopifyBrand.gm_position ?? 'last',
               images,
             }],
             tempPaths,
