@@ -21,6 +21,10 @@ async function getUserAndOrg(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const result = await getUserAndOrg(req)
+    if (result) {
+      // Fire-and-forget — don't block the response
+      result.service.from('orgs').update({ last_active_at: new Date().toISOString() }).eq('id', result.orgId).then(() => {})
+    }
     return NextResponse.json({ data: result?.org ?? null, role: result?.role ?? null })
   } catch {
     return NextResponse.json({ data: null, role: null })

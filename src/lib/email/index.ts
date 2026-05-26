@@ -162,6 +162,24 @@ export function adminNewSubscriberEmail(customerEmail: string, planName: string,
   }
 }
 
+export function reEngagementEmail(email: string) {
+  return {
+    from: FROM,
+    to: email,
+    replyTo: REPLY_TO,
+    subject: 'It\'s been a while — your next shoot is waiting',
+    html: baseTemplate(`
+      <p class="label">We miss you</p>
+      <p>Hi there,</p>
+      <p>It looks like you haven't been on ShotSync in a while. With a new season coming up, it's a great time to get back in and start processing your shoot images.</p>
+      <p>Pick up exactly where you left off — your brand settings, marketplace rules, and naming templates are all saved and ready to go.</p>
+      <a class="btn" href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://shotsync.ai'}/dashboard">Open ShotSync</a>
+      <p>If you have any questions or feedback, just reply to this email — we'd love to hear from you.</p>
+      <p>— The ShotSync team</p>
+    `),
+  }
+}
+
 // ── Sender ─────────────────────────────────────────────────────────────────────
 
 type EmailPayload = {
