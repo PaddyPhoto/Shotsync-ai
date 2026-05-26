@@ -873,71 +873,98 @@ export default function UploadPage() {
             {/* Shoot type */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '13px', color: 'var(--text3)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Shoot type</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                {([
-                  {
-                    id: 'on-model', label: 'On-Model',
-                    desc: 'Clothing worn by a model',
-                    pills: ['Front', 'Back', 'Side', 'Full-length', 'Mood'],
-                    pillDots: ['#30d158', '#4da3ff', '#ff9f0a', '#bf5af2', '#ff375f'],
-                    accent: '#30d158', accentBg: 'rgba(48,209,88,0.10)',
-                    icon: (
-                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <circle cx="10" cy="5" r="2.5"/>
-                        <path d="M6 20v-6l-2-4h12l-2 4v6M8 20v-5M12 20v-5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    ),
-                  },
-                  {
-                    id: 'still-life', label: 'Still Life',
-                    desc: 'Accessories & products',
-                    pills: ['Front', 'Back', 'Side', 'Detail'],
-                    pillDots: ['#30d158', '#4da3ff', '#ff9f0a', '#ff453a'],
-                    accent: '#4da3ff', accentBg: 'rgba(0,122,255,0.10)',
-                    icon: (
-                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="3" y="7" width="14" height="10" rx="1.5"/>
-                        <path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/>
-                        <circle cx="10" cy="12" r="1.5"/>
-                      </svg>
-                    ),
-                  },
-                ] as { id: ShootType; label: string; desc: string; pills: string[]; pillDots: string[]; accent: string; accentBg: string; icon: React.ReactNode }[]).map(({ id, label, desc, pills, pillDots, accent, accentBg, icon }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => { setShootType(id); if (id === 'on-model') { setAccessoryCategory(null); setStillLifeType(null) } }}
-                    style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px',
-                      padding: '14px', borderRadius: '12px', textAlign: 'left', cursor: 'pointer',
-                      border: shootType === id ? `1.5px solid ${accent}` : '0.5px solid var(--line2)',
-                      background: shootType === id ? accentBg : 'var(--bg2)',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    <div style={{ width: '32px', height: '32px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: shootType === id ? accentBg : 'var(--bg3)', color: shootType === id ? accent : 'var(--text3)', transition: 'all 0.15s' }}>
-                      {icon}
-                    </div>
-                    <div>
-                      <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.2px', marginBottom: '2px' }}>{label}</p>
-                      <p style={{ fontSize: '13px', color: 'var(--text3)', lineHeight: 1.4 }}>{desc}</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {pills.map((pill, i) => (
-                        <span key={pill} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: 'var(--bg3)', color: 'var(--text3)' }}>
-                          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: pillDots[i], flexShrink: 0 }} />
-                          {pill}
-                        </span>
-                      ))}
-                    </div>
-                  </button>
-                ))}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+
+                {/* On-Model */}
+                {(() => {
+                  const active = shootType === 'on-model'
+                  return (
+                    <button type="button"
+                      onClick={() => { setShootType('on-model'); setAccessoryCategory(null); setStillLifeType(null) }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', padding: '14px', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', border: active ? '1.5px solid #30d158' : '0.5px solid var(--line2)', background: active ? 'rgba(48,209,88,0.10)' : 'var(--bg2)', transition: 'all 0.15s' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? 'rgba(48,209,88,0.10)' : 'var(--bg3)', color: active ? '#30d158' : 'var(--text3)', transition: 'all 0.15s' }}>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <circle cx="10" cy="5" r="2.5"/><path d="M6 20v-6l-2-4h12l-2 4v6M8 20v-5M12 20v-5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.2px', marginBottom: '2px' }}>On-Model</p>
+                        <p style={{ fontSize: '13px', color: 'var(--text3)', lineHeight: 1.4 }}>Clothing worn by a model</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {['Front','Back','Side','Full-length','Mood'].map((pill, i) => (
+                          <span key={pill} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: 'var(--bg3)', color: 'var(--text3)' }}>
+                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: ['#30d158','#4da3ff','#ff9f0a','#bf5af2','#ff375f'][i], flexShrink: 0 }} />{pill}
+                          </span>
+                        ))}
+                      </div>
+                    </button>
+                  )
+                })()}
+
+                {/* Ghost Mannequin */}
+                {(() => {
+                  const active = shootType === 'still-life' && stillLifeType === 'ghost-mannequin'
+                  const gmCat = ACCESSORY_CATEGORIES.find((c) => c.id === 'ghost-mannequin')
+                  const gmSeq = (activeBrand?.still_life_angle_sequences?.['ghost-mannequin']?.length ? activeBrand.still_life_angle_sequences['ghost-mannequin'] : gmCat?.angles ?? ['front', 'back']) as string[]
+                  return (
+                    <button type="button"
+                      onClick={() => { setShootType('still-life'); setStillLifeType('ghost-mannequin'); setImagesPerLook(gmSeq.length) }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', padding: '14px', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', border: active ? '1.5px solid #bf5af2' : '0.5px solid var(--line2)', background: active ? 'rgba(191,90,242,0.10)' : 'var(--bg2)', transition: 'all 0.15s' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? 'rgba(191,90,242,0.10)' : 'var(--bg3)', color: active ? '#bf5af2' : 'var(--text3)', transition: 'all 0.15s' }}>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M10 2C7.5 2 5.5 4 5.5 6.5c0 1.6.8 3 2 3.8L7 14h6l-.5-3.7c1.2-.8 2-2.2 2-3.8C14.5 4 12.5 2 10 2z" strokeLinejoin="round"/>
+                          <path d="M8 14v4M12 14v4" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.2px', marginBottom: '2px' }}>Ghost Mannequin</p>
+                        <p style={{ fontSize: '13px', color: 'var(--text3)', lineHeight: 1.4 }}>Front &amp; back GM shots</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {gmSeq.map((pill, i) => (
+                          <span key={pill} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: 'var(--bg3)', color: 'var(--text3)' }}>
+                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: ['#30d158','#4da3ff','#ff9f0a','#ff453a'][i] ?? '#ffffff', flexShrink: 0 }} />{pill}
+                          </span>
+                        ))}
+                      </div>
+                    </button>
+                  )
+                })()}
+
+                {/* Still Life / Accessories */}
+                {(() => {
+                  const active = shootType === 'still-life' && stillLifeType !== 'ghost-mannequin'
+                  return (
+                    <button type="button"
+                      onClick={() => { setShootType('still-life'); setStillLifeType(null) }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', padding: '14px', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', border: active ? '1.5px solid #4da3ff' : '0.5px solid var(--line2)', background: active ? 'rgba(0,122,255,0.10)' : 'var(--bg2)', transition: 'all 0.15s' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? 'rgba(0,122,255,0.10)' : 'var(--bg3)', color: active ? '#4da3ff' : 'var(--text3)', transition: 'all 0.15s' }}>
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="3" y="7" width="14" height="10" rx="1.5"/><path d="M7 7V5a3 3 0 0 1 6 0v2" strokeLinecap="round"/><circle cx="10" cy="12" r="1.5"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.2px', marginBottom: '2px' }}>Still Life</p>
+                        <p style={{ fontSize: '13px', color: 'var(--text3)', lineHeight: 1.4 }}>Bags, shoes &amp; accessories</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {['Front','Back','Side','Detail'].map((pill, i) => (
+                          <span key={pill} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: 'var(--bg3)', color: 'var(--text3)' }}>
+                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: ['#30d158','#4da3ff','#ff9f0a','#ff453a'][i], flexShrink: 0 }} />{pill}
+                          </span>
+                        ))}
+                      </div>
+                    </button>
+                  )
+                })()}
+
               </div>
 
-              {/* Still life category — inline below cards */}
-              {shootType === 'still-life' && (
+              {/* Still life sub-category — accessories only (GM is self-contained above) */}
+              {shootType === 'still-life' && stillLifeType !== 'ghost-mannequin' && (
                 <div style={{ marginTop: '10px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  {ACCESSORY_CATEGORIES.filter((cat) => cat.id === 'ghost-mannequin' || cat.id === 'accessories').map((cat) => {
+                  {ACCESSORY_CATEGORIES.filter((cat) => cat.id !== 'ghost-mannequin').map((cat) => {
                     const brandSeq = activeBrand?.still_life_angle_sequences?.[cat.id]
                     const effectiveSeq: string[] = brandSeq && brandSeq.length > 0 ? brandSeq : (cat.angles as string[])
                     const count = effectiveSeq.length
