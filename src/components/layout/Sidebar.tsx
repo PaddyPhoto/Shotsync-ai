@@ -6,7 +6,7 @@ const ORG_LS_KEY = 'shotsync:org'
 
 import Link from 'next/link'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback, Suspense } from 'react'
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react'
 import { cn } from '@/lib/utils'
 import { BrandSwitcher } from './BrandSwitcher'
 import { usePlan } from '@/context/PlanContext'
@@ -181,6 +181,11 @@ function NavLink({ item, disabled }: { item: NavItem; disabled?: boolean }) {
 
 const PLAN_LABEL: Record<string, string> = { free: 'Free', pro: 'Pro', business: 'Business' }
 
+const SIDEBAR_WIDTH_KEY = 'shotsync:sidebar-width'
+const SIDEBAR_MIN = 160
+const SIDEBAR_MAX = 380
+const SIDEBAR_DEFAULT = 200
+
 const ANGLE_DOT: Record<string, string> = {
   'front': '#30d158', 'back': '#0a84ff', 'side': '#ff9f0a',
   'full-length': '#bf5af2', 'detail': '#ff453a', 'mood': '#ff375f',
@@ -215,6 +220,11 @@ export function Sidebar() {
   })
   const [parkedJobs, setParkedJobs] = useState<SessionHeader[]>([])
   const [resumingId, setResumingId] = useState<string | null>(null)
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    if (typeof window === 'undefined') return SIDEBAR_DEFAULT
+    try { return parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) ?? String(SIDEBAR_DEFAULT), 10) } catch { return SIDEBAR_DEFAULT }
+  })
+  const dragging = useRef(false)
   const pathname = usePathname()
   const router = useRouter()
 
@@ -294,10 +304,43 @@ export function Sidebar() {
 
   const canSeeBilling = !orgRole || orgRole === 'owner' || orgRole === 'admin'
 
+  const onDragHandleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    dragging.current = true
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!dragging.current) return
+      setSidebarWidth(Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, ev.clientX)))
+    }
+
+    const onMouseUp = (ev: MouseEvent) => {
+      dragging.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+      const finalWidth = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, ev.clientX))
+      try { localStorage.setItem(SIDEBAR_WIDTH_KEY, String(finalWidth)) } catch { /* ignore */ }
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }, [])
+
   const SL = { fontSize: '11px', fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--text3)', padding: '0 8px', marginBottom: '3px' }
 
   return (
-    <aside className="w-[200px] min-w-[200px] flex flex-col sticky top-0 h-screen" style={{ background: '#1c1c1c', borderRight: '0.5px solid rgba(255,255,255,0.07)' }}>
+    <aside className="flex flex-col sticky top-0 h-screen relative flex-shrink-0" style={{ width: sidebarWidth, background: '#1c1c1c', borderRight: '0.5px solid rgba(255,255,255,0.07)' }}>
+      {/* Drag handle */}
+      <div
+        onMouseDown={onDragHandleMouseDown}
+        className="group absolute right-0 top-0 bottom-0 z-20 flex items-center justify-center"
+        style={{ width: '6px', cursor: 'col-resize' }}
+      >
+        <div className="w-[1px] h-full opacity-0 group-hover:opacity-100 transition-opacity duration-150" style={{ background: 'rgba(255,255,255,0.2)' }} />
+      </div>
 
       {/* Logo */}
       <div className="flex items-center gap-[9px]" style={{ padding: '20px 16px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
