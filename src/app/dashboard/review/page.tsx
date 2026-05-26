@@ -1810,7 +1810,6 @@ function ExportPanel({
         const copy = clusterCopy[cluster.id]
         const sku = cluster.sku || cluster.label
         const styleEntry = shopifyStyleList.find((e) => e.sku.toUpperCase() === sku.toUpperCase())
-        const hasGM = cluster.images.some((img) => img.viewLabel === 'ghost-mannequin')
         let apiRes: Response
         try {
           apiRes = await fetch('/api/shopify/upload', {
@@ -1829,7 +1828,7 @@ function ExportPanel({
                 colourCode: cluster.colourCode || '',
                 styleNumber: cluster.styleNumber || '',
                 garmentCategory: cluster.garmentCategory || null,
-                gmPosition: hasGM ? (activeBrand.gm_position ?? 'last') : 'last',
+                gmPosition: activeBrand.gm_position ?? 'last',
                 images,
                 ...(copy?.title || cluster.productName ? { copy: {
                   title: copy?.title || cluster.productName || '',

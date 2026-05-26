@@ -46,8 +46,8 @@ const SECTIONS: Section[] = [
         a: 'Yes. In Brand Settings → Shot Configuration → Per-Category Shoot Sequences, you can add a custom angle order for specific categories — for example, Womens Dresses might be shot Full-Length first while Tops are shot Front first. When you assign that category to a cluster on the Review page, its angle labels update instantly to match.',
       },
       {
-        q: 'How does ShotSync identify ghost mannequin shots?',
-        a: 'ShotSync detects ghost mannequin shots automatically from the image filename. Any file containing keywords such as "ghost", "gm", "gm01", "gm1", "mannequin", "ghostmannequin", or "ghost-mannequin" is labeled with the ghost-mannequin angle during processing. If your GM files use a different naming convention, you can reassign the angle label manually by clicking the angle badge on any image in the Review page.',
+        q: 'How do ghost mannequin shoots work in ShotSync?',
+        a: 'A ghost mannequin shoot is processed as a completely normal job. Your GM images will typically be named with the SKU and colour — no special naming or keywords required. Upload the GM shoot, ShotSync clusters and labels the images as usual, you confirm the SKUs (which should match the SKUs already on Shopify from your on-model shoot), then push to Shopify. ShotSync matches each cluster to the existing product listing by SKU and appends the GM images directly — no duplicate products are created.',
       },
     ],
   },
@@ -118,7 +118,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: 'What is the Ghost Mannequin pipeline end-to-end?',
-        a: 'The GM pipeline works in four steps. (1) Detection — during processing ShotSync reads each filename for keywords like "ghost", "gm", "gm01", or "mannequin" and labels those images with the ghost-mannequin angle. (2) Positioning — the Ghost Mannequin Position setting in Brand Settings (Still Life tab) controls whether the GM shot is placed at Image 1 (Hero) or Last Image. This applies to both ZIP exports and Shopify pushes. (3) Export ordering — when building any export package ShotSync sorts images in your configured sequence, moving the GM shot to position 1 or the end depending on your setting. (4) Shopify push — when pushing to Shopify, ShotSync checks whether a product with that SKU already exists. If found, the GM images are appended to the existing listing at the correct position. If not found, a new draft product is created with the GM shot in position.',
+        a: 'The GM pipeline works in four steps. (1) Upload — shoot your GM images and upload them as a normal job. No special file naming is needed; images are typically named with SKU and colour just like your on-model shoot. (2) Process & confirm — ShotSync clusters the images and labels angles from your configured shoot sequence. Confirm the clusters and assign the correct SKUs — these must match the SKU already on the existing Shopify product listing from your on-model shoot. (3) Positioning — the Ghost Mannequin Position setting in Brand Settings → Still Life controls whether GM images land at Image 1 (Hero) or Last Image on the Shopify listing. This applies to both ZIP exports and Shopify pushes. (4) Push to Shopify — ShotSync checks whether a product with that SKU already exists. If found, the GM images are appended to the existing listing at the configured position, with no duplicate product created. If not found, a new draft product is created.',
       },
       {
         q: 'What happens when I push ghost mannequin images for a product already in Shopify?',
