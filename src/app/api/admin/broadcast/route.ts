@@ -225,9 +225,9 @@ function getEdmHtml2(unsubscribeUrl: string): string {
 
     <!-- CTA STRIP -->
     <tr><td bgcolor="#ffffff" style="padding:44px 40px 40px;text-align:center;">
-      <h2 style="margin:0 0 12px;font-size:32px;font-weight:600;letter-spacing:-1.4px;line-height:1.15;color:#0a0a0a;">Ready to make your next shoot<br>the fastest one yet?</h2>
-      <p style="margin:0 auto 32px;max-width:440px;font-size:15px;line-height:1.65;color:#6e6e73;letter-spacing:-0.1px;">30 days free. No credit card. Set up in minutes — your brand settings, naming rules and marketplace specs ready from day one.</p>
-      <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#0a0a0a;color:#ffffff;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:14px 36px;border-radius:10px;text-decoration:none;">Start free trial</a>
+      <h2 style="margin:0 0 12px;font-size:32px;font-weight:600;letter-spacing:-1.4px;line-height:1.15;color:#0a0a0a;">Stop losing days to<br>post-shoot admin.</h2>
+      <p style="margin:0 auto 32px;max-width:440px;font-size:15px;line-height:1.65;color:#6e6e73;letter-spacing:-0.1px;">ShotSync automates your entire post-shoot workflow — file naming, product copy, and marketplace exports — so your team can move on the moment the session wraps.</p>
+      <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#0a0a0a;color:#ffffff;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:14px 36px;border-radius:10px;text-decoration:none;">Start free — 30 days on us</a>
     </td></tr>
 
     <!-- SOCIAL PROOF ROW -->
