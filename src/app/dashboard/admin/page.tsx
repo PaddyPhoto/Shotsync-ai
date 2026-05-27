@@ -139,7 +139,9 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    createClient().auth.getSession().then(({ data: { session: s } }) => {
+    const supabase = createClient()
+
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!s || s.user.email !== ADMIN_EMAIL) {
         router.replace('/dashboard')
       } else {
@@ -149,6 +151,12 @@ export default function AdminPage() {
         fetchReEngStatus(s.access_token)
       }
     })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      if (s?.user.email === ADMIN_EMAIL) setSession(s)
+    })
+
+    return () => subscription.unsubscribe()
   }, [router, fetchUsers, fetchActivity, fetchReEngStatus])
 
   if (!session) return null
