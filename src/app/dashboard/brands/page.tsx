@@ -311,8 +311,8 @@ const BRAND_STEPS = [
   { n: 4, label: 'Brand Voice' },
 ] as const
 
-const ANGLE_OPTIONS = ['full-length', 'front', 'back', 'side', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay']
-const ALL_ON_MODEL = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
+const ANGLE_OPTIONS = ['full-length', 'front', 'back', 'side', 'full-length-side', 'full-length-back', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay']
+const ALL_ON_MODEL = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4', 'full-length-side', 'full-length-back']
 const STILL_LIFE_ANGLES = ['front', 'back', 'side', 'detail', 'inside', 'flat-lay', 'top-down', 'front-3/4', 'back-3/4']
 
 function AnglePills({ angles, onChange, options = ANGLE_OPTIONS }: { angles: string[]; onChange: (next: string[]) => void; options?: string[] }) {

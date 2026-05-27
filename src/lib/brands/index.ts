@@ -98,8 +98,8 @@ export const DEFAULT_NAMING_TEMPLATE = '{BRAND}_{SEQ}_{VIEW}'
 // Non-bottoms: Full Length=1, Side=2, Back=3, Mood=4, Front=5, Detail=6
 const VIEW_NUM_DEFAULT: Record<string, string> = {
   'full-length': '1', 'full_length': '1',
-  'side': '2',
-  'back': '3', 'back-3/4': '3', 'back_3/4': '3',
+  'side': '2', 'full-length-side': '2',
+  'back': '3', 'back-3/4': '3', 'back_3/4': '3', 'full-length-back': '3',
   'mood': '4',
   'front': '5', 'front-3/4': '5', 'front_3/4': '5',
   'detail': '6',
@@ -109,8 +109,8 @@ const VIEW_NUM_DEFAULT: Record<string, string> = {
 // Bottoms (pants, skirts, etc.): Front=1, Side=2, Back=3, Mood=4, Full Length=5, Detail=6
 const VIEW_NUM_BOTTOMS: Record<string, string> = {
   'front': '1', 'front-3/4': '1', 'front_3/4': '1',
-  'side': '2',
-  'back': '3', 'back-3/4': '3', 'back_3/4': '3',
+  'side': '2', 'full-length-side': '2',
+  'back': '3', 'back-3/4': '3', 'back_3/4': '3', 'full-length-back': '3',
   'mood': '4',
   'full-length': '5', 'full_length': '5',
   'detail': '6',

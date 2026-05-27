@@ -14,17 +14,19 @@ import { getAuthUser } from '@/lib/supabase/server'
 export const maxDuration = 60
 
 const VALID_LABELS = new Set([
-  'front', 'back', 'side', 'full-length', 'detail', 'mood',
+  'front', 'back', 'side', 'full-length', 'full-length-side', 'full-length-back', 'detail', 'mood',
   'flat-lay', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'ghost-mannequin',
 ])
 
 const CLASSIFICATION_PROMPT = `You are classifying a fashion product photograph. Respond with JSON only, no markdown.
 
-1. angle — choose exactly one: front, back, side, full-length, detail, mood, flat-lay, top-down, inside, front-3/4, back-3/4, ghost-mannequin
+1. angle — choose exactly one: front, back, side, full-length, full-length-side, full-length-back, detail, mood, flat-lay, top-down, inside, front-3/4, back-3/4, ghost-mannequin
    - front: model/product facing camera
    - back: viewed from behind
    - side: side profile
-   - full-length: head-to-toe shot
+   - full-length: head-to-toe front-facing shot
+   - full-length-side: head-to-toe side profile (long garment, full body side view)
+   - full-length-back: head-to-toe back view (long garment, full body rear view)
    - detail: close-up of fabric, texture, or feature
    - mood: lifestyle/editorial, not product-focused
    - flat-lay: product laid flat

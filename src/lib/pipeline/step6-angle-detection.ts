@@ -24,8 +24,10 @@ const VIEW_KEYWORDS: Record<ViewLabel, string[]> = {
   side:              ['side', 's01', 's1', 's02', 's2', '_s_', '-s-', 'profile', 'alt'],
   detail:            ['detail', 'd01', 'd1', 'd02', 'd2', '_d_', '-d-', 'close', 'zoom'],
   mood:              ['mood', 'm01', 'm1', '_m_', '-m-', 'lifestyle', 'editorial', 'styled'],
-  'full-length':     ['full', 'fl', 'fl01', 'fl02', 'fulllength', 'full-length', 'full_length', 'standing'],
-  'ghost-mannequin': ['ghost', 'gm', 'gm01', 'gm1', 'mannequin', 'ghostmannequin', 'ghost-mannequin', 'ghost_mannequin'],
+  'full-length':      ['full', 'fl', 'fl01', 'fl02', 'fulllength', 'full-length', 'full_length', 'standing'],
+  'full-length-side': ['fls', 'fl-side', 'fl_side', 'fullside', 'full-length-side'],
+  'full-length-back': ['flb', 'fl-back', 'fl_back', 'fullback', 'full-length-back'],
+  'ghost-mannequin':  ['ghost', 'gm', 'gm01', 'gm1', 'mannequin', 'ghostmannequin', 'ghost-mannequin', 'ghost_mannequin'],
   'flat-lay':        ['flatlay', 'flat-lay', 'flat_lay', 'lay'],
   'top-down':        ['topdown', 'top-down', 'top_down', 'overhead', 'aerial', 'flat', 'topa'],
   'inside':          ['inside', 'interior', 'inner', 'lining', 'open'],
@@ -48,7 +50,7 @@ export function detectViewFromFilename(filename: string): ViewLabel {
 
 // ── Sequence fallback ─────────────────────────────────────────────────────────
 
-const SEQUENCE_ORDER: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'ghost-mannequin', 'flat-lay']
+const SEQUENCE_ORDER: ViewLabel[] = ['front', 'back', 'side', 'full-length-side', 'full-length-back', 'detail', 'mood', 'full-length', 'ghost-mannequin', 'flat-lay']
 
 export function assignSequenceLabels(
   images: { id: string; view_label: ViewLabel; original_filename: string }[]

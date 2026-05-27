@@ -160,10 +160,10 @@ function groupImagesByFilename(images: SessionImage[], imagesPerLook: number): S
 // ── Shot angle labels in display order ───────────────────────────────────────
 // Separate orders per shoot type so positional fallback never assigns
 // still-life-only angles (ghost-mannequin, flat-lay, etc.) to on-model images.
-const VIEW_ORDER_ON_MODEL: ViewLabel[]  = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
+const VIEW_ORDER_ON_MODEL: ViewLabel[]  = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4', 'full-length-side', 'full-length-back']
 const VIEW_ORDER_STILL_LIFE: ViewLabel[] = ['front', 'detail', 'flat-lay', 'top-down', 'side', 'inside', 'back', 'ghost-mannequin']
 // Full list used only for within-cluster sort ordering
-const VIEW_ORDER_ALL: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'ghost-mannequin', 'flat-lay', 'top-down', 'inside', 'front-3/4', 'back-3/4']
+const VIEW_ORDER_ALL: ViewLabel[] = ['full-length', 'front', 'full-length-side', 'side', 'full-length-back', 'back', 'mood', 'detail', 'ghost-mannequin', 'flat-lay', 'top-down', 'inside', 'front-3/4', 'back-3/4']
 
 // ── Angle detection from filename ─────────────────────────────────────────────
 // Keywords aligned with step6-angle-detection.ts VIEW_KEYWORDS.

@@ -38,14 +38,16 @@ interface ProcessProgress {
 }
 
 const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = {
-  'front':       { bg: 'rgba(48,209,88,0.12)',  color: '#30d158', dot: '#30d158' },
-  'back':        { bg: 'rgba(0,122,255,0.12)',   color: '#4da3ff', dot: '#4da3ff' },
-  'side':        { bg: 'rgba(255,159,10,0.13)',  color: '#ff9f0a', dot: '#ff9f0a' },
-  'full-length': { bg: 'rgba(175,82,222,0.12)',  color: '#bf5af2', dot: '#bf5af2' },
-  'detail':      { bg: 'rgba(255,59,48,0.12)',   color: '#ff453a', dot: '#ff453a' },
-  'mood':        { bg: 'rgba(255,55,95,0.12)',   color: '#ff375f', dot: '#ff375f' },
-  'front-3/4':   { bg: 'rgba(48,209,88,0.09)',   color: '#30d158', dot: '#30d158' },
-  'back-3/4':    { bg: 'rgba(0,122,255,0.09)',   color: '#4da3ff', dot: '#4da3ff' },
+  'front':              { bg: 'rgba(48,209,88,0.12)',  color: '#30d158', dot: '#30d158' },
+  'back':               { bg: 'rgba(0,122,255,0.12)',   color: '#4da3ff', dot: '#4da3ff' },
+  'side':               { bg: 'rgba(255,159,10,0.13)',  color: '#ff9f0a', dot: '#ff9f0a' },
+  'full-length':        { bg: 'rgba(175,82,222,0.12)',  color: '#bf5af2', dot: '#bf5af2' },
+  'full-length-side':   { bg: 'rgba(255,159,10,0.10)',  color: '#ff9f0a', dot: '#ff9f0a' },
+  'full-length-back':   { bg: 'rgba(0,122,255,0.09)',   color: '#4da3ff', dot: '#4da3ff' },
+  'detail':             { bg: 'rgba(255,59,48,0.12)',   color: '#ff453a', dot: '#ff453a' },
+  'mood':               { bg: 'rgba(255,55,95,0.12)',   color: '#ff375f', dot: '#ff375f' },
+  'front-3/4':          { bg: 'rgba(48,209,88,0.09)',   color: '#30d158', dot: '#30d158' },
+  'back-3/4':           { bg: 'rgba(0,122,255,0.09)',   color: '#4da3ff', dot: '#4da3ff' },
 }
 
 
@@ -247,7 +249,7 @@ export default function UploadPage() {
       ? activeBrand.default_marketplaces as MarketplaceName[]
       : ['the-iconic' as MarketplaceName]
   )
-  const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
+  const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4', 'full-length-side', 'full-length-back']
   const defaultImagesPerLook = activeBrand?.images_per_look ?? 4
   const [imagesPerLook, setImagesPerLook] = useState<number>(defaultImagesPerLook)
   const [angleSequence, setAngleSequence] = useState<string[]>(() => {

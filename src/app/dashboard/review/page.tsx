@@ -25,22 +25,24 @@ import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster, StyleListEntry } from '@/store/session'
 import type { Brand } from '@/lib/brands'
 
-const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'front-3/4', 'back-3/4']
+const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'full-length-side', 'full-length-back', 'front-3/4', 'back-3/4']
 
 const VIEW_CLS: Record<ViewLabel, string> = {
-  front:             'shot-front',
-  back:              'shot-back',
-  side:              'shot-side',
-  detail:            'shot-detail',
-  mood:              'shot-mood',
-  'full-length':     'shot-full-length',
-  'ghost-mannequin': 'shot-gm',
-  'flat-lay':        'shot-flat',
-  'top-down':        'shot-topdown',
-  'inside':          'shot-inside',
-  'front-3/4':       'shot-threequarter',
-  'back-3/4':        'shot-threequarter',
-  unknown:           'shot-unknown',
+  front:                'shot-front',
+  back:                 'shot-back',
+  side:                 'shot-side',
+  detail:               'shot-detail',
+  mood:                 'shot-mood',
+  'full-length':        'shot-full-length',
+  'full-length-side':   'shot-side',
+  'full-length-back':   'shot-back',
+  'ghost-mannequin':    'shot-gm',
+  'flat-lay':           'shot-flat',
+  'top-down':           'shot-topdown',
+  'inside':             'shot-inside',
+  'front-3/4':          'shot-threequarter',
+  'back-3/4':           'shot-threequarter',
+  unknown:              'shot-unknown',
 }
 
 // ReviewPage uses useSearchParams() which requires a Suspense boundary in Next.js App Router.
@@ -244,7 +246,7 @@ function ReviewPage() {
     }
   }
 
-  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
+  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4', 'full-length-side', 'full-length-back']
   const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
 
   // Returns the ordered angle sequence for a cluster.
@@ -2961,7 +2963,7 @@ function ExportPanel({
 
 // Views with plain/white backgrounds where AI removal makes sense.
 // Detail, mood, flat-lay, top-down, inside shots are excluded — complex backgrounds.
-const PLAIN_BG_VIEWS = new Set<string>(['front', 'back', 'side', 'mood', 'full-length', 'ghost-mannequin', 'front-3/4', 'back-3/4'])
+const PLAIN_BG_VIEWS = new Set<string>(['front', 'back', 'side', 'mood', 'full-length', 'full-length-side', 'full-length-back', 'ghost-mannequin', 'front-3/4', 'back-3/4'])
 
 // Resize a File to max 1500 px JPEG — keeps Replicate payloads small
 async function preCompressImage(file: File): Promise<Blob> {

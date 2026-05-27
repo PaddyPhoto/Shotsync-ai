@@ -188,7 +188,8 @@ const SIDEBAR_DEFAULT = 200
 
 const ANGLE_DOT: Record<string, string> = {
   'front': '#30d158', 'back': '#0a84ff', 'side': '#ff9f0a',
-  'full-length': '#bf5af2', 'detail': '#ff453a', 'mood': '#ff375f',
+  'full-length': '#bf5af2', 'full-length-side': '#ff9f0a', 'full-length-back': '#0a84ff',
+  'detail': '#ff453a', 'mood': '#ff375f',
   'front-3/4': '#30d158', 'back-3/4': '#0a84ff',
 }
 
