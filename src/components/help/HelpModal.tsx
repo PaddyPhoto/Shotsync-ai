@@ -216,11 +216,11 @@ function AccordionItem({ qa }: { qa: QA }) {
         style={{ color: open ? 'var(--text)' : 'var(--text2)' }}
         onClick={() => setOpen(!open)}
       >
-        <span className="text-[var(--font-base)] font-medium leading-snug">{qa.q}</span>
+        <span className="text-[length:var(--font-base)] font-medium leading-snug">{qa.q}</span>
         <ChevronIcon open={open} />
       </button>
       {open && (
-        <p className="text-[var(--font-sm)] leading-relaxed pb-3" style={{ color: 'var(--text3)' }}>
+        <p className="text-[length:var(--font-sm)] leading-relaxed pb-3" style={{ color: 'var(--text3)' }}>
           {qa.a}
         </p>
       )}
@@ -232,7 +232,7 @@ function SectionBlock({ section }: { section: Section }) {
   return (
     <div className="mb-5">
       <h3
-        className="text-[var(--font-xs)] font-semibold tracking-[0.08em] uppercase mb-1"
+        className="text-[length:var(--font-xs)] font-semibold tracking-[0.08em] uppercase mb-1"
         style={{ color: 'var(--accent)' }}
       >
         {section.title}
@@ -287,7 +287,7 @@ export function HelpModal() {
               <h2 className="text-[1rem] font-bold tracking-[-0.4px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
                 Help & FAQ
               </h2>
-              <p className="text-[var(--font-sm)] text-[var(--text3)]">Answers to common questions about ShotSync</p>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)]">Answers to common questions about ShotSync</p>
             </div>
           </div>
           <button

@@ -231,14 +231,14 @@ export default function AdminPage() {
           <div className="card-head">
             <div>
               <h2 className="text-[1rem] font-[600] text-[var(--text)]">Plan Override</h2>
-              <p className="text-[var(--font-sm)] text-[var(--text3)] mt-1">Manually set any user's plan — use for free trials, comps, or corrections.</p>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">Manually set any user's plan — use for free trials, comps, or corrections.</p>
             </div>
           </div>
           <div className="card-body flex flex-col gap-4">
 
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className="text-[var(--font-base)] text-[var(--text2)] mb-[6px] block">User email</label>
+                <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">User email</label>
                 <input
                   className="input"
                   type="email"
@@ -248,7 +248,7 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label className="text-[var(--font-base)] text-[var(--text2)] mb-[6px] block">Plan</label>
+                <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">Plan</label>
                 <select
                   className="input"
                   value={planValue}
@@ -265,16 +265,16 @@ export default function AdminPage() {
             </div>
 
             {planError && (
-              <p className="text-[var(--font-base)] text-[var(--accent3)] bg-[rgba(255,59,48,0.07)] rounded-[8px] px-3 py-2">{planError}</p>
+              <p className="text-[length:var(--font-base)] text-[var(--accent3)] bg-[rgba(255,59,48,0.07)] rounded-[8px] px-3 py-2">{planError}</p>
             )}
 
             {planResult && (
               <div style={{ background: 'rgba(48,209,88,0.08)', borderRadius: '10px', padding: '14px 16px', border: '0.5px solid rgba(48,209,88,0.2)' }}>
-                <p className="text-[var(--font-base)] font-[600] text-[var(--accent2)] mb-1">Plan updated</p>
-                <p className="text-[var(--font-base)] text-[var(--text2)]">
+                <p className="text-[length:var(--font-base)] font-[600] text-[var(--accent2)] mb-1">Plan updated</p>
+                <p className="text-[length:var(--font-base)] text-[var(--text2)]">
                   <span className="font-mono">{planResult.email}</span> · <span className="font-[500]">{planResult.orgName}</span>
                 </p>
-                <p className="text-[var(--font-sm)] text-[var(--text3)] mt-1">
+                <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">
                   {planResult.previousPlan} → <span className="font-[600] text-[var(--text)]">{planResult.newPlan}</span>
                 </p>
               </div>
@@ -296,13 +296,13 @@ export default function AdminPage() {
           <div className="card-head">
             <div>
               <h2 className="text-[1rem] font-[600] text-[var(--text)]">Broadcast EDM</h2>
-              <p className="text-[var(--font-sm)] text-[var(--text3)] mt-1">Send the ShotSync promotional email to all signed-up users.</p>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">Send the ShotSync promotional email to all signed-up users.</p>
             </div>
           </div>
           <div className="card-body flex flex-col gap-4">
 
             <div>
-              <label className="text-[var(--font-base)] text-[var(--text2)] mb-[6px] block">Subject line</label>
+              <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">Subject line</label>
               <input
                 className="input"
                 value={subject}
@@ -312,7 +312,7 @@ export default function AdminPage() {
             </div>
 
             <div>
-              <label className="text-[var(--font-base)] text-[var(--text2)] mb-[6px] block">
+              <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">
                 Additional recipients
                 <span className="text-[var(--text3)] font-normal ml-1">(comma or newline separated — merged with all app users)</span>
               </label>
@@ -324,16 +324,16 @@ export default function AdminPage() {
                 placeholder="jane@example.com, john@example.com"
               />
               {extraEmails.length > 0 && (
-                <p className="text-[var(--font-sm)] text-[var(--text3)] mt-1">{extraEmails.length} extra address{extraEmails.length !== 1 ? 'es' : ''} added</p>
+                <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">{extraEmails.length} extra address{extraEmails.length !== 1 ? 'es' : ''} added</p>
               )}
             </div>
 
             {error && (
-              <p className="text-[var(--font-base)] text-[var(--accent3)] bg-[rgba(255,59,48,0.07)] rounded-[8px] px-3 py-2">{error}</p>
+              <p className="text-[length:var(--font-base)] text-[var(--accent3)] bg-[rgba(255,59,48,0.07)] rounded-[8px] px-3 py-2">{error}</p>
             )}
 
             {testResult && (
-              <p className="text-[var(--font-sm)] text-[var(--accent2)] bg-[rgba(48,209,88,0.08)] rounded-[8px] px-3 py-2">{testResult}</p>
+              <p className="text-[length:var(--font-sm)] text-[var(--accent2)] bg-[rgba(48,209,88,0.08)] rounded-[8px] px-3 py-2">{testResult}</p>
             )}
 
             {!recipientList && !result && (
@@ -359,15 +359,15 @@ export default function AdminPage() {
               <div className="flex flex-col gap-3">
                 <div style={{ background: 'var(--bg3)', borderRadius: '10px', border: '0.5px solid var(--line)', overflow: 'hidden' }}>
                   <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)]">
-                    <p className="text-[var(--font-sm)] font-[500] text-[var(--text)]">
+                    <p className="text-[length:var(--font-sm)] font-[500] text-[var(--text)]">
                       {recipientList.length} recipient{recipientList.length !== 1 ? 's' : ''}
                     </p>
-                    <p className="text-[var(--font-sm)] text-[var(--text3)]">Click × to remove</p>
+                    <p className="text-[length:var(--font-sm)] text-[var(--text3)]">Click × to remove</p>
                   </div>
                   <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '8px 0' }}>
                     {recipientList.map(e => (
                       <div key={e} className="flex items-center justify-between px-4 py-[5px] hover:bg-[var(--bg2)] group">
-                        <p className="text-[var(--font-sm)] text-[var(--text2)] font-mono truncate flex-1">{e}</p>
+                        <p className="text-[length:var(--font-sm)] text-[var(--text2)] font-mono truncate flex-1">{e}</p>
                         <button
                           className="text-[var(--text3)] hover:text-[var(--accent3)] ml-3 text-[1rem] leading-none flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => setRecipientList(prev => prev ? prev.filter(x => x !== e) : null)}
@@ -387,7 +387,7 @@ export default function AdminPage() {
                     onChange={e => setConfirmed(e.target.checked)}
                     className="w-4 h-4"
                   />
-                  <span className="text-[var(--font-sm)] text-[var(--text2)]">
+                  <span className="text-[length:var(--font-sm)] text-[var(--text2)]">
                     I confirm I want to send this EDM to {recipientList.length} recipient{recipientList.length !== 1 ? 's' : ''}
                   </span>
                 </label>
@@ -413,17 +413,17 @@ export default function AdminPage() {
 
             {result && (
               <div style={{ background: 'rgba(48,209,88,0.08)', borderRadius: '10px', padding: '16px', border: '0.5px solid rgba(48,209,88,0.2)' }}>
-                <p className="text-[var(--font-md)] font-[600] text-[var(--accent2)] mb-1">Broadcast sent</p>
-                <p className="text-[var(--font-sm)] text-[var(--text2)]">
+                <p className="text-[length:var(--font-md)] font-[600] text-[var(--accent2)] mb-1">Broadcast sent</p>
+                <p className="text-[length:var(--font-sm)] text-[var(--text2)]">
                   ✓ {result.sent} sent · {result.failed} failed · {result.total} total
                 </p>
                 {result.failedEmails.length > 0 && (
                   <div className="mt-2">
-                    <p className="text-[var(--font-sm)] text-[var(--accent3)] font-[500] mb-1">Failed to send:</p>
+                    <p className="text-[length:var(--font-sm)] text-[var(--accent3)] font-[500] mb-1">Failed to send:</p>
                     {result.failedEmails.map(({ email, reason }) => (
                       <div key={email} className="mb-1">
-                        <p className="text-[var(--font-sm)] text-[var(--accent3)] font-mono">{email}</p>
-                        <p className="text-[var(--font-sm)] text-[var(--text3)]">{reason}</p>
+                        <p className="text-[length:var(--font-sm)] text-[var(--accent3)] font-mono">{email}</p>
+                        <p className="text-[length:var(--font-sm)] text-[var(--text3)]">{reason}</p>
                       </div>
                     ))}
                   </div>
@@ -444,12 +444,12 @@ export default function AdminPage() {
         <div className="card" style={{ marginBottom: '16px' }}>
           <div className="card-head">
             <h2 className="text-[1rem] font-[600] text-[var(--text)]">Transactional Emails</h2>
-            <p className="text-[var(--font-sm)] text-[var(--text3)] mt-1">Preview and test-send automated emails</p>
+            <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">Preview and test-send automated emails</p>
           </div>
           <div className="card-body flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <select
-                className="input text-[var(--font-base)] py-[6px] flex-1"
+                className="input text-[length:var(--font-base)] py-[6px] flex-1"
                 value={previewTemplate}
                 onChange={(e) => { setPreviewTemplate(e.target.value); setPreviewTestResult(null) }}
               >
@@ -482,7 +482,7 @@ export default function AdminPage() {
               </button>
             </div>
             {previewTestResult && (
-              <p className={`text-[var(--font-sm)] font-[500] ${previewTestResult.startsWith('✓') ? 'text-[var(--accent2)]' : 'text-[var(--accent3)]'}`}>
+              <p className={`text-[length:var(--font-sm)] font-[500] ${previewTestResult.startsWith('✓') ? 'text-[var(--accent2)]' : 'text-[var(--accent3)]'}`}>
                 {previewTestResult}
               </p>
             )}
@@ -506,7 +506,7 @@ export default function AdminPage() {
           <div className="card-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <h2 className="text-[1rem] font-[600] text-[var(--text)]">Users</h2>
-              <p className="text-[var(--font-sm)] text-[var(--text3)] mt-1">{users.length} accounts · sorted by last seen · Sydney time</p>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">{users.length} accounts · sorted by last seen · Sydney time</p>
             </div>
             <button className="btn btn-ghost btn-sm" onClick={() => fetchUsers(token)} disabled={usersLoading}>
               {usersLoading ? 'Loading…' : 'Refresh'}
@@ -514,13 +514,13 @@ export default function AdminPage() {
           </div>
           <div className="card-body flex flex-col gap-3">
             <input
-              className="input text-[var(--font-base)] py-[6px]"
+              className="input text-[length:var(--font-base)] py-[6px]"
               placeholder="Filter by email, org, or plan…"
               value={usersFilter}
               onChange={(e) => setUsersFilter(e.target.value)}
             />
             {usersLoading ? (
-              <p className="text-[var(--font-base)] text-[var(--text3)] py-4 text-center">Loading…</p>
+              <p className="text-[length:var(--font-base)] text-[var(--text3)] py-4 text-center">Loading…</p>
             ) : (
               <div className="flex flex-col gap-[2px]">
                 {users
@@ -537,21 +537,21 @@ export default function AdminPage() {
                     <div key={u.id} className="flex items-center gap-3 px-3 py-[10px] rounded-[8px] hover:bg-[var(--bg3)] transition-colors">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[var(--font-base)] font-medium text-[var(--text)] truncate">{u.email}</span>
-                          <span className="text-[var(--font-xs)] font-semibold uppercase tracking-wide px-[6px] py-[1px] rounded-[4px]"
+                          <span className="text-[length:var(--font-base)] font-medium text-[var(--text)] truncate">{u.email}</span>
+                          <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-wide px-[6px] py-[1px] rounded-[4px]"
                             style={{ color: PLAN_COLOURS[u.plan] ?? 'var(--text3)', background: `color-mix(in srgb, ${PLAN_COLOURS[u.plan] ?? 'var(--text3)'} 10%, transparent)` }}>
                             {u.plan}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 mt-[2px] flex-wrap">
-                          {u.org_name && <span className="text-[var(--font-sm)] text-[var(--text3)]">{u.org_name}</span>}
-                          <span className="text-[var(--font-sm)] text-[var(--text3)]">{u.job_count} job{u.job_count !== 1 ? 's' : ''}</span>
-                          <span className="text-[var(--font-sm)] text-[var(--text3)]">joined {sydneyTime(u.created_at).split(',')[0]}</span>
+                          {u.org_name && <span className="text-[length:var(--font-sm)] text-[var(--text3)]">{u.org_name}</span>}
+                          <span className="text-[length:var(--font-sm)] text-[var(--text3)]">{u.job_count} job{u.job_count !== 1 ? 's' : ''}</span>
+                          <span className="text-[length:var(--font-sm)] text-[var(--text3)]">joined {sydneyTime(u.created_at).split(',')[0]}</span>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-[var(--font-sm)] text-[var(--text2)]">Last seen</p>
-                        <p className="text-[var(--font-sm)] text-[var(--text3)]">{sydneyTime(u.last_sign_in_at)}</p>
+                        <p className="text-[length:var(--font-sm)] text-[var(--text2)]">Last seen</p>
+                        <p className="text-[length:var(--font-sm)] text-[var(--text3)]">{sydneyTime(u.last_sign_in_at)}</p>
                       </div>
                     </div>
                   ))}
@@ -565,7 +565,7 @@ export default function AdminPage() {
           <div className="card-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <h2 className="text-[1rem] font-[600] text-[var(--text)]">Activity Log</h2>
-              <p className="text-[var(--font-sm)] text-[var(--text3)] mt-1">Last 200 events across all orgs.</p>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">Last 200 events across all orgs.</p>
             </div>
             <button
               className="btn btn-ghost btn-sm"
@@ -577,15 +577,15 @@ export default function AdminPage() {
           </div>
           <div className="card-body flex flex-col gap-3">
             <input
-              className="input text-[var(--font-base)] py-[6px]"
+              className="input text-[length:var(--font-base)] py-[6px]"
               placeholder="Filter by org, email, or event…"
               value={activityFilter}
               onChange={(e) => setActivityFilter(e.target.value)}
             />
             {activityLoading ? (
-              <p className="text-[var(--font-base)] text-[var(--text3)] py-4 text-center">Loading…</p>
+              <p className="text-[length:var(--font-base)] text-[var(--text3)] py-4 text-center">Loading…</p>
             ) : activity.length === 0 ? (
-              <p className="text-[var(--font-base)] text-[var(--text3)] py-4 text-center">No activity yet.</p>
+              <p className="text-[length:var(--font-base)] text-[var(--text3)] py-4 text-center">No activity yet.</p>
             ) : (
               <div className="flex flex-col gap-[2px]">
                 {activity
@@ -608,22 +608,22 @@ export default function AdminPage() {
                         <div className="flex-shrink-0 w-[8px] h-[8px] rounded-full mt-[5px]" style={{ background: ev.color }} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[var(--font-sm)] font-[600] text-[var(--text)]">{row.org_name}</span>
-                            <span className="text-[var(--font-sm)] px-[6px] py-[1px] rounded-[4px]" style={{ background: `color-mix(in srgb, ${ev.color} 12%, transparent)`, color: ev.color }}>{ev.label}</span>
+                            <span className="text-[length:var(--font-sm)] font-[600] text-[var(--text)]">{row.org_name}</span>
+                            <span className="text-[length:var(--font-sm)] px-[6px] py-[1px] rounded-[4px]" style={{ background: `color-mix(in srgb, ${ev.color} 12%, transparent)`, color: ev.color }}>{ev.label}</span>
                           </div>
                           {row.user_email && (
-                            <p className="text-[var(--font-sm)] text-[var(--text3)] font-mono truncate mt-[1px]">{row.user_email}</p>
+                            <p className="text-[length:var(--font-sm)] text-[var(--text3)] font-mono truncate mt-[1px]">{row.user_email}</p>
                           )}
                           {Object.keys(row.metadata).length > 0 && (
-                            <p className="text-[var(--font-sm)] text-[var(--text3)] mt-[2px] truncate">
+                            <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-[2px] truncate">
                               {row.event === 'job.completed' && `${row.metadata.job_name} · ${row.metadata.cluster_count} SKUs · ${(row.metadata.marketplaces as string[])?.join(', ')}`}
                               {(row.event === 'plan.upgraded' || row.event === 'plan.changed' || row.event === 'plan.admin_override') && `${row.metadata.plan_from ? `${row.metadata.plan_from} → ` : ''}${row.metadata.plan_to}`}
                             </p>
                           )}
                         </div>
                         <div className="flex-shrink-0 text-right">
-                          <p className="text-[var(--font-sm)] text-[var(--text3)]">{dateStr}</p>
-                          <p className="text-[var(--font-xs)] text-[var(--text3)] opacity-60">{timeStr}</p>
+                          <p className="text-[length:var(--font-sm)] text-[var(--text3)]">{dateStr}</p>
+                          <p className="text-[length:var(--font-xs)] text-[var(--text3)] opacity-60">{timeStr}</p>
                         </div>
                       </div>
                     )

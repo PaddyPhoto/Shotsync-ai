@@ -81,10 +81,10 @@ export default function ValidationPage({ params }: { params: { jobId: string } }
 
       <div className="p-7">
         <div className="mb-7">
-          <h1 className="text-[var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
+          <h1 className="text-[length:var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
             Shot Validation
           </h1>
-          <p className="text-[var(--font-base)] text-[var(--text2)] mt-[6px]">
+          <p className="text-[length:var(--font-base)] text-[var(--text2)] mt-[6px]">
             Review missing required shots per marketplace. You can still export with missing angles.
           </p>
         </div>

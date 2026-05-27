@@ -56,12 +56,12 @@ export function DropZone({ onFiles, disabled = false, maxFiles = 1000 }: DropZon
         </div>
 
         <h3
-          className="text-[var(--font-xl)] font-[700] text-[var(--text)] mb-2"
+          className="text-[length:var(--font-xl)] font-[700] text-[var(--text)] mb-2"
           style={{ fontFamily: 'var(--font-syne)' }}
         >
           {isDragOver ? 'Drop images here' : 'Drop product images here'}
         </h3>
-        <p className="text-[var(--font-base)] text-[var(--text2)] mb-5">
+        <p className="text-[length:var(--font-base)] text-[var(--text2)] mb-5">
           or <span className="text-[var(--accent)]">click to browse</span> your files
         </p>
 
@@ -69,14 +69,14 @@ export function DropZone({ onFiles, disabled = false, maxFiles = 1000 }: DropZon
           {['JPG', 'JPEG', 'PNG'].map((fmt) => (
             <span
               key={fmt}
-              className="bg-[var(--bg4)] border border-[var(--line2)] rounded-[20px] px-[10px] py-1 text-[var(--font-sm)] text-[var(--text2)]"
+              className="bg-[var(--bg4)] border border-[var(--line2)] rounded-[20px] px-[10px] py-1 text-[length:var(--font-sm)] text-[var(--text2)]"
               style={{ fontFamily: 'var(--font-dm-mono)' }}
             >
               {fmt}
             </span>
           ))}
           <span
-            className="bg-[var(--bg4)] border border-[var(--line2)] rounded-[20px] px-[10px] py-1 text-[var(--font-sm)] text-[var(--text2)]"
+            className="bg-[var(--bg4)] border border-[var(--line2)] rounded-[20px] px-[10px] py-1 text-[length:var(--font-sm)] text-[var(--text2)]"
             style={{ fontFamily: 'var(--font-dm-mono)' }}
           >
             Up to {maxFiles} files

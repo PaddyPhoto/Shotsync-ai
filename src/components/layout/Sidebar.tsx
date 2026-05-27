@@ -136,7 +136,7 @@ function NavLink({ item, disabled }: { item: NavItem; disabled?: boolean }) {
   const isDisabled = disabled ?? item.disabled
 
   const baseClass = cn(
-    'flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[var(--font-md)] transition-all duration-150 w-full border-0',
+    'flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[length:var(--font-md)] transition-all duration-150 w-full border-0',
     isDisabled
       ? 'opacity-35 cursor-not-allowed'
       : isActive
@@ -156,7 +156,7 @@ function NavLink({ item, disabled }: { item: NavItem; disabled?: boolean }) {
       <span className="flex-1">{item.label}</span>
       {item.badge && (
         <span className={cn(
-          'ml-auto text-[var(--font-base)] font-bold px-[6px] py-[1px] rounded-[8px]',
+          'ml-auto text-[length:var(--font-base)] font-bold px-[6px] py-[1px] rounded-[8px]',
           item.badge.variant === 'blue'  && 'bg-[var(--accent)] text-black',
           item.badge.variant === 'green' && 'bg-[var(--accent2)] text-black',
           item.badge.variant === 'red'   && 'bg-[var(--accent3)] text-white',
@@ -345,7 +345,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-[9px]" style={{ padding: '20px 16px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
         <img src="/icon.png" alt="ShotSync" className="w-[28px] h-[28px] rounded-[7px] flex-shrink-0" />
-        <div className="text-[var(--font-lg)] font-medium tracking-[-0.3px]" style={{ color: '#f0f0f0', fontFamily: "'Inter', sans-serif" }}>
+        <div className="text-[length:var(--font-lg)] font-medium tracking-[-0.3px]" style={{ color: '#f0f0f0', fontFamily: "'Inter', sans-serif" }}>
           Shot<span style={{ color: 'rgba(255,255,255,0.4)' }}>Sync</span>
         </div>
       </div>
@@ -458,10 +458,10 @@ export function Sidebar() {
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
                   >
-                    <span className="text-[var(--font-base)] font-medium truncate w-full" style={{ color: 'var(--text)', maxWidth: '148px', display: 'block' }}>
+                    <span className="text-[length:var(--font-base)] font-medium truncate w-full" style={{ color: 'var(--text)', maxWidth: '148px', display: 'block' }}>
                       {resumingId === job.id ? 'Resuming…' : job.jobName}
                     </span>
-                    <span className="text-[var(--font-xs)]" style={{ color: 'var(--text3)' }}>
+                    <span className="text-[length:var(--font-xs)]" style={{ color: 'var(--text3)' }}>
                       {job.clusterCount} cluster{job.clusterCount !== 1 ? 's' : ''} · {relativeTime(job.savedAt)}
                     </span>
                   </button>
@@ -484,7 +484,7 @@ export function Sidebar() {
         <div style={{ padding: '8px 10px 0', borderTop: '0.5px solid rgba(255,255,255,0.06)', marginTop: '4px' }}>
           <button
             onClick={openHelpModal}
-            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[var(--font-md)] w-full transition-all duration-150"
+            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[length:var(--font-md)] w-full transition-all duration-150"
             style={{ color: 'var(--text3)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
@@ -509,7 +509,7 @@ export function Sidebar() {
               await fetch('/api/auth/signout', { method: 'POST' })
               window.location.href = '/'
             }}
-            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[var(--font-md)] w-full transition-all duration-150"
+            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[length:var(--font-md)] w-full transition-all duration-150"
             style={{ color: 'var(--text3)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
@@ -536,14 +536,14 @@ export function Sidebar() {
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
           >
             <div
-              className="w-[28px] h-[28px] rounded-full flex items-center justify-center font-medium text-[var(--font-sm)] flex-shrink-0"
+              className="w-[28px] h-[28px] rounded-full flex items-center justify-center font-medium text-[length:var(--font-sm)] flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--text)', letterSpacing: '-0.3px' }}
             >
               {orgName ? orgName[0].toUpperCase() : 'S'}
             </div>
             <div className="min-w-0">
-              <p className="text-[var(--font-base)] font-medium truncate" style={{ color: 'var(--text)', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
-              <p className="text-[var(--font-xs)] mt-[1px]" style={{ color: 'var(--text3)' }}>
+              <p className="text-[length:var(--font-base)] font-medium truncate" style={{ color: 'var(--text)', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
+              <p className="text-[length:var(--font-xs)] mt-[1px]" style={{ color: 'var(--text3)' }}>
                 {PLAN_LABEL[planId] ?? planId} plan
               </p>
             </div>

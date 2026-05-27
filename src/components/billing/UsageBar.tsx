@@ -25,13 +25,13 @@ export function UsageBar({ label, value, limit, unit = '', compact = false }: Us
   if (compact) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-[var(--font-sm)] text-[var(--text3)] w-[100px] truncate">{label}</span>
+        <span className="text-[length:var(--font-sm)] text-[var(--text3)] w-[100px] truncate">{label}</span>
         <div className="flex-1 h-[3px] bg-[var(--bg4)] rounded-full overflow-hidden">
           {!unlimited && (
             <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
           )}
         </div>
-        <span className="text-[var(--font-sm)] w-[56px] text-right" style={{ fontFamily: 'var(--font-dm-mono)', color: isAtLimit ? 'var(--accent3)' : 'var(--text3)' }}>
+        <span className="text-[length:var(--font-sm)] w-[56px] text-right" style={{ fontFamily: 'var(--font-dm-mono)', color: isAtLimit ? 'var(--accent3)' : 'var(--text3)' }}>
           {unlimited ? '∞' : `${value} / ${limitLabel(limit)}`}
         </span>
       </div>
@@ -40,7 +40,7 @@ export function UsageBar({ label, value, limit, unit = '', compact = false }: Us
 
   return (
     <div className="flex flex-col gap-[6px]">
-      <div className="flex items-center justify-between text-[var(--font-base)]">
+      <div className="flex items-center justify-between text-[length:var(--font-base)]">
         <span className="text-[var(--text2)]">{label}</span>
         <span style={{ fontFamily: 'var(--font-dm-mono)', color: isAtLimit ? 'var(--accent3)' : 'var(--text3)' }}>
           {unlimited ? (

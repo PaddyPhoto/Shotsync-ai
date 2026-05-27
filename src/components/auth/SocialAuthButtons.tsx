@@ -21,7 +21,7 @@ export function SocialAuthButtons({ nextPath = '/dashboard', label = 'Continue' 
       <button
         type="button"
         onClick={() => handleOAuth('google')}
-        className="flex items-center justify-center gap-[10px] w-full py-[9px] px-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg2)] text-[var(--font-base)] font-[500] text-[var(--text)] hover:bg-[var(--bg3)] transition-colors"
+        className="flex items-center justify-center gap-[10px] w-full py-[9px] px-4 rounded-[8px] border border-[var(--line2)] bg-[var(--bg2)] text-[length:var(--font-base)] font-[500] text-[var(--text)] hover:bg-[var(--bg3)] transition-colors"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
           <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
@@ -34,7 +34,7 @@ export function SocialAuthButtons({ nextPath = '/dashboard', label = 'Continue' 
 
       <div className="flex items-center gap-3 my-1">
         <div className="flex-1 h-px bg-[var(--line2)]" />
-        <span className="text-[var(--font-sm)] text-[var(--text3)]">or</span>
+        <span className="text-[length:var(--font-sm)] text-[var(--text3)]">or</span>
         <div className="flex-1 h-px bg-[var(--line2)]" />
       </div>
     </div>

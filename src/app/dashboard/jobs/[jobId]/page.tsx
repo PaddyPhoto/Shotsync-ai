@@ -128,12 +128,12 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
   const jobMeta = (
     <div style={{ marginBottom: '28px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-        <h1 className="text-[var(--font-2xl)] font-[600] tracking-[-0.5px] text-[var(--text)]">
+        <h1 className="text-[length:var(--font-2xl)] font-[600] tracking-[-0.5px] text-[var(--text)]">
           {job.name}
         </h1>
         <span className="chip chip-success">Exported</span>
       </div>
-      <p className="text-[var(--font-base)] text-[var(--text3)]">
+      <p className="text-[length:var(--font-base)] text-[var(--text3)]">
         {job.total_images} images · {(job as any).cluster_count ?? 0} clusters
         {(job as any).created_at && (
           <> · {new Date((job as any).created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}</>
@@ -151,8 +151,8 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
         { label: 'Status',       value: 'Exported', isAccent: true },
       ].map(({ label, value, isAccent }) => (
         <div key={label} className="card" style={{ padding: '16px 18px' }}>
-          <p className="text-[var(--font-sm)] text-[var(--text3)] mb-1">{label}</p>
-          <p className={`text-[var(--font-2xl)] font-[600] tracking-[-0.3px] ${isAccent ? 'text-[var(--accent2)]' : 'text-[var(--text)]'}`}>{value}</p>
+          <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-1">{label}</p>
+          <p className={`text-[length:var(--font-2xl)] font-[600] tracking-[-0.3px] ${isAccent ? 'text-[var(--accent2)]' : 'text-[var(--text)]'}`}>{value}</p>
         </div>
       ))}
     </div>
@@ -189,11 +189,11 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             <div className="card p-5 mb-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[var(--font-md)] font-[600] text-[var(--text)] mb-1">Session saved on this device</p>
-                  <p className="text-[var(--font-base)] text-[var(--text3)] leading-relaxed">
+                  <p className="text-[length:var(--font-md)] font-[600] text-[var(--text)] mb-1">Session saved on this device</p>
+                  <p className="text-[length:var(--font-base)] text-[var(--text3)] leading-relaxed">
                     The original images and cluster data are available. Reopen to re-export or make changes.
                   </p>
-                  {reopenError && <p className="text-[var(--font-sm)] text-red-500 mt-2">{reopenError}</p>}
+                  {reopenError && <p className="text-[length:var(--font-sm)] text-red-500 mt-2">{reopenError}</p>}
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   <button onClick={() => fileInputRef.current?.click()} className="btn btn-ghost btn-sm">
@@ -213,11 +213,11 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             <div className="card p-5 mb-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[var(--font-md)] font-[600] text-[var(--text)] mb-1">Cluster data saved</p>
-                  <p className="text-[var(--font-base)] text-[var(--text3)] leading-relaxed">
+                  <p className="text-[length:var(--font-md)] font-[600] text-[var(--text)] mb-1">Cluster data saved</p>
+                  <p className="text-[length:var(--font-base)] text-[var(--text3)] leading-relaxed">
                     All SKU assignments and cluster groupings are saved. Upload the original images to re-export — they'll be matched to their clusters automatically.
                   </p>
-                  {reopenError && <p className="text-[var(--font-sm)] text-red-500 mt-2">{reopenError}</p>}
+                  {reopenError && <p className="text-[length:var(--font-sm)] text-red-500 mt-2">{reopenError}</p>}
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   <button onClick={() => fileInputRef.current?.click()} className="btn btn-ghost btn-sm">
@@ -237,8 +237,8 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             <div className="card p-5 mb-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[var(--font-md)] font-[600] text-[var(--text)] mb-1">Export record</p>
-                  <p className="text-[var(--font-base)] text-[var(--text3)] leading-relaxed">
+                  <p className="text-[length:var(--font-md)] font-[600] text-[var(--text)] mb-1">Export record</p>
+                  <p className="text-[length:var(--font-base)] text-[var(--text3)] leading-relaxed">
                     This is a record of a completed export. To re-export, open on the original device or load a .shotsync session file.
                   </p>
                 </div>
@@ -312,8 +312,8 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             >
               <span className={action.primary ? 'text-[rgba(245,245,247,0.7)]' : 'text-[var(--text3)]'}>{action.icon}</span>
               <div>
-                <p className={`text-[var(--font-md)] font-[600] tracking-[-0.2px] mb-1 ${action.primary ? 'text-[#f5f5f7]' : 'text-[var(--text)]'}`}>{action.label}</p>
-                <p className={`text-[var(--font-md)] leading-relaxed ${action.primary ? 'text-[rgba(245,245,247,0.5)]' : 'text-[var(--text3)]'}`}>{action.description}</p>
+                <p className={`text-[length:var(--font-md)] font-[600] tracking-[-0.2px] mb-1 ${action.primary ? 'text-[#f5f5f7]' : 'text-[var(--text)]'}`}>{action.label}</p>
+                <p className={`text-[length:var(--font-md)] leading-relaxed ${action.primary ? 'text-[rgba(245,245,247,0.5)]' : 'text-[var(--text3)]'}`}>{action.description}</p>
               </div>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={action.primary ? 'rgba(245,245,247,0.35)' : 'var(--text3)'} strokeWidth="1.5" className="self-end">
                 <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -391,7 +391,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
       <div>
         <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'All Jobs', href: '/dashboard/jobs' }, { label: 'Job' }]} />
         <div className="p-7">
-          <p className="text-[var(--font-md)] text-[var(--text3)]">Job not found.</p>
+          <p className="text-[length:var(--font-md)] text-[var(--text3)]">Job not found.</p>
         </div>
       </div>
     )
@@ -420,16 +420,16 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
         />
         <div className="p-7">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-[var(--font-2xl)] font-[600] tracking-[-0.5px] text-[var(--text)]">{job?.name}</h1>
+            <h1 className="text-[length:var(--font-2xl)] font-[600] tracking-[-0.5px] text-[var(--text)]">{job?.name}</h1>
             <span className="chip chip-warning">Ready for Review</span>
           </div>
-          <p className="text-[var(--font-base)] text-[var(--text3)] mb-6">
+          <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-6">
             {job?.total_images} images · {STEP_LABELS[job?.pipeline_step ?? 0]}
           </p>
           <div className="card p-6 flex items-center gap-4">
             <div className="flex-1">
-              <p className="text-[var(--font-md)] font-[500] text-[var(--text)] mb-1">Clusters are ready to review</p>
-              <p className="text-[var(--font-base)] text-[var(--text3)]">Verify SKU assignments and confirm cluster groupings before generating your export.</p>
+              <p className="text-[length:var(--font-md)] font-[500] text-[var(--text)] mb-1">Clusters are ready to review</p>
+              <p className="text-[length:var(--font-base)] text-[var(--text3)]">Verify SKU assignments and confirm cluster groupings before generating your export.</p>
             </div>
             <Link href={`/dashboard/jobs/${params.jobId}/review`} className="btn btn-primary flex-shrink-0">
               Review Clusters
@@ -454,7 +454,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
       <div className="p-7">
         <div className="mb-7">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-[var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
+            <h1 className="text-[length:var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
               {job?.name}
             </h1>
             {job?.status === 'error' ? (
@@ -463,7 +463,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
               <span className="chip chip-processing">Processing</span>
             )}
           </div>
-          <p className="text-[var(--font-base)] text-[var(--text2)]">
+          <p className="text-[length:var(--font-base)] text-[var(--text2)]">
             {job?.total_images} images · {STEP_LABELS[job?.pipeline_step ?? 0]}
           </p>
         </div>
@@ -474,7 +474,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
               <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
               <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
             </svg>
-            <p className="text-[var(--font-sm)] text-[var(--text)]">
+            <p className="text-[length:var(--font-sm)] text-[var(--text)]">
               <span className="font-semibold text-[var(--accent3)]">Pipeline error: </span>
               {job.error_message}
             </p>
@@ -485,7 +485,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
           <div className="card mb-6">
             <div className="card-head">
               <span className="card-title">Image Processing</span>
-              <span className="text-[var(--font-base)] text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+              <span className="text-[length:var(--font-base)] text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                 {job?.processed_images ?? 0} / {job?.total_images ?? 0}
               </span>
             </div>
@@ -501,7 +501,7 @@ export default function JobProcessingPage({ params }: { params: { jobId: string 
                   }}
                 />
               </div>
-              <p className="text-[var(--font-sm)] text-[var(--text3)]">
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)]">
                 {job?.total_images
                   ? `${Math.round((job.processed_images / job.total_images) * 100)}% complete`
                   : 'Initialising…'}

@@ -49,13 +49,13 @@ export function UpgradeModal() {
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-4">
           <div>
-            <p className="text-[var(--font-sm)] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-1">
+            <p className="text-[length:var(--font-sm)] text-[var(--accent)] uppercase tracking-[0.1em] font-semibold mb-1">
               {isChangingPlan ? 'Change Plan' : 'Upgrade Required'}
             </p>
-            <h2 className="text-[var(--font-xl)] font-[700] tracking-[-0.3px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
+            <h2 className="text-[length:var(--font-xl)] font-[700] tracking-[-0.3px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
               {isChangingPlan ? 'Switch to a different plan' : (upgradeReason || 'Unlock more with ShotSync')}
             </h2>
-            <p className="text-[var(--font-sm)] text-[var(--text3)] mt-1">
+            <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">
               {isChangingPlan
                 ? 'Upgrades take effect immediately. Downgrades apply at the end of your billing cycle.'
                 : 'Start free for 30 days — no charge until your trial ends'}
@@ -83,30 +83,30 @@ export function UpgradeModal() {
                 }`}
               >
                 {isRecommended && (
-                  <span className="absolute -top-[10px] left-4 text-[var(--font-xs)] font-bold uppercase tracking-[0.1em] bg-[var(--accent)] text-black px-2 py-[2px] rounded-full">
+                  <span className="absolute -top-[10px] left-4 text-[length:var(--font-xs)] font-bold uppercase tracking-[0.1em] bg-[var(--accent)] text-black px-2 py-[2px] rounded-full">
                     Recommended
                   </span>
                 )}
                 <div>
-                  <p className="text-[var(--font-md)] font-[700] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
+                  <p className="text-[length:var(--font-md)] font-[700] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
                     {p.name}
                   </p>
-                  <p className="text-[var(--font-base)] text-[var(--text3)] mt-[2px]">{p.description}</p>
+                  <p className="text-[length:var(--font-base)] text-[var(--text3)] mt-[2px]">{p.description}</p>
                 </div>
 
                 <div>
                   {id === 'enterprise' ? (
-                    <span className="text-[var(--font-xl)] font-[700] text-[var(--text)]">Contact us</span>
+                    <span className="text-[length:var(--font-xl)] font-[700] text-[var(--text)]">Contact us</span>
                   ) : (
                     <>
                       {!isChangingPlan && (
-                        <div className="inline-flex items-center gap-1.5 bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] text-[var(--font-sm)] font-semibold px-2 py-[3px] rounded-full mb-2">
+                        <div className="inline-flex items-center gap-1.5 bg-[rgba(62,207,142,0.12)] text-[var(--accent2)] text-[length:var(--font-sm)] font-semibold px-2 py-[3px] rounded-full mb-2">
                           30 days free
                         </div>
                       )}
                       <div className="flex items-baseline gap-1">
-                        <span className="text-[var(--font-3xl)] font-[700] text-[var(--text)]">${p.priceAud}</span>
-                        <span className="text-[var(--font-sm)] text-[var(--text3)]">AUD/month{!isChangingPlan && ' after trial'}</span>
+                        <span className="text-[length:var(--font-3xl)] font-[700] text-[var(--text)]">${p.priceAud}</span>
+                        <span className="text-[length:var(--font-sm)] text-[var(--text3)]">AUD/month{!isChangingPlan && ' after trial'}</span>
                       </div>
                     </>
                   )}
@@ -114,7 +114,7 @@ export function UpgradeModal() {
 
                 <ul className="flex flex-col gap-[6px]">
                   {p.highlights.map((h) => (
-                    <li key={h} className="flex items-center gap-2 text-[var(--font-base)] text-[var(--text2)]">
+                    <li key={h} className="flex items-center gap-2 text-[length:var(--font-base)] text-[var(--text2)]">
                       <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--accent2)" strokeWidth="1.8">
                         <polyline points="2 6 4.5 8.5 9 3"/>
                       </svg>
@@ -145,7 +145,7 @@ export function UpgradeModal() {
                 </button>
 
                 {!STRIPE_CONFIGURED && (
-                  <p className="text-[var(--font-xs)] text-[var(--text3)] text-center -mt-2">
+                  <p className="text-[length:var(--font-xs)] text-[var(--text3)] text-center -mt-2">
                     Demo mode — no payment required
                   </p>
                 )}
@@ -155,7 +155,7 @@ export function UpgradeModal() {
         </div>
 
         <div className="border-t border-[var(--line)] px-6 py-3 flex items-center justify-between flex-wrap gap-3">
-          <button onClick={closeUpgrade} className="text-[var(--font-base)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
+          <button onClick={closeUpgrade} className="text-[length:var(--font-base)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">
             {isChangingPlan ? 'Keep current plan' : 'Continue on Free'}
           </button>
           <PaymentLogos style={{ gap: '6px' }} />

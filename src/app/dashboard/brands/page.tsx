@@ -207,7 +207,7 @@ function BrandsPage() {
     <div>
       {toast && (
         <div
-          className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-[10px] rounded-[10px] text-[var(--font-md)] font-medium shadow-lg cursor-pointer"
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-[10px] rounded-[10px] text-[length:var(--font-md)] font-medium shadow-lg cursor-pointer"
           style={{
             background: toastOk ? 'rgba(48,209,88,0.12)' : 'rgba(255,59,48,0.12)',
             border: `1px solid ${toastOk ? 'rgba(48,209,88,0.35)' : 'rgba(255,59,48,0.3)'}`,
@@ -225,10 +225,10 @@ function BrandsPage() {
         <div className="mb-7 flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-[var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Brands</h1>
-              <span className="text-[var(--font-xs)] font-semibold uppercase tracking-[0.08em] px-2 py-[3px] rounded-[5px]" style={{ background: 'rgba(0,122,255,0.12)', color: '#4da3ff', border: '1px solid rgba(0,122,255,0.2)' }}>Import Settings</span>
+              <h1 className="text-[length:var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Brands</h1>
+              <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-[0.08em] px-2 py-[3px] rounded-[5px]" style={{ background: 'rgba(0,122,255,0.12)', color: '#4da3ff', border: '1px solid rgba(0,122,255,0.2)' }}>Import Settings</span>
             </div>
-            <p className="text-[var(--font-md)] text-[var(--text2)]">Shoot sequence and angle labelling — controls how incoming images are processed.</p>
+            <p className="text-[length:var(--font-md)] text-[var(--text2)]">Shoot sequence and angle labelling — controls how incoming images are processed.</p>
           </div>
           <button
             onClick={() => canAddBrand(brands.length) ? openExpand('new') : openUpgrade(`Your plan supports up to ${plan.limits.brands} brand${plan.limits.brands === 1 ? '' : 's'}. Upgrade to add more.`)}
@@ -264,8 +264,8 @@ function BrandsPage() {
           {brands.length === 0 && expandedId !== 'new' ? (
             <div className="card">
               <div className="card-body py-12 text-center">
-                <p className="text-[var(--font-md)] text-[var(--text3)]">No brands yet.</p>
-                <p className="text-[var(--font-md)] text-[var(--text3)] mt-1">Add a brand to start organising your jobs.</p>
+                <p className="text-[length:var(--font-md)] text-[var(--text3)]">No brands yet.</p>
+                <p className="text-[length:var(--font-md)] text-[var(--text3)] mt-1">Add a brand to start organising your jobs.</p>
                 <button onClick={() => canAddBrand(0) ? openExpand('new') : openUpgrade('Upgrade to add brands.')} className="btn btn-primary btn-sm mt-4 mx-auto">
                   Add your first brand
                 </button>
@@ -416,8 +416,8 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
     return (
       <div className="card overflow-hidden" style={{ borderLeft: '3px solid var(--line2)' }}>
         <div className="flex items-center gap-4 px-6 py-4 border-b border-[var(--line)]">
-          <div className="w-10 h-10 rounded-[8px] flex items-center justify-center text-[var(--font-md)] font-bold flex-shrink-0 bg-[var(--bg4)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>+</div>
-          <h2 className="text-[var(--font-lg)] font-semibold text-[var(--text)] flex-1">New Brand</h2>
+          <div className="w-10 h-10 rounded-[8px] flex items-center justify-center text-[length:var(--font-md)] font-bold flex-shrink-0 bg-[var(--bg4)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>+</div>
+          <h2 className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] flex-1">New Brand</h2>
           <button type="button" onClick={onToggle} className="text-[var(--text3)] hover:text-[var(--text)] transition-colors" title="Cancel">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
           </button>
@@ -426,15 +426,15 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         <Section title="Brand Identity">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="text-[var(--font-md)] text-[var(--text2)] mb-[5px] block">Brand Name *</label>
+              <label className="text-[length:var(--font-md)] text-[var(--text2)] mb-[5px] block">Brand Name *</label>
               <input className="input" placeholder="e.g. Studio Label" value={form.name} onChange={(e) => onFormChange({ name: e.target.value })} autoFocus />
             </div>
             <div>
-              <label className="text-[var(--font-md)] text-[var(--text2)] mb-[5px] block">Brand Code * <span className="text-[var(--text3)]">(max 6 chars)</span></label>
+              <label className="text-[length:var(--font-md)] text-[var(--text2)] mb-[5px] block">Brand Code * <span className="text-[var(--text3)]">(max 6 chars)</span></label>
               <input className="input font-mono" placeholder="SL" maxLength={6} value={form.brand_code} onChange={(e) => onFormChange({ brand_code: e.target.value.toUpperCase() })} />
             </div>
             <div>
-              <label className="text-[var(--font-md)] text-[var(--text2)] mb-[5px] block">Accent Colour</label>
+              <label className="text-[length:var(--font-md)] text-[var(--text2)] mb-[5px] block">Accent Colour</label>
               <div className="flex items-center gap-2">
                 <input type="color" value={form.logo_color} onChange={(e) => onFormChange({ logo_color: e.target.value })} className="w-9 h-9 rounded-sm border border-[var(--line2)] bg-transparent cursor-pointer flex-shrink-0" />
                 <input className="input flex-1 font-mono" value={form.logo_color} onChange={(e) => onFormChange({ logo_color: e.target.value })} />
@@ -444,13 +444,13 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         </Section>
 
         <Section title="Shopify (optional)">
-          <p className="text-[var(--font-base)] text-[var(--text3)] mb-2">Add a store domain to connect after saving.</p>
-          <input className="input text-[var(--font-base)] font-mono" placeholder="your-store.myshopify.com" value={form.shopify_store_url} onChange={(e) => onFormChange({ shopify_store_url: e.target.value })} />
-          {form.shopify_store_url.trim() && <p className="text-[var(--font-base)] text-[var(--text3)] mt-1">You&apos;ll be redirected to Shopify to authorise after saving.</p>}
+          <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-2">Add a store domain to connect after saving.</p>
+          <input className="input text-[length:var(--font-base)] font-mono" placeholder="your-store.myshopify.com" value={form.shopify_store_url} onChange={(e) => onFormChange({ shopify_store_url: e.target.value })} />
+          {form.shopify_store_url.trim() && <p className="text-[length:var(--font-base)] text-[var(--text3)] mt-1">You&apos;ll be redirected to Shopify to authorise after saving.</p>}
         </Section>
 
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--line)] bg-[var(--bg3)]">
-          <div>{error && <p className="text-[var(--font-md)] text-[#ff3b30]">{error}</p>}</div>
+          <div>{error && <p className="text-[length:var(--font-md)] text-[#ff3b30]">{error}</p>}</div>
           <button onClick={onSave} disabled={saving} className="btn btn-primary">
             {saving
               ? <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Saving…</>
@@ -471,14 +471,14 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         {/* Header row */}
         <div className="flex items-center gap-4 px-6 py-4">
           <div
-            className="w-11 h-11 rounded-[8px] flex items-center justify-center text-[var(--font-md)] font-bold flex-shrink-0"
+            className="w-11 h-11 rounded-[8px] flex items-center justify-center text-[length:var(--font-md)] font-bold flex-shrink-0"
             style={{ background: brand!.logo_color, color: '#000', fontFamily: 'var(--font-dm-mono)' }}
           >
             {brand!.brand_code.slice(0, 3)}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-[var(--font-lg)] font-semibold text-[var(--text)] leading-tight">{brand!.name}</h2>
-            <p className="text-[var(--font-base)] text-[var(--text3)] font-mono mt-[2px]">{brand!.brand_code}</p>
+            <h2 className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] leading-tight">{brand!.name}</h2>
+            <p className="text-[length:var(--font-base)] text-[var(--text3)] font-mono mt-[2px]">{brand!.brand_code}</p>
           </div>
           <button
             type="button"
@@ -496,16 +496,16 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             <div className="relative overflow-hidden" style={{ maxHeight: '86px' }}>
               <div className="px-6 pt-4 pb-2 grid grid-cols-2 gap-x-6 gap-y-3">
                 <div>
-                  <p className="text-[var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Shots per look</p>
-                  <p className="text-[var(--font-md)] text-[var(--text2)]">{brand!.images_per_look ?? 4} on-model</p>
+                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Shots per look</p>
+                  <p className="text-[length:var(--font-md)] text-[var(--text2)]">{brand!.images_per_look ?? 4} on-model</p>
                 </div>
                 <div>
-                  <p className="text-[var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">GM position</p>
-                  <p className="text-[var(--font-md)] text-[var(--text2)] capitalize">{brand!.gm_position ?? 'last'}</p>
+                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">GM position</p>
+                  <p className="text-[length:var(--font-md)] text-[var(--text2)] capitalize">{brand!.gm_position ?? 'last'}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-[var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">On-model sequence</p>
-                  <p className="text-[var(--font-md)] text-[var(--text2)]">{(brand!.on_model_angle_sequence ?? DEFAULT_FORM.on_model_angle_sequence).slice(0, brand!.images_per_look ?? 4).join(' · ')}</p>
+                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">On-model sequence</p>
+                  <p className="text-[length:var(--font-md)] text-[var(--text2)]">{(brand!.on_model_angle_sequence ?? DEFAULT_FORM.on_model_angle_sequence).slice(0, brand!.images_per_look ?? 4).join(' · ')}</p>
                 </div>
               </div>
               <div className="absolute bottom-0 inset-x-0 h-[40px] pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, var(--bg2))' }} />
@@ -513,7 +513,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             <button
               type="button"
               onClick={onToggle}
-              className="w-full flex items-center justify-center gap-2 py-[11px] text-[var(--font-md)] font-medium text-[var(--accent)] hover:text-[var(--accent)] hover:bg-[rgba(255,255,255,0.04)] transition-colors border-t-2 border-[var(--line2)]"
+              className="w-full flex items-center justify-center gap-2 py-[11px] text-[length:var(--font-md)] font-medium text-[var(--accent)] hover:text-[var(--accent)] hover:bg-[rgba(255,255,255,0.04)] transition-colors border-t-2 border-[var(--line2)]"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               <span>Edit brand settings</span>
@@ -534,7 +534,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                     key={s.n}
                     type="button"
                     onClick={() => setStep(s.n)}
-                    className={`flex-1 px-4 py-2 text-[var(--font-base)] font-medium transition-all text-left ${
+                    className={`flex-1 px-4 py-2 text-[length:var(--font-base)] font-medium transition-all text-left ${
                       i > 0 ? 'border-l border-[var(--line)]' : ''
                     } ${
                       step === s.n
@@ -545,7 +545,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                     }`}
                     style={step === s.n ? { background: 'rgba(255,255,255,0.09)' } : {}}
                   >
-                    <div className="text-[var(--font-xs)] mb-[2px]" style={{ fontFamily: 'var(--font-dm-mono)', color: step > s.n ? 'var(--accent2)' : step === s.n ? 'var(--text2)' : 'var(--text3)' }}>
+                    <div className="text-[length:var(--font-xs)] mb-[2px]" style={{ fontFamily: 'var(--font-dm-mono)', color: step > s.n ? 'var(--accent2)' : step === s.n ? 'var(--text2)' : 'var(--text3)' }}>
                       {step > s.n ? `✓ Step ${s.n}` : `Step ${s.n}`}
                     </div>
                     {s.label}
@@ -559,15 +559,15 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
               <div className="px-6 pb-5">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
-                    <label className="text-[var(--font-md)] text-[var(--text2)] mb-[5px] block">Brand Name *</label>
+                    <label className="text-[length:var(--font-md)] text-[var(--text2)] mb-[5px] block">Brand Name *</label>
                     <input className="input" placeholder="e.g. Studio Label" value={form.name} onChange={(e) => onFormChange({ name: e.target.value })} />
                   </div>
                   <div>
-                    <label className="text-[var(--font-md)] text-[var(--text2)] mb-[5px] block">Brand Code * <span className="text-[var(--text3)]">(max 6 chars)</span></label>
+                    <label className="text-[length:var(--font-md)] text-[var(--text2)] mb-[5px] block">Brand Code * <span className="text-[var(--text3)]">(max 6 chars)</span></label>
                     <input className="input font-mono" placeholder="SL" maxLength={6} value={form.brand_code} onChange={(e) => onFormChange({ brand_code: e.target.value.toUpperCase() })} />
                   </div>
                   <div>
-                    <label className="text-[var(--font-md)] text-[var(--text2)] mb-[5px] block">Accent Colour</label>
+                    <label className="text-[length:var(--font-md)] text-[var(--text2)] mb-[5px] block">Accent Colour</label>
                     <div className="flex items-center gap-2">
                       <input type="color" value={form.logo_color} onChange={(e) => onFormChange({ logo_color: e.target.value })} className="w-9 h-9 rounded-sm border border-[var(--line2)] bg-transparent cursor-pointer flex-shrink-0" />
                       <input className="input flex-1 font-mono" value={form.logo_color} onChange={(e) => onFormChange({ logo_color: e.target.value })} />
@@ -580,16 +580,16 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             {/* ── Step 2: Shot Configuration ── */}
             {step === 2 && (
               <div className="px-6 pb-5">
-                <div className="mb-5 px-4 py-3 rounded-[10px] text-[var(--font-base)] leading-relaxed" style={{ background: 'var(--accent-glow)', border: '1px solid rgba(0,122,255,0.3)', color: 'var(--text)' }}>
+                <div className="mb-5 px-4 py-3 rounded-[10px] text-[length:var(--font-base)] leading-relaxed" style={{ background: 'var(--accent-glow)', border: '1px solid rgba(0,122,255,0.3)', color: 'var(--text)' }}>
                   <span className="font-semibold">Set the order your photographer shoots each look.</span> ShotSync uses this sequence to automatically label incoming images by angle. Export order per marketplace is configured separately in <strong style={{ color: 'var(--accent)' }}>Marketplace Settings</strong>.
                 </div>
                 {/* On-model sequence */}
                 <div className="mb-5">
                   <div className="flex items-center gap-2 mb-3">
-                    <h4 className="text-[var(--font-lg)] font-semibold text-[var(--text)] tracking-[-0.2px]">On-Model</h4>
-                    <span className="text-[var(--font-xs)] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(232,217,122,0.1)', color: 'var(--accent)', border: '1px solid rgba(232,217,122,0.2)' }}>Apparel</span>
+                    <h4 className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] tracking-[-0.2px]">On-Model</h4>
+                    <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(232,217,122,0.1)', color: 'var(--accent)', border: '1px solid rgba(232,217,122,0.2)' }}>Apparel</span>
                   </div>
-                  <label className="text-[var(--font-base)] text-[var(--text3)] mb-2 block">Images per Look</label>
+                  <label className="text-[length:var(--font-base)] text-[var(--text3)] mb-2 block">Images per Look</label>
                   <div className="flex gap-2 flex-wrap mb-4">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                       <button key={n} type="button"
@@ -598,11 +598,11 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                           while (seq.length < n) seq.push(ALL_ON_MODEL[seq.length] ?? 'front')
                           onFormChange({ images_per_look: n, on_model_angle_sequence: seq })
                         }}
-                        className={`w-9 h-9 rounded-sm border text-[var(--font-base)] font-medium transition-all ${form.images_per_look === n ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.1)] text-[var(--accent)]' : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)]'}`}
+                        className={`w-9 h-9 rounded-sm border text-[length:var(--font-base)] font-medium transition-all ${form.images_per_look === n ? 'border-[var(--accent)] bg-[rgba(232,217,122,0.1)] text-[var(--accent)]' : 'border-[var(--line2)] text-[var(--text2)] hover:border-[var(--line)]'}`}
                       >{n}</button>
                     ))}
                   </div>
-                  <label className="text-[var(--font-base)] text-[var(--text3)] mb-2 block">Shot Sequence — drag to reorder</label>
+                  <label className="text-[length:var(--font-base)] text-[var(--text3)] mb-2 block">Shot Sequence — drag to reorder</label>
                   <AnglePills
                     angles={form.on_model_angle_sequence.slice(0, form.images_per_look)}
                     onChange={(next) => {
@@ -614,15 +614,15 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
                 {/* Per-category sequences */}
                 <div className="pt-4 border-t border-[var(--line)]">
-                  <p className="text-[var(--font-lg)] font-semibold text-[var(--text)] mb-1 tracking-[-0.2px]">Per-Category Sequences</p>
-                  <p className="text-[var(--font-base)] text-[var(--text3)] mb-3">Optional overrides for garment categories shot in a different angle order.</p>
+                  <p className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] mb-1 tracking-[-0.2px]">Per-Category Sequences</p>
+                  <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-3">Optional overrides for garment categories shot in a different angle order.</p>
                   <div className="flex flex-col gap-2">
                     {form.category_angle_sequences.map((row, rowIdx) => (
                       <div key={rowIdx} className="border border-[var(--line2)] rounded-sm overflow-hidden">
                         <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg3)]">
                           <select value={row.category}
                             onChange={(e) => { const next = [...form.category_angle_sequences]; next[rowIdx] = { ...next[rowIdx], category: e.target.value }; onFormChange({ category_angle_sequences: next }) }}
-                            className="flex-1 bg-[var(--bg)] border rounded-sm px-2 py-[4px] text-[var(--font-md)] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
+                            className="flex-1 bg-[var(--bg)] border rounded-sm px-2 py-[4px] text-[length:var(--font-md)] text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
                             style={{ borderColor: row.category ? 'var(--line2)' : 'rgba(48,209,88,0.5)', background: row.category ? '' : 'rgba(48,209,88,0.05)' }}>
                             <option value="">— select category —</option>
                             {GARMENT_CATEGORIES.map((cat) => <option key={cat.id} value={cat.label}>{cat.label}</option>)}
@@ -639,7 +639,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                     ))}
                     <button type="button"
                       onClick={() => onFormChange({ category_angle_sequences: [...form.category_angle_sequences, { category: '', angles: [...form.on_model_angle_sequence.slice(0, form.images_per_look)] }] })}
-                      className="text-[var(--font-base)] text-[var(--accent)] hover:underline flex items-center gap-1 mt-1">
+                      className="text-[length:var(--font-base)] text-[var(--accent)] hover:underline flex items-center gap-1 mt-1">
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
                       Add category sequence
                     </button>
@@ -655,27 +655,27 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                 {/* Ghost Mannequin */}
                 <div className="mb-6 pb-6 border-b border-[var(--line)]">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="text-[var(--font-lg)] font-semibold text-[var(--text)] tracking-[-0.2px]">Ghost Mannequin</h4>
-                    <span className="text-[var(--font-xs)] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(48,209,88,0.08)', color: 'var(--accent2)', border: '1px solid rgba(48,209,88,0.2)' }}>GM</span>
+                    <h4 className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] tracking-[-0.2px]">Ghost Mannequin</h4>
+                    <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(48,209,88,0.08)', color: 'var(--accent2)', border: '1px solid rgba(48,209,88,0.2)' }}>GM</span>
                   </div>
-                  <p className="text-[var(--font-base)] text-[var(--text3)] mb-3">Controls where the GM shot appears in ZIP exports — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes it the hero, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after on-model images.</p>
+                  <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-3">Controls where the GM shot appears in ZIP exports — <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes it the hero, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after on-model images.</p>
                   <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
                     {(['first', 'last'] as const).map((pos) => (
                       <button key={pos} type="button" onClick={() => onFormChange({ gm_position: pos })}
-                        className={`px-4 py-[5px] rounded-sm text-[var(--font-md)] font-medium transition-all ${form.gm_position === pos ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`}>
+                        className={`px-4 py-[5px] rounded-sm text-[length:var(--font-md)] font-medium transition-all ${form.gm_position === pos ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`}>
                         {pos === 'first' ? 'Image 1 (Hero)' : 'Last Image'}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <p className="text-[var(--font-base)] text-[var(--text3)] mb-4">Override the default angle order per accessory category. Expand a category to customise its shot sequence.</p>
+                <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-4">Override the default angle order per accessory category. Expand a category to customise its shot sequence.</p>
                 <div className="flex flex-col gap-5">
                   {STILL_LIFE_GROUPS.map((group) => {
                     const cats = group.ids.map((gid) => ACCESSORY_CATEGORIES.find((c) => c.id === gid)).filter(Boolean) as typeof ACCESSORY_CATEGORIES
                     return (
                       <div key={group.label}>
-                        <p className="text-[var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text3)] mb-2 px-[1px]">{group.label}</p>
+                        <p className="text-[length:var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text3)] mb-2 px-[1px]">{group.label}</p>
                         <div className="grid grid-cols-2 gap-2">
                           {cats.map((cat) => {
                             const customSeq = form.still_life_angle_sequences[cat.id]
@@ -685,10 +685,10 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                               <div key={cat.id} className="border border-[var(--line2)] rounded-sm overflow-hidden" style={{ gridColumn: isOpen ? 'span 2' : undefined }}>
                                 <button type="button" onClick={() => onSetStillLife(cat.id)} className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[var(--bg3)] transition-colors">
                                   <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-[var(--font-md)] text-[var(--text)] truncate">{cat.label}</span>
+                                    <span className="text-[length:var(--font-md)] text-[var(--text)] truncate">{cat.label}</span>
                                     {hasCustom
-                                      ? <span className="text-[var(--font-sm)] text-[var(--accent)] bg-[rgba(74,158,255,0.1)] px-[5px] py-[1px] rounded-full flex-shrink-0">custom</span>
-                                      : <span className="text-[var(--font-sm)] text-[var(--text3)] flex-shrink-0 truncate">{cat.angles.slice(0, 3).join(' · ')}{cat.angles.length > 3 ? ' …' : ''}</span>}
+                                      ? <span className="text-[length:var(--font-sm)] text-[var(--accent)] bg-[rgba(74,158,255,0.1)] px-[5px] py-[1px] rounded-full flex-shrink-0">custom</span>
+                                      : <span className="text-[length:var(--font-sm)] text-[var(--text3)] flex-shrink-0 truncate">{cat.angles.slice(0, 3).join(' · ')}{cat.angles.length > 3 ? ' …' : ''}</span>}
                                   </div>
                                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-[var(--text3)] transition-transform flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`}><path d="M2 3.5l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                 </button>
@@ -702,7 +702,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                                     {hasCustom && (
                                       <button type="button"
                                         onClick={() => { const s = { ...form.still_life_angle_sequences }; delete s[cat.id]; onFormChange({ still_life_angle_sequences: s }) }}
-                                        className="mt-2 text-[var(--font-base)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Reset to default</button>
+                                        className="mt-2 text-[length:var(--font-base)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Reset to default</button>
                                     )}
                                   </div>
                                 )}
@@ -720,21 +720,21 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             {/* ── Step 4: Brand Voice ── */}
             {step === 4 && (
               <div className="px-6 pb-5">
-                <div className="mb-4 px-3 py-2.5 rounded-[8px] text-[var(--font-base)] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
+                <div className="mb-4 px-3 py-2.5 rounded-[8px] text-[length:var(--font-base)] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
                   Personalises AI-generated product copy to match your brand&apos;s tone. <strong style={{ color: 'var(--text)' }}>Tone brief</strong>: describe how your brand sounds — words you use, words to avoid, personality. <strong style={{ color: 'var(--text)' }}>Examples</strong>: paste 1–3 product descriptions you&apos;re happy with and the AI will mirror their structure closely.
                 </div>
                 <div className="mb-4">
-                  <label className="text-[var(--font-md)] text-[var(--text2)] mb-[5px] block">Tone Brief</label>
-                  <textarea className="input text-[var(--font-md)] leading-relaxed resize-none" rows={3}
+                  <label className="text-[length:var(--font-md)] text-[var(--text2)] mb-[5px] block">Tone Brief</label>
+                  <textarea className="input text-[length:var(--font-md)] leading-relaxed resize-none" rows={3}
                     placeholder={'e.g. Confident and editorial. We lead with the garment name, never with "Elevate" or "Discover". We avoid the word "timeless". We say "relaxed fit" not "relaxed silhouette".'}
                     value={form.voice_brief} onChange={(e) => onFormChange({ voice_brief: e.target.value })} />
                 </div>
                 <div>
-                  <label className="text-[var(--font-md)] text-[var(--text2)] mb-[5px] block">Example Descriptions <span className="text-[var(--text3)]">(1–3 product descriptions in your brand&apos;s voice)</span></label>
+                  <label className="text-[length:var(--font-md)] text-[var(--text2)] mb-[5px] block">Example Descriptions <span className="text-[var(--text3)]">(1–3 product descriptions in your brand&apos;s voice)</span></label>
                   <div className="flex flex-col gap-2">
                     {(form.copy_examples.length ? form.copy_examples : ['']).map((ex, i) => (
                       <div key={i} className="flex gap-2 items-start">
-                        <textarea className="input text-[var(--font-md)] leading-relaxed resize-none flex-1" rows={4}
+                        <textarea className="input text-[length:var(--font-md)] leading-relaxed resize-none flex-1" rows={4}
                           placeholder={`Example ${i + 1} — paste a product description you're happy with`}
                           value={ex} onChange={(e) => { const next = [...form.copy_examples]; next[i] = e.target.value; onFormChange({ copy_examples: next }) }} />
                         {form.copy_examples.length > 0 && (
@@ -748,7 +748,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                   </div>
                   {form.copy_examples.length < 3 && (
                     <button type="button" onClick={() => onFormChange({ copy_examples: [...form.copy_examples, ''] })}
-                      className="mt-2 text-[var(--font-base)] text-[var(--accent)] hover:underline">+ Add example</button>
+                      className="mt-2 text-[length:var(--font-base)] text-[var(--accent)] hover:underline">+ Add example</button>
                   )}
                 </div>
               </div>
@@ -762,20 +762,20 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                 )}
                 {step === 1 && onDelete && !confirmDelete && (
                   <button type="button" onClick={() => setConfirmDelete(true)}
-                    className="text-[var(--font-base)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Delete brand</button>
+                    className="text-[length:var(--font-base)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Delete brand</button>
                 )}
                 {step === 1 && onDelete && confirmDelete && (
                   <div className="flex items-center gap-2">
-                    <span className="text-[var(--font-base)] text-[#ff3b30]">Delete this brand?</span>
+                    <span className="text-[length:var(--font-base)] text-[#ff3b30]">Delete this brand?</span>
                     <button type="button" onClick={() => { setConfirmDelete(false); onDelete() }} disabled={deletingId === id}
-                      className="text-[var(--font-base)] font-semibold text-[#ff3b30] border border-[rgba(255,59,48,0.4)] px-2 py-[2px] rounded-sm hover:bg-[rgba(255,59,48,0.1)] transition-colors disabled:opacity-40">
+                      className="text-[length:var(--font-base)] font-semibold text-[#ff3b30] border border-[rgba(255,59,48,0.4)] px-2 py-[2px] rounded-sm hover:bg-[rgba(255,59,48,0.1)] transition-colors disabled:opacity-40">
                       {deletingId === id ? 'Deleting…' : 'Confirm'}
                     </button>
                     <button type="button" onClick={() => setConfirmDelete(false)}
-                      className="text-[var(--font-base)] text-[var(--text3)] hover:text-[var(--text)] transition-colors">Cancel</button>
+                      className="text-[length:var(--font-base)] text-[var(--text3)] hover:text-[var(--text)] transition-colors">Cancel</button>
                   </div>
                 )}
-                {error && <p className="text-[var(--font-md)] text-[#ff3b30]">{error}</p>}
+                {error && <p className="text-[length:var(--font-md)] text-[#ff3b30]">{error}</p>}
               </div>
               {step < 4
                 ? <button type="button" onClick={() => setStep(s => s + 1)} className="btn btn-primary">Next →</button>
@@ -794,13 +794,13 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
       {/* ═══ Card 2: Platform Connections ═══════════════════════════════════ */}
       <div className="card overflow-hidden" style={{ borderLeft: `3px solid ${brand!.logo_color}` }}>
         <div className="px-6 py-4 border-b border-[var(--line)]">
-          <h3 className="text-[var(--font-md)] font-semibold text-[var(--text)]">Platform Connections</h3>
-          <p className="text-[var(--font-md)] text-[var(--text3)] mt-[3px]">Connect your eCommerce and ERP platforms.</p>
+          <h3 className="text-[length:var(--font-md)] font-semibold text-[var(--text)]">Platform Connections</h3>
+          <p className="text-[length:var(--font-md)] text-[var(--text3)] mt-[3px]">Connect your eCommerce and ERP platforms.</p>
         </div>
 
         {/* ── Section label ── */}
         <div className="px-6 pt-4 pb-1 border-t-2 border-[var(--line2)]">
-          <p className="text-[var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text)]">eCommerce</p>
+          <p className="text-[length:var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text)]">eCommerce</p>
         </div>
 
         {/* Shopify */}
@@ -809,29 +809,29 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M15.337 23.979l7.453-1.61S19.186 5.44 19.163 5.28a.326.326 0 0 0-.32-.28c-.146 0-2.718-.05-2.718-.05s-1.79-1.73-1.99-1.93v20.96zM11.43 6.08S10.64 5.8 9.6 5.8c-1.6 0-1.68.998-1.68 1.25 0 1.37 3.79 1.9 3.79 5.12 0 2.54-1.61 4.17-3.78 4.17-2.6 0-3.93-1.62-3.93-1.62l.7-2.3s1.37 1.17 2.52 1.17c.75 0 1.06-.59 1.06-1.02 0-1.79-3.11-1.87-3.11-4.82 0-2.48 1.79-4.88 5.38-4.88 1.38 0 2.07.4 2.07.4L11.43 6.08z"/></svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[var(--font-md)] font-semibold text-[var(--text)]">Shopify</p>
+            <p className="text-[length:var(--font-md)] font-semibold text-[var(--text)]">Shopify</p>
             {brand?.shopify_store_url
-              ? <p className="text-[var(--font-base)] text-[var(--text3)] font-mono truncate">{brand.shopify_store_url}</p>
-              : <p className="text-[var(--font-base)] text-[var(--text3)]">No store configured</p>}
+              ? <p className="text-[length:var(--font-base)] text-[var(--text3)] font-mono truncate">{brand.shopify_store_url}</p>
+              : <p className="text-[length:var(--font-base)] text-[var(--text3)]">No store configured</p>}
           </div>
           {brand?.shopify_store_url ? (
             <div className="flex items-center gap-3 flex-shrink-0">
-              <div className={`flex items-center gap-1.5 text-[var(--font-base)] font-medium ${shopifyConnected ? 'text-[var(--accent2)]' : 'text-[#ff9f0a]'}`}>
+              <div className={`flex items-center gap-1.5 text-[length:var(--font-base)] font-medium ${shopifyConnected ? 'text-[var(--accent2)]' : 'text-[#ff9f0a]'}`}>
                 <div className="w-[5px] h-[5px] rounded-full flex-shrink-0" style={{ background: shopifyConnected ? 'var(--accent2)' : '#ff9f0a' }} />
                 {shopifyConnected ? 'Connected' : 'Auth needed'}
               </div>
-              <a href={`/api/shopify/connect?brand_id=${brand.id}&shop=${encodeURIComponent(brand.shopify_store_url)}`} className="btn btn-ghost btn-sm text-[var(--font-base)]">
+              <a href={`/api/shopify/connect?brand_id=${brand.id}&shop=${encodeURIComponent(brand.shopify_store_url)}`} className="btn btn-ghost btn-sm text-[length:var(--font-base)]">
                 {shopifyConnected ? 'Re-authorise' : 'Connect'}
               </a>
               {onDisconnectShopify && (
-                <button type="button" onClick={onDisconnectShopify} className="text-[var(--font-base)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Disconnect</button>
+                <button type="button" onClick={onDisconnectShopify} className="text-[length:var(--font-base)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Disconnect</button>
               )}
             </div>
           ) : (
             <div className="flex items-center gap-2 flex-shrink-0">
-              <input className="input text-[var(--font-base)] font-mono w-[220px]" placeholder="your-store.myshopify.com" value={form.shopify_store_url} onChange={(e) => onFormChange({ shopify_store_url: e.target.value })} />
+              <input className="input text-[length:var(--font-base)] font-mono w-[220px]" placeholder="your-store.myshopify.com" value={form.shopify_store_url} onChange={(e) => onFormChange({ shopify_store_url: e.target.value })} />
               {form.shopify_store_url.trim() && (
-                <a href={`/api/shopify/connect?brand_id=${brand!.id}&shop=${encodeURIComponent(form.shopify_store_url.trim())}`} className="btn btn-primary btn-sm text-[var(--font-base)]">Connect</a>
+                <a href={`/api/shopify/connect?brand_id=${brand!.id}&shop=${encodeURIComponent(form.shopify_store_url.trim())}`} className="btn btn-primary btn-sm text-[length:var(--font-base)]">Connect</a>
               )}
             </div>
           )}
@@ -839,28 +839,28 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
         {/* ── Section label ── */}
         <div className="px-6 pt-4 pb-1 border-t-2 border-[var(--line2)]">
-          <p className="text-[var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text)]">ERP / Inventory</p>
+          <p className="text-[length:var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text)]">ERP / Inventory</p>
         </div>
 
         {/* Cin7 Core */}
         <div className="border-b border-[var(--line)]">
           <div className="px-6 py-3 flex items-center gap-4">
             <div className="w-8 h-8 rounded-[7px] flex items-center justify-center flex-shrink-0" style={{ background: '#00b4d8' }}>
-              <span className="text-white font-bold text-[var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>C7</span>
+              <span className="text-white font-bold text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>C7</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[var(--font-md)] font-semibold text-[var(--text)]">Cin7 Core</p>
-              <p className="text-[var(--font-base)] text-[var(--text3)]">Push enriched products — metadata, AI copy & images — directly into Cin7</p>
+              <p className="text-[length:var(--font-md)] font-semibold text-[var(--text)]">Cin7 Core</p>
+              <p className="text-[length:var(--font-base)] text-[var(--text3)]">Push enriched products — metadata, AI copy & images — directly into Cin7</p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <input className="input text-[var(--font-base)] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => { onFormChange({ cin7_account_id: e.target.value }); setCin7TestStatus('idle'); setCin7AttrSet(null) }} autoComplete="off" />
-              <input className="input text-[var(--font-base)] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => { onFormChange({ cin7_application_key: e.target.value }); setCin7TestStatus('idle'); setCin7AttrSet(null) }} autoComplete="new-password" />
+              <input className="input text-[length:var(--font-base)] font-mono w-[160px]" placeholder="Account ID" value={form.cin7_account_id} onChange={(e) => { onFormChange({ cin7_account_id: e.target.value }); setCin7TestStatus('idle'); setCin7AttrSet(null) }} autoComplete="off" />
+              <input className="input text-[length:var(--font-base)] font-mono w-[160px]" type="password" placeholder="Application Key" value={form.cin7_application_key} onChange={(e) => { onFormChange({ cin7_application_key: e.target.value }); setCin7TestStatus('idle'); setCin7AttrSet(null) }} autoComplete="new-password" />
               {form.cin7_account_id && form.cin7_application_key && (
                 <button
                   type="button"
                   onClick={testCin7}
                   disabled={cin7TestStatus === 'testing'}
-                  className="flex-shrink-0 text-[var(--font-base)] font-medium px-3 py-[5px] rounded-sm border transition-colors disabled:opacity-50"
+                  className="flex-shrink-0 text-[length:var(--font-base)] font-medium px-3 py-[5px] rounded-sm border transition-colors disabled:opacity-50"
                   style={
                     cin7TestStatus === 'ok'
                       ? { borderColor: 'rgba(48,209,88,0.5)', color: '#30d158', background: 'rgba(48,209,88,0.08)' }
@@ -876,28 +876,28 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
           </div>
           {/* Test results */}
           {cin7TestStatus === 'error' && cin7TestMsg && (
-            <p className="mx-6 mb-2 text-[var(--font-base)] text-[#ff3b30]">{cin7TestMsg}</p>
+            <p className="mx-6 mb-2 text-[length:var(--font-base)] text-[#ff3b30]">{cin7TestMsg}</p>
           )}
           {cin7TestStatus === 'ok' && (
             <div className="mx-6 mb-3 flex flex-col gap-[5px]">
-              <div className="flex items-center gap-2 text-[var(--font-base)]" style={{ color: '#30d158' }}>
+              <div className="flex items-center gap-2 text-[length:var(--font-base)]" style={{ color: '#30d158' }}>
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5l3 3 6-6"/></svg>
                 Credentials verified
               </div>
               {cin7AttrSet === 'found' && (
-                <div className="flex items-center gap-2 text-[var(--font-base)]" style={{ color: '#30d158' }}>
+                <div className="flex items-center gap-2 text-[length:var(--font-base)]" style={{ color: '#30d158' }}>
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5l3 3 6-6"/></svg>
                   ShotSync Apparel attribute set found — ready to push
                 </div>
               )}
               {cin7AttrSet === 'missing' && (
-                <div className="flex items-center gap-2 text-[var(--font-base)]" style={{ color: '#ff9f0a' }}>
+                <div className="flex items-center gap-2 text-[length:var(--font-base)]" style={{ color: '#ff9f0a' }}>
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="6.5" cy="6.5" r="5.5"/><path d="M6.5 4v3M6.5 9h.01"/></svg>
                   ShotSync Apparel attribute set not found — create it in Cin7 before pushing
                 </div>
               )}
               {cin7AttrSet === 'unknown' && (
-                <div className="flex items-center gap-2 text-[var(--font-base)]" style={{ color: 'var(--text3)' }}>
+                <div className="flex items-center gap-2 text-[length:var(--font-base)]" style={{ color: 'var(--text3)' }}>
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="6.5" cy="6.5" r="5.5"/><path d="M6.5 4v3M6.5 9h.01"/></svg>
                   Could not verify attribute set — confirm it exists in Cin7 before pushing
                 </div>
@@ -907,15 +907,15 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
           {/* One-time setup guide — shown when credentials are filled */}
           {form.cin7_account_id && form.cin7_application_key && (
             <div className="mx-6 mb-3 px-4 py-3 rounded-sm border border-[var(--line2)] bg-[var(--bg3)]">
-              <p className="text-[var(--font-base)] font-semibold text-[var(--text2)] mb-2">One-time Cin7 setup required</p>
-              <p className="text-[var(--font-sm)] text-[var(--text3)] mb-2 leading-relaxed">
+              <p className="text-[length:var(--font-base)] font-semibold text-[var(--text2)] mb-2">One-time Cin7 setup required</p>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-2 leading-relaxed">
                 In Cin7 Core, go to <strong className="text-[var(--text2)]">Settings → Attribute Sets</strong> and create a set called exactly:
               </p>
-              <code className="block text-[var(--font-base)] text-[var(--accent)] bg-[var(--bg)] px-3 py-1.5 rounded-sm mb-2 font-mono">ShotSync Apparel</code>
-              <p className="text-[var(--font-sm)] text-[var(--text3)] mb-2">Add these attributes to the set:</p>
+              <code className="block text-[length:var(--font-base)] text-[var(--accent)] bg-[var(--bg)] px-3 py-1.5 rounded-sm mb-2 font-mono">ShotSync Apparel</code>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-2">Add these attributes to the set:</p>
               <div className="flex flex-wrap gap-1">
                 {['Colour','ColourCode','StyleNumber','Composition','Care','Fit','Length','RRP','Season','Gender','Occasion','Origin','SizeRange','SubCategory'].map((f) => (
-                  <span key={f} className="text-[var(--font-sm)] font-mono px-2 py-[2px] rounded-sm bg-[var(--bg)] border border-[var(--line2)] text-[var(--text2)]">{f}</span>
+                  <span key={f} className="text-[length:var(--font-sm)] font-mono px-2 py-[2px] rounded-sm bg-[var(--bg)] border border-[var(--line2)] text-[var(--text2)]">{f}</span>
                 ))}
               </div>
             </div>
@@ -925,18 +925,18 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
         {/* Apparel21 */}
         <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)] opacity-50">
           <div className="w-8 h-8 rounded-[7px] flex items-center justify-center flex-shrink-0" style={{ background: '#1a1a2e' }}>
-            <span className="text-white font-bold text-[var(--font-xs)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>A21</span>
+            <span className="text-white font-bold text-[length:var(--font-xs)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>A21</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[var(--font-md)] font-semibold text-[var(--text)]">Apparel21</p>
-            <p className="text-[var(--font-base)] text-[var(--text3)]">Pulls styles from A21 · pushes enriched copy & images</p>
+            <p className="text-[length:var(--font-md)] font-semibold text-[var(--text)]">Apparel21</p>
+            <p className="text-[length:var(--font-base)] text-[var(--text3)]">Pulls styles from A21 · pushes enriched copy & images</p>
           </div>
-          <span className="text-[var(--font-sm)] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
+          <span className="text-[length:var(--font-sm)] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
         </div>
 
         {/* ── Section label ── */}
         <div className="px-6 pt-4 pb-1 border-t-2 border-[var(--line2)]">
-          <p className="text-[var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text)]">Marketplaces</p>
+          <p className="text-[length:var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text)]">Marketplaces</p>
         </div>
 
         {/* THE ICONIC */}
@@ -945,14 +945,14 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             <span className="text-white font-bold text-[0.73rem] tracking-tight" style={{ fontFamily: 'var(--font-dm-mono)' }}>TI</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[var(--font-md)] font-semibold text-[var(--text)]">THE ICONIC</p>
-            <p className="text-[var(--font-base)] text-[var(--text3)]">SellerCenter API — no OAuth required</p>
+            <p className="text-[length:var(--font-md)] font-semibold text-[var(--text)]">THE ICONIC</p>
+            <p className="text-[length:var(--font-base)] text-[var(--text3)]">SellerCenter API — no OAuth required</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <input className="input text-[var(--font-base)] font-mono w-[160px]" placeholder="User ID" value={form.iconic_user_id} onChange={(e) => onFormChange({ iconic_user_id: e.target.value })} autoComplete="off" />
-            <input className="input text-[var(--font-base)] font-mono w-[160px]" type="password" placeholder="API Key" value={form.iconic_api_key} onChange={(e) => onFormChange({ iconic_api_key: e.target.value })} autoComplete="new-password" />
+            <input className="input text-[length:var(--font-base)] font-mono w-[160px]" placeholder="User ID" value={form.iconic_user_id} onChange={(e) => onFormChange({ iconic_user_id: e.target.value })} autoComplete="off" />
+            <input className="input text-[length:var(--font-base)] font-mono w-[160px]" type="password" placeholder="API Key" value={form.iconic_api_key} onChange={(e) => onFormChange({ iconic_api_key: e.target.value })} autoComplete="new-password" />
             {form.iconic_user_id && form.iconic_api_key
-              ? <span className="text-[var(--font-sm)] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--accent2)] text-[var(--accent2)] flex-shrink-0">Connected</span>
+              ? <span className="text-[length:var(--font-sm)] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--accent2)] text-[var(--accent2)] flex-shrink-0">Connected</span>
               : null
             }
           </div>
@@ -965,10 +965,10 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="1.5" y="5" width="8" height="5" rx="0.8"/><path d="M3.5 5V3.5a2 2 0 014 0V5"/></svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[var(--font-md)] font-semibold text-[var(--text)]">{market.name}</p>
-              <p className="text-[var(--font-base)] text-[var(--text3)]">{market.api}</p>
+              <p className="text-[length:var(--font-md)] font-semibold text-[var(--text)]">{market.name}</p>
+              <p className="text-[length:var(--font-base)] text-[var(--text3)]">{market.api}</p>
             </div>
-            <span className="text-[var(--font-sm)] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
+            <span className="text-[length:var(--font-sm)] font-semibold uppercase tracking-[0.06em] px-[7px] py-[3px] rounded-full border border-[var(--line2)] text-[var(--text3)] flex-shrink-0">Soon</span>
           </div>
         ))}
 
@@ -983,7 +983,7 @@ function Section({ title, help, children }: { title: string; help?: React.ReactN
   return (
     <div className="px-6 py-5 border-b border-[var(--line)]">
       <div className="flex items-center gap-1 mb-4">
-        <h3 className="text-[var(--font-base)] font-semibold text-[var(--text)] uppercase tracking-[0.05em]">{title}</h3>
+        <h3 className="text-[length:var(--font-base)] font-semibold text-[var(--text)] uppercase tracking-[0.05em]">{title}</h3>
         {help && <HelpTooltip position="right" width={260} content={help} />}
       </div>
       {children}
@@ -994,7 +994,7 @@ function Section({ title, help, children }: { title: string; help?: React.ReactN
 function StatusDot({ status, label }: { status: 'connected' | 'warning' | 'inactive' | 'locked'; label: string }) {
   const color = status === 'connected' ? 'var(--accent2)' : status === 'warning' ? '#ff9f0a' : 'var(--bg4)'
   return (
-    <div className="flex items-center gap-1 text-[var(--font-base)] text-[var(--text3)]">
+    <div className="flex items-center gap-1 text-[length:var(--font-base)] text-[var(--text3)]">
       {status === 'locked'
         ? <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="1" y="5" width="8" height="4.5" rx="0.8"/><path d="M3 5V3.5a2 2 0 014 0V5"/></svg>
         : <div className="w-[5px] h-[5px] rounded-full flex-shrink-0" style={{ background: color }} />

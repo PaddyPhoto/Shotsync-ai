@@ -54,8 +54,8 @@ export function ValidationPanel({ clusters, marketplaces }: ValidationPanelProps
                 <polyline points="4 10 8 14 16 6"/>
               </svg>
             </div>
-            <p className="text-[var(--font-md)] font-semibold text-[var(--text)]">All shots present</p>
-            <p className="text-[var(--font-sm)] text-[var(--text3)]">
+            <p className="text-[length:var(--font-md)] font-semibold text-[var(--text)]">All shots present</p>
+            <p className="text-[length:var(--font-sm)] text-[var(--text3)]">
               Every cluster meets the required angles for your selected marketplaces.
             </p>
           </div>
@@ -71,7 +71,7 @@ export function ValidationPanel({ clusters, marketplaces }: ValidationPanelProps
                 <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
                 <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
               </svg>
-              <p className="text-[var(--font-sm)] text-[var(--text)]">
+              <p className="text-[length:var(--font-sm)] text-[var(--text)]">
                 <span className="font-semibold text-[var(--accent3)]">
                   Missing {w.missingView.toUpperCase()}
                 </span>
@@ -93,7 +93,7 @@ export function ValidationPanel({ clusters, marketplaces }: ValidationPanelProps
               <circle cx="7" cy="7" r="5.5"/>
               <path d="M7 4.5v3M7 8.5h.01" strokeLinecap="round"/>
             </svg>
-            <p className="text-[var(--font-sm)] text-[var(--text)]">
+            <p className="text-[length:var(--font-sm)] text-[var(--text)]">
               <span className="font-semibold text-[var(--accent)]">You can still export.</span>
               {' '}Missing shots will be skipped for those marketplaces.
               Consider shooting additional angles for full compliance.

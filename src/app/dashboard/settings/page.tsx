@@ -180,20 +180,20 @@ function SettingsInner() {
 
       <div className="p-7">
         <div className="mb-7">
-          <h1 className="text-[var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Settings</h1>
-          <p className="text-[var(--font-base)] text-[var(--text2)] mt-[6px]">Manage your account, team, and billing.</p>
+          <h1 className="text-[length:var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Settings</h1>
+          <p className="text-[length:var(--font-base)] text-[var(--text2)] mt-[6px]">Manage your account, team, and billing.</p>
         </div>
 
         <div className="flex items-center gap-3 mb-6 flex-wrap">
           <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
             {TABS.map((t) => (
-              <button key={t.id} onClick={() => setTab(t.id)} className={`px-[14px] py-[6px] rounded-[5px] text-[var(--font-sm)] font-medium transition-all duration-150 ${tab === t.id ? 'bg-[var(--bg)] text-[var(--text)]' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
+              <button key={t.id} onClick={() => setTab(t.id)} className={`px-[14px] py-[6px] rounded-[5px] text-[length:var(--font-sm)] font-medium transition-all duration-150 ${tab === t.id ? 'bg-[var(--bg)] text-[var(--text)]' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
                 {t.label}
               </button>
             ))}
           </div>
           {isAdmin && (
-            <a href="/dashboard/admin" className="inline-flex items-center gap-[6px] px-[12px] py-[6px] rounded-[5px] text-[var(--font-base)] font-medium text-[var(--text3)] hover:text-[var(--text)] border border-[var(--line)] hover:border-[var(--line2)] transition-all">
+            <a href="/dashboard/admin" className="inline-flex items-center gap-[6px] px-[12px] py-[6px] rounded-[5px] text-[length:var(--font-base)] font-medium text-[var(--text3)] hover:text-[var(--text)] border border-[var(--line)] hover:border-[var(--line2)] transition-all">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
               Admin
             </a>
@@ -209,7 +209,7 @@ function SettingsInner() {
                 <div className="flex items-center justify-between py-[14px] border-b border-[var(--line)]">
                   <div>
                     <p className="text-[1rem] font-medium text-[var(--text)]">Organisation Name</p>
-                    <p className="text-[var(--font-sm)] text-[var(--text3)] mt-[2px]">Shown in the sidebar and on exports</p>
+                    <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-[2px]">Shown in the sidebar and on exports</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <input className="input w-[220px]" value={orgName} onChange={(e) => setOrgName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveOrgName() }} placeholder="Your company name" />
@@ -227,13 +227,13 @@ function SettingsInner() {
         {tab === 'billing' && (
           <div className="p-7 pt-0 flex flex-col gap-4 max-w-[1100px]">
             {activatingPlan && (
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[rgba(255,159,10,0.3)] bg-[rgba(255,159,10,0.07)] text-[var(--font-base)]">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[rgba(255,159,10,0.3)] bg-[rgba(255,159,10,0.07)] text-[length:var(--font-base)]">
                 <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,159,10,0.3)', borderTopColor: '#ff9f0a', borderRadius: '50%', flexShrink: 0, animation: 'spin 0.7s linear infinite' }} />
                 <span className="text-[var(--text2)]">Activating your <strong className="text-[var(--text)]">{PLANS[activatingPlan as keyof typeof PLANS]?.name ?? activatingPlan}</strong> plan — this usually takes a few seconds…</span>
               </div>
             )}
             {planActivated && (
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[rgba(48,209,88,0.3)] bg-[rgba(48,209,88,0.07)] text-[var(--font-base)] text-[var(--text2)]">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[rgba(48,209,88,0.3)] bg-[rgba(48,209,88,0.07)] text-[length:var(--font-base)] text-[var(--text2)]">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 Plan activated successfully.
               </div>
@@ -243,17 +243,17 @@ function SettingsInner() {
                 <span className="card-title">Current Plan</span>
                 {planId !== 'free' && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY && (
                   <div className="flex items-center gap-3">
-                    <button onClick={handleBillingPortal} disabled={portalLoading} className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">{portalLoading ? 'Loading…' : 'Manage subscription →'}</button>
+                    <button onClick={handleBillingPortal} disabled={portalLoading} className="text-[length:var(--font-sm)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">{portalLoading ? 'Loading…' : 'Manage subscription →'}</button>
                   </div>
                 )}
               </div>
               <div className="card-body">
                 <div className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-3">
-                    <div className={`px-3 py-[5px] rounded-sm text-[var(--font-base)] font-bold uppercase tracking-[0.05em] ${planId === 'enterprise' ? 'bg-[rgba(232,122,122,0.15)] text-[var(--accent3)]' : planId === 'scale' ? 'bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]' : planId === 'growth' ? 'bg-[rgba(232,217,122,0.15)] text-[var(--accent)]' : planId === 'launch' ? 'bg-[rgba(62,207,142,0.15)] text-[var(--accent2)]' : 'bg-[var(--bg3)] text-[var(--text3)]'}`}>{plan.name}</div>
+                    <div className={`px-3 py-[5px] rounded-sm text-[length:var(--font-base)] font-bold uppercase tracking-[0.05em] ${planId === 'enterprise' ? 'bg-[rgba(232,122,122,0.15)] text-[var(--accent3)]' : planId === 'scale' ? 'bg-[rgba(122,180,232,0.15)] text-[var(--accent4)]' : planId === 'growth' ? 'bg-[rgba(232,217,122,0.15)] text-[var(--accent)]' : planId === 'launch' ? 'bg-[rgba(62,207,142,0.15)] text-[var(--accent2)]' : 'bg-[var(--bg3)] text-[var(--text3)]'}`}>{plan.name}</div>
                     <div>
-                      <p className="text-[var(--font-base)] font-semibold text-[var(--text)]">{plan.priceAud === 0 ? 'Free forever' : `$${plan.priceAud} AUD/month`}</p>
-                      <p className="text-[var(--font-sm)] text-[var(--text3)]">{plan.description}</p>
+                      <p className="text-[length:var(--font-base)] font-semibold text-[var(--text)]">{plan.priceAud === 0 ? 'Free forever' : `$${plan.priceAud} AUD/month`}</p>
+                      <p className="text-[length:var(--font-sm)] text-[var(--text3)]">{plan.description}</p>
                     </div>
                   </div>
                   {planId === 'free' && <button onClick={() => openUpgrade('Upgrade to unlock more')} className="btn btn-primary btn-sm">Start free trial</button>}
@@ -262,7 +262,7 @@ function SettingsInner() {
             </div>
 
             <div className="card">
-              <div className="card-head"><span className="card-title">Usage</span><span className="text-[var(--font-sm)] text-[var(--text3)]">Resets 1st of each month</span></div>
+              <div className="card-head"><span className="card-title">Usage</span><span className="text-[length:var(--font-sm)] text-[var(--text3)]">Resets 1st of each month</span></div>
               <div className="card-body flex flex-col gap-4">
                 <UsageBar label="SKUs this month" value={usage.skusThisMonth} limit={plan.limits.skusPerMonth} />
                 <UsageBar label="Exports this month" value={usage.exportsThisMonth} limit={plan.limits.exportsPerMonth} />
@@ -278,9 +278,9 @@ function SettingsInner() {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr>
-                        <th className="text-left text-[var(--font-base)] font-medium uppercase tracking-[0.08em] text-[var(--text3)] px-3 py-2 border-b border-[var(--line)]">Feature</th>
+                        <th className="text-left text-[length:var(--font-base)] font-medium uppercase tracking-[0.08em] text-[var(--text3)] px-3 py-2 border-b border-[var(--line)]">Feature</th>
                         {(['free', 'launch', 'growth', 'scale', 'enterprise'] as const).map((id) => (
-                          <th key={id} className={`text-center text-[var(--font-base)] font-medium uppercase tracking-[0.08em] px-3 py-2 border-b border-[var(--line)] ${id === planId ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}`}>{PLANS[id].name}{id === planId && ' ✓'}</th>
+                          <th key={id} className={`text-center text-[length:var(--font-base)] font-medium uppercase tracking-[0.08em] px-3 py-2 border-b border-[var(--line)] ${id === planId ? 'text-[var(--accent)]' : 'text-[var(--text3)]'}`}>{PLANS[id].name}{id === planId && ' ✓'}</th>
                         ))}
                       </tr>
                     </thead>
@@ -296,10 +296,10 @@ function SettingsInner() {
                         { feature: 'Price (AUD/mo)',     values: ['Free', '$79', '$199', '$399', 'Contact us'] },
                       ].map((row) => (
                         <tr key={row.feature} className="hover:bg-[var(--bg3)] transition-colors">
-                          <td className="px-3 py-[9px] text-[var(--font-sm)] text-[var(--text2)] border-b border-[var(--line)]">{row.feature}</td>
+                          <td className="px-3 py-[9px] text-[length:var(--font-sm)] text-[var(--text2)] border-b border-[var(--line)]">{row.feature}</td>
                           {row.values.map((v, i) => {
                             const id = (['free', 'launch', 'growth', 'scale', 'enterprise'] as const)[i]
-                            return <td key={id} className={`px-3 py-[9px] text-[var(--font-sm)] text-center border-b border-[var(--line)] ${id === planId ? 'font-semibold text-[var(--text)]' : 'text-[var(--text3)]'}`} style={v === '✓' ? { color: 'var(--accent2)' } : {}}>{v}</td>
+                            return <td key={id} className={`px-3 py-[9px] text-[length:var(--font-sm)] text-center border-b border-[var(--line)] ${id === planId ? 'font-semibold text-[var(--text)]' : 'text-[var(--text3)]'}`} style={v === '✓' ? { color: 'var(--accent2)' } : {}}>{v}</td>
                           })}
                         </tr>
                       ))}
@@ -333,9 +333,9 @@ function SettingsInner() {
                   </select>
                   <button onClick={sendInvite} disabled={inviteSending || !inviteEmail.trim()} className="btn btn-primary">{inviteSending ? 'Sending…' : 'Invite'}</button>
                 </div>
-                {inviteResult?.error && <p className="text-[var(--font-base)] text-[var(--accent3)]">{inviteResult.error}</p>}
+                {inviteResult?.error && <p className="text-[length:var(--font-base)] text-[var(--accent3)]">{inviteResult.error}</p>}
                 {inviteResult?.url && (
-                  <div className="bg-[var(--bg3)] rounded-sm p-3 text-[var(--font-base)]">
+                  <div className="bg-[var(--bg3)] rounded-sm p-3 text-[length:var(--font-base)]">
                     <p className="text-[var(--text2)] mb-1 font-medium">Invite link (copy and send to teammate):</p>
                     <code className="text-[var(--accent2)] break-all select-all">{inviteResult.url}</code>
                   </div>
@@ -344,30 +344,30 @@ function SettingsInner() {
             </div>
 
             <div className="card">
-              <div className="card-head"><span className="card-title">Members</span><span className="text-[var(--font-sm)] text-[var(--text3)]">{teamMembers.length} member{teamMembers.length !== 1 ? 's' : ''}</span></div>
+              <div className="card-head"><span className="card-title">Members</span><span className="text-[length:var(--font-sm)] text-[var(--text3)]">{teamMembers.length} member{teamMembers.length !== 1 ? 's' : ''}</span></div>
               <div className="card-body p-0">
-                {!teamLoaded ? <p className="text-[var(--font-sm)] text-[var(--text3)] px-4 py-3">Loading…</p> : teamMembers.length === 0 ? <p className="text-[var(--font-sm)] text-[var(--text3)] px-4 py-3">No members yet.</p> : (
+                {!teamLoaded ? <p className="text-[length:var(--font-sm)] text-[var(--text3)] px-4 py-3">Loading…</p> : teamMembers.length === 0 ? <p className="text-[length:var(--font-sm)] text-[var(--text3)] px-4 py-3">No members yet.</p> : (
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-[var(--line)]">
-                        <th className="text-left text-[var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">User</th>
-                        <th className="text-left text-[var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
-                        <th className="text-left text-[var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Joined</th>
+                        <th className="text-left text-[length:var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">User</th>
+                        <th className="text-left text-[length:var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
+                        <th className="text-left text-[length:var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Joined</th>
                         <th />
                       </tr>
                     </thead>
                     <tbody>
                       {teamMembers.map((m) => (
                         <tr key={m.user_id} className="border-b border-[var(--line)] last:border-0">
-                          <td className="px-4 py-[10px] text-[var(--font-sm)] text-[var(--text)] truncate max-w-[200px]">{m.email || m.user_id.slice(0, 8) + '…'}</td>
+                          <td className="px-4 py-[10px] text-[length:var(--font-sm)] text-[var(--text)] truncate max-w-[200px]">{m.email || m.user_id.slice(0, 8) + '…'}</td>
                           <td className="px-4 py-[10px]"><span className={`chip ${m.role === 'owner' ? 'chip-ready' : m.role === 'admin' ? 'chip-review' : 'chip-uploading'}`}>{m.role}</span></td>
-                          <td className="px-4 py-[10px] text-[var(--font-base)] text-[var(--text3)]">{new Date(m.joined_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                          <td className="px-4 py-[10px] text-[length:var(--font-base)] text-[var(--text3)]">{new Date(m.joined_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                           <td className="px-4 py-[10px] text-right">
                             {(orgRole === 'owner' || orgRole === 'admin') && m.role !== 'owner' && m.user_id !== currentUserId && (
                               <button
                                 onClick={() => removeMember(m.user_id)}
                                 disabled={removingMember === m.user_id}
-                                className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
+                                className="text-[length:var(--font-sm)] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
                               >
                                 {removingMember === m.user_id ? 'Removing…' : 'Remove'}
                               </button>
@@ -383,30 +383,30 @@ function SettingsInner() {
 
             {pendingInvites.length > 0 && (
               <div className="card">
-                <div className="card-head"><span className="card-title">Pending Invites</span><span className="text-[var(--font-sm)] text-[var(--text3)]">{pendingInvites.length} pending</span></div>
+                <div className="card-head"><span className="card-title">Pending Invites</span><span className="text-[length:var(--font-sm)] text-[var(--text3)]">{pendingInvites.length} pending</span></div>
                 <div className="card-body p-0">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-[var(--line)]">
-                        <th className="text-left text-[var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Email</th>
-                        <th className="text-left text-[var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
-                        <th className="text-left text-[var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Expires</th>
+                        <th className="text-left text-[length:var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Email</th>
+                        <th className="text-left text-[length:var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
+                        <th className="text-left text-[length:var(--font-base)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Expires</th>
                         <th />
                       </tr>
                     </thead>
                     <tbody>
                       {pendingInvites.map((inv) => (
                         <tr key={inv.id} className="border-b border-[var(--line)] last:border-0">
-                          <td className="px-4 py-[10px] text-[var(--font-sm)] text-[var(--text)]">{inv.email}</td>
+                          <td className="px-4 py-[10px] text-[length:var(--font-sm)] text-[var(--text)]">{inv.email}</td>
                           <td className="px-4 py-[10px]"><span className="chip chip-uploading">{inv.role}</span></td>
-                          <td className="px-4 py-[10px] text-[var(--font-base)] text-[var(--text3)]">{new Date(inv.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</td>
+                          <td className="px-4 py-[10px] text-[length:var(--font-base)] text-[var(--text3)]">{new Date(inv.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</td>
                           <td className="px-4 py-[10px] text-right">
                             <button onClick={async () => {
                               const { createClient } = await import('@/lib/supabase/client')
                               const { data: { session } } = await createClient().auth.getSession()
                               const res = await fetch(`/api/orgs/invite?id=${inv.id}`, { method: 'DELETE', headers: { authorization: `Bearer ${session?.access_token}` } })
                               if (res.ok) setPendingInvites((prev) => prev.filter((i) => i.id !== inv.id))
-                            }} className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors">Revoke</button>
+                            }} className="text-[length:var(--font-sm)] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors">Revoke</button>
                           </td>
                         </tr>
                       ))}
