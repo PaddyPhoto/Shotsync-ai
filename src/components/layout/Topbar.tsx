@@ -21,7 +21,7 @@ export function Topbar({ breadcrumbs, actions }: TopbarProps) {
         borderBottom: '0.5px solid var(--line)',
       }}
     >
-      <nav className="flex items-center gap-1" style={{ fontSize: '13px', color: 'var(--text3)', letterSpacing: '-0.1px' }}>
+      <nav className="flex items-center gap-1" style={{ fontSize: '14px', color: 'var(--text3)', letterSpacing: '-0.1px' }}>
         {breadcrumbs.map((crumb, i) => (
           <span key={i} className="flex items-center gap-1">
             {i > 0 && <span style={{ opacity: 0.4, margin: '0 2px' }}>/</span>}

@@ -136,7 +136,7 @@ function NavLink({ item, disabled }: { item: NavItem; disabled?: boolean }) {
   const isDisabled = disabled ?? item.disabled
 
   const baseClass = cn(
-    'flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[14px] transition-all duration-150 w-full border-0',
+    'flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[15px] transition-all duration-150 w-full border-0',
     isDisabled
       ? 'opacity-35 cursor-not-allowed'
       : isActive
@@ -329,7 +329,7 @@ export function Sidebar() {
     document.addEventListener('mouseup', onMouseUp)
   }, [])
 
-  const SL = { fontSize: '11px', fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--text3)', padding: '0 8px', marginBottom: '3px' }
+  const SL = { fontSize: '12px', fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--text3)', padding: '0 8px', marginBottom: '3px' }
 
   return (
     <aside className="flex flex-col sticky top-0 h-screen relative flex-shrink-0" style={{ width: sidebarWidth, background: '#1c1c1c', borderRight: '0.5px solid rgba(255,255,255,0.07)' }}>
@@ -345,7 +345,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-[9px]" style={{ padding: '20px 16px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
         <img src="/icon.png" alt="ShotSync" className="w-[28px] h-[28px] rounded-[7px] flex-shrink-0" />
-        <div className="text-[16px] font-medium tracking-[-0.3px]" style={{ color: '#f0f0f0', fontFamily: "'Inter', sans-serif" }}>
+        <div className="text-[17px] font-medium tracking-[-0.3px]" style={{ color: '#f0f0f0', fontFamily: "'Inter', sans-serif" }}>
           Shot<span style={{ color: 'rgba(255,255,255,0.4)' }}>Sync</span>
         </div>
       </div>
@@ -408,7 +408,7 @@ export function Sidebar() {
                 {/* Section header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px 6px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                   <p style={{ ...SL, padding: 0, marginBottom: 0 }}>{clusters.length} Clusters</p>
-                  <span style={{ fontSize: '11px', color: 'var(--text3)', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text3)', fontVariantNumeric: 'tabular-nums' }}>
                     <span style={{ color: confirmedCount === clusters.length ? '#30d158' : 'var(--text2)' }}>{confirmedCount}</span>
                     <span style={{ color: 'rgba(255,255,255,0.2)' }}>/{clusters.length}</span>
                   </span>
@@ -458,10 +458,10 @@ export function Sidebar() {
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
                   >
-                    <span className="text-[13px] font-medium truncate w-full" style={{ color: 'var(--text)', maxWidth: '148px', display: 'block' }}>
+                    <span className="text-[14px] font-medium truncate w-full" style={{ color: 'var(--text)', maxWidth: '148px', display: 'block' }}>
                       {resumingId === job.id ? 'Resuming…' : job.jobName}
                     </span>
-                    <span className="text-[11px]" style={{ color: 'var(--text3)' }}>
+                    <span className="text-[12px]" style={{ color: 'var(--text3)' }}>
                       {job.clusterCount} cluster{job.clusterCount !== 1 ? 's' : ''} · {relativeTime(job.savedAt)}
                     </span>
                   </button>
@@ -484,7 +484,7 @@ export function Sidebar() {
         <div style={{ padding: '8px 10px 0', borderTop: '0.5px solid rgba(255,255,255,0.06)', marginTop: '4px' }}>
           <button
             onClick={openHelpModal}
-            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[14px] w-full transition-all duration-150"
+            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[15px] w-full transition-all duration-150"
             style={{ color: 'var(--text3)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
@@ -509,7 +509,7 @@ export function Sidebar() {
               await fetch('/api/auth/signout', { method: 'POST' })
               window.location.href = '/'
             }}
-            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[14px] w-full transition-all duration-150"
+            className="flex items-center gap-[8px] px-[10px] py-[6px] rounded-[8px] text-[15px] w-full transition-all duration-150"
             style={{ color: 'var(--text3)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--text3)' }}
@@ -536,14 +536,14 @@ export function Sidebar() {
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
           >
             <div
-              className="w-[28px] h-[28px] rounded-full flex items-center justify-center font-medium text-[12px] flex-shrink-0"
+              className="w-[28px] h-[28px] rounded-full flex items-center justify-center font-medium text-[13px] flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)', color: 'var(--text)', letterSpacing: '-0.3px' }}
             >
               {orgName ? orgName[0].toUpperCase() : 'S'}
             </div>
             <div className="min-w-0">
-              <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text)', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
-              <p className="text-[11px] mt-[1px]" style={{ color: 'var(--text3)' }}>
+              <p className="text-[14px] font-medium truncate" style={{ color: 'var(--text)', letterSpacing: '-0.2px' }}>{orgName ?? 'My Workspace'}</p>
+              <p className="text-[12px] mt-[1px]" style={{ color: 'var(--text3)' }}>
                 {PLAN_LABEL[planId] ?? planId} plan
               </p>
             </div>

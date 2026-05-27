@@ -255,22 +255,22 @@ export default function JobsPage() {
 
       <div className="p-7">
         <div className="mb-6">
-          <h1 style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', marginBottom: '3px' }}>
+          <h1 style={{ fontSize: '25px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', marginBottom: '3px' }}>
             All Jobs
           </h1>
           {!loading && (
-            <p style={{ fontSize: '15px', color: 'var(--text3)' }}>
+            <p style={{ fontSize: '16px', color: 'var(--text3)' }}>
               {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} — click any row to open
             </p>
           )}
         </div>
 
         {loading ? (
-          <div style={{ fontSize: '15px', color: 'var(--text3)' }}>Loading…</div>
+          <div style={{ fontSize: '16px', color: 'var(--text3)' }}>Loading…</div>
         ) : fetchError ? (
           <div style={{ textAlign: 'center', padding: '64px 0' }}>
-            <p style={{ fontSize: '15px', color: '#ff453a', marginBottom: '8px' }}>Failed to load jobs</p>
-            <p style={{ fontSize: '13px', color: 'var(--text3)', fontFamily: 'monospace' }}>{fetchError}</p>
+            <p style={{ fontSize: '16px', color: '#ff453a', marginBottom: '8px' }}>Failed to load jobs</p>
+            <p style={{ fontSize: '14px', color: 'var(--text3)', fontFamily: 'monospace' }}>{fetchError}</p>
           </div>
         ) : jobs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 0' }}>
@@ -282,8 +282,8 @@ export default function JobsPage() {
                 <rect x="2" y="13" width="7" height="5" rx="1.5"/>
               </svg>
             </div>
-            <p style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>No jobs yet</p>
-            <p style={{ fontSize: '15px', color: 'var(--text3)', marginBottom: '16px' }}>Completed jobs will appear here.</p>
+            <p style={{ fontSize: '17px', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>No jobs yet</p>
+            <p style={{ fontSize: '16px', color: 'var(--text3)', marginBottom: '16px' }}>Completed jobs will appear here.</p>
             <Link href="/dashboard/upload" className="btn btn-primary">Start a shoot</Link>
           </div>
         ) : (
@@ -348,24 +348,24 @@ export default function JobsPage() {
 
                     {/* Name + meta */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p style={{ fontSize: '17px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {job.job_name}
                       </p>
-                      <p style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '2px' }}>
+                      <p style={{ fontSize: '15px', color: 'var(--text3)', marginTop: '2px' }}>
                         {job.image_count} images · {job.cluster_count} clusters
                         {job.marketplaces?.length > 0 && <> · {job.marketplaces.length} marketplace{job.marketplaces.length !== 1 ? 's' : ''}</>}
                       </p>
                     </div>
 
                     {/* Date */}
-                    <p style={{ fontSize: '14px', color: 'var(--text3)', flexShrink: 0 }}>
+                    <p style={{ fontSize: '15px', color: 'var(--text3)', flexShrink: 0 }}>
                       {new Date(job.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
 
                     {/* Status chip */}
                     <span style={{
                       flexShrink: 0,
-                      fontSize: '14px', fontWeight: 500,
+                      fontSize: '15px', fontWeight: 500,
                       padding: '3px 9px', borderRadius: '6px',
                       background: chip.bg, color: chip.color,
                       letterSpacing: '-.1px',
@@ -378,16 +378,16 @@ export default function JobsPage() {
                   <div style={{ padding: '0 14px 0 0', flexShrink: 0 }}>
                     {isConfirming ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '14px', color: '#ff3b30' }}>Delete?</span>
+                        <span style={{ fontSize: '15px', color: '#ff3b30' }}>Delete?</span>
                         <button
                           onClick={() => handleDelete(job.id)}
-                          style={{ fontSize: '14px', fontWeight: 500, color: '#fff', background: '#ff3b30', border: 'none', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer' }}
+                          style={{ fontSize: '15px', fontWeight: 500, color: '#fff', background: '#ff3b30', border: 'none', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer' }}
                         >
                           Yes
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(null)}
-                          style={{ fontSize: '14px', color: 'var(--text3)', background: 'transparent', border: 'none', padding: '3px 4px', cursor: 'pointer' }}
+                          style={{ fontSize: '15px', color: 'var(--text3)', background: 'transparent', border: 'none', padding: '3px 4px', cursor: 'pointer' }}
                         >
                           Cancel
                         </button>

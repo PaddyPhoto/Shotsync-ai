@@ -720,8 +720,8 @@ function ReviewPage() {
           <rect x="3" y="3" width="7" height="10" rx="1"/><rect x="14" y="3" width="7" height="6" rx="1"/><rect x="14" y="13" width="7" height="8" rx="1"/>
         </svg>
       </div>
-      <p style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>No active session</p>
-      <p style={{ fontSize: '14px', color: '#4e4e53', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>Upload and process images to start reviewing clusters.</p>
+      <p style={{ fontSize: '17px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>No active session</p>
+      <p style={{ fontSize: '15px', color: '#4e4e53', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>Upload and process images to start reviewing clusters.</p>
       <a href="/dashboard/upload" className="btn btn-primary" style={{ marginTop: '4px' }}>New upload</a>
     </div>
   )

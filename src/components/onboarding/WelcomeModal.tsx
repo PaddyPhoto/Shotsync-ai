@@ -129,7 +129,7 @@ export function WelcomeModal() {
                   {step.icon}
                 </span>
                 <div>
-                  <p className="text-[12px] font-semibold tracking-[0.1em] uppercase" style={{ color: step.color }}>
+                  <p className="text-[13px] font-semibold tracking-[0.1em] uppercase" style={{ color: step.color }}>
                     Step {step.number}
                   </p>
                   <p className="text-[0.87rem] font-semibold text-[var(--text)] leading-tight">{step.title}</p>

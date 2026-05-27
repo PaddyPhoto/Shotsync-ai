@@ -312,8 +312,8 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
             >
               <span className={action.primary ? 'text-[rgba(245,245,247,0.7)]' : 'text-[var(--text3)]'}>{action.icon}</span>
               <div>
-                <p className={`text-[14px] font-[600] tracking-[-0.2px] mb-1 ${action.primary ? 'text-[#f5f5f7]' : 'text-[var(--text)]'}`}>{action.label}</p>
-                <p className={`text-[14px] leading-relaxed ${action.primary ? 'text-[rgba(245,245,247,0.5)]' : 'text-[var(--text3)]'}`}>{action.description}</p>
+                <p className={`text-[15px] font-[600] tracking-[-0.2px] mb-1 ${action.primary ? 'text-[#f5f5f7]' : 'text-[var(--text)]'}`}>{action.label}</p>
+                <p className={`text-[15px] leading-relaxed ${action.primary ? 'text-[rgba(245,245,247,0.5)]' : 'text-[var(--text3)]'}`}>{action.description}</p>
               </div>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={action.primary ? 'rgba(245,245,247,0.35)' : 'var(--text3)'} strokeWidth="1.5" className="self-end">
                 <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>

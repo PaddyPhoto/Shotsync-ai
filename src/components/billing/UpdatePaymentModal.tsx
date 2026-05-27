@@ -28,12 +28,12 @@ const appearance = {
   rules: {
     '.Input': { border: '0.5px solid rgba(0,0,0,0.15)', boxShadow: 'none', padding: '11px 14px' },
     '.Input:focus': { border: '0.5px solid #1d1d1f', boxShadow: 'none', outline: 'none' },
-    '.Label': { color: '#6e6e73', fontWeight: '500', fontSize: '12px', letterSpacing: '0.04em', textTransform: 'uppercase' },
+    '.Label': { color: '#6e6e73', fontWeight: '500', fontSize: '13px', letterSpacing: '0.04em', textTransform: 'uppercase' },
     '.Tab': { border: '0.5px solid rgba(0,0,0,0.1)', boxShadow: 'none', borderRadius: '8px' },
     '.Tab--selected': { border: '0.5px solid #1d1d1f', boxShadow: 'none' },
     '.Tab:hover': { color: '#1d1d1f', border: '0.5px solid rgba(0,0,0,0.2)' },
     '.Block': { border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '8px' },
-    '.Error': { color: '#ff3b30', fontSize: '13px' },
+    '.Error': { color: '#ff3b30', fontSize: '14px' },
   },
 }
 
@@ -75,7 +75,7 @@ function UpdateForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PaymentElement options={{ layout: 'tabs' }} />
       {error && (
-        <div style={{ background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#c0392b' }}>
+        <div style={{ background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', borderRadius: '8px', padding: '10px 14px', fontSize: '14px', color: '#c0392b' }}>
           {error}
         </div>
       )}
@@ -83,14 +83,14 @@ function UpdateForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
         <button
           type="button"
           onClick={onClose}
-          style={{ flex: 1, padding: '11px', background: 'rgba(0,0,0,0.06)', color: '#1d1d1f', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}
+          style={{ flex: 1, padding: '11px', background: 'rgba(0,0,0,0.06)', color: '#1d1d1f', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!stripe || loading}
-          style={{ flex: 2, padding: '11px', background: loading ? 'rgba(0,0,0,0.4)' : '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 500, cursor: loading ? 'wait' : 'pointer', fontFamily: 'inherit' }}
+          style={{ flex: 2, padding: '11px', background: loading ? 'rgba(0,0,0,0.4)' : '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 500, cursor: loading ? 'wait' : 'pointer', fontFamily: 'inherit' }}
         >
           {loading ? 'Saving…' : 'Save payment method'}
         </button>
@@ -161,7 +161,7 @@ export function UpdatePaymentModal({ onClose }: { onClose: () => void }) {
       >
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', margin: 0 }}>Update payment method</p>
+          <p style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', margin: 0 }}>Update payment method</p>
           <button
             onClick={onClose}
             style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6e6e73' }}
@@ -179,12 +179,12 @@ export function UpdatePaymentModal({ onClose }: { onClose: () => void }) {
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(48,209,88,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="20" height="20"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
-              <p style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', marginBottom: '8px' }}>Payment method updated</p>
-              <p style={{ fontSize: '13px', color: '#6e6e73', marginBottom: '20px' }}>Your new payment method will be used for future charges.</p>
-              <button onClick={onClose} style={{ background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Done</button>
+              <p style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', marginBottom: '8px' }}>Payment method updated</p>
+              <p style={{ fontSize: '14px', color: '#6e6e73', marginBottom: '20px' }}>Your new payment method will be used for future charges.</p>
+              <button onClick={onClose} style={{ background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit' }}>Done</button>
             </div>
           ) : fetching ? (
-            <div style={{ padding: '40px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: '#6e6e73', fontSize: '14px' }}>
+            <div style={{ padding: '40px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: '#6e6e73', fontSize: '15px' }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
                 <circle cx="8" cy="8" r="6" strokeDasharray="19 9"/>
               </svg>
@@ -192,8 +192,8 @@ export function UpdatePaymentModal({ onClose }: { onClose: () => void }) {
             </div>
           ) : error ? (
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
-              <p style={{ fontSize: '13px', color: '#ff3b30', marginBottom: '16px' }}>{error}</p>
-              <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.06)', color: '#1d1d1f', border: 'none', borderRadius: '8px', padding: '9px 20px', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>Close</button>
+              <p style={{ fontSize: '14px', color: '#ff3b30', marginBottom: '16px' }}>{error}</p>
+              <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.06)', color: '#1d1d1f', border: 'none', borderRadius: '8px', padding: '9px 20px', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit' }}>Close</button>
             </div>
           ) : clientSecret ? (
             <Elements stripe={getStripe()!} options={{ clientSecret, appearance }}>
@@ -203,7 +203,7 @@ export function UpdatePaymentModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {!success && !fetching && !error && (
-          <div style={{ padding: '12px 24px 16px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#aeaeb2' }}>
+          <div style={{ padding: '12px 24px 16px', borderTop: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#aeaeb2' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             Secured by Stripe · Your card is never stored on our servers
           </div>

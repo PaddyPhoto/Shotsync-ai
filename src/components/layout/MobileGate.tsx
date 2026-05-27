@@ -35,10 +35,10 @@ export function MobileGate({ children }: { children: React.ReactNode }) {
       textAlign: 'center',
     }}>
       <img src="/icon.png" alt="ShotSync" style={{ width: '64px', height: '64px', borderRadius: '16px', marginBottom: '28px' }} />
-      <h1 style={{ fontSize: '22px', fontWeight: 500, letterSpacing: '-.5px', color: '#1d1d1f', marginBottom: '12px' }}>
+      <h1 style={{ fontSize: '23px', fontWeight: 500, letterSpacing: '-.5px', color: '#1d1d1f', marginBottom: '12px' }}>
         ShotSync is built for desktop
       </h1>
-      <p style={{ fontSize: '15px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px', maxWidth: '280px', marginBottom: '36px' }}>
+      <p style={{ fontSize: '16px', color: '#6e6e73', lineHeight: 1.6, letterSpacing: '-.1px', maxWidth: '280px', marginBottom: '36px' }}>
         The workspace is designed for a larger screen. Open ShotSync on your Mac or PC to get started.
       </p>
       <a
@@ -48,7 +48,7 @@ export function MobileGate({ children }: { children: React.ReactNode }) {
           color: '#f5f5f7',
           padding: '12px 24px',
           borderRadius: '10px',
-          fontSize: '14px',
+          fontSize: '15px',
           fontWeight: 500,
           letterSpacing: '-.2px',
           textDecoration: 'none',
@@ -65,7 +65,7 @@ export function MobileGate({ children }: { children: React.ReactNode }) {
           background: 'none',
           border: 'none',
           color: '#3a3a3c',
-          fontSize: '13px',
+          fontSize: '14px',
           cursor: 'pointer',
           letterSpacing: '-.1px',
           padding: '8px',

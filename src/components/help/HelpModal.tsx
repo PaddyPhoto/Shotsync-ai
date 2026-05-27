@@ -232,7 +232,7 @@ function SectionBlock({ section }: { section: Section }) {
   return (
     <div className="mb-5">
       <h3
-        className="text-[11px] font-semibold tracking-[0.08em] uppercase mb-1"
+        className="text-[12px] font-semibold tracking-[0.08em] uppercase mb-1"
         style={{ color: 'var(--accent)' }}
       >
         {section.title}
