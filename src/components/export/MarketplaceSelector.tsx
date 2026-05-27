@@ -24,35 +24,35 @@ const MARKETPLACE_PALETTE: Record<MarketplaceName, { bgRest: string; bgSelected:
     bgSelected: 'rgba(255,159,10,0.16)',
     border:     '#ff9f0a',
     dot:        '#ff9f0a',
-    nameColor:  '#7a4a00',
+    nameColor:  '#ffb340',
   },
   myer: {
     bgRest:     'rgba(255,59,48,0.07)',
     bgSelected: 'rgba(255,59,48,0.15)',
     border:     '#ff3b30',
     dot:        '#ff3b30',
-    nameColor:  '#8a1a14',
+    nameColor:  '#ff453a',
   },
   'david-jones': {
     bgRest:     'rgba(0,122,255,0.07)',
     bgSelected: 'rgba(0,122,255,0.14)',
     border:     '#0071e3',
     dot:        '#0071e3',
-    nameColor:  '#003d80',
+    nameColor:  '#4da3ff',
   },
   shopify: {
     bgRest:     'rgba(48,209,88,0.08)',
     bgSelected: 'rgba(48,209,88,0.18)',
     border:     '#30d158',
-    dot:        '#1a8a35',
-    nameColor:  '#1a5c2a',
+    dot:        '#30d158',
+    nameColor:  '#34c759',
   },
   joor: {
     bgRest:     'rgba(88,86,214,0.07)',
     bgSelected: 'rgba(88,86,214,0.16)',
     border:     '#5856d6',
     dot:        '#5856d6',
-    nameColor:  '#2d2b8a',
+    nameColor:  '#7b79f7',
   },
 }
 
@@ -105,7 +105,7 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
               <p style={{ fontSize: 'var(--font-lg)', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: 'var(--text2)' }}>
                 {rule.name}
               </p>
-              <p style={{ fontSize: 'var(--font-base)', color: '#aeaeb2', marginBottom: '4px' }}>
+              <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', marginBottom: '4px' }}>
                 {MARKETPLACE_DESCRIPTIONS[id]}
               </p>
               <p style={{ fontSize: 'var(--font-sm)', color: 'var(--accent)', fontWeight: 600 }}>Launch plan required ↑</p>
@@ -141,16 +141,16 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
               }}>✓</span>
             )}
 
-            <p style={{ fontSize: 'var(--font-lg)', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: isSelected ? palette.nameColor : '#1d1d1f' }}>
+            <p style={{ fontSize: 'var(--font-lg)', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: isSelected ? palette.nameColor : 'var(--text)' }}>
               {rule.name}
             </p>
-            <p style={{ fontSize: 'var(--font-base)', color: '#aeaeb2', marginBottom: '12px' }}>
+            <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', marginBottom: '12px' }}>
               {MARKETPLACE_DESCRIPTIONS[id]}
             </p>
-            <div style={{ fontSize: 'var(--font-sm)', lineHeight: 1.8, fontFamily: 'var(--font-dm-mono)', color: '#aeaeb2' }}>
+            <div style={{ fontSize: 'var(--font-sm)', lineHeight: 1.8, fontFamily: 'var(--font-dm-mono)', color: 'var(--text3)' }}>
               <p>{rule.image_dimensions.width}×{rule.image_dimensions.height}px</p>
-              <p style={{ color: '#6e6e73' }}>{rule.file_format.toUpperCase()} · Q{rule.quality}</p>
-              <p>Req: <span style={{ color: '#6e6e73' }}>{rule.required_views.join(', ')}</span></p>
+              <p>{rule.file_format.toUpperCase()} · Q{rule.quality}</p>
+              <p>Req: <span style={{ opacity: 0.7 }}>{rule.required_views.join(', ')}</span></p>
             </div>
           </button>
         )
