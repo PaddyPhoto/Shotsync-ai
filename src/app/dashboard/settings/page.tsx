@@ -202,7 +202,7 @@ function SettingsInner() {
 
         {/* ── General ───────────────────────────────────────────────────────── */}
         {tab === 'general' && (
-          <div className="flex flex-col gap-4 max-w-[760px]">
+          <div className="flex flex-col gap-4 max-w-[1100px]">
             <div className="card">
               <div className="card-head"><span className="card-title">General Settings</span></div>
               <div className="card-body">
@@ -225,7 +225,7 @@ function SettingsInner() {
 
         {/* ── Billing ───────────────────────────────────────────────────────── */}
         {tab === 'billing' && (
-          <div className="p-7 pt-0 flex flex-col gap-4 max-w-[760px]">
+          <div className="p-7 pt-0 flex flex-col gap-4 max-w-[1100px]">
             {activatingPlan && (
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[rgba(255,159,10,0.3)] bg-[rgba(255,159,10,0.07)] text-[var(--font-base)]">
                 <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,159,10,0.3)', borderTopColor: '#ff9f0a', borderRadius: '50%', flexShrink: 0, animation: 'spin 0.7s linear infinite' }} />
@@ -321,7 +321,7 @@ function SettingsInner() {
 
         {/* ── Team ──────────────────────────────────────────────────────────── */}
         {tab === 'team' && (
-          <div className="p-7 pt-0 flex flex-col gap-4 max-w-[760px]">
+          <div className="p-7 pt-0 flex flex-col gap-4 max-w-[1100px]">
             <div className="card">
               <div className="card-head"><span className="card-title">Invite Team Member</span></div>
               <div className="card-body flex flex-col gap-3">
