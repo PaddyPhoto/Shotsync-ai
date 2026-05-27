@@ -71,6 +71,11 @@ export default function AdminPage() {
   const [testLoading, setTestLoading] = useState(false)
   const [testResult, setTestResult] = useState<string | null>(null)
 
+  // Transactional email preview state
+  const [previewTemplate, setPreviewTemplate] = useState('re-engagement')
+  const [previewTestLoading, setPreviewTestLoading] = useState(false)
+  const [previewTestResult, setPreviewTestResult] = useState<string | null>(null)
+
   // Users state
   const [users, setUsers] = useState<UserRow[]>([])
   const [usersLoading, setUsersLoading] = useState(false)
@@ -432,6 +437,67 @@ export default function AdminPage() {
               </div>
             )}
 
+          </div>
+        </div>
+
+        {/* Transactional Emails */}
+        <div className="card" style={{ marginBottom: '16px' }}>
+          <div className="card-head">
+            <h2 className="text-[1rem] font-[600] text-[var(--text)]">Transactional Emails</h2>
+            <p className="text-[0.8rem] text-[var(--text3)] mt-1">Preview and test-send automated emails</p>
+          </div>
+          <div className="card-body flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <select
+                className="input text-[0.85rem] py-[6px] flex-1"
+                value={previewTemplate}
+                onChange={(e) => { setPreviewTemplate(e.target.value); setPreviewTestResult(null) }}
+              >
+                <option value="re-engagement">Re-engagement (inactive users)</option>
+              </select>
+              <button
+                className="btn btn-sm"
+                style={{ whiteSpace: 'nowrap' }}
+                disabled={previewTestLoading}
+                onClick={async () => {
+                  if (!session) return
+                  setPreviewTestLoading(true)
+                  setPreviewTestResult(null)
+                  try {
+                    const tok = session.access_token
+                    const res = await fetch('/api/admin/send-test-email', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
+                      body: JSON.stringify({ template: previewTemplate }),
+                    })
+                    setPreviewTestResult(res.ok ? '✓ Sent to your inbox' : '✗ Failed to send')
+                  } catch {
+                    setPreviewTestResult('✗ Request error')
+                  } finally {
+                    setPreviewTestLoading(false)
+                  }
+                }}
+              >
+                {previewTestLoading ? 'Sending…' : 'Send test to me'}
+              </button>
+            </div>
+            {previewTestResult && (
+              <p className={`text-[0.82rem] font-[500] ${previewTestResult.startsWith('✓') ? 'text-[var(--accent2)]' : 'text-[var(--accent3)]'}`}>
+                {previewTestResult}
+              </p>
+            )}
+            {previewTemplate === 're-engagement' && (() => {
+              const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><style>body{margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}.wrap{max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:0.5px solid rgba(0,0,0,0.08)}.header{padding:28px 32px 20px;border-bottom:0.5px solid rgba(0,0,0,0.06)}.logo{font-size:17px;font-weight:600;letter-spacing:-0.3px;color:#1d1d1f}.logo span{color:#6e6e73;font-weight:400}.body{padding:28px 32px;font-size:15px;line-height:1.6;color:#3a3a3c}.body p{margin:0 0 14px}.body p:last-child{margin-bottom:0}.btn{display:inline-block;margin:20px 0;background:#1d1d1f;color:#fff!important;text-decoration:none;padding:11px 22px;border-radius:9px;font-size:14px;font-weight:500;letter-spacing:-0.2px}.footer{padding:18px 32px;border-top:0.5px solid rgba(0,0,0,0.06);font-size:12px;color:#aeaeb2}.label{display:inline-block;background:rgba(0,122,255,0.08);color:#005fc4;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:3px 8px;border-radius:5px;margin-bottom:14px}</style></head><body><div class="wrap"><div class="header"><div class="logo">Shot<span>Sync</span></div></div><div class="body"><p class="label">We miss you</p><p>Hi there,</p><p>It looks like you haven&rsquo;t been on ShotSync in a while. With a new season coming up, it&rsquo;s a great time to get back in and start processing your shoot images.</p><p>Pick up exactly where you left off &mdash; your brand settings, marketplace rules, and naming templates are all saved and ready to go.</p><a class="btn" href="https://shotsync.ai/dashboard">Open ShotSync</a><p>If you have any questions or feedback, just reply to this email &mdash; we&rsquo;d love to hear from you.</p><p>&mdash; The ShotSync team</p></div><div class="footer">&copy; 2026 ShotSync.ai</div></div></body></html>`
+              return (
+                <div style={{ border: '0.5px solid var(--line)', borderRadius: '10px', overflow: 'hidden' }}>
+                  <iframe
+                    srcDoc={html}
+                    style={{ width: '100%', height: '460px', border: 'none', background: '#f5f5f7' }}
+                    title="Email preview"
+                  />
+                </div>
+              )
+            })()}
           </div>
         </div>
 
