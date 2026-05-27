@@ -32,7 +32,7 @@ export function FileList({ files }: FileListProps) {
       {files.map((item) => (
         <div
           key={item.id}
-          className="flex items-center gap-3 bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-[14px] py-[10px] text-[0.82rem]"
+          className="flex items-center gap-3 bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-[14px] py-[10px] text-[0.89rem]"
         >
           {/* Thumbnail */}
           <div className="w-9 h-9 rounded-[4px] bg-[var(--bg4)] flex-shrink-0 overflow-hidden flex items-center justify-center">
@@ -40,7 +40,7 @@ export function FileList({ files }: FileListProps) {
               <img src={item.preview} alt="" className="w-full h-full object-cover" />
             ) : (
               <span
-                className="text-[0.72rem] text-[var(--text3)]"
+                className="text-[0.79rem] text-[var(--text3)]"
                 style={{ fontFamily: 'var(--font-dm-mono)' }}
               >
                 {item.file.name.split('.').pop()?.toUpperCase()}
@@ -63,13 +63,13 @@ export function FileList({ files }: FileListProps) {
               </div>
             )}
             {item.status === 'error' && (
-              <p className="text-[0.79rem] text-[var(--accent3)] mt-0.5">{item.error}</p>
+              <p className="text-[0.86rem] text-[var(--accent3)] mt-0.5">{item.error}</p>
             )}
           </div>
 
           {/* Size */}
           <span
-            className="text-[var(--text3)] text-[0.82rem] flex-shrink-0"
+            className="text-[var(--text3)] text-[0.89rem] flex-shrink-0"
             style={{ fontFamily: 'var(--font-dm-mono)' }}
           >
             {formatBytes(item.file.size)}

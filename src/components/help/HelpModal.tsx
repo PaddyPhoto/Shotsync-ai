@@ -216,11 +216,11 @@ function AccordionItem({ qa }: { qa: QA }) {
         style={{ color: open ? 'var(--text)' : 'var(--text2)' }}
         onClick={() => setOpen(!open)}
       >
-        <span className="text-[0.85rem] font-medium leading-snug">{qa.q}</span>
+        <span className="text-[0.92rem] font-medium leading-snug">{qa.q}</span>
         <ChevronIcon open={open} />
       </button>
       {open && (
-        <p className="text-[0.82rem] leading-relaxed pb-3" style={{ color: 'var(--text3)' }}>
+        <p className="text-[0.89rem] leading-relaxed pb-3" style={{ color: 'var(--text3)' }}>
           {qa.a}
         </p>
       )}
@@ -287,7 +287,7 @@ export function HelpModal() {
               <h2 className="text-[1rem] font-bold tracking-[-0.4px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
                 Help & FAQ
               </h2>
-              <p className="text-[0.78rem] text-[var(--text3)]">Answers to common questions about ShotSync</p>
+              <p className="text-[0.85rem] text-[var(--text3)]">Answers to common questions about ShotSync</p>
             </div>
           </div>
           <button

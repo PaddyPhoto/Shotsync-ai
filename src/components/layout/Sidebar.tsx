@@ -156,7 +156,7 @@ function NavLink({ item, disabled }: { item: NavItem; disabled?: boolean }) {
       <span className="flex-1">{item.label}</span>
       {item.badge && (
         <span className={cn(
-          'ml-auto text-[0.83rem] font-bold px-[6px] py-[1px] rounded-[8px]',
+          'ml-auto text-[0.90rem] font-bold px-[6px] py-[1px] rounded-[8px]',
           item.badge.variant === 'blue'  && 'bg-[var(--accent)] text-black',
           item.badge.variant === 'green' && 'bg-[var(--accent2)] text-black',
           item.badge.variant === 'red'   && 'bg-[var(--accent3)] text-white',

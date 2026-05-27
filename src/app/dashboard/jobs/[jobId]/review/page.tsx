@@ -104,14 +104,14 @@ export default function ReviewPage({ params }: { params: { jobId: string } }) {
 
       <div className="p-7">
         <div className="mb-7">
-          <h1 className="text-[1.6rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
+          <h1 className="text-[1.67rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
             Cluster Review
           </h1>
-          <p className="text-[0.88rem] text-[var(--text2)] mt-[6px]">
+          <p className="text-[0.95rem] text-[var(--text2)] mt-[6px]">
             Verify AI groupings and confirm SKU assignments. Correct any misidentified angles.
           </p>
           {isDemoMode && (
-            <div className="mt-3 inline-flex items-center gap-2 text-[0.82rem] text-[var(--accent)] bg-[rgba(232,217,122,0.08)] border border-[rgba(232,217,122,0.2)] px-3 py-[5px] rounded-sm">
+            <div className="mt-3 inline-flex items-center gap-2 text-[0.89rem] text-[var(--accent)] bg-[rgba(232,217,122,0.08)] border border-[rgba(232,217,122,0.2)] px-3 py-[5px] rounded-sm">
               <span>Demo mode — connect Supabase to see real data</span>
             </div>
           )}
@@ -124,7 +124,7 @@ export default function ReviewPage({ params }: { params: { jobId: string } }) {
               <circle cx="7" cy="7" r="6"/>
               <path d="M7 6v4M7 4.5h.01" strokeLinecap="round"/>
             </svg>
-            <p className="text-[0.85rem] text-[var(--text3)]">
+            <p className="text-[0.92rem] text-[var(--text3)]">
               Shopify not connected — SKU suggestions are unavailable. You can still manually assign SKUs or{' '}
               <Link href="/dashboard/brands" className="text-[var(--text2)] underline underline-offset-2 hover:text-[var(--text)]">
                 add Shopify to a brand
