@@ -10,7 +10,13 @@ import { useSession } from '@/store/session'
 import type { StyleListEntry, ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
+import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import type { MarketplaceName, ViewLabel } from '@/types'
+
+const BOTTOMWEAR_LABELS = new Set([
+  'Mens Pants', 'Mens Shorts', 'Mens Swimwear',
+  'Womens Pants', 'Womens Skirts', 'Womens Shorts', 'Womens Swimwear',
+])
 
 type ReimportImage = {
   image_id: string; image_order: number; filename: string
@@ -705,6 +711,63 @@ export default function UploadPage() {
       : (brandStillLifeSeq?.length ? brandStillLifeSeq : undefined)
 
     const clusters = await processFiles(files, imagesPerLook, setProgress, shootType, stillLifeType ?? undefined, effectiveAngleSeq)
+
+    // AI garment category detection — on-model only, runs silently in parallel batches
+    if (shootType === 'on-model' && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      try {
+        const { data: { session: authSession } } = await import('@/lib/supabase/client')
+          .then((m) => m.createClient().auth.getSession())
+        const token = authSession?.access_token
+        const catLabels = GARMENT_CATEGORIES.map((c) => c.label)
+        const BATCH = 3
+
+        setProgress({ phase: 'Classifying garment types…', done: 0, total: clusters.length })
+
+        for (let i = 0; i < clusters.length; i += BATCH) {
+          await Promise.all(
+            clusters.slice(i, i + BATCH).map(async (cluster) => {
+              const firstImg = cluster.images[0]
+              if (!firstImg?.previewUrl) return
+              try {
+                // Convert blob URL → base64
+                const blob = await fetch(firstImg.previewUrl).then((r) => r.blob())
+                const base64 = await new Promise<string>((resolve, reject) => {
+                  const reader = new FileReader()
+                  reader.onload = () => resolve((reader.result as string).split(',')[1] ?? '')
+                  reader.onerror = reject
+                  reader.readAsDataURL(blob)
+                })
+                if (!base64) return
+
+                const res = await fetch('/api/classify-garment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                  body: JSON.stringify({ image: base64, categories: catLabels }),
+                })
+                if (!res.ok) return
+                const { category } = await res.json() as { category: string | null }
+                if (!category) return
+
+                cluster.garmentCategory = category
+                cluster.isBottomwear = BOTTOMWEAR_LABELS.has(category)
+
+                // Apply per-category angle sequence if configured on the brand
+                const catSeq = activeBrand?.category_angle_sequences?.find(
+                  (s) => s.category.trim().toLowerCase() === category.trim().toLowerCase()
+                )
+                if (catSeq?.angles?.length) {
+                  cluster.images.forEach((img, idx) => {
+                    img.viewLabel = (catSeq.angles[idx % catSeq.angles.length] ?? 'front') as ViewLabel
+                  })
+                }
+              } catch { /* non-critical — skip this cluster */ }
+            })
+          )
+          setProgress({ phase: 'Classifying garment types…', done: Math.min(i + BATCH, clusters.length), total: clusters.length })
+          await new Promise((r) => setTimeout(r, 0))
+        }
+      } catch { /* classification is best-effort, never block navigation */ }
+    }
 
     // Record image usage server-side (fire and forget — non-blocking)
     import('@/lib/supabase/client').then(({ createClient }) =>
