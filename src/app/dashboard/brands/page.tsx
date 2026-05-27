@@ -9,7 +9,6 @@ import type { Brand } from '@/lib/brands'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
-import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { MarketplaceName } from '@/types'
 
 
@@ -589,13 +588,40 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
               <div className="px-6 pb-5">
 
                 {/* Default marketplaces */}
-                <div className="mb-6">
-                  <h4 className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] tracking-[-0.2px] mb-[3px]">Default Marketplaces</h4>
-                  <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-3">Pre-selected on every new upload for this brand. You can still change them per shoot.</p>
-                  <MarketplaceSelector
-                    selected={form.default_marketplaces}
-                    onChange={(mps) => onFormChange({ default_marketplaces: mps as MarketplaceName[] })}
-                  />
+                <div className="mb-5">
+                  <label className="text-[length:var(--font-base)] text-[var(--text3)] mb-2 block">Default Marketplaces</label>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { id: 'shopify',     name: 'Shopify',      color: '#30d158' },
+                      { id: 'the-iconic',  name: 'THE ICONIC',   color: '#ff9f0a' },
+                      { id: 'david-jones', name: 'David Jones',  color: '#0071e3' },
+                      { id: 'myer',        name: 'Myer',         color: '#ff3b30' },
+                      { id: 'joor',        name: 'JOOR',         color: '#5856d6' },
+                    ] as { id: MarketplaceName; name: string; color: string }[]).map(({ id, name, color }) => {
+                      const active = form.default_marketplaces.includes(id)
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => onFormChange({
+                            default_marketplaces: active
+                              ? form.default_marketplaces.filter(m => m !== id)
+                              : [...form.default_marketplaces, id],
+                          })}
+                          className="flex items-center gap-[7px] px-3 py-[6px] rounded-[8px] transition-all text-[length:var(--font-base)] font-medium border"
+                          style={{
+                            background: active ? `color-mix(in srgb, ${color} 12%, transparent)` : 'var(--bg3)',
+                            borderColor: active ? color : 'var(--line2)',
+                            color: active ? color : 'var(--text2)',
+                          }}
+                        >
+                          <span className="w-[7px] h-[7px] rounded-full flex-shrink-0" style={{ background: color, opacity: active ? 1 : 0.4 }} />
+                          {name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-2">Pre-selected on new uploads — can be changed per shoot.</p>
                 </div>
 
                 <div className="border-t border-[var(--line)] mb-5" />
