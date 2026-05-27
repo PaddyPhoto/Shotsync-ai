@@ -8,6 +8,7 @@ import { usePlan } from '@/context/PlanContext'
 import type { Brand } from '@/lib/brands'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
+import { angleDisplayName } from '@/lib/angle-utils'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
 import type { MarketplaceName } from '@/types'
 
@@ -311,8 +312,8 @@ const BRAND_STEPS = [
   { n: 4, label: 'Brand Voice' },
 ] as const
 
-const ANGLE_OPTIONS = ['full-length', 'front', 'back', 'side', 'full-length-side', 'full-length-back', 'detail', 'mood', 'front-3/4', 'back-3/4', 'flat-lay']
-const ALL_ON_MODEL = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4', 'full-length-side', 'full-length-back']
+const ANGLE_OPTIONS = ['full-length', 'front', 'back', 'side', 'full-length-side', 'full-length-back', 'detail', 'mood', 'mood-2', 'mood-3', 'flat-lay']
+const ALL_ON_MODEL = ['full-length', 'front', 'side', 'mood', 'mood-2', 'mood-3', 'detail', 'back', 'full-length-side', 'full-length-back']
 const STILL_LIFE_ANGLES = ['front', 'back', 'side', 'detail', 'inside', 'flat-lay', 'top-down', 'front-3/4', 'back-3/4']
 
 function AnglePills({ angles, onChange, options = ANGLE_OPTIONS }: { angles: string[]; onChange: (next: string[]) => void; options?: string[] }) {
@@ -344,7 +345,7 @@ function AnglePills({ angles, onChange, options = ANGLE_OPTIONS }: { angles: str
             <circle cx="2" cy="2" r="1"/><circle cx="5" cy="2" r="1"/><circle cx="2" cy="5" r="1"/>
             <circle cx="5" cy="5" r="1"/><circle cx="2" cy="8" r="1"/><circle cx="5" cy="8" r="1"/>
           </svg>
-          <span style={{ fontSize: 'var(--font-base)', color: 'var(--text)', lineHeight: 1 }}>{angle}</span>
+          <span style={{ fontSize: 'var(--font-base)', color: 'var(--text)', lineHeight: 1 }}>{angleDisplayName(angle)}</span>
           <button type="button" onClick={(e) => { e.stopPropagation(); onChange(angles.filter((_, i) => i !== idx)) }}
             className="hover:text-[#ff3b30] transition-colors" style={{ color: 'var(--text3)', lineHeight: 1, fontSize: 'var(--font-lg)', flexShrink: 0 }}>×</button>
         </div>

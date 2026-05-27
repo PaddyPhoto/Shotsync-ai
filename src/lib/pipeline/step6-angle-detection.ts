@@ -24,6 +24,8 @@ const VIEW_KEYWORDS: Record<ViewLabel, string[]> = {
   side:              ['side', 's01', 's1', 's02', 's2', '_s_', '-s-', 'profile', 'alt'],
   detail:            ['detail', 'd01', 'd1', 'd02', 'd2', '_d_', '-d-', 'close', 'zoom'],
   mood:              ['mood', 'm01', 'm1', '_m_', '-m-', 'lifestyle', 'editorial', 'styled'],
+  'mood-2':          ['mood2', 'm02', 'm2', 'lifestyle2'],
+  'mood-3':          ['mood3', 'm03', 'm3', 'lifestyle3'],
   'full-length':      ['full', 'fl', 'fl01', 'fl02', 'fulllength', 'full-length', 'full_length', 'standing'],
   'full-length-side': ['fls', 'fl-side', 'fl_side', 'fullside', 'full-length-side'],
   'full-length-back': ['flb', 'fl-back', 'fl_back', 'fullback', 'full-length-back'],
@@ -50,7 +52,7 @@ export function detectViewFromFilename(filename: string): ViewLabel {
 
 // ── Sequence fallback ─────────────────────────────────────────────────────────
 
-const SEQUENCE_ORDER: ViewLabel[] = ['front', 'back', 'side', 'full-length-side', 'full-length-back', 'detail', 'mood', 'full-length', 'ghost-mannequin', 'flat-lay']
+const SEQUENCE_ORDER: ViewLabel[] = ['front', 'back', 'side', 'full-length-side', 'full-length-back', 'detail', 'mood', 'mood-2', 'mood-3', 'full-length', 'ghost-mannequin', 'flat-lay']
 
 export function assignSequenceLabels(
   images: { id: string; view_label: ViewLabel; original_filename: string }[]

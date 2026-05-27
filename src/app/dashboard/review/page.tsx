@@ -13,6 +13,7 @@ import { applyNamingTemplate } from '@/lib/brands'
 import { detectColourFromFilename } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/lib/accessories/categories'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
+import { angleDisplayName } from '@/lib/angle-utils'
 
 const BOTTOMWEAR_CATEGORY_LABELS = new Set([
   'Mens Pants', 'Mens Shorts', 'Mens Swimwear',
@@ -25,7 +26,7 @@ import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster, StyleListEntry } from '@/store/session'
 import type { Brand } from '@/lib/brands'
 
-const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'full-length-side', 'full-length-back', 'front-3/4', 'back-3/4']
+const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'mood-2', 'mood-3', 'full-length', 'full-length-side', 'full-length-back', 'front-3/4', 'back-3/4']
 
 const VIEW_CLS: Record<ViewLabel, string> = {
   front:                'shot-front',
@@ -33,6 +34,8 @@ const VIEW_CLS: Record<ViewLabel, string> = {
   side:                 'shot-side',
   detail:               'shot-detail',
   mood:                 'shot-mood',
+  'mood-2':             'shot-mood',
+  'mood-3':             'shot-mood',
   'full-length':        'shot-full-length',
   'full-length-side':   'shot-side',
   'full-length-back':   'shot-back',
@@ -246,7 +249,7 @@ function ReviewPage() {
     }
   }
 
-  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4', 'full-length-side', 'full-length-back']
+  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'mood-2', 'mood-3', 'detail', 'back', 'full-length-side', 'full-length-back']
   const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
 
   // Returns the ordered angle sequence for a cluster.
@@ -1264,7 +1267,7 @@ function ReviewPage() {
                           {' '}missing{' '}
                           {missing.map((v, i) => (
                             <span key={v}>
-                              <span className={`shot-pill ${VIEW_CLS[v as ViewLabel] ?? ''}`} style={{ fontSize: '0.62rem', padding: '1px 5px' }}>{v}</span>
+                              <span className={`shot-pill ${VIEW_CLS[v as ViewLabel] ?? ''}`} style={{ fontSize: '0.62rem', padding: '1px 5px' }}>{angleDisplayName(v)}</span>
                               {i < missing.length - 1 ? ' ' : ''}
                             </span>
                           ))}
@@ -1640,7 +1643,7 @@ function ReviewPage() {
                 style={{ userSelect: 'none' }}
               />
               <div className="flex items-center gap-3 text-[length:var(--font-base)]">
-                <span className="px-2 py-0.5 rounded-[4px] bg-white/10 text-white/80 uppercase tracking-wide font-medium">{current.viewLabel.replace(/-/g, ' ')}</span>
+                <span className="px-2 py-0.5 rounded-[4px] bg-white/10 text-white/80 uppercase tracking-wide font-medium">{angleDisplayName(current.viewLabel)}</span>
                 <span className="text-white/50 font-mono truncate max-w-[300px]">{current.filename}</span>
                 <span className="text-white/30">{currentIdx + 1} / {allImages.length}</span>
               </div>
@@ -2963,7 +2966,7 @@ function ExportPanel({
 
 // Views with plain/white backgrounds where AI removal makes sense.
 // Detail, mood, flat-lay, top-down, inside shots are excluded — complex backgrounds.
-const PLAIN_BG_VIEWS = new Set<string>(['front', 'back', 'side', 'mood', 'full-length', 'full-length-side', 'full-length-back', 'ghost-mannequin', 'front-3/4', 'back-3/4'])
+const PLAIN_BG_VIEWS = new Set<string>(['front', 'back', 'side', 'mood', 'mood-2', 'mood-3', 'full-length', 'full-length-side', 'full-length-back', 'ghost-mannequin', 'front-3/4', 'back-3/4'])
 
 // Resize a File to max 1500 px JPEG — keeps Replicate payloads small
 async function preCompressImage(file: File): Promise<Blob> {

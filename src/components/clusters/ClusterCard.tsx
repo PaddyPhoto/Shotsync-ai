@@ -20,6 +20,8 @@ function ShotPill({ view, missing = false }: { view: ViewLabel; missing?: boolea
     side:                 'shot-side',
     detail:               'shot-detail',
     mood:                 'shot-mood',
+    'mood-2':             'shot-mood',
+    'mood-3':             'shot-mood',
     'full-length':        'shot-full-length',
     'full-length-side':   'shot-side',
     'full-length-back':   'shot-back',

@@ -11,6 +11,7 @@ import type { StyleListEntry, ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
+import { angleDisplayName } from '@/lib/angle-utils'
 import type { MarketplaceName, ViewLabel } from '@/types'
 
 const BOTTOMWEAR_LABELS = new Set([
@@ -46,6 +47,8 @@ const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = 
   'full-length-back':   { bg: 'rgba(0,122,255,0.09)',   color: '#4da3ff', dot: '#4da3ff' },
   'detail':             { bg: 'rgba(255,59,48,0.12)',   color: '#ff453a', dot: '#ff453a' },
   'mood':               { bg: 'rgba(255,55,95,0.12)',   color: '#ff375f', dot: '#ff375f' },
+  'mood-2':             { bg: 'rgba(255,55,95,0.09)',   color: '#ff375f', dot: '#ff375f' },
+  'mood-3':             { bg: 'rgba(255,55,95,0.07)',   color: '#ff375f', dot: '#ff375f' },
   'front-3/4':          { bg: 'rgba(48,209,88,0.09)',   color: '#30d158', dot: '#30d158' },
   'back-3/4':           { bg: 'rgba(0,122,255,0.09)',   color: '#4da3ff', dot: '#4da3ff' },
 }
@@ -249,7 +252,7 @@ export default function UploadPage() {
       ? activeBrand.default_marketplaces as MarketplaceName[]
       : ['the-iconic' as MarketplaceName]
   )
-  const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4', 'full-length-side', 'full-length-back']
+  const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'mood-2', 'mood-3', 'detail', 'back', 'full-length-side', 'full-length-back']
   const defaultImagesPerLook = activeBrand?.images_per_look ?? 4
   const [imagesPerLook, setImagesPerLook] = useState<number>(defaultImagesPerLook)
   const [angleSequence, setAngleSequence] = useState<string[]>(() => {
@@ -1381,7 +1384,7 @@ export default function UploadPage() {
                               }}
                             >
                               <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: st.dot, flexShrink: 0 }} />
-                              {idx + 1}. {angle}
+                              {idx + 1}. {angleDisplayName(angle)}
                             </div>
                           )
                         })}

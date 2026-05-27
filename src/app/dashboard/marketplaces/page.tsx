@@ -13,7 +13,7 @@ import type { ReactNode } from 'react'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import type { MarketplaceName, ViewLabel, CategoryOverride } from '@/types'
 
-const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'full-length', 'full-length-side', 'full-length-back', 'front-3/4', 'back-3/4']
+const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'mood-2', 'mood-3', 'full-length', 'full-length-side', 'full-length-back', 'front-3/4', 'back-3/4']
 
 const PLATFORM_CONFIG: Record<string, { initials: string; accentColor: string; monoBg: string; monoColor: string }> = {
   shopify:       { initials: 'S',  accentColor: '#96BF48', monoBg: 'rgba(150,191,72,0.18)',  monoColor: '#96BF48' },
