@@ -242,7 +242,7 @@ function BrandsPage() {
           </button>
         </div>
 
-        <div className="flex flex-col gap-10 max-w-[900px]">
+        <div className="flex flex-col gap-10 max-w-[1100px]">
           {expandedId === 'new' && (
             <BrandCard
               id="new"

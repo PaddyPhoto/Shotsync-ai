@@ -190,7 +190,7 @@ function MarketplacesInner() {
           <p className="text-[var(--font-base)] text-[var(--text2)]">Angle sequence, image specs, and file naming — controls how images are delivered to each platform.</p>
         </div>
 
-        <div className="flex flex-col gap-10 max-w-[760px]">
+        <div className="flex flex-col gap-10 max-w-[1100px]">
 
           {/* ── Marketplace Export Rules ─────────────────────────────────── */}
           <section>
