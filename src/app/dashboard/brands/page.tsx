@@ -704,7 +704,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                     <h4 className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] tracking-[-0.2px]">Ghost Mannequin</h4>
                     <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-[0.07em] px-[7px] py-[2px] rounded-full" style={{ background: 'rgba(48,209,88,0.08)', color: 'var(--accent2)', border: '1px solid rgba(48,209,88,0.2)' }}>GM</span>
                   </div>
-                  <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-3">Where the GM image is embedded in the live product listing — most relevant for Shopify auto-publish. <strong style={{ color: 'var(--text2)' }}>Before on-model</strong> makes it the hero image; <strong style={{ color: 'var(--text2)' }}>After on-model</strong> appends it at the end of the image set.</p>
+                  <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-3">Where the GM image is embedded in the live product listing — most relevant for Shopify auto-publish. <strong style={{ color: 'var(--text2)' }}>Image 1</strong> makes it the hero, <strong style={{ color: 'var(--text2)' }}>Last Image</strong> appends it after on-model images.</p>
                   <div className="inline-flex bg-[var(--bg3)] p-[3px] rounded-sm gap-[2px]">
                     {(['first', 'last'] as const).map((pos) => (
                       <button key={pos} type="button" onClick={() => onFormChange({ gm_position: pos })}
