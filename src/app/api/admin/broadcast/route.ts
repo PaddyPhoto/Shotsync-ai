@@ -193,124 +193,55 @@ function getEdmHtml2(unsubscribeUrl: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ShotSync — 25 minutes. Every shoot.</title>
 </head>
-<body style="margin:0;padding:0;background:#f0f0f2;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background:#ebebed;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
 
-<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f0f0f2">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ebebed">
 <tr><td align="center" style="padding:32px 16px;">
 
-  <table width="680" cellpadding="0" cellspacing="0" border="0" style="max-width:680px;border-radius:20px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.10);">
+  <table width="680" cellpadding="0" cellspacing="0" border="0" style="max-width:680px;border-radius:20px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.12);">
 
     <!-- HEADER -->
-    <tr><td bgcolor="#0a0a0a" style="padding:18px 32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+    <tr><td bgcolor="#ffffff" style="padding:18px 32px;border-bottom:1px solid #f0f0f2;">
       <table cellpadding="0" cellspacing="0" border="0"><tr>
         <td style="padding-right:9px;vertical-align:middle;">
           <img src="https://www.shotsync.ai/icon.png" width="26" height="26" alt="" style="display:block;border-radius:6px;">
         </td>
         <td style="vertical-align:middle;">
-          <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#ffffff;">Shot<span style="color:rgba(255,255,255,0.4);font-weight:400;">Sync</span></span>
+          <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#0a0a0a;">Shot<span style="color:#aeaeb2;font-weight:400;">Sync</span></span>
         </td>
       </tr></table>
     </td></tr>
 
-    <!-- HERO IMAGE -->
-    <tr><td bgcolor="#0a0a0a" style="padding:0;line-height:0;font-size:0;">
-      <img src="https://www.shotsync.ai/email/hero2.jpg" width="680" alt="ShotSync in action" style="display:block;width:100%;max-width:680px;">
+    <!-- HERO IMAGE — full portrait, no forced height -->
+    <tr><td bgcolor="#f5f5f7" style="padding:0;line-height:0;font-size:0;">
+      <img src="https://www.shotsync.ai/email/hero2.jpg" width="680" alt="ShotSync in action" style="display:block;width:100%;max-width:680px;height:auto;">
     </td></tr>
 
-    <!-- HEADLINE -->
-    <tr><td bgcolor="#ffffff" style="padding:44px 40px 32px;text-align:center;">
-      <p style="margin:0 0 16px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#aeaeb2;">The numbers don&rsquo;t lie</p>
-      <h1 style="margin:0 0 16px;font-size:38px;font-weight:600;letter-spacing:-1.8px;line-height:1.1;color:#0a0a0a;">What used to take 2&ndash;3 days<br>now takes 25 minutes.</h1>
-      <p style="margin:0 auto;max-width:460px;font-size:15px;line-height:1.65;color:#6e6e73;letter-spacing:-0.1px;">ShotSync automates the post-shoot workflow that&rsquo;s been stealing time from fashion teams for years. Upload your shoot, confirm the SKUs, export everywhere at once.</p>
+    <!-- CTA STRIP -->
+    <tr><td bgcolor="#ffffff" style="padding:44px 40px 40px;text-align:center;">
+      <h2 style="margin:0 0 12px;font-size:32px;font-weight:600;letter-spacing:-1.4px;line-height:1.15;color:#0a0a0a;">Ready to make your next shoot<br>the fastest one yet?</h2>
+      <p style="margin:0 auto 32px;max-width:440px;font-size:15px;line-height:1.65;color:#6e6e73;letter-spacing:-0.1px;">30 days free. No credit card. Set up in minutes — your brand settings, naming rules and marketplace specs ready from day one.</p>
+      <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#0a0a0a;color:#ffffff;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:14px 36px;border-radius:10px;text-decoration:none;">Start free trial</a>
     </td></tr>
 
-    <!-- STATS ROW -->
-    <tr><td bgcolor="#ffffff" style="padding:0 32px 36px;">
+    <!-- SOCIAL PROOF ROW -->
+    <tr><td bgcolor="#fafafa" style="padding:24px 32px;border-top:1px solid #f0f0f2;border-bottom:1px solid #f0f0f2;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="text-align:center;padding:24px 16px;background:#fafafa;border:1px solid #e8e8ed;border-radius:12px;">
-          <div style="font-size:32px;font-weight:600;letter-spacing:-1.5px;color:#0a0a0a;line-height:1;margin-bottom:6px;">500+</div>
-          <div style="font-size:12px;color:#aeaeb2;line-height:1.4;">images per shoot,<br>auto-named</div>
-        </td>
-        <td width="10"></td>
-        <td style="text-align:center;padding:24px 16px;background:#0a0a0a;border-radius:12px;">
-          <div style="font-size:32px;font-weight:600;letter-spacing:-1.5px;color:#ffffff;line-height:1;margin-bottom:6px;">25 min</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);line-height:1.4;">upload to export,<br>end-to-end</div>
-        </td>
-        <td width="10"></td>
-        <td style="text-align:center;padding:24px 16px;background:#fafafa;border:1px solid #e8e8ed;border-radius:12px;">
-          <div style="font-size:32px;font-weight:600;letter-spacing:-1.5px;color:#0a0a0a;line-height:1;margin-bottom:6px;">1-click</div>
-          <div style="font-size:12px;color:#aeaeb2;line-height:1.4;">to every<br>marketplace</div>
+        <td style="text-align:center;vertical-align:middle;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#aeaeb2;margin-bottom:10px;">Exports to</div>
+          <div>
+            <span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#3a3a3c;margin:0 10px;">THE ICONIC</span>
+            <span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#3a3a3c;margin:0 10px;">MYER</span>
+            <span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#3a3a3c;margin:0 10px;">DAVID JONES</span>
+            <span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#3a3a3c;margin:0 10px;">SHOPIFY</span>
+            <span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#3a3a3c;margin:0 10px;">JOOR</span>
+          </div>
         </td>
       </tr></table>
-    </td></tr>
-
-    <!-- DIVIDER -->
-    <tr><td bgcolor="#ffffff" style="padding:0 32px;"><div style="height:1px;background:#f0f0f2;"></div></td></tr>
-
-    <!-- FEATURES CHECKLIST -->
-    <tr><td bgcolor="#ffffff" style="padding:36px 40px;">
-      <p style="margin:0 0 20px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#aeaeb2;">What it does</p>
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="padding-bottom:16px;">
-          <table cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="padding-right:12px;vertical-align:top;padding-top:1px;">
-              <div style="width:20px;height:20px;background:#0a0a0a;border-radius:50%;text-align:center;line-height:20px;font-size:11px;color:#ffffff;font-weight:700;">&checkmark;</div>
-            </td>
-            <td>
-              <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">Auto-rename every file by SKU and angle</div>
-              <div style="font-size:13px;color:#6e6e73;line-height:1.5;">Every image named, sorted and formatted to your spec the moment you upload.</div>
-            </td>
-          </tr></table>
-        </td></tr>
-        <tr><td style="padding-bottom:16px;">
-          <table cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="padding-right:12px;vertical-align:top;padding-top:1px;">
-              <div style="width:20px;height:20px;background:#0a0a0a;border-radius:50%;text-align:center;line-height:20px;font-size:11px;color:#ffffff;font-weight:700;">&checkmark;</div>
-            </td>
-            <td>
-              <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">AI product copy in your brand voice</div>
-              <div style="font-size:13px;color:#6e6e73;line-height:1.5;">Titles, descriptions and bullet points written instantly — trained on your tone, not a generic template.</div>
-            </td>
-          </tr></table>
-        </td></tr>
-        <tr><td style="padding-bottom:16px;">
-          <table cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="padding-right:12px;vertical-align:top;padding-top:1px;">
-              <div style="width:20px;height:20px;background:#0a0a0a;border-radius:50%;text-align:center;line-height:20px;font-size:11px;color:#ffffff;font-weight:700;">&checkmark;</div>
-            </td>
-            <td>
-              <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">Export to every marketplace at once</div>
-              <div style="font-size:13px;color:#6e6e73;line-height:1.5;">THE ICONIC, MYER, David Jones, JOOR, Shopify — all formatted to spec in a single export.</div>
-            </td>
-          </tr></table>
-        </td></tr>
-        <tr><td>
-          <table cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="padding-right:12px;vertical-align:top;padding-top:1px;">
-              <div style="width:20px;height:20px;background:#0a0a0a;border-radius:50%;text-align:center;line-height:20px;font-size:11px;color:#ffffff;font-weight:700;">&checkmark;</div>
-            </td>
-            <td>
-              <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">Publish direct to Shopify</div>
-              <div style="font-size:13px;color:#6e6e73;line-height:1.5;">Images and product data pushed straight to your store — no CSV imports, no copy-paste.</div>
-            </td>
-          </tr></table>
-        </td></tr>
-      </table>
-    </td></tr>
-
-    <!-- CTA -->
-    <tr><td style="padding:0 16px;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr><td bgcolor="#0a0a0a" style="padding:48px 40px;text-align:center;border-radius:16px;">
-          <h2 style="margin:0 0 10px;font-size:26px;font-weight:600;letter-spacing:-1px;color:#ffffff;line-height:1.2;">30 days free.<br>No credit card needed.</h2>
-          <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.4);line-height:1.6;">Set up takes minutes. Your next shoot can be processed the same day.</p>
-          <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start free trial</a>
-        </td></tr>
-      </table>
     </td></tr>
 
     <!-- FOOTER -->
-    <tr><td bgcolor="#f0f0f2" style="padding:28px 32px;text-align:center;">
+    <tr><td bgcolor="#ebebed" style="padding:28px 32px;text-align:center;">
       <div style="margin-bottom:10px;">
         <a href="https://www.shotsync.ai" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Website</a>
         <a href="https://www.shotsync.ai/#pricing" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Pricing</a>
