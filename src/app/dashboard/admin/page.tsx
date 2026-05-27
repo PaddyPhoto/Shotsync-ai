@@ -78,6 +78,16 @@ export default function AdminPage() {
   const [previewTestLoading, setPreviewTestLoading] = useState(false)
   const [previewTestResult, setPreviewTestResult] = useState<string | null>(null)
 
+  // Re-engagement automation status
+  const [reEngStatus, setReEngStatus] = useState<{
+    enabled: boolean
+    lastRunAt: string | null
+    lastRunResult: { sent: number; skipped: number; total: number } | null
+  } | null>(null)
+  const [reEngToggleLoading, setReEngToggleLoading] = useState(false)
+  const [reEngTriggerLoading, setReEngTriggerLoading] = useState(false)
+  const [reEngTriggerResult, setReEngTriggerResult] = useState<string | null>(null)
+
   // Users state
   const [users, setUsers] = useState<UserRow[]>([])
   const [usersLoading, setUsersLoading] = useState(false)
@@ -119,6 +129,13 @@ export default function AdminPage() {
     }
   }, [])
 
+  const fetchReEngStatus = useCallback(async (tok: string) => {
+    try {
+      const res = await fetch('/api/admin/re-engagement', { headers: { Authorization: `Bearer ${tok}` } })
+      if (res.ok) setReEngStatus(await res.json())
+    } catch { /* ignore */ }
+  }, [])
+
   useEffect(() => {
     createClient().auth.getSession().then(({ data: { session: s } }) => {
       if (!s || s.user.email !== ADMIN_EMAIL) {
@@ -127,9 +144,10 @@ export default function AdminPage() {
         setSession(s)
         fetchUsers(s.access_token)
         fetchActivity(s.access_token)
+        fetchReEngStatus(s.access_token)
       }
     })
-  }, [router, fetchUsers, fetchActivity])
+  }, [router, fetchUsers, fetchActivity, fetchReEngStatus])
 
   if (!session) return null
 
@@ -200,6 +218,50 @@ export default function AdminPage() {
       setError(e instanceof Error ? e.message : 'Test send failed')
     } finally {
       setTestLoading(false)
+    }
+  }
+
+  async function toggleReEng() {
+    if (!session) return
+    setReEngToggleLoading(true)
+    try {
+      const res = await fetch('/api/admin/re-engagement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action: 'toggle' }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setReEngStatus(prev => prev ? { ...prev, enabled: json.enabled } : null)
+      }
+    } finally {
+      setReEngToggleLoading(false)
+    }
+  }
+
+  async function triggerReEng() {
+    if (!session) return
+    setReEngTriggerLoading(true)
+    setReEngTriggerResult(null)
+    try {
+      const res = await fetch('/api/admin/re-engagement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action: 'trigger' }),
+      })
+      const json = await res.json()
+      if (res.ok && !json.skipped) {
+        setReEngTriggerResult(`✓ Done — ${json.sent} sent, ${json.total} users checked`)
+        await fetchReEngStatus(session.access_token)
+      } else if (json.skipped) {
+        setReEngTriggerResult('Automation is paused — enable it first')
+      } else {
+        setReEngTriggerResult(`✗ ${json.error ?? 'Failed'}`)
+      }
+    } catch {
+      setReEngTriggerResult('✗ Request error')
+    } finally {
+      setReEngTriggerLoading(false)
     }
   }
 
@@ -462,6 +524,76 @@ export default function AdminPage() {
             </>)}
 
             {emailTab === 'transactional' && (<>
+
+              {/* Automation status panel */}
+              <div style={{ background: 'var(--bg3)', border: '0.5px solid var(--line)', borderRadius: '12px', padding: '14px 16px' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-[10px]">
+                    <div className="w-[8px] h-[8px] rounded-full flex-shrink-0" style={{ background: reEngStatus?.enabled ? 'var(--accent2)' : 'var(--text3)' }} />
+                    <span className="text-[length:var(--font-base)] font-[500] text-[var(--text)]">Re-engagement automation</span>
+                    <span
+                      className="chip text-[length:var(--font-xs)]"
+                      style={{
+                        background: reEngStatus?.enabled ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.06)',
+                        color: reEngStatus?.enabled ? 'var(--accent2)' : 'var(--text3)',
+                      }}
+                    >
+                      {reEngStatus === null ? '…' : reEngStatus.enabled ? 'Active' : 'Paused'}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      className="btn btn-sm btn-ghost"
+                      onClick={triggerReEng}
+                      disabled={reEngTriggerLoading || reEngStatus === null}
+                    >
+                      {reEngTriggerLoading ? 'Running…' : 'Run now'}
+                    </button>
+                    <button
+                      className="btn btn-sm btn-ghost"
+                      onClick={toggleReEng}
+                      disabled={reEngToggleLoading || reEngStatus === null}
+                    >
+                      {reEngToggleLoading ? '…' : reEngStatus?.enabled ? 'Pause' : 'Resume'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-5 flex-wrap">
+                  <div>
+                    <p className="text-[length:var(--font-xs)] text-[var(--text3)] mb-[2px]">Schedule</p>
+                    <p className="text-[length:var(--font-sm)] text-[var(--text2)]">Daily at 2am UTC</p>
+                  </div>
+                  <div>
+                    <p className="text-[length:var(--font-xs)] text-[var(--text3)] mb-[2px]">Last run</p>
+                    <p className="text-[length:var(--font-sm)] text-[var(--text2)]">
+                      {reEngStatus?.lastRunAt ? sydneyTime(reEngStatus.lastRunAt) : 'Never'}
+                    </p>
+                  </div>
+                  {reEngStatus?.lastRunResult && (reEngStatus.lastRunResult.sent > 0 || reEngStatus.lastRunResult.total > 0) && (
+                    <div>
+                      <p className="text-[length:var(--font-xs)] text-[var(--text3)] mb-[2px]">Last result</p>
+                      <p className="text-[length:var(--font-sm)] text-[var(--text2)]">
+                        {reEngStatus.lastRunResult.sent} sent · {reEngStatus.lastRunResult.total} users checked
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {reEngTriggerResult && (
+                  <p className={`text-[length:var(--font-sm)] font-[500] mt-3 ${reEngTriggerResult.startsWith('✓') ? 'text-[var(--accent2)]' : 'text-[var(--text3)]'}`}>
+                    {reEngTriggerResult}
+                  </p>
+                )}
+
+                <div className="mt-3 pt-3 border-t border-[var(--line)]">
+                  <p className="text-[length:var(--font-xs)] text-[var(--text3)]">
+                    Sequence · inactive 15 days → email 1 · still inactive +15 days → email 2 · still inactive +30 days → email 3 · never again
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '0.5px solid var(--line)', margin: '0 -18px', padding: '0 18px 0' }} />
 
               <div className="flex gap-3">
                 <div className="flex-1">
