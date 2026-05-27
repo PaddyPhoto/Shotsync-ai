@@ -153,7 +153,7 @@ function MarketplacesInner() {
       <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Marketplaces' }]} />
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-[10px] bg-[#1dc44a] text-white text-[0.87rem] font-medium shadow-lg">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-[10px] bg-[#1dc44a] text-white text-[var(--font-sm)] font-medium shadow-lg">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(255,255,255,0.25)"/><path d="M4.5 8l2.5 2.5 4.5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           {toast}
         </div>
@@ -163,19 +163,19 @@ function MarketplacesInner() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setConnectModal(null)}>
           <div className="bg-[var(--bg2)] border border-[var(--line)] rounded-[14px] shadow-2xl w-full max-w-[400px] mx-4 p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-[1rem] font-semibold text-[var(--text)] mb-1">Connect {modalMeta.label}</h3>
-            <p className="text-[0.92rem] text-[var(--text3)] mb-4">You&apos;ll be redirected to {connectModal === 'google_drive' ? 'Google' : 'Dropbox'} to sign in and approve access. ShotSync will be able to:</p>
+            <p className="text-[var(--font-base)] text-[var(--text3)] mb-4">You&apos;ll be redirected to {connectModal === 'google_drive' ? 'Google' : 'Dropbox'} to sign in and approve access. ShotSync will be able to:</p>
             <ul className="flex flex-col gap-2 mb-5">
               {modalMeta.perms.map((p) => (
-                <li key={p} className="flex items-start gap-2 text-[0.92rem] text-[var(--text2)]">
+                <li key={p} className="flex items-start gap-2 text-[var(--font-base)] text-[var(--text2)]">
                   <svg className="mt-[2px] flex-shrink-0" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="var(--accent)"/><path d="M4 7l2.2 2.2 3.8-4.4" stroke="black" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   {p}
                 </li>
               ))}
             </ul>
-            <p className="text-[0.92rem] text-[var(--text3)] mb-5">You can disconnect at any time from this page.</p>
+            <p className="text-[var(--font-base)] text-[var(--text3)] mb-5">You can disconnect at any time from this page.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setConnectModal(null)} className="btn btn-ghost text-[0.87rem]">Cancel</button>
-              <button onClick={doConnect} className="btn btn-primary text-[0.87rem]">{modalMeta.cta} →</button>
+              <button onClick={() => setConnectModal(null)} className="btn btn-ghost text-[var(--font-sm)]">Cancel</button>
+              <button onClick={doConnect} className="btn btn-primary text-[var(--font-sm)]">{modalMeta.cta} →</button>
             </div>
           </div>
         </div>
@@ -184,10 +184,10 @@ function MarketplacesInner() {
       <div className="p-7">
         <div className="mb-7">
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-[1.67rem] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Marketplaces</h1>
-            <span className="text-[0.77rem] font-semibold uppercase tracking-[0.08em] px-2 py-[3px] rounded-[5px]" style={{ background: 'rgba(48,209,88,0.12)', color: '#30d158', border: '1px solid rgba(48,209,88,0.2)' }}>Export Settings</span>
+            <h1 className="text-[var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Marketplaces</h1>
+            <span className="text-[var(--font-xs)] font-semibold uppercase tracking-[0.08em] px-2 py-[3px] rounded-[5px]" style={{ background: 'rgba(48,209,88,0.12)', color: '#30d158', border: '1px solid rgba(48,209,88,0.2)' }}>Export Settings</span>
           </div>
-          <p className="text-[0.95rem] text-[var(--text2)]">Angle sequence, image specs, and file naming — controls how images are delivered to each platform.</p>
+          <p className="text-[var(--font-base)] text-[var(--text2)]">Angle sequence, image specs, and file naming — controls how images are delivered to each platform.</p>
         </div>
 
         <div className="flex flex-col gap-10 max-w-[760px]">
@@ -197,8 +197,8 @@ function MarketplacesInner() {
             <div className="mb-1">
               <h2 className="text-[1rem] font-semibold text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Marketplace Export Rules</h2>
             </div>
-            <p className="text-[0.92rem] text-[var(--text3)] mb-1">Changes save automatically.</p>
-            <div className="mb-5 px-3 py-2.5 rounded-[8px] text-[0.89rem] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
+            <p className="text-[var(--font-base)] text-[var(--text3)] mb-1">Changes save automatically.</p>
+            <div className="mb-5 px-3 py-2.5 rounded-[8px] text-[var(--font-sm)] leading-relaxed" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'var(--text2)' }}>
               Each marketplace receives images in its own required order. ShotSync re-sequences your export automatically using the angle labels assigned during processing.
             </div>
 
@@ -220,19 +220,19 @@ function MarketplacesInner() {
                   >
                     {/* Monogram */}
                     <div
-                      className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[0.79rem] font-bold mb-2.5 flex-shrink-0"
+                      className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[var(--font-xs)] font-bold mb-2.5 flex-shrink-0"
                       style={{ background: platform.monoBg, color: platform.monoColor }}
                     >
                       {platform.initials}
                     </div>
                     {/* Name */}
-                    <p className={`text-[1.06rem] leading-snug mb-2.5 ${isActive ? 'font-semibold text-[var(--text)]' : 'font-medium text-[var(--text3)]'}`}>
+                    <p className={`text-[var(--font-lg)] leading-snug mb-2.5 ${isActive ? 'font-semibold text-[var(--text)]' : 'font-medium text-[var(--text3)]'}`}>
                       {r.name}
                     </p>
                     {/* Status row */}
                     <div className="flex items-center gap-1.5 w-full">
                       <span className="w-[6px] h-[6px] rounded-full flex-shrink-0" style={{ background: isModified ? '#30d158' : 'var(--line2)' }} />
-                      <span className="text-[0.75rem] text-[var(--text3)] truncate">{isModified ? 'Configured' : 'Default'}</span>
+                      <span className="text-[var(--font-2xs)] text-[var(--text3)] truncate">{isModified ? 'Configured' : 'Default'}</span>
                       {isModified && <span className="ml-auto w-[6px] h-[6px] rounded-full flex-shrink-0" style={{ background: '#f59e0b' }} />}
                     </div>
                   </button>
@@ -255,8 +255,8 @@ function MarketplacesInner() {
                       style={{ background: platform.monoBg, color: platform.monoColor }}>
                       {platform.initials}
                     </div>
-                    <span className="text-[0.92rem] font-semibold text-[var(--text)]">{rule.name}</span>
-                    <span className="text-[0.82rem] text-[var(--text3)]">— export settings</span>
+                    <span className="text-[var(--font-base)] font-semibold text-[var(--text)]">{rule.name}</span>
+                    <span className="text-[var(--font-xs)] text-[var(--text3)]">— export settings</span>
                   </div>
                   {/* Step header */}
                   <div className="flex items-center justify-between mb-5">
@@ -269,7 +269,7 @@ function MarketplacesInner() {
                         <button
                           key={n}
                           onClick={() => setStep(n)}
-                          className={`px-4 py-2 text-[0.87rem] font-medium transition-all text-left ${
+                          className={`px-4 py-2 text-[var(--font-sm)] font-medium transition-all text-left ${
                             i > 0 ? 'border-l border-[var(--line)]' : ''
                           } ${
                             step === n
@@ -280,7 +280,7 @@ function MarketplacesInner() {
                           }`}
                           style={step === n ? { background: 'rgba(255,255,255,0.09)' } : {}}
                         >
-                          <div className="text-[0.75rem] mb-[2px]" style={{ fontFamily: 'var(--font-dm-mono)', color: step > n ? 'var(--accent2)' : step === n ? 'var(--text2)' : 'var(--text3)' }}>
+                          <div className="text-[var(--font-2xs)] mb-[2px]" style={{ fontFamily: 'var(--font-dm-mono)', color: step > n ? 'var(--accent2)' : step === n ? 'var(--text2)' : 'var(--text3)' }}>
                             {step > n ? `✓ Step ${n}` : `Step ${n}`}
                           </div>
                           {label}
@@ -289,13 +289,13 @@ function MarketplacesInner() {
                     </div>
                     <div className="flex items-center gap-3">
                       {saved && (
-                        <span className="text-[0.87rem] text-[var(--accent2)] flex items-center gap-1">
+                        <span className="text-[var(--font-sm)] text-[var(--accent2)] flex items-center gap-1">
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
                           Saved
                         </span>
                       )}
-                      {isModified && <span className="text-[0.90rem] font-semibold uppercase tracking-[0.05em] px-[6px] py-[2px] rounded-[4px]" style={{ background: 'rgba(245,158,11,0.14)', color: '#f59e0b' }}>Modified</span>}
-                      <button onClick={() => resetRule(id)} className="text-[0.87rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">Reset to default</button>
+                      {isModified && <span className="text-[var(--font-base)] font-semibold uppercase tracking-[0.05em] px-[6px] py-[2px] rounded-[4px]" style={{ background: 'rgba(245,158,11,0.14)', color: '#f59e0b' }}>Modified</span>}
+                      <button onClick={() => resetRule(id)} className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors">Reset to default</button>
                     </div>
                   </div>
 
@@ -305,7 +305,7 @@ function MarketplacesInner() {
                       <div className="card mb-4">
                         <div className="card-head">
                           <span className="card-title">Required angles</span>
-                          <span className="text-[0.87rem] text-[var(--text3)]">Tap to include or exclude</span>
+                          <span className="text-[var(--font-sm)] text-[var(--text3)]">Tap to include or exclude</span>
                         </div>
                         <div className="card-body">
                           <div className="flex flex-wrap gap-2 mb-4">
@@ -335,16 +335,16 @@ function MarketplacesInner() {
                           </div>
                           <div className="h-px bg-[var(--line)] mb-4" />
                           <div className="flex items-start justify-between mb-3">
-                            <p className="text-[0.92rem] font-medium text-[var(--text)]">Shot sequence</p>
+                            <p className="text-[var(--font-base)] font-medium text-[var(--text)]">Shot sequence</p>
                             <div className="flex flex-col gap-[3px] items-end">
                               {['Drag to reorder', 'Hover pill to remove', 'Click faded to add'].map((label) => (
-                                <span key={label} className="text-[0.79rem] text-[var(--text3)]">{label}</span>
+                                <span key={label} className="text-[var(--font-xs)] text-[var(--text3)]">{label}</span>
                               ))}
                             </div>
                           </div>
                           <div className="bg-[var(--bg2)] rounded-[8px] border border-[var(--line)] p-3 mb-4">
                             {overrideCount > 0 && (
-                              <p className="text-[0.77rem] font-medium uppercase tracking-[0.06em] text-[var(--text3)] mb-2">Default sequence</p>
+                              <p className="text-[var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] mb-2">Default sequence</p>
                             )}
                             <AnglePillRow
                               views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
@@ -359,25 +359,25 @@ function MarketplacesInner() {
                           <button
                             type="button"
                             onClick={() => setShowAdvanced(!showAdvanced)}
-                            className="flex items-center gap-1.5 text-[0.94rem] text-[var(--text2)] hover:text-[var(--text)] transition-colors font-medium"
+                            className="flex items-center gap-1.5 text-[var(--font-base)] text-[var(--text2)] hover:text-[var(--text)] transition-colors font-medium"
                           >
                             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ transform: showAdvanced ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
                               <path d="M2 3.5l3 3 3-3" />
                             </svg>
                             Category overrides
                             {overrideCount > 0 && (
-                              <span className="text-[0.77rem] px-[6px] py-[2px] bg-[var(--bg2)] border border-[var(--line)] rounded-[4px] text-[var(--text3)] ml-1">
+                              <span className="text-[var(--font-xs)] px-[6px] py-[2px] bg-[var(--bg2)] border border-[var(--line)] rounded-[4px] text-[var(--text3)] ml-1">
                                 {overrideCount} active
                               </span>
                             )}
                           </button>
                           {showAdvanced && (
                             <div className="mt-3 pl-4 border-l border-[var(--line)]">
-                              <p className="text-[0.87rem] text-[var(--text3)] mb-3">Set a different shot sequence for specific product categories.</p>
+                              <p className="text-[var(--font-sm)] text-[var(--text3)] mb-3">Set a different shot sequence for specific product categories.</p>
                               {(rule.category_overrides ?? []).map((ov) => (
                                 <div key={ov.id} className="flex items-start gap-2 py-2.5 border-b border-[var(--line)]">
                                   <select
-                                    className="text-[0.79rem] w-[90px] flex-shrink-0 input py-[3px] cursor-pointer font-medium"
+                                    className="text-[var(--font-xs)] w-[90px] flex-shrink-0 input py-[3px] cursor-pointer font-medium"
                                     style={{ borderColor: ov.category ? 'var(--line2)' : 'var(--accent2)', color: ov.category ? 'var(--text2)' : 'var(--accent2)', background: ov.category ? '' : 'rgba(48,209,88,0.07)' }}
                                     value={ov.category}
                                     onChange={(e) => updateRule(id, { category_overrides: (rule.category_overrides ?? []).map((o) => o.id === ov.id ? { ...o, category: e.target.value, label: e.target.value } : o) })}
@@ -415,7 +415,7 @@ function MarketplacesInner() {
                                   }
                                   updateRule(id, { category_overrides: [...(rule.category_overrides ?? []), newOv] })
                                 }}
-                                className="text-[0.87rem] text-[var(--accent)] hover:underline flex items-center gap-1 mt-3"
+                                className="text-[var(--font-sm)] text-[var(--accent)] hover:underline flex items-center gap-1 mt-3"
                               >
                                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
                                 Add category override
@@ -425,7 +425,7 @@ function MarketplacesInner() {
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <button onClick={() => setStep(2)} className="btn btn-primary text-[0.92rem]">Next: Image specs →</button>
+                        <button onClick={() => setStep(2)} className="btn btn-primary text-[var(--font-base)]">Next: Image specs →</button>
                       </div>
                     </div>
                   )}
@@ -436,7 +436,7 @@ function MarketplacesInner() {
                       <div className="card mb-4">
                         <div className="card-head">
                           <span className="card-title">Output dimensions</span>
-                          <span className="text-[0.87rem] text-[var(--text3)]">Set once — applies to all exports</span>
+                          <span className="text-[var(--font-sm)] text-[var(--text3)]">Set once — applies to all exports</span>
                         </div>
                         <div className="card-body">
                           <div className="grid grid-cols-2 gap-x-8 gap-y-0">
@@ -449,14 +449,14 @@ function MarketplacesInner() {
                             <SRow label="File Format" sub="Output file type">
                               <div className="inline-flex bg-[var(--bg3)] p-[2px] rounded-sm gap-[2px]">
                                 {(['jpg', 'png', 'webp'] as const).map((fmt) => (
-                                  <button key={fmt} onClick={() => updateRule(id, { file_format: fmt })} className={`px-3 py-[4px] rounded-[4px] text-[0.87rem] font-medium transition-all ${rule.file_format === fmt ? 'bg-[var(--bg)] text-[var(--text)]' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`} style={{ fontFamily: 'var(--font-dm-mono)' }}>{fmt.toUpperCase()}</button>
+                                  <button key={fmt} onClick={() => updateRule(id, { file_format: fmt })} className={`px-3 py-[4px] rounded-[4px] text-[var(--font-sm)] font-medium transition-all ${rule.file_format === fmt ? 'bg-[var(--bg)] text-[var(--text)]' : 'text-[var(--text3)] hover:text-[var(--text2)]'}`} style={{ fontFamily: 'var(--font-dm-mono)' }}>{fmt.toUpperCase()}</button>
                                 ))}
                               </div>
                             </SRow>
                             <SRow label="Max File Size" sub="Soft limit in KB">
                               <div className="flex items-center gap-2">
                                 <input type="number" className="input w-[100px] text-right" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.max_file_size_kb} min={50} max={10000} onChange={(e) => updateRule(id, { max_file_size_kb: Number(e.target.value) })} />
-                                <span className="text-[0.87rem] text-[var(--text3)]">KB</span>
+                                <span className="text-[var(--font-sm)] text-[var(--text3)]">KB</span>
                               </div>
                             </SRow>
                           </div>
@@ -471,7 +471,7 @@ function MarketplacesInner() {
                             <SRow label="JPEG Quality" sub={`${rule.quality}% — affects file size`}>
                               <div className="flex items-center gap-3 w-[180px]">
                                 <input type="range" min={50} max={100} step={1} value={rule.quality} onChange={(e) => updateRule(id, { quality: Number(e.target.value) })} className="flex-1 accent-[var(--accent)] h-[3px]" />
-                                <span className="text-[0.92rem] w-8 text-right text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.quality}%</span>
+                                <span className="text-[var(--font-base)] w-8 text-right text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.quality}%</span>
                               </div>
                             </SRow>
                             <SRow label="Background Colour" sub="Fill for transparent areas">
@@ -496,8 +496,8 @@ function MarketplacesInner() {
                         </div>
                       </div>
                       <div className="flex justify-between">
-                        <button onClick={() => setStep(1)} className="btn btn-ghost text-[0.92rem]">← Back</button>
-                        <button onClick={() => setStep(3)} className="btn btn-primary text-[0.92rem]">Next: File naming →</button>
+                        <button onClick={() => setStep(1)} className="btn btn-ghost text-[var(--font-base)]">← Back</button>
+                        <button onClick={() => setStep(3)} className="btn btn-primary text-[var(--font-base)]">Next: File naming →</button>
                       </div>
                     </div>
                   )}
@@ -508,30 +508,30 @@ function MarketplacesInner() {
                       <div className="card mb-4">
                         <div className="card-head">
                           <span className="card-title">Naming convention</span>
-                          <span className="text-[0.87rem] text-[var(--text3)]">Click tokens to build your pattern</span>
+                          <span className="text-[var(--font-sm)] text-[var(--text3)]">Click tokens to build your pattern</span>
                         </div>
                         <div className="card-body">
                           <div className="flex flex-wrap gap-[6px] mb-3">
                             {NAMING_TOKENS.map((t) => {
                               const active = rule.naming_template.includes(t.token)
                               return (
-                                <button key={t.token} type="button" onClick={() => updateRule(id, { naming_template: toggleToken(rule.naming_template, t.token) })} className={`px-2 py-[3px] rounded-sm border text-[0.92rem] font-mono transition-all ${active ? 'border-current opacity-100' : 'border-[var(--line2)] text-[var(--text3)] opacity-50 hover:opacity-80'}`} style={active ? { color: t.color, borderColor: t.color, background: `color-mix(in srgb, ${t.color} 10%, transparent)` } : {}}>{t.token}</button>
+                                <button key={t.token} type="button" onClick={() => updateRule(id, { naming_template: toggleToken(rule.naming_template, t.token) })} className={`px-2 py-[3px] rounded-sm border text-[var(--font-base)] font-mono transition-all ${active ? 'border-current opacity-100' : 'border-[var(--line2)] text-[var(--text3)] opacity-50 hover:opacity-80'}`} style={active ? { color: t.color, borderColor: t.color, background: `color-mix(in srgb, ${t.color} 10%, transparent)` } : {}}>{t.token}</button>
                               )
                             })}
                           </div>
                           <input className="input mb-3" style={{ fontFamily: 'var(--font-dm-mono)' }} value={rule.naming_template} onChange={(e) => updateRule(id, { naming_template: e.target.value })} />
                           <div className="flex items-center justify-between px-3 py-2.5 rounded-[8px] border border-[var(--line)]" style={{ background: 'var(--bg2)' }}>
-                            <span className="text-[0.87rem] text-[var(--text2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                            <span className="text-[var(--font-sm)] text-[var(--text2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                               {applyNamingTemplate(rule.naming_template, { brand: activeBrand?.brand_code ?? 'BRAND', sku: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', color: 'BLACK', view: activeBrand?.on_model_angle_sequence?.[0] ?? 'front', seq: 1, index: 1, styleNumber: activeBrand ? `${activeBrand.brand_code}-001` : 'SKU-001', colourCode: '001', supplierCode: activeBrand?.brand_code ?? 'BRAND', season: 'SS25', customText: 'TEXT' })}.{rule.file_format}
                             </span>
-                            <span className="text-[0.87rem] text-[var(--text3)] flex-shrink-0 ml-4" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.image_dimensions.width}×{rule.image_dimensions.height} · Q{rule.quality}</span>
+                            <span className="text-[var(--font-sm)] text-[var(--text3)] flex-shrink-0 ml-4" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.image_dimensions.width}×{rule.image_dimensions.height} · Q{rule.quality}</span>
                           </div>
-                          <p className="text-[0.79rem] text-[var(--text3)] mt-1.5">Preview filename — extension added automatically</p>
+                          <p className="text-[var(--font-xs)] text-[var(--text3)] mt-1.5">Preview filename — extension added automatically</p>
                         </div>
                       </div>
                       <div className="flex justify-between">
-                        <button onClick={() => setStep(2)} className="btn btn-ghost text-[0.92rem]">← Back</button>
-                        <button onClick={() => setStep(1)} className="btn btn-primary text-[0.92rem]">
+                        <button onClick={() => setStep(2)} className="btn btn-ghost text-[var(--font-base)]">← Back</button>
+                        <button onClick={() => setStep(1)} className="btn btn-primary text-[var(--font-base)]">
                           {saved ? '✓ Saved' : 'Done'}
                         </button>
                       </div>
@@ -547,8 +547,8 @@ function MarketplacesInner() {
             <h2 className="text-[1rem] font-semibold text-[var(--text)] mb-4" style={{ fontFamily: 'var(--font-syne)' }}>Cloud Storage</h2>
             {brands.length > 1 && (
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-[0.92rem] text-[var(--text3)]">Configure for:</span>
-                <select className="input text-[0.87rem] py-[5px] w-auto" value={selectedBrandId} onChange={(e) => setSelectedBrandId(e.target.value)}>
+                <span className="text-[var(--font-base)] text-[var(--text3)]">Configure for:</span>
+                <select className="input text-[var(--font-sm)] py-[5px] w-auto" value={selectedBrandId} onChange={(e) => setSelectedBrandId(e.target.value)}>
                   {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </div>
@@ -563,13 +563,13 @@ function MarketplacesInner() {
                     </div>
                     <div>
                       <p className="text-[1rem] font-medium text-[var(--text)] flex items-center gap-1.5">Dropbox <HelpTooltip position="right" width={260} content="Import source images directly from your Dropbox folders, and export finished images to any Dropbox folder you choose." /></p>
-                      {(cc as Record<string, Record<string, string> | undefined>).dropbox?.account_email ? <p className="text-[0.92rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).dropbox?.account_email}</p> : <p className="text-[0.92rem] text-[var(--text3)]">Browse and export to Dropbox folders</p>}
+                      {(cc as Record<string, Record<string, string> | undefined>).dropbox?.account_email ? <p className="text-[var(--font-base)] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).dropbox?.account_email}</p> : <p className="text-[var(--font-base)] text-[var(--text3)]">Browse and export to Dropbox folders</p>}
                     </div>
                   </div>
                   {(cc as Record<string, unknown>).dropbox ? (
-                    <button onClick={() => disconnectProvider('dropbox')} disabled={disconnecting === 'dropbox'} className="text-[0.87rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">{disconnecting === 'dropbox' ? 'Disconnecting…' : 'Disconnect'}</button>
+                    <button onClick={() => disconnectProvider('dropbox')} disabled={disconnecting === 'dropbox'} className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">{disconnecting === 'dropbox' ? 'Disconnecting…' : 'Disconnect'}</button>
                   ) : (
-                    <button onClick={() => { if (selectedBrand) setConnectModal('dropbox') }} disabled={!dropboxEnabled} className="btn btn-ghost text-[0.92rem]" title={!dropboxEnabled ? 'Set NEXT_PUBLIC_DROPBOX_APP_KEY to enable' : ''}>{dropboxEnabled ? 'Connect' : 'Not configured'}</button>
+                    <button onClick={() => { if (selectedBrand) setConnectModal('dropbox') }} disabled={!dropboxEnabled} className="btn btn-ghost text-[var(--font-base)]" title={!dropboxEnabled ? 'Set NEXT_PUBLIC_DROPBOX_APP_KEY to enable' : ''}>{dropboxEnabled ? 'Connect' : 'Not configured'}</button>
                   )}
                 </div>
                 {/* Google Drive */}
@@ -587,13 +587,13 @@ function MarketplacesInner() {
                     </div>
                     <div>
                       <p className="text-[1rem] font-medium text-[var(--text)] flex items-center gap-1.5">Google Drive <HelpTooltip position="right" width={270} content="Import source images from your Google Drive and export finished images directly to any Drive folder." /></p>
-                      {(cc as Record<string, Record<string, string> | undefined>).google_drive?.email ? <p className="text-[0.92rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).google_drive?.email}</p> : <p className="text-[0.92rem] text-[var(--text3)]">Browse and export to Google Drive folders</p>}
+                      {(cc as Record<string, Record<string, string> | undefined>).google_drive?.email ? <p className="text-[var(--font-base)] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).google_drive?.email}</p> : <p className="text-[var(--font-base)] text-[var(--text3)]">Browse and export to Google Drive folders</p>}
                     </div>
                   </div>
                   {(cc as Record<string, unknown>).google_drive ? (
-                    <button onClick={() => disconnectProvider('google_drive')} disabled={disconnecting === 'google_drive'} className="text-[0.87rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">{disconnecting === 'google_drive' ? 'Disconnecting…' : 'Disconnect'}</button>
+                    <button onClick={() => disconnectProvider('google_drive')} disabled={disconnecting === 'google_drive'} className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">{disconnecting === 'google_drive' ? 'Disconnecting…' : 'Disconnect'}</button>
                   ) : (
-                    <button onClick={() => { if (selectedBrand) setConnectModal('google_drive') }} disabled={!googleEnabled} className="btn btn-ghost text-[0.92rem]" title={!googleEnabled ? 'Set NEXT_PUBLIC_GOOGLE_CLIENT_ID to enable' : ''}>{googleEnabled ? 'Connect' : 'Not configured'}</button>
+                    <button onClick={() => { if (selectedBrand) setConnectModal('google_drive') }} disabled={!googleEnabled} className="btn btn-ghost text-[var(--font-base)]" title={!googleEnabled ? 'Set NEXT_PUBLIC_GOOGLE_CLIENT_ID to enable' : ''}>{googleEnabled ? 'Connect' : 'Not configured'}</button>
                   )}
                 </div>
                 {/* AWS S3 */}
@@ -604,21 +604,21 @@ function MarketplacesInner() {
                     </div>
                     <div>
                       <p className="text-[1rem] font-medium text-[var(--text)] flex items-center gap-1.5">AWS S3 <HelpTooltip position="right" width={270} content="Connect your own S3 bucket to import raw images and export finished files. Credentials are stored securely per brand." /></p>
-                      {(cc as Record<string, Record<string, string> | undefined>).s3?.bucket ? <p className="text-[0.92rem] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).s3?.bucket}</p> : <p className="text-[0.92rem] text-[var(--text3)]">Direct upload/download from your S3 bucket</p>}
+                      {(cc as Record<string, Record<string, string> | undefined>).s3?.bucket ? <p className="text-[var(--font-base)] text-[#1dc44a]">Connected · {(cc as Record<string, Record<string, string> | undefined>).s3?.bucket}</p> : <p className="text-[var(--font-base)] text-[var(--text3)]">Direct upload/download from your S3 bucket</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 ml-11">
                     <div className="col-span-2 grid grid-cols-2 gap-2">
-                      <div><label className="text-[0.92rem] text-[var(--text3)] mb-1 block">Bucket name *</label><input className="input text-[0.87rem]" placeholder="my-brand-assets" value={s3Form.bucket} onChange={(e) => setS3Form((f) => ({ ...f, bucket: e.target.value }))} /></div>
-                      <div><label className="text-[0.92rem] text-[var(--text3)] mb-1 block">Region *</label><input className="input text-[0.87rem]" placeholder="ap-southeast-2" value={s3Form.region} onChange={(e) => setS3Form((f) => ({ ...f, region: e.target.value }))} /></div>
+                      <div><label className="text-[var(--font-base)] text-[var(--text3)] mb-1 block">Bucket name *</label><input className="input text-[var(--font-sm)]" placeholder="my-brand-assets" value={s3Form.bucket} onChange={(e) => setS3Form((f) => ({ ...f, bucket: e.target.value }))} /></div>
+                      <div><label className="text-[var(--font-base)] text-[var(--text3)] mb-1 block">Region *</label><input className="input text-[var(--font-sm)]" placeholder="ap-southeast-2" value={s3Form.region} onChange={(e) => setS3Form((f) => ({ ...f, region: e.target.value }))} /></div>
                     </div>
-                    <div><label className="text-[0.92rem] text-[var(--text3)] mb-1 block">Access Key ID *</label><input className="input text-[0.87rem]" placeholder="AKIAIOSFODNN7EXAMPLE" value={s3Form.access_key_id} onChange={(e) => setS3Form((f) => ({ ...f, access_key_id: e.target.value }))} autoComplete="off" /></div>
-                    <div><label className="text-[0.92rem] text-[var(--text3)] mb-1 block">Secret Access Key *</label><input className="input text-[0.87rem]" type="password" placeholder="••••••••••••••••••••••••••••••••" value={s3Form.secret_access_key} onChange={(e) => setS3Form((f) => ({ ...f, secret_access_key: e.target.value }))} autoComplete="new-password" /></div>
-                    <div className="col-span-2"><label className="text-[0.92rem] text-[var(--text3)] mb-1 block">Key prefix <span className="text-[var(--text3)]">(optional — e.g. shoots/)</span></label><input className="input text-[0.87rem]" placeholder="shoots/" value={s3Form.prefix} onChange={(e) => setS3Form((f) => ({ ...f, prefix: e.target.value }))} /></div>
-                    {s3Error && <p className="col-span-2 text-[0.87rem] text-[#ff3b30]">{s3Error}</p>}
+                    <div><label className="text-[var(--font-base)] text-[var(--text3)] mb-1 block">Access Key ID *</label><input className="input text-[var(--font-sm)]" placeholder="AKIAIOSFODNN7EXAMPLE" value={s3Form.access_key_id} onChange={(e) => setS3Form((f) => ({ ...f, access_key_id: e.target.value }))} autoComplete="off" /></div>
+                    <div><label className="text-[var(--font-base)] text-[var(--text3)] mb-1 block">Secret Access Key *</label><input className="input text-[var(--font-sm)]" type="password" placeholder="••••••••••••••••••••••••••••••••" value={s3Form.secret_access_key} onChange={(e) => setS3Form((f) => ({ ...f, secret_access_key: e.target.value }))} autoComplete="new-password" /></div>
+                    <div className="col-span-2"><label className="text-[var(--font-base)] text-[var(--text3)] mb-1 block">Key prefix <span className="text-[var(--text3)]">(optional — e.g. shoots/)</span></label><input className="input text-[var(--font-sm)]" placeholder="shoots/" value={s3Form.prefix} onChange={(e) => setS3Form((f) => ({ ...f, prefix: e.target.value }))} /></div>
+                    {s3Error && <p className="col-span-2 text-[var(--font-sm)] text-[#ff3b30]">{s3Error}</p>}
                     <div className="col-span-2 flex items-center gap-3">
-                      <button onClick={saveS3} disabled={s3Saving} className="btn btn-primary text-[0.92rem]">{s3Saving ? 'Saving…' : s3Saved ? 'Saved ✓' : 'Save S3 config'}</button>
-                      {!!(cc as Record<string, unknown>).s3 && <button onClick={() => disconnectProvider('s3')} disabled={disconnecting === 's3'} className="text-[0.87rem] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">{disconnecting === 's3' ? 'Removing…' : 'Remove'}</button>}
+                      <button onClick={saveS3} disabled={s3Saving} className="btn btn-primary text-[var(--font-base)]">{s3Saving ? 'Saving…' : s3Saved ? 'Saved ✓' : 'Save S3 config'}</button>
+                      {!!(cc as Record<string, unknown>).s3 && <button onClick={() => disconnectProvider('s3')} disabled={disconnecting === 's3'} className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">{disconnecting === 's3' ? 'Removing…' : 'Remove'}</button>}
                     </div>
                   </div>
                 </div>
@@ -723,7 +723,7 @@ function AnglePillRow({
 function SRow({ label, sub, children }: { label: string; sub: string; children: ReactNode }) {
   return (
     <div className="flex items-center justify-between py-[12px] border-b border-[var(--line)]">
-      <div><p className="text-[0.87rem] text-[var(--text2)]">{label}</p><p className="text-[0.93rem] text-[var(--text3)] mt-[2px]">{sub}</p></div>
+      <div><p className="text-[var(--font-sm)] text-[var(--text2)]">{label}</p><p className="text-[var(--font-base)] text-[var(--text3)] mt-[2px]">{sub}</p></div>
       {children}
     </div>
   )

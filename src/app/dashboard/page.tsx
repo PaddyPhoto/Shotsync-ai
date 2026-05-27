@@ -192,10 +192,10 @@ export default function DashboardPage() {
 
       <div style={{ padding: '20px 24px' }}>
         {/* Page title */}
-        <h1 style={{ fontSize: '23px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', marginBottom: '2px' }}>
+        <h1 style={{ fontSize: 'var(--font-2xl)', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', marginBottom: '2px' }}>
           {greeting}{orgName ? `, ${orgName}` : ''}.
         </h1>
-        <p style={{ fontSize: '15px', color: 'var(--text3)', marginBottom: '16px', letterSpacing: '-.1px' }}>
+        <p style={{ fontSize: 'var(--font-md)', color: 'var(--text3)', marginBottom: '16px', letterSpacing: '-.1px' }}>
           {loading ? 'Loading…' : `${jobs.length} recent jobs\u00a0·\u00a0${unexportedClusters.filter(c => !c.confirmed).length} clusters need attention`}
         </p>
 
@@ -217,14 +217,14 @@ export default function DashboardPage() {
             {/* Badge */}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(48,209,88,0.15)', border: '1px solid rgba(48,209,88,0.25)', borderRadius: '20px', padding: '4px 12px', marginBottom: '20px' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158' }} />
-              <span style={{ fontSize: '15px', fontWeight: 500, color: '#30d158', letterSpacing: '-.1px' }}>Before you begin</span>
+              <span style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: '#30d158', letterSpacing: '-.1px' }}>Before you begin</span>
             </div>
 
             {/* Headline */}
-            <h2 style={{ fontSize: '27px', fontWeight: 600, color: '#f5f5f7', letterSpacing: '-.6px', marginBottom: '10px', maxWidth: '520px', lineHeight: 1.2 }}>
+            <h2 style={{ fontSize: 'var(--font-3xl)', fontWeight: 600, color: '#f5f5f7', letterSpacing: '-.6px', marginBottom: '10px', maxWidth: '520px', lineHeight: 1.2 }}>
               Set up your brand before uploading
             </h2>
-            <p style={{ fontSize: '17px', color: 'rgba(245,245,247,0.55)', marginBottom: '36px', maxWidth: '480px', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 'var(--font-lg)', color: 'rgba(245,245,247,0.55)', marginBottom: '36px', maxWidth: '480px', lineHeight: 1.5 }}>
               ShotSync needs your brand details to correctly name, organise, and export your images. Complete all four steps below.
             </p>
 
@@ -253,11 +253,11 @@ export default function DashboardPage() {
                 },
               ].map(({ n, label, desc, color, bg }) => (
                 <div key={n} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '14px', padding: '18px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color, background: bg, borderRadius: '6px', padding: '2px 7px', display: 'inline-block', marginBottom: '10px', letterSpacing: '.04em' }}>
+                  <div style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color, background: bg, borderRadius: '6px', padding: '2px 7px', display: 'inline-block', marginBottom: '10px', letterSpacing: '.04em' }}>
                     {n}
                   </div>
-                  <p style={{ fontSize: '15px', fontWeight: 600, color: '#f5f5f7', letterSpacing: '-.2px', marginBottom: '5px', lineHeight: 1.3 }}>{label}</p>
-                  <p style={{ fontSize: '15px', color: 'rgba(245,245,247,0.45)', lineHeight: 1.5 }}>{desc}</p>
+                  <p style={{ fontSize: 'var(--font-md)', fontWeight: 600, color: '#f5f5f7', letterSpacing: '-.2px', marginBottom: '5px', lineHeight: 1.3 }}>{label}</p>
+                  <p style={{ fontSize: 'var(--font-md)', color: 'rgba(245,245,247,0.45)', lineHeight: 1.5 }}>{desc}</p>
                 </div>
               ))}
             </div>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
                   background: '#f5f5f7', color: '#1d1d1f',
-                  fontSize: '17px', fontWeight: 600, letterSpacing: '-.2px',
+                  fontSize: 'var(--font-lg)', fontWeight: 600, letterSpacing: '-.2px',
                   padding: '11px 24px', borderRadius: '10px',
                   textDecoration: 'none', transition: 'background 0.15s',
                 }}
@@ -279,7 +279,7 @@ export default function DashboardPage() {
                   <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </Link>
-              <span style={{ fontSize: '15px', color: 'rgba(245,245,247,0.35)' }}>
+              <span style={{ fontSize: 'var(--font-md)', color: 'rgba(245,245,247,0.35)' }}>
                 Takes about 2 minutes · you can always edit later
               </span>
             </div>
@@ -299,8 +299,8 @@ export default function DashboardPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginBottom: '14px' }}>
               {/* SKUs exported this month */}
               <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: `3px solid ${skuBarColor}` }}>
-                <div style={{ fontSize: '14px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>SKUs exported</div>
-                <div style={{ fontSize: '23px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '6px' }}>
+                <div style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>SKUs exported</div>
+                <div style={{ fontSize: 'var(--font-2xl)', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '6px' }}>
                   {loading ? '—' : skuLabel}
                 </div>
                 {skuLimit !== -1 && !loading && (
@@ -308,37 +308,37 @@ export default function DashboardPage() {
                     <div style={{ height: '100%', width: `${skuPct}%`, background: skuBarColor, borderRadius: '2px', transition: 'width 0.4s' }} />
                   </div>
                 )}
-                <div style={{ fontSize: '14px', color: skuBarColor, fontWeight: 500 }}>{monthName}</div>
+                <div style={{ fontSize: 'var(--font-base)', color: skuBarColor, fontWeight: 500 }}>{monthName}</div>
               </div>
 
               {/* Exports this month */}
               <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: '3px solid #0071e3' }}>
-                <div style={{ fontSize: '14px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Exports run</div>
-                <div style={{ fontSize: '23px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
+                <div style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Exports run</div>
+                <div style={{ fontSize: 'var(--font-2xl)', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
                   {loading ? '—' : (stats?.exports_this_month ?? 0).toLocaleString()}
                 </div>
-                <div style={{ fontSize: '14px', color: '#0071e3', fontWeight: 500 }}>{monthName}</div>
+                <div style={{ fontSize: 'var(--font-base)', color: '#0071e3', fontWeight: 500 }}>{monthName}</div>
               </div>
 
               {/* Total SKUs all time */}
               <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: '3px solid #ff9f0a' }}>
-                <div style={{ fontSize: '14px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Total SKUs processed</div>
-                <div style={{ fontSize: '23px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
+                <div style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Total SKUs processed</div>
+                <div style={{ fontSize: 'var(--font-2xl)', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
                   {loading ? '—' : (stats?.total_clusters ?? 0).toLocaleString()}
                 </div>
-                <div style={{ fontSize: '14px', color: '#ff9f0a', fontWeight: 500 }}>all time</div>
+                <div style={{ fontSize: 'var(--font-base)', color: '#ff9f0a', fontWeight: 500 }}>all time</div>
               </div>
 
               {/* Plan */}
               <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '14px', padding: '12px 16px', borderTop: '3px solid #af52de' }}>
-                <div style={{ fontSize: '14px', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Plan</div>
-                <div style={{ fontSize: '23px', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
+                <div style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', letterSpacing: '-.1px', marginBottom: '4px' }}>Plan</div>
+                <div style={{ fontSize: 'var(--font-2xl)', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', lineHeight: 1, marginBottom: '3px' }}>
                   {plan.name}
                 </div>
                 {planId === 'free' ? (
-                  <Link href="/dashboard/billing" style={{ fontSize: '14px', color: '#af52de', fontWeight: 500, textDecoration: 'none' }}>Upgrade →</Link>
+                  <Link href="/dashboard/billing" style={{ fontSize: 'var(--font-base)', color: '#af52de', fontWeight: 500, textDecoration: 'none' }}>Upgrade →</Link>
                 ) : (
-                  <div style={{ fontSize: '14px', color: '#af52de', fontWeight: 500 }}>
+                  <div style={{ fontSize: 'var(--font-base)', color: '#af52de', fontWeight: 500 }}>
                     {skuLimit === -1 ? 'Unlimited SKUs' : `${Math.max(0, skuLimit - skusUsed).toLocaleString()} SKUs remaining`}
                   </div>
                 )}
@@ -353,16 +353,16 @@ export default function DashboardPage() {
           {/* Recent jobs */}
           <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>Recent jobs</span>
-              <Link href="/dashboard/jobs" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '15px' }}>View all</Link>
+              <span style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>Recent jobs</span>
+              <Link href="/dashboard/jobs" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--font-md)' }}>View all</Link>
             </div>
             {loading ? (
-              <div style={{ padding: '16px 18px', fontSize: '16px', color: 'var(--text3)' }}>Loading…</div>
+              <div style={{ padding: '16px 18px', fontSize: 'var(--font-lg)', color: 'var(--text3)' }}>Loading…</div>
             ) : jobs.length === 0 ? (
               <div style={{ padding: '32px 18px', textAlign: 'center' }}>
-                <p style={{ fontSize: '17px', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>No jobs yet</p>
-                <p style={{ fontSize: '16px', color: 'var(--text3)', marginBottom: '14px' }}>Upload your first shoot to get started.</p>
-                <Link href="/dashboard/upload" className="btn btn-primary" style={{ fontSize: '16px' }}>New upload</Link>
+                <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>No jobs yet</p>
+                <p style={{ fontSize: 'var(--font-lg)', color: 'var(--text3)', marginBottom: '14px' }}>Upload your first shoot to get started.</p>
+                <Link href="/dashboard/upload" className="btn btn-primary" style={{ fontSize: 'var(--font-lg)' }}>New upload</Link>
               </div>
             ) : (
               jobs.map((job) => {
@@ -375,12 +375,12 @@ export default function DashboardPage() {
                       </svg>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.job_name}</div>
-                      <div style={{ fontSize: '14px', color: 'var(--text3)', marginTop: '1px' }}>
+                      <div style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.job_name}</div>
+                      <div style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', marginTop: '1px' }}>
                         {job.image_count} images · {job.cluster_count} clusters · {new Date(job.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                       </div>
                     </div>
-                    <span style={{ padding: '2px 7px', borderRadius: '5px', fontSize: '14px', fontWeight: 500, background: chip.bg, color: chip.color, letterSpacing: '-.1px', flexShrink: 0 }}>
+                    <span style={{ padding: '2px 7px', borderRadius: '5px', fontSize: 'var(--font-base)', fontWeight: 500, background: chip.bg, color: chip.color, letterSpacing: '-.1px', flexShrink: 0 }}>
                       {chip.label}
                     </span>
                   </Link>
@@ -402,15 +402,15 @@ export default function DashboardPage() {
             return (
               <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
                 <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>Plan &amp; usage</span>
-                  <Link href="/dashboard/billing" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '15px' }}>Manage</Link>
+                  <span style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>Plan &amp; usage</span>
+                  <Link href="/dashboard/billing" className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--font-md)' }}>Manage</Link>
                 </div>
                 <div style={{ padding: '16px' }}>
                   {/* Plan name row */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text)' }}>{plan.name} plan</span>
+                    <span style={{ fontSize: 'var(--font-lg)', fontWeight: 600, color: 'var(--text)' }}>{plan.name} plan</span>
                     {planId !== 'enterprise' && planId !== 'scale' && (
-                      <Link href="/dashboard/billing" style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 500, textDecoration: 'none', padding: '2px 8px', border: '1px solid var(--accent)', borderRadius: '20px' }}>
+                      <Link href="/dashboard/billing" style={{ fontSize: 'var(--font-sm)', color: 'var(--accent)', fontWeight: 500, textDecoration: 'none', padding: '2px 8px', border: '1px solid var(--accent)', borderRadius: '20px' }}>
                         Upgrade
                       </Link>
                     )}
@@ -419,8 +419,8 @@ export default function DashboardPage() {
                   {/* SKU usage */}
                   <div style={{ marginBottom: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '14px', color: 'var(--text2)', fontWeight: 500 }}>SKUs exported this month</span>
-                      <span style={{ fontSize: '14px', color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)' }}>
+                      <span style={{ fontSize: 'var(--font-base)', color: 'var(--text2)', fontWeight: 500 }}>SKUs exported this month</span>
+                      <span style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)' }}>
                         {loading ? '…' : skuLimit === -1 ? `${skusUsed.toLocaleString()} · unlimited` : `${skusUsed.toLocaleString()} / ${skuLimit.toLocaleString()}`}
                       </span>
                     </div>
@@ -431,10 +431,10 @@ export default function DashboardPage() {
                     )}
                     {skuLimit !== -1 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-                        <span style={{ fontSize: '13px', color: skuPct >= 90 ? '#ff453a' : 'var(--text3)' }}>
+                        <span style={{ fontSize: 'var(--font-sm)', color: skuPct >= 90 ? '#ff453a' : 'var(--text3)' }}>
                           {skuPct >= 90 ? 'Approaching limit' : skuPct >= 70 ? 'Getting close' : `${Math.max(0, skuLimit - skusUsed).toLocaleString()} remaining`}
                         </span>
-                        <span style={{ fontSize: '13px', color: 'var(--text3)' }}>Resets {resetLabel}</span>
+                        <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)' }}>Resets {resetLabel}</span>
                       </div>
                     )}
                   </div>
@@ -445,8 +445,8 @@ export default function DashboardPage() {
                     { label: 'Brands', val: plan.limits.brands },
                   ].map(({ label, val }) => (
                     <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderTop: '0.5px solid var(--line)' }}>
-                      <span style={{ fontSize: '14px', color: 'var(--text3)' }}>{label}</span>
-                      <span style={{ fontSize: '14px', color: 'var(--text2)', fontFamily: 'var(--font-dm-mono)' }}>
+                      <span style={{ fontSize: 'var(--font-base)', color: 'var(--text3)' }}>{label}</span>
+                      <span style={{ fontSize: 'var(--font-base)', color: 'var(--text2)', fontFamily: 'var(--font-dm-mono)' }}>
                         {val === -1 ? 'Unlimited' : val.toLocaleString()}
                       </span>
                     </div>
@@ -455,10 +455,10 @@ export default function DashboardPage() {
                   {/* Upgrade nudge if approaching limit */}
                   {skuPct >= 70 && planId !== 'enterprise' && nextPlan && (
                     <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(255,159,10,0.08)', border: '1px solid rgba(255,159,10,0.2)', borderRadius: '8px' }}>
-                      <p style={{ fontSize: '14px', color: '#ff9f0a', marginBottom: '6px' }}>
+                      <p style={{ fontSize: 'var(--font-base)', color: '#ff9f0a', marginBottom: '6px' }}>
                         {skuPct >= 90 ? `You're almost at your SKU limit.` : `You've used ${skuPct}% of your SKU quota.`}
                       </p>
-                      <Link href="/dashboard/billing" style={{ fontSize: '14px', color: '#ff9f0a', fontWeight: 600, textDecoration: 'none' }}>
+                      <Link href="/dashboard/billing" style={{ fontSize: 'var(--font-base)', color: '#ff9f0a', fontWeight: 600, textDecoration: 'none' }}>
                         Upgrade to {nextPlan.name} → {nextPlan.limits.skusPerMonth.toLocaleString()} SKUs/mo
                       </Link>
                     </div>
@@ -475,11 +475,11 @@ export default function DashboardPage() {
           {/* Active session */}
           <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>
+              <span style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>
                 {isReady && unexportedClusters.length > 0 ? `Active session — ${sessionJobName || 'Current shoot'}` : draftSession ? `Unfinished session — ${draftSession.jobName}` : 'Active session'}
               </span>
               {isReady && unexportedClusters.length > 0 && (
-                <span style={{ fontSize: '15px', fontWeight: 500, color: '#4da3ff', background: 'rgba(0,122,255,0.12)', padding: '3px 8px', borderRadius: '5px' }}>
+                <span style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: '#4da3ff', background: 'rgba(0,122,255,0.12)', padding: '3px 8px', borderRadius: '5px' }}>
                   In progress
                 </span>
               )}
@@ -490,21 +490,21 @@ export default function DashboardPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div style={{ display: 'flex', gap: '20px' }}>
                     <div>
-                      <p style={{ fontSize: '21px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{unexportedClusters.length}</p>
-                      <p style={{ fontSize: '15px', color: 'var(--text3)', marginTop: '2px' }}>Pending</p>
+                      <p style={{ fontSize: 'var(--font-2xl)', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{unexportedClusters.length}</p>
+                      <p style={{ fontSize: 'var(--font-md)', color: 'var(--text3)', marginTop: '2px' }}>Pending</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '21px', fontWeight: 600, color: '#30d158', letterSpacing: '-.5px' }}>{unexportedClusters.filter((c) => c.confirmed).length}</p>
-                      <p style={{ fontSize: '15px', color: 'var(--text3)', marginTop: '2px' }}>Confirmed</p>
+                      <p style={{ fontSize: 'var(--font-2xl)', fontWeight: 600, color: '#30d158', letterSpacing: '-.5px' }}>{unexportedClusters.filter((c) => c.confirmed).length}</p>
+                      <p style={{ fontSize: 'var(--font-md)', color: 'var(--text3)', marginTop: '2px' }}>Confirmed</p>
                     </div>
                     {warningClusters.length > 0 && (
                       <div>
-                        <p style={{ fontSize: '21px', fontWeight: 600, color: '#ff9f0a', letterSpacing: '-.5px' }}>{warningClusters.length}</p>
-                        <p style={{ fontSize: '15px', color: 'var(--text3)', marginTop: '2px' }}>To review</p>
+                        <p style={{ fontSize: 'var(--font-2xl)', fontWeight: 600, color: '#ff9f0a', letterSpacing: '-.5px' }}>{warningClusters.length}</p>
+                        <p style={{ fontSize: 'var(--font-md)', color: 'var(--text3)', marginTop: '2px' }}>To review</p>
                       </div>
                     )}
                   </div>
-                  <Link href="/dashboard/review" className="btn btn-primary" style={{ fontSize: '15px', alignSelf: 'flex-start' }}>
+                  <Link href="/dashboard/review" className="btn btn-primary" style={{ fontSize: 'var(--font-md)', alignSelf: 'flex-start' }}>
                     Continue review →
                   </Link>
                 </div>
@@ -513,25 +513,25 @@ export default function DashboardPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div style={{ display: 'flex', gap: '20px' }}>
                     <div>
-                      <p style={{ fontSize: '21px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{draftSession.clusterCount}</p>
-                      <p style={{ fontSize: '15px', color: 'var(--text3)', marginTop: '2px' }}>Clusters</p>
+                      <p style={{ fontSize: 'var(--font-2xl)', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{draftSession.clusterCount}</p>
+                      <p style={{ fontSize: 'var(--font-md)', color: 'var(--text3)', marginTop: '2px' }}>Clusters</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '21px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{draftSession.imageCount}</p>
-                      <p style={{ fontSize: '15px', color: 'var(--text3)', marginTop: '2px' }}>Images</p>
+                      <p style={{ fontSize: 'var(--font-2xl)', fontWeight: 600, color: 'var(--text)', letterSpacing: '-.5px' }}>{draftSession.imageCount}</p>
+                      <p style={{ fontSize: 'var(--font-md)', color: 'var(--text3)', marginTop: '2px' }}>Images</p>
                     </div>
                   </div>
-                  <p style={{ fontSize: '15px', color: 'var(--text3)' }}>
+                  <p style={{ fontSize: 'var(--font-md)', color: 'var(--text3)' }}>
                     Saved {new Date(draftSession.savedAt).toLocaleDateString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
                   </p>
-                  <button onClick={handleResumeDraft} disabled={draftLoading} className="btn btn-primary" style={{ fontSize: '15px', alignSelf: 'flex-start' }}>
+                  <button onClick={handleResumeDraft} disabled={draftLoading} className="btn btn-primary" style={{ fontSize: 'var(--font-md)', alignSelf: 'flex-start' }}>
                     {draftLoading ? 'Loading…' : 'Resume session →'}
                   </button>
                 </div>
               ) : (
                 // Nothing active
                 <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                  <p style={{ fontSize: '16px', color: 'var(--text3)' }}>No active session. Upload a new shoot to begin.</p>
+                  <p style={{ fontSize: 'var(--font-lg)', color: 'var(--text3)' }}>No active session. Upload a new shoot to begin.</p>
                 </div>
               )}
             </div>
@@ -540,11 +540,11 @@ export default function DashboardPage() {
           {/* Cluster review */}
           <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '16px', overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>
+              <span style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: 'var(--text)', letterSpacing: '-.2px' }}>
                 {isReady && unexportedClusters.length > 0 ? `Cluster review — ${jobs[0]?.job_name ?? 'Current session'}` : 'Cluster review'}
               </span>
               {warningClusters.length > 0 && (
-                <span style={{ fontSize: '15px', fontWeight: 500, color: '#ff9f0a', background: 'rgba(255,159,10,0.12)', padding: '3px 8px', borderRadius: '5px' }}>
+                <span style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: '#ff9f0a', background: 'rgba(255,159,10,0.12)', padding: '3px 8px', borderRadius: '5px' }}>
                   {warningClusters.length} unconfirmed
                 </span>
               )}
@@ -552,7 +552,7 @@ export default function DashboardPage() {
             <div style={{ padding: '12px 16px' }}>
               {!isReady || unexportedClusters.length === 0 ? (
                 <div style={{ padding: '14px 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: '15px', color: 'var(--text3)' }}>No active session. Upload a shoot to see clusters here.</p>
+                  <p style={{ fontSize: 'var(--font-md)', color: 'var(--text3)' }}>No active session. Upload a shoot to see clusters here.</p>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
@@ -580,8 +580,8 @@ export default function DashboardPage() {
                           </div>
                           {/* Footer */}
                           <div style={{ padding: '8px 10px' }}>
-                            <div style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text)', marginBottom: '2px' }}>{cluster.sku || 'No SKU'}</div>
-                            <div style={{ fontSize: '15px', color: 'var(--text3)' }}>{cluster.productName || cluster.color || '—'}</div>
+                            <div style={{ fontSize: 'var(--font-md)', fontWeight: 500, color: 'var(--text)', marginBottom: '2px' }}>{cluster.sku || 'No SKU'}</div>
+                            <div style={{ fontSize: 'var(--font-md)', color: 'var(--text3)' }}>{cluster.productName || cluster.color || '—'}</div>
                             {/* Shot pills */}
                             <div style={{ display: 'flex', gap: '3px', marginTop: '5px', flexWrap: 'wrap' }}>
                               {cluster.images.slice(0, 4).map((img) => {
@@ -595,7 +595,7 @@ export default function DashboardPage() {
                                 }
                                 const p = pillStyles[lbl] ?? { bg: 'var(--bg3)', color: 'var(--text3)', text: lbl?.slice(0,2) ?? '?' }
                                 return (
-                                  <span key={img.id} style={{ fontSize: '15px', fontWeight: 500, padding: '2px 5px', borderRadius: '4px', background: p.bg, color: p.color }}>
+                                  <span key={img.id} style={{ fontSize: 'var(--font-md)', fontWeight: 500, padding: '2px 5px', borderRadius: '4px', background: p.bg, color: p.color }}>
                                     {p.text}
                                   </span>
                                 )
@@ -609,7 +609,7 @@ export default function DashboardPage() {
                 </div>
               )}
               {isReady && unexportedClusters.length > 3 && (
-                <Link href="/dashboard/review" style={{ display: 'block', textAlign: 'center', marginTop: '12px', fontSize: '16px', color: 'var(--text3)', textDecoration: 'none' }}>
+                <Link href="/dashboard/review" style={{ display: 'block', textAlign: 'center', marginTop: '12px', fontSize: 'var(--font-lg)', color: 'var(--text3)', textDecoration: 'none' }}>
                   +{clusters.length - 3} more clusters →
                 </Link>
               )}

@@ -73,8 +73,8 @@ export function ClusterGrid({ clusters, onUpdate }: ClusterGridProps) {
             <rect x="14" y="14" width="7" height="7" rx="1"/>
           </svg>
         </div>
-        <p className="text-[1.02rem] font-semibold text-[var(--text)]">No clusters yet</p>
-        <p className="text-[0.89rem] text-[var(--text3)] max-w-[320px] leading-relaxed">
+        <p className="text-[var(--font-md)] font-semibold text-[var(--text)]">No clusters yet</p>
+        <p className="text-[var(--font-sm)] text-[var(--text3)] max-w-[320px] leading-relaxed">
           Upload images and run the pipeline to automatically group products.
         </p>
       </div>
@@ -86,7 +86,7 @@ export function ClusterGrid({ clusters, onUpdate }: ClusterGridProps) {
   return (
     <div>
       {/* Summary bar */}
-      <div className="flex items-center gap-4 mb-5 text-[0.89rem]">
+      <div className="flex items-center gap-4 mb-5 text-[var(--font-sm)]">
         <span className="text-[var(--text2)]">
           <span className="text-[var(--accent2)] font-semibold">{confirmed}</span> / {localClusters.length} clusters confirmed
         </span>

@@ -671,7 +671,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
       }}>
         <Link
           href={params.jobId === 'session' ? '/dashboard/review' : `/dashboard/jobs/${params.jobId}/validation`}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: T2, textDecoration: 'none', flexShrink: 0 }}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--font-base)', color: T2, textDecoration: 'none', flexShrink: 0 }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M9 11L5 7l4-4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -682,11 +682,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
         <div style={{ width: '1px', height: '20px', background: BORDER }} />
 
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '15px', fontWeight: 600, color: T1 }}>
+          <h1 style={{ fontSize: 'var(--font-md)', fontWeight: 600, color: T1 }}>
             Export{(job?.name || jobName) ? ` · ${job?.name ?? jobName}` : ''}
           </h1>
           {(job?.cluster_count ?? confirmedClusters.length > 0) && (
-            <span style={{ fontSize: '14px', color: T3 }}>
+            <span style={{ fontSize: 'var(--font-base)', color: T3 }}>
               {job?.cluster_count ?? confirmedClusters.length} clusters · {job?.total_images ?? confirmedClusters.reduce((s, c) => s + c.images.length, 0)} images
             </span>
           )}
@@ -695,7 +695,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={() => router.back()}
-            style={{ padding: '7px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 500, border: `1px solid ${BORDER}`, background: 'transparent', color: T1, cursor: 'pointer' }}
+            style={{ padding: '7px 16px', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 500, border: `1px solid ${BORDER}`, background: 'transparent', color: T1, cursor: 'pointer' }}
           >
             Cancel
           </button>
@@ -705,7 +705,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               disabled={isFolderBusy || selectedMarketplaces.length === 0}
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
-                padding: '7px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 500,
+                padding: '7px 16px', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 500,
                 border: 'none', background: T1, color: '#000', cursor: 'pointer',
                 opacity: (isFolderBusy || selectedMarketplaces.length === 0) ? 0.4 : 1,
               }}
@@ -723,7 +723,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               disabled={isZipBusy || selectedMarketplaces.length === 0}
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
-                padding: '7px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 500,
+                padding: '7px 16px', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 500,
                 border: 'none', background: T1, color: '#000', cursor: 'pointer',
                 opacity: (isZipBusy || selectedMarketplaces.length === 0) ? 0.4 : 1,
               }}
@@ -783,11 +783,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
                     <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: p.dot }} />
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? p.text : T2 }}>
+                    <span style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: isSelected ? p.text : T2 }}>
                       {rule.name}
                     </span>
                   </div>
-                  <p style={{ fontSize: '12px', color: T3, fontFamily: 'var(--font-dm-mono)' }}>
+                  <p style={{ fontSize: 'var(--font-xs)', color: T3, fontFamily: 'var(--font-dm-mono)' }}>
                     {rule.image_dimensions.width}×{rule.image_dimensions.height}px · {rule.file_format.toUpperCase()} Q{rule.quality}
                   </p>
                 </button>
@@ -801,25 +801,25 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '14px', color: T2 }}>Download ZIP</span>
+              <span style={{ fontSize: 'var(--font-base)', color: T2 }}>Download ZIP</span>
               <Toggle on={downloadZip} onChange={() => setDownloadZip((v) => !v)} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '14px', color: T2 }}>Save to folder</span>
+              <span style={{ fontSize: 'var(--font-base)', color: T2 }}>Save to folder</span>
               <Toggle on={!!folderPath} onChange={!folderPath ? pickFolder : () => { folderHandleRef.current = null; setFolderPath(null) }} />
             </div>
             {folderPath && (
-              <p style={{ fontSize: '12px', color: '#30d158', fontFamily: 'var(--font-dm-mono)' }}>
+              <p style={{ fontSize: 'var(--font-xs)', color: '#30d158', fontFamily: 'var(--font-dm-mono)' }}>
                 ✓ {folderPath}/
               </p>
             )}
             {!fsaSupported && (
-              <p style={{ fontSize: '12px', color: '#ff9f0a' }}>Save to folder requires Chrome or Edge.</p>
+              <p style={{ fontSize: 'var(--font-xs)', color: '#ff9f0a' }}>Save to folder requires Chrome or Edge.</p>
             )}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <span style={{ fontSize: '14px', color: T2 }}>Flat export</span>
-                <p style={{ fontSize: '12px', color: T3, marginTop: '1px' }}>All files in one folder per marketplace</p>
+                <span style={{ fontSize: 'var(--font-base)', color: T2 }}>Flat export</span>
+                <p style={{ fontSize: 'var(--font-xs)', color: T3, marginTop: '1px' }}>All files in one folder per marketplace</p>
               </div>
               <Toggle on={flatExport} onChange={() => setFlatExport((v) => !v)} />
             </div>
@@ -834,7 +834,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               <select
                 value={selectedBrandId}
                 onChange={(e) => setSelectedBrandId(e.target.value)}
-                style={{ width: '100%', background: CARD2, border: `1px solid ${BORDER}`, borderRadius: '8px', color: T1, padding: '8px 10px', fontSize: '14px', marginBottom: '24px' }}
+                style={{ width: '100%', background: CARD2, border: `1px solid ${BORDER}`, borderRadius: '8px', color: T1, padding: '8px 10px', fontSize: 'var(--font-base)', marginBottom: '24px' }}
               >
                 {shopifyBrands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
@@ -847,8 +847,8 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div>
-              <span style={{ fontSize: '14px', color: T2 }}>Keep original filenames</span>
-              <p style={{ fontSize: '12px', color: T3, marginTop: '1px' }}>Only apply marketplace crop &amp; resize</p>
+              <span style={{ fontSize: 'var(--font-base)', color: T2 }}>Keep original filenames</span>
+              <p style={{ fontSize: 'var(--font-xs)', color: T3, marginTop: '1px' }}>Only apply marketplace crop &amp; resize</p>
             </div>
             <Toggle on={keepOriginalFilenames} onChange={() => setKeepOriginalFilenames((v) => !v)} />
           </div>
@@ -860,7 +860,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 width: '100%', boxSizing: 'border-box',
                 background: CARD2, border: `1px solid ${BORDER}`,
                 borderRadius: '8px', color: T1, padding: '9px 10px',
-                fontSize: '14px', fontFamily: 'var(--font-dm-mono)',
+                fontSize: 'var(--font-base)', fontFamily: 'var(--font-dm-mono)',
                 marginBottom: '10px',
               }}
             />
@@ -927,7 +927,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 <p style={{ fontSize: '37px', fontWeight: 700, letterSpacing: '-1.5px', color: green ? '#30d158' : T1, lineHeight: 1, marginBottom: '4px' }}>
                   {String(value)}
                 </p>
-                <p style={{ fontSize: '13px', color: T3 }}>{label}</p>
+                <p style={{ fontSize: 'var(--font-sm)', color: T3 }}>{label}</p>
               </div>
             ))}
           </div>
@@ -939,10 +939,10 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
                 <div>
-                  <p style={{ fontSize: '16px', fontWeight: 600, color: T1, letterSpacing: '-0.2px', marginBottom: '3px' }}>
+                  <p style={{ fontSize: 'var(--font-lg)', fontWeight: 600, color: T1, letterSpacing: '-0.2px', marginBottom: '3px' }}>
                     {pushCancelled ? 'Push stopped' : 'Creating Shopify draft listings'}
                   </p>
-                  <p style={{ fontSize: '13px', color: T3 }}>
+                  <p style={{ fontSize: 'var(--font-sm)', color: T3 }}>
                     {pushCancelled
                       ? `${draftsCreated} of ${drafts.length} drafts created before stopping`
                       : 'Images · SKU · colour · AI copy — all included'}
@@ -955,7 +955,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                       style={{
                         padding: '4px 12px', borderRadius: '20px', border: `1px solid rgba(255,69,58,0.4)`,
                         background: 'rgba(255,69,58,0.1)', color: '#ff453a',
-                        fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                        fontSize: 'var(--font-sm)', fontWeight: 600, cursor: 'pointer',
                       }}
                     >
                       Stop push
@@ -965,7 +965,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                     padding: '4px 12px', borderRadius: '20px',
                     background: pushCancelled ? 'rgba(255,159,10,0.15)' : 'rgba(48,209,88,0.15)',
                     color: pushCancelled ? '#ff9f0a' : '#30d158',
-                    fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-dm-mono)',
+                    fontSize: 'var(--font-base)', fontWeight: 600, fontFamily: 'var(--font-dm-mono)',
                   }}>
                     {draftsCreated} / {drafts.length}
                   </span>
@@ -982,7 +982,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                     transition: 'width 0.5s ease',
                   }} />
                 </div>
-                <p style={{ fontSize: '13px', color: T3 }}>
+                <p style={{ fontSize: 'var(--font-sm)', color: T3 }}>
                   {draftsCreated} of {drafts.length} drafts created
                   {isPushing && drafts.length > 0 && draftsCreated < drafts.length && ' · working…'}
                   {pushDone && ' · complete'}
@@ -1006,11 +1006,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                       transition: 'background 0.3s',
                     }}
                   >
-                    <span style={{ fontSize: '14px', color: d.status === 'created' ? T2 : T3, fontFamily: 'var(--font-dm-mono)' }}>
+                    <span style={{ fontSize: 'var(--font-base)', color: d.status === 'created' ? T2 : T3, fontFamily: 'var(--font-dm-mono)' }}>
                       {d.label}
                     </span>
                     {d.status === 'created' && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 500, color: '#30d158' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--font-base)', fontWeight: 500, color: '#30d158' }}>
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                           <circle cx="7" cy="7" r="7" fill="rgba(48,209,88,0.2)"/>
                           <polyline points="3.5 7 5.5 9.5 10.5 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1019,16 +1019,16 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                       </span>
                     )}
                     {d.status === 'creating' && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: T2 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--font-base)', color: T2 }}>
                         <span style={{ width: '14px', height: '14px', borderRadius: '50%', border: `1.5px solid rgba(255,255,255,0.3)`, borderTopColor: T1, animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
                         Creating…
                       </span>
                     )}
                     {d.status === 'queued' && (
-                      <span style={{ fontSize: '14px', color: T3 }}>Queued</span>
+                      <span style={{ fontSize: 'var(--font-base)', color: T3 }}>Queued</span>
                     )}
                     {d.status === 'error' && (
-                      <span style={{ fontSize: '13px', color: '#ff453a', maxWidth: '220px', textAlign: 'right' }}>
+                      <span style={{ fontSize: 'var(--font-sm)', color: '#ff453a', maxWidth: '220px', textAlign: 'right' }}>
                         {d.message ? d.message.slice(0, 80) : 'Failed'}
                       </span>
                     )}
@@ -1043,9 +1043,9 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', padding: '20px 18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#30d158', animation: 'pulse 2s ease-in-out infinite' }} />
-                <p style={{ fontSize: '15px', fontWeight: 600, color: T1 }}>Ready to push to Shopify</p>
+                <p style={{ fontSize: 'var(--font-md)', fontWeight: 600, color: T1 }}>Ready to push to Shopify</p>
               </div>
-              <p style={{ fontSize: '14px', color: T3, lineHeight: 1.5, marginBottom: canPush ? '14px' : '0' }}>
+              <p style={{ fontSize: 'var(--font-base)', color: T3, lineHeight: 1.5, marginBottom: canPush ? '14px' : '0' }}>
                 {!shopifyBrand
                   ? 'No brand has Shopify authorisation. Go to Brands, edit your brand, and click Connect with Shopify.'
                   : confirmedClusters.length === 0
@@ -1054,7 +1054,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 }
               </p>
               {!shopifyBrand && (
-                <Link href="/dashboard/brands" style={{ fontSize: '14px', color: '#0a84ff', textDecoration: 'none' }}>
+                <Link href="/dashboard/brands" style={{ fontSize: 'var(--font-base)', color: '#0a84ff', textDecoration: 'none' }}>
                   Configure Shopify credentials →
                 </Link>
               )}
@@ -1064,7 +1064,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                   style={{
                     width: '100%', padding: '13px', borderRadius: '10px',
                     background: '#30d158', border: 'none', cursor: 'pointer',
-                    fontSize: '15px', fontWeight: 600, color: '#000',
+                    fontSize: 'var(--font-md)', fontWeight: 600, color: '#000',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                   }}
                 >
@@ -1095,7 +1095,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '16px 18px', borderBottom: `1px solid ${BORDER}` }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                      <p style={{ fontSize: '16px', fontWeight: 600, color: T1, letterSpacing: '-0.2px' }}>
+                      <p style={{ fontSize: 'var(--font-lg)', fontWeight: 600, color: T1, letterSpacing: '-0.2px' }}>
                         {rule.name} — Direct Push
                       </p>
                       <span style={{
@@ -1104,12 +1104,12 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                         background: 'rgba(10,132,255,0.15)', color: '#4da3ff',
                       }}>Coming soon</span>
                     </div>
-                    <p style={{ fontSize: '13px', color: T3 }}>{subtitles[marketId]}</p>
+                    <p style={{ fontSize: 'var(--font-sm)', color: T3 }}>{subtitles[marketId]}</p>
                   </div>
                   <span style={{
                     padding: '4px 12px', borderRadius: '20px',
                     background: `${p.selBg}`, color: p.text,
-                    fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-dm-mono)',
+                    fontSize: 'var(--font-base)', fontWeight: 600, fontFamily: 'var(--font-dm-mono)',
                     flexShrink: 0, opacity: 0.5,
                   }}>0 / {confirmedClusters.length}</span>
                 </div>
@@ -1119,7 +1119,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                   <div style={{ height: '5px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
                     <div style={{ height: '100%', width: '0%', borderRadius: '3px', background: p.dot }} />
                   </div>
-                  <p style={{ fontSize: '13px', color: T3 }}>0 of {confirmedClusters.length} listings ready · integration coming soon</p>
+                  <p style={{ fontSize: 'var(--font-sm)', color: T3 }}>0 of {confirmedClusters.length} listings ready · integration coming soon</p>
                 </div>
 
                 {/* Cluster list — greyed out preview */}
@@ -1129,8 +1129,8 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '10px 18px', borderBottom: `1px solid ${BORDER}`,
                     }}>
-                      <span style={{ fontSize: '14px', color: T3, fontFamily: 'var(--font-dm-mono)' }}>{d.label}</span>
-                      <span style={{ fontSize: '13px', color: T3 }}>Queued</span>
+                      <span style={{ fontSize: 'var(--font-base)', color: T3, fontFamily: 'var(--font-dm-mono)' }}>{d.label}</span>
+                      <span style={{ fontSize: 'var(--font-sm)', color: T3 }}>Queued</span>
                     </div>
                   ))}
                 </div>
@@ -1140,7 +1140,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                   <button disabled style={{
                     width: '100%', padding: '11px', borderRadius: '10px',
                     background: p.selBg, border: `1px solid ${p.selBorder}`,
-                    cursor: 'not-allowed', fontSize: '14px', fontWeight: 600, color: p.text,
+                    cursor: 'not-allowed', fontSize: 'var(--font-base)', fontWeight: 600, color: p.text,
                     opacity: 0.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                   }}>
                     Push to {rule.name} — Coming Soon
@@ -1155,13 +1155,13 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => { setPushCancelled(false); setDrafts([]); setPushError(null) }}
-                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#30d158', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#000' }}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#30d158', border: 'none', cursor: 'pointer', fontSize: 'var(--font-base)', fontWeight: 600, color: '#000' }}
               >
                 Resume push
               </button>
               <button
                 onClick={() => { setPushCancelled(false); setDrafts([]); setPushError(null) }}
-                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD2, border: `1px solid ${BORDER}`, cursor: 'pointer', fontSize: '14px', fontWeight: 500, color: T1 }}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD2, border: `1px solid ${BORDER}`, cursor: 'pointer', fontSize: 'var(--font-base)', fontWeight: 500, color: T1 }}
               >
                 Dismiss
               </button>
@@ -1171,13 +1171,13 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => { setPushDone(false); setDrafts([]); setPushError(null) }}
-                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD2, border: `1px solid ${BORDER}`, cursor: 'pointer', fontSize: '14px', fontWeight: 500, color: T1 }}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: CARD2, border: `1px solid ${BORDER}`, cursor: 'pointer', fontSize: 'var(--font-base)', fontWeight: 500, color: T1 }}
               >
                 Push again
               </button>
               <button
                 onClick={() => { reset(); router.push('/dashboard') }}
-                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: T1, border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#000' }}
+                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: T1, border: 'none', cursor: 'pointer', fontSize: 'var(--font-base)', fontWeight: 600, color: '#000' }}
               >
                 Exit Job
               </button>
@@ -1190,7 +1190,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             <div style={{ background: CARD, border: `1px solid ${downloadDone ? 'rgba(48,209,88,0.3)' : BORDER}`, borderRadius: '14px', padding: '18px' }}>
               {isDownloading ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: 'var(--font-base)' }}>
                     <span style={{ color: T2 }}>{downloadStatus}</span>
                     <span style={{ color: '#30d158', fontFamily: 'var(--font-dm-mono)' }}>{downloadProgress}%</span>
                   </div>
@@ -1202,11 +1202,11 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    <span style={{ fontSize: '15px', fontWeight: 600, color: '#30d158' }}>ZIP downloaded</span>
+                    <span style={{ fontSize: 'var(--font-md)', fontWeight: 600, color: '#30d158' }}>ZIP downloaded</span>
                   </div>
                   <button
                     onClick={() => { reset(); router.push('/dashboard') }}
-                    style={{ width: '100%', padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#000', cursor: 'pointer' }}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: 'var(--font-base)', fontWeight: 600, color: '#000', cursor: 'pointer' }}
                   >
                     Exit Job
                   </button>
@@ -1220,7 +1220,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
             <div style={{ background: CARD, border: `1px solid ${folderDone ? 'rgba(48,209,88,0.3)' : BORDER}`, borderRadius: '14px', padding: '18px' }}>
               {isSavingToFolder ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: 'var(--font-base)' }}>
                     <span style={{ color: T2 }}>{folderStatus}</span>
                     <span style={{ color: '#30d158', fontFamily: 'var(--font-dm-mono)' }}>{folderProgress}%</span>
                   </div>
@@ -1232,17 +1232,17 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(48,209,88,0.2)"/><polyline points="4 8 6.5 10.5 12 4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    <span style={{ fontSize: '15px', fontWeight: 600, color: '#30d158' }}>Saved to {folderPath}/</span>
+                    <span style={{ fontSize: 'var(--font-md)', fontWeight: 600, color: '#30d158' }}>Saved to {folderPath}/</span>
                   </div>
                   {writtenFiles.map((r) => (
-                    <div key={r.marketplace} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: T3, padding: '3px 0', fontFamily: 'var(--font-dm-mono)' }}>
+                    <div key={r.marketplace} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-sm)', color: T3, padding: '3px 0', fontFamily: 'var(--font-dm-mono)' }}>
                       <span>{r.marketplace}/</span>
                       <span>{r.count} files</span>
                     </div>
                   ))}
                   <button
                     onClick={() => { reset(); router.push('/dashboard') }}
-                    style={{ width: '100%', marginTop: '14px', padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#000', cursor: 'pointer' }}
+                    style={{ width: '100%', marginTop: '14px', padding: '10px', borderRadius: '8px', background: T1, border: 'none', textAlign: 'center', fontSize: 'var(--font-base)', fontWeight: 600, color: '#000', cursor: 'pointer' }}
                   >
                     Exit Job
                   </button>
@@ -1253,7 +1253,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
 
           {/* Error */}
           {(error || pushError) && (
-            <div style={{ padding: '12px 16px', background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.3)', borderRadius: '10px', fontSize: '14px', color: '#ff453a' }}>
+            <div style={{ padding: '12px 16px', background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.3)', borderRadius: '10px', fontSize: 'var(--font-base)', color: '#ff453a' }}>
               {error || pushError}
             </div>
           )}

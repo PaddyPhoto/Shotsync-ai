@@ -81,12 +81,12 @@ export default function DownloadPage({ params }: { params: { jobId: string } }) 
             </svg>
           </div>
           <h1
-            className="text-[1.67rem] font-[700] tracking-[-0.5px] text-[var(--text)] mb-2"
+            className="text-[var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)] mb-2"
             style={{ fontFamily: 'var(--font-syne)' }}
           >
             Export Complete
           </h1>
-          <p className="text-[0.95rem] text-[var(--text2)]">
+          <p className="text-[var(--font-base)] text-[var(--text2)]">
             {totalImages} images packaged across {exports.length} export set{exports.length !== 1 ? 's' : ''}
             {totalSize > 0 && ` · ${formatBytes(totalSize)} total`}
           </p>
@@ -104,7 +104,7 @@ export default function DownloadPage({ params }: { params: { jobId: string } }) 
           </div>
           <div className="stat-card">
             <p className="stat-label">Total Size</p>
-            <p className="stat-value text-[1.47rem]">{formatBytes(totalSize)}</p>
+            <p className="stat-value text-[var(--font-2xl)]">{formatBytes(totalSize)}</p>
           </div>
         </div>
 
@@ -118,7 +118,7 @@ export default function DownloadPage({ params }: { params: { jobId: string } }) 
         ) : (
           <div className="card mb-6">
             <div className="card-body flex flex-col items-center py-10 gap-3">
-              <p className="text-[0.89rem] text-[var(--text3)]">
+              <p className="text-[var(--font-sm)] text-[var(--text3)]">
                 No exports found. Go back and generate an export.
               </p>
               <Link
@@ -137,10 +137,10 @@ export default function DownloadPage({ params }: { params: { jobId: string } }) 
             <span className="card-title">File Naming Convention</span>
           </div>
           <div className="card-body">
-            <p className="text-[0.92rem] text-[var(--text3)] mb-3">
+            <p className="text-[var(--font-base)] text-[var(--text3)] mb-3">
               All images are renamed using the structured format:
             </p>
-            <div className="bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-4 py-3 text-[0.89rem] mb-4" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+            <div className="bg-[var(--bg3)] border border-[var(--line2)] rounded-sm px-4 py-3 text-[var(--font-sm)] mb-4" style={{ fontFamily: 'var(--font-dm-mono)' }}>
               <span className="text-[var(--accent)]">BRAND</span>
               <span className="text-[var(--text3)]">_</span>
               <span className="text-[var(--accent2)]">SKU</span>
@@ -150,7 +150,7 @@ export default function DownloadPage({ params }: { params: { jobId: string } }) 
               <span className="text-[var(--accent3)]">VIEW</span>
               <span className="text-[var(--text3)]">.jpg</span>
             </div>
-            <div className="flex flex-col gap-1 text-[0.92rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+            <div className="flex flex-col gap-1 text-[var(--font-base)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
               {[
                 'BRAND_TOP-BLK-001_BLACK_FRONT.jpg',
                 'BRAND_TOP-BLK-001_BLACK_BACK.jpg',

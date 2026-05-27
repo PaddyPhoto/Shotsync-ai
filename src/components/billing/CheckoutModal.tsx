@@ -29,13 +29,13 @@ const appearance = {
   rules: {
     '.Input': { border: '0.5px solid rgba(0,0,0,0.15)', boxShadow: 'none', padding: '11px 14px' },
     '.Input:focus': { border: '0.5px solid #1d1d1f', boxShadow: 'none', outline: 'none' },
-    '.Label': { color: '#6e6e73', fontWeight: '500', fontSize: '13px', letterSpacing: '0.04em', textTransform: 'uppercase' },
+    '.Label': { color: '#6e6e73', fontWeight: '500', fontSize: 'var(--font-sm)', letterSpacing: '0.04em', textTransform: 'uppercase' },
     '.Tab': { border: '0.5px solid rgba(0,0,0,0.1)', boxShadow: 'none', borderRadius: '8px' },
     '.Tab--selected': { border: '0.5px solid #1d1d1f', boxShadow: 'none' },
     '.Tab:hover': { color: '#1d1d1f', border: '0.5px solid rgba(0,0,0,0.2)' },
     '.Block': { border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '8px' },
     '.CheckboxInput': { border: '0.5px solid rgba(0,0,0,0.2)' },
-    '.Error': { color: '#ff3b30', fontSize: '14px' },
+    '.Error': { color: '#ff3b30', fontSize: 'var(--font-base)' },
   },
 }
 
@@ -108,17 +108,17 @@ function PaymentForm({
 
       {/* Left: plan summary */}
       <div style={{ padding: '36px 32px', borderRight: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', gap: '0', background: 'rgba(0,0,0,0.015)' }}>
-        <div style={{ display: 'inline-block', background: badge.bg, color: badge.color, fontSize: '12px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '999px', marginBottom: '16px', alignSelf: 'flex-start' }}>
+        <div style={{ display: 'inline-block', background: badge.bg, color: badge.color, fontSize: 'var(--font-xs)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '999px', marginBottom: '16px', alignSelf: 'flex-start' }}>
           {planName}
         </div>
         <div style={{ fontSize: '37px', fontWeight: 500, letterSpacing: '-1.5px', color: '#1d1d1f', lineHeight: 1, marginBottom: '6px' }}>
           {price === 0 ? 'Free' : `${currencySymbol}${price}`}
         </div>
         {price > 0 && (
-          <div style={{ fontSize: '14px', color: '#6e6e73', marginBottom: '24px', letterSpacing: '-.1px' }}>{periodLabel}</div>
+          <div style={{ fontSize: 'var(--font-base)', color: '#6e6e73', marginBottom: '24px', letterSpacing: '-.1px' }}>{periodLabel}</div>
         )}
         {isNewCustomer && price > 0 && (
-          <div style={{ background: 'rgba(48,209,88,0.1)', border: '0.5px solid rgba(48,209,88,0.25)', borderRadius: '8px', padding: '10px 14px', marginBottom: '24px', fontSize: '14px', color: '#1a8a35', lineHeight: 1.5 }}>
+          <div style={{ background: 'rgba(48,209,88,0.1)', border: '0.5px solid rgba(48,209,88,0.25)', borderRadius: '8px', padding: '10px 14px', marginBottom: '24px', fontSize: 'var(--font-base)', color: '#1a8a35', lineHeight: 1.5 }}>
             <strong>30-day free trial</strong> — no charge today.<br />
             <span style={{ color: '#4a4a4f' }}>Your card is saved for after your trial.</span>
           </div>
@@ -126,7 +126,7 @@ function PaymentForm({
         <div style={{ height: '0.5px', background: 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
           {features.slice(0, 6).map((f) => (
-            <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '14px', color: '#1d1d1f', letterSpacing: '-.1px' }}>
+            <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: 'var(--font-base)', color: '#1d1d1f', letterSpacing: '-.1px' }}>
               <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'rgba(48,209,88,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
@@ -134,7 +134,7 @@ function PaymentForm({
             </div>
           ))}
         </div>
-        <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#aeaeb2' }}>
+        <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--font-sm)', color: '#aeaeb2' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Secured by Stripe · Cancel anytime
         </div>
@@ -142,13 +142,13 @@ function PaymentForm({
 
       {/* Right: payment */}
       <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '24px' }}>
+        <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '24px' }}>
           {isNewCustomer ? 'Save your payment details' : 'Complete payment'}
         </h3>
         <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <PaymentElement options={{ layout: 'tabs' }} />
           {error && (
-            <div style={{ background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', borderRadius: '8px', padding: '10px 14px', fontSize: '14px', color: '#c0392b', lineHeight: 1.5 }}>
+            <div style={{ background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', borderRadius: '8px', padding: '10px 14px', fontSize: 'var(--font-base)', color: '#c0392b', lineHeight: 1.5 }}>
               {error}
             </div>
           )}
@@ -163,7 +163,7 @@ function PaymentForm({
                 color: '#fff',
                 border: 'none',
                 borderRadius: '10px',
-                fontSize: '15px',
+                fontSize: 'var(--font-md)',
                 fontWeight: 500,
                 letterSpacing: '-.2px',
                 cursor: loading ? 'wait' : 'pointer',
@@ -176,7 +176,7 @@ function PaymentForm({
             <button
               type="button"
               onClick={onClose}
-              style={{ width: '100%', marginTop: '10px', background: 'none', border: 'none', color: '#6e6e73', fontSize: '14px', cursor: 'pointer', padding: '6px', fontFamily: 'inherit' }}
+              style={{ width: '100%', marginTop: '10px', background: 'none', border: 'none', color: '#6e6e73', fontSize: 'var(--font-base)', cursor: 'pointer', padding: '6px', fontFamily: 'inherit' }}
             >
               Cancel
             </button>
@@ -258,7 +258,7 @@ export function CheckoutModal({ planId, planName, annual, currency, price, featu
       >
         {/* Header */}
         <div style={{ padding: '20px 28px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ fontSize: '16px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', margin: 0 }}>
+          <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px', margin: 0 }}>
             {annual ? 'Annual plan' : 'Monthly plan'} — {planName}
           </p>
           <button
@@ -273,7 +273,7 @@ export function CheckoutModal({ planId, planName, annual, currency, price, featu
 
         {/* Body */}
         {fetching ? (
-          <div style={{ padding: '80px 40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', color: '#6e6e73', fontSize: '15px' }}>
+          <div style={{ padding: '80px 40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', color: '#6e6e73', fontSize: 'var(--font-md)' }}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
               <circle cx="9" cy="9" r="7" strokeDasharray="22 10"/>
             </svg>
@@ -281,8 +281,8 @@ export function CheckoutModal({ planId, planName, annual, currency, price, featu
           </div>
         ) : error ? (
           <div style={{ padding: '48px 40px', textAlign: 'center' }}>
-            <p style={{ fontSize: '15px', color: '#ff3b30', marginBottom: '16px' }}>{error}</p>
-            <button onClick={onClose} style={{ background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit' }}>Close</button>
+            <p style={{ fontSize: 'var(--font-md)', color: '#ff3b30', marginBottom: '16px' }}>{error}</p>
+            <button onClick={onClose} style={{ background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: 'var(--font-base)', cursor: 'pointer', fontFamily: 'inherit' }}>Close</button>
           </div>
         ) : clientSecret ? (
           <Elements

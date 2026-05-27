@@ -720,8 +720,8 @@ function ReviewPage() {
           <rect x="3" y="3" width="7" height="10" rx="1"/><rect x="14" y="3" width="7" height="6" rx="1"/><rect x="14" y="13" width="7" height="8" rx="1"/>
         </svg>
       </div>
-      <p style={{ fontSize: '17px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>No active session</p>
-      <p style={{ fontSize: '15px', color: '#4e4e53', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>Upload and process images to start reviewing clusters.</p>
+      <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>No active session</p>
+      <p style={{ fontSize: 'var(--font-md)', color: '#4e4e53', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>Upload and process images to start reviewing clusters.</p>
       <a href="/dashboard/upload" className="btn btn-primary" style={{ marginTop: '4px' }}>New upload</a>
     </div>
   )
@@ -732,10 +732,10 @@ function ReviewPage() {
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: jobName || 'Review' }]}
         actions={
           <div className="flex items-center gap-2">
-            <span className="text-[0.92rem] text-[var(--text3)] flex items-center gap-1">
+            <span className="text-[var(--font-base)] text-[var(--text3)] flex items-center gap-1">
               {confirmedCount}/{clusters.length} confirmed
               {incompleteCount > 0 && (
-                <span className="text-[0.86rem] font-medium ml-1" style={{ color: '#ff9f0a' }}>
+                <span className="text-[var(--font-sm)] font-medium ml-1" style={{ color: '#ff9f0a' }}>
                   · {incompleteCount} incomplete
                 </span>
               )}
@@ -879,7 +879,7 @@ function ReviewPage() {
                   <path d="M7 1L1 13h12L7 1z" strokeLinejoin="round"/>
                   <path d="M7 5.5v3M7 9.5h.01" strokeLinecap="round"/>
                 </svg>
-                <span className="text-[0.87rem] text-[var(--text2)]">
+                <span className="text-[var(--font-sm)] text-[var(--text2)]">
                   <span className="font-semibold text-[var(--accent)]">{clustersWithMissing.length} cluster{clustersWithMissing.length !== 1 ? 's' : ''}</span>
                   {' '}missing required shots for selected marketplaces
                 </span>
@@ -918,7 +918,7 @@ function ReviewPage() {
                 >
                   {/* Card header */}
                   <div className="flex items-center gap-2 px-3 py-[10px] bg-[var(--bg3)] border-b border-[var(--line)]">
-                    <span className="text-[0.93rem] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                    <span className="text-[var(--font-base)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                       {cluster.label}
                     </span>
                     {/* Garment category — tags cluster for export overrides + relabels angles if a per-category shoot sequence is configured */}
@@ -938,7 +938,7 @@ function ReviewPage() {
                         }
                       }}
                       title="Garment category — relabels angles if a per-category shoot sequence is configured in Brand Settings"
-                      className="text-[0.85rem] px-[5px] py-[1px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer hover:border-[var(--line3)] transition-colors"
+                      className="text-[var(--font-sm)] px-[5px] py-[1px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer hover:border-[var(--line3)] transition-colors"
                     >
                       <option value="">— category —</option>
                       {GARMENT_CATEGORIES.map((cat) => (
@@ -947,7 +947,7 @@ function ReviewPage() {
                     </select>
                     {shootType === 'still-life' && (
                       detectingCategories.has(cluster.id)
-                        ? <span className="text-[0.91rem] text-[var(--text3)] animate-pulse px-1">detecting…</span>
+                        ? <span className="text-[var(--font-base)] text-[var(--text3)] animate-pulse px-1">detecting…</span>
                         : <select
                             value={cluster.category ?? ''}
                             onChange={(e) => {
@@ -957,7 +957,7 @@ function ReviewPage() {
                               const newAngles: ViewLabel[] = newCat ? (newCat.angles as ViewLabel[]) : DEFAULT_VIEW_SEQUENCE
                               relabelCluster(cluster.id, newAngles)
                             }}
-                            className="text-[0.91rem] px-[6px] py-[2px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer"
+                            className="text-[var(--font-base)] px-[6px] py-[2px] rounded-sm border border-[var(--line2)] bg-[var(--bg4)] text-[var(--text2)] cursor-pointer"
                             title="Product category"
                           >
                             <option value="">— category —</option>
@@ -1056,7 +1056,7 @@ function ReviewPage() {
                               <select
                                 value={img.viewLabel}
                                 onChange={(e) => setImageViewLabel(img.id, cluster.id, e.target.value as ViewLabel)}
-                                className="w-full bg-transparent text-white text-[0.74rem] font-semibold uppercase outline-none cursor-pointer"
+                                className="w-full bg-transparent text-white text-[var(--font-2xs)] font-semibold uppercase outline-none cursor-pointer"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {getSelectableViews(cluster).map((v) => (
@@ -1093,7 +1093,7 @@ function ReviewPage() {
 
                     {/* Drop zone hint — only for cross-cluster moves */}
                     {isDropTarget && draggingFromCluster !== cluster.id && (
-                      <div className="w-full flex items-center justify-center py-4 border-2 border-dashed border-[var(--accent)] rounded-[3px] text-[0.87rem] text-[var(--accent)]">
+                      <div className="w-full flex items-center justify-center py-4 border-2 border-dashed border-[var(--accent)] rounded-[3px] text-[var(--font-sm)] text-[var(--accent)]">
                         Drop here to move
                       </div>
                     )}
@@ -1105,7 +1105,7 @@ function ReviewPage() {
                       {styleList.length > 0 ? (
                         <>
                           <input
-                            className="input text-[0.87rem] py-[5px]"
+                            className="input text-[var(--font-sm)] py-[5px]"
                             placeholder="Search style list…"
                             value={skuSearchOpen === cluster.id ? (skuSearchQuery[cluster.id] ?? currentSku) : currentSku}
                             onFocus={() => { setSkuSearchOpen(cluster.id); setSkuSearchQuery((q) => ({ ...q, [cluster.id]: currentSku })) }}
@@ -1137,23 +1137,23 @@ function ReviewPage() {
                                       setSkuSearchOpen(null)
                                     }}
                                   >
-                                    <span className="text-[0.92rem] text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{entry.sku}</span>
-                                    <span className="text-[0.92rem] text-[var(--text3)] truncate flex-1">{entry.productName}</span>
-                                    {entry.colour && <span className="text-[0.91rem] text-[var(--text3)] flex-shrink-0">{entry.colour}</span>}
+                                    <span className="text-[var(--font-base)] text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{entry.sku}</span>
+                                    <span className="text-[var(--font-base)] text-[var(--text3)] truncate flex-1">{entry.productName}</span>
+                                    {entry.colour && <span className="text-[var(--font-base)] text-[var(--text3)] flex-shrink-0">{entry.colour}</span>}
                                   </button>
                                 ))}
                               {styleList.filter((e) => {
                                 const q = (skuSearchQuery[cluster.id] ?? '').toLowerCase()
                                 return !q || e.sku.toLowerCase().includes(q) || e.productName.toLowerCase().includes(q) || e.colour.toLowerCase().includes(q)
                               }).length === 0 && (
-                                <p className="px-3 py-2 text-[0.87rem] text-[var(--text3)]">No matches</p>
+                                <p className="px-3 py-2 text-[var(--font-sm)] text-[var(--text3)]">No matches</p>
                               )}
                             </div>
                           )}
                         </>
                       ) : (
                         <input
-                          className="input text-[0.87rem] py-[5px]"
+                          className="input text-[var(--font-sm)] py-[5px]"
                           placeholder="Enter SKU"
                           value={currentSku}
                           onChange={(e) => setSkuInput((s) => ({ ...s, [cluster.id]: e.target.value }))}
@@ -1169,7 +1169,7 @@ function ReviewPage() {
                     <button
                       onClick={() => setClusterBottomwear(cluster.id, !cluster.isBottomwear)}
                       title={cluster.isBottomwear ? 'Tagged as Bottomwear — click to switch to Topwear' : 'Tag as Bottomwear (pants, skirts, shorts) for correct {VIEW_NUM} numbering'}
-                      className={`btn btn-sm flex-shrink-0 text-[0.86rem] gap-1 ${cluster.isBottomwear ? 'btn-accent' : 'btn-ghost'}`}
+                      className={`btn btn-sm flex-shrink-0 text-[var(--font-sm)] gap-1 ${cluster.isBottomwear ? 'btn-accent' : 'btn-ghost'}`}
                     >
                       {cluster.isBottomwear ? 'Bottoms' : 'Tops'}
                     </button>
@@ -1177,7 +1177,7 @@ function ReviewPage() {
                       <button
                         onClick={() => setClusterIncomplete(cluster.id, false)}
                         title="Marked incomplete — click to unmark"
-                        className="group flex items-center gap-1 flex-shrink-0 text-[0.86rem] font-semibold px-[8px] py-[3px] rounded-[5px] border transition-colors"
+                        className="group flex items-center gap-1 flex-shrink-0 text-[var(--font-sm)] font-semibold px-[8px] py-[3px] rounded-[5px] border transition-colors"
                         style={{ color: '#ff9f0a', borderColor: 'rgba(255,159,10,0.35)', background: 'rgba(255,159,10,0.08)' }}
                       >
                         <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 1v5M6 8.5h.01"/></svg>
@@ -1188,7 +1188,7 @@ function ReviewPage() {
                       <button
                         onClick={() => unconfirmCluster(cluster.id)}
                         title="Click to unconfirm"
-                        className="group text-[0.92rem] font-semibold text-[var(--accent2)] flex items-center gap-1 flex-shrink-0 hover:text-[var(--text3)] transition-colors"
+                        className="group text-[var(--font-base)] font-semibold text-[var(--accent2)] flex items-center gap-1 flex-shrink-0 hover:text-[var(--text3)] transition-colors"
                       >
                         <svg className="group-hover:hidden" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
                         <svg className="hidden group-hover:block" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
@@ -1200,7 +1200,7 @@ function ReviewPage() {
                         <button
                           onClick={() => setClusterIncomplete(cluster.id, true)}
                           title="Mark as incomplete — skips this cluster when confirming all"
-                          className="btn btn-ghost btn-sm text-[0.82rem]"
+                          className="btn btn-ghost btn-sm text-[var(--font-xs)]"
                           style={{ color: 'var(--text3)' }}
                         >
                           Incomplete
@@ -1218,7 +1218,7 @@ function ReviewPage() {
                   {/* SKU match feedback — colourway picker or no-match message */}
                   {skuMatchState[cluster.id] === 'multiple' && (skuMatches[cluster.id] ?? []).length > 0 && (
                     <div className="mx-3 mb-2 px-2 py-[7px] rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
-                      <p className="text-[0.86rem] text-[var(--text3)] mb-[6px] uppercase tracking-wide">Multiple colourways — pick one:</p>
+                      <p className="text-[var(--font-sm)] text-[var(--text3)] mb-[6px] uppercase tracking-wide">Multiple colourways — pick one:</p>
                       <div className="flex flex-wrap gap-[5px]">
                         {(skuMatches[cluster.id] ?? []).map((entry, i) => (
                           <button
@@ -1229,11 +1229,11 @@ function ReviewPage() {
                               setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
                               confirmCluster(cluster.id)
                             }}
-                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[5px] text-[0.89rem] border border-[var(--line2)] hover:border-[var(--accent)] hover:text-[var(--text)] transition-colors"
+                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[5px] text-[var(--font-sm)] border border-[var(--line2)] hover:border-[var(--accent)] hover:text-[var(--text)] transition-colors"
                             style={{ color: 'var(--text2)' }}
                           >
                             {entry.colour || entry.sku}
-                            {entry.colourCode && <span style={{ color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)', fontSize: '0.77rem' }}>{entry.colourCode}</span>}
+                            {entry.colourCode && <span style={{ color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)', fontSize: 'var(--font-xs)' }}>{entry.colourCode}</span>}
                           </button>
                         ))}
                       </div>
@@ -1242,7 +1242,7 @@ function ReviewPage() {
                   {skuMatchState[cluster.id] === 'no-match' && (
                     <div className="mx-3 mb-2 flex items-center gap-[6px] px-2 py-[5px] rounded-sm">
                       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round"><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 8h.01"/></svg>
-                      <span className="text-[0.89rem] text-[var(--text3)]">No match in your style list — check the SKU</span>
+                      <span className="text-[var(--font-sm)] text-[var(--text3)]">No match in your style list — check the SKU</span>
                     </div>
                   )}
 
@@ -1257,7 +1257,7 @@ function ReviewPage() {
                           <path d="M5.5 1L1 10h9L5.5 1z" strokeLinejoin="round"/>
                           <path d="M5.5 4.5v2M5.5 7.5h.01" strokeLinecap="round"/>
                         </svg>
-                        <span className="text-[0.93rem] text-[var(--text2)]">
+                        <span className="text-[var(--font-base)] text-[var(--text2)]">
                           <span className="font-medium">{ruleName}:</span>
                           {' '}missing{' '}
                           {missing.map((v, i) => (
@@ -1273,7 +1273,7 @@ function ReviewPage() {
 
                   {/* Colour chip */}
                   <div className="px-3 pb-[8px] flex items-center gap-2">
-                    <span className="text-[0.93rem] text-[var(--text3)] flex items-center gap-1">
+                    <span className="text-[var(--font-base)] text-[var(--text3)] flex items-center gap-1">
                       Colour
                       <HelpTooltip
                         position="top"
@@ -1289,7 +1289,7 @@ function ReviewPage() {
                     {editingColor === cluster.id ? (
                       <input
                         autoFocus
-                        className="input text-[0.87rem] py-[3px] w-[110px]"
+                        className="input text-[var(--font-sm)] py-[3px] w-[110px]"
                         placeholder="e.g. NAVY"
                         value={colorInput[cluster.id] ?? cluster.color}
                         onChange={(e) => setColorInput((s) => ({ ...s, [cluster.id]: e.target.value.toUpperCase() }))}
@@ -1310,7 +1310,7 @@ function ReviewPage() {
                     ) : (
                       <button
                         onClick={() => { setColorInput((s) => ({ ...s, [cluster.id]: cluster.color })); setEditingColor(cluster.id) }}
-                        className={`flex items-center gap-1 px-2 py-[3px] rounded-sm border text-[0.92rem] transition-all ${
+                        className={`flex items-center gap-1 px-2 py-[3px] rounded-sm border text-[var(--font-base)] transition-all ${
                           cluster.color
                             ? 'border-[var(--line2)] text-[var(--text)] hover:border-[var(--accent)]'
                             : 'border-dashed border-[var(--line)] text-[var(--text3)] hover:border-[var(--accent)] hover:text-[var(--text2)]'
@@ -1330,16 +1330,16 @@ function ReviewPage() {
                       </button>
                     )}
                     {cluster.color && editingColor !== cluster.id && (
-                      <span className="text-[0.90rem] text-[var(--text3)]">auto-detected</span>
+                      <span className="text-[var(--font-base)] text-[var(--text3)]">auto-detected</span>
                     )}
                   </div>
 
                   {/* Colour code + style number */}
                   <div className="px-3 pb-[8px] flex items-center gap-3">
                     <div className="flex items-center gap-1">
-                      <span className="text-[0.91rem] text-[var(--text3)]">Colour code</span>
+                      <span className="text-[var(--font-base)] text-[var(--text3)]">Colour code</span>
                       <input
-                        className="input text-[0.92rem] py-[2px] w-[64px]"
+                        className="input text-[var(--font-base)] py-[2px] w-[64px]"
                         style={{ fontFamily: 'var(--font-dm-mono)' }}
                         placeholder="062"
                         value={colourCodeInput[cluster.id] ?? cluster.colourCode}
@@ -1351,9 +1351,9 @@ function ReviewPage() {
                       />
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="text-[0.91rem] text-[var(--text3)]">Style #</span>
+                      <span className="text-[var(--font-base)] text-[var(--text3)]">Style #</span>
                       <input
-                        className="input text-[0.92rem] py-[2px] w-[80px]"
+                        className="input text-[var(--font-base)] py-[2px] w-[80px]"
                         style={{ fontFamily: 'var(--font-dm-mono)' }}
                         placeholder="05324"
                         value={styleNumberInput[cluster.id] ?? cluster.styleNumber}
@@ -1387,8 +1387,8 @@ function ReviewPage() {
                         <div className="flex flex-wrap gap-x-4 gap-y-[5px]">
                           {fields.map(({ label, value }) => (
                             <div key={label} className="flex flex-col min-w-[60px]">
-                              <span className="text-[0.74rem] text-[var(--text3)] uppercase tracking-wide leading-tight">{label}</span>
-                              <span className="text-[0.89rem] text-[var(--text)] leading-snug font-medium">{value}</span>
+                              <span className="text-[var(--font-2xs)] text-[var(--text3)] uppercase tracking-wide leading-tight">{label}</span>
+                              <span className="text-[var(--font-sm)] text-[var(--text)] leading-snug font-medium">{value}</span>
                             </div>
                           ))}
                         </div>
@@ -1398,13 +1398,13 @@ function ReviewPage() {
 
                   {/* Merge / split actions */}
                   <div className="px-3 pb-[10px] flex items-center gap-2">
-                    <span className="text-[0.93rem] text-[var(--text3)]">{cluster.images.length} images</span>
+                    <span className="text-[var(--font-base)] text-[var(--text3)]">{cluster.images.length} images</span>
                     <div className="flex-1" />
                     {/* Split — visible when images in this cluster are selected */}
                     {Array.from(selectedImages).some((id) => cluster.images.some((img) => img.id === id)) && (
                       <button
                         onClick={() => handleSplit(cluster.id)}
-                        className="text-[0.92rem] text-[var(--accent2)] hover:opacity-70 transition-opacity"
+                        className="text-[var(--font-base)] text-[var(--accent2)] hover:opacity-70 transition-opacity"
                         title="Move selected images into a new cluster"
                       >
                         Split selected
@@ -1413,7 +1413,7 @@ function ReviewPage() {
                     {clusters.length > 1 && (
                       <div className="relative">
                         <button
-                          className="text-[0.92rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
+                          className="text-[var(--font-base)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
                           onClick={() => setMergeMenuOpen((prev) => prev === cluster.id ? null : cluster.id)}
                         >
                           Merge into…
@@ -1427,7 +1427,7 @@ function ReviewPage() {
                                 <button
                                   key={other.id}
                                   onClick={() => { mergeCluster(cluster.id, other.id); setMergeMenuOpen(null) }}
-                                  className="w-full text-left px-3 py-[8px] text-[0.92rem] text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] transition-colors"
+                                  className="w-full text-left px-3 py-[8px] text-[var(--font-base)] text-[var(--text2)] hover:bg-[var(--bg3)] hover:text-[var(--text)] transition-colors"
                                 >
                                   {other.sku || other.label}
                                 </button>
@@ -1456,9 +1456,9 @@ function ReviewPage() {
                           <svg viewBox="0 0 16 16" fill="none" width="12" height="12" stroke="none">
                             <path d="M8 1l1.4 3.2L13 5.2l-2.4 2.3.6 3.3L8 9.2l-3.2 1.6.6-3.3L3 5.2l3.6-.9L8 1z" fill="var(--accent4)" opacity="0.9"/>
                           </svg>
-                          <span className="text-[0.92rem] font-medium text-[var(--text2)] flex-1">AI Product Copy</span>
+                          <span className="text-[var(--font-base)] font-medium text-[var(--text2)] flex-1">AI Product Copy</span>
                           {copy?.title && !isOpen && (
-                            <span className="text-[0.90rem] text-[var(--text3)] truncate max-w-[140px]">{copy.title}</span>
+                            <span className="text-[var(--font-base)] text-[var(--text3)] truncate max-w-[140px]">{copy.title}</span>
                           )}
                           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" width="10" height="10"
                             style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .15s', flexShrink: 0, color: 'var(--text3)' }}>
@@ -1473,11 +1473,11 @@ function ReviewPage() {
                                 <svg className="animate-spin" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="var(--accent4)" strokeWidth="2">
                                   <circle cx="6.5" cy="6.5" r="4.5" strokeDasharray="18 8"/>
                                 </svg>
-                                <span className="text-[0.92rem] text-[var(--text3)]">Generating copy…</span>
+                                <span className="text-[var(--font-base)] text-[var(--text3)]">Generating copy…</span>
                               </div>
                             ) : copy?.error ? (
                               <div className="flex flex-col gap-2 py-2">
-                                <p className="text-[0.92rem] text-[#ff3b30]">Failed: {copy.error}</p>
+                                <p className="text-[var(--font-base)] text-[#ff3b30]">Failed: {copy.error}</p>
                                 <button
                                   onClick={() => generateCopy(cluster)}
                                   className="btn btn-ghost btn-sm self-start gap-[6px]"
@@ -1491,30 +1491,30 @@ function ReviewPage() {
                             ) : copy?.title ? (
                               <>
                                 <div>
-                                  <label className="text-[0.93rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Title</label>
+                                  <label className="text-[var(--font-base)] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Title</label>
                                   <input
-                                    className="input text-[0.92rem] py-[5px]"
+                                    className="input text-[var(--font-base)] py-[5px]"
                                     value={copy.title}
                                     onChange={(e) => setClusterCopy((prev) => ({ ...prev, [cluster.id]: { ...prev[cluster.id], title: e.target.value } }))}
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[0.93rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Description</label>
+                                  <label className="text-[var(--font-base)] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Description</label>
                                   <textarea
-                                    className="input text-[0.92rem] py-[5px] resize-none"
+                                    className="input text-[var(--font-base)] py-[5px] resize-none"
                                     rows={5}
                                     value={copy.description}
                                     onChange={(e) => setClusterCopy((prev) => ({ ...prev, [cluster.id]: { ...prev[cluster.id], description: e.target.value } }))}
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[0.93rem] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Bullet Points</label>
+                                  <label className="text-[var(--font-base)] font-medium text-[var(--text3)] uppercase tracking-wide block mb-[4px]">Bullet Points</label>
                                   <div className="flex flex-col gap-[2px]">
                                     {copy.bullets.map((bullet, i) => (
                                       <div key={i} className="flex items-start gap-[6px]">
-                                        <span className="text-[var(--text3)] text-[0.87rem] flex-shrink-0 mt-[4px]">·</span>
+                                        <span className="text-[var(--text3)] text-[var(--font-sm)] flex-shrink-0 mt-[4px]">·</span>
                                         <input
-                                          className="text-[0.91rem] text-[var(--text2)] flex-1 bg-transparent border border-transparent rounded-[4px] px-[5px] py-[3px] focus:outline-none focus:border-[var(--line2)] hover:border-[var(--line2)] transition-colors leading-snug"
+                                          className="text-[var(--font-base)] text-[var(--text2)] flex-1 bg-transparent border border-transparent rounded-[4px] px-[5px] py-[3px] focus:outline-none focus:border-[var(--line2)] hover:border-[var(--line2)] transition-colors leading-snug"
                                           value={bullet}
                                           onChange={(e) => {
                                             const next = [...copy.bullets]
@@ -1528,7 +1528,7 @@ function ReviewPage() {
                                 </div>
                                 <button
                                   onClick={() => generateCopy(cluster)}
-                                  className="flex items-center gap-1 text-[0.93rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors self-start"
+                                  className="flex items-center gap-1 text-[var(--font-base)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors self-start"
                                 >
                                   <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" width="10" height="10" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M10.5 2A5.5 5.5 0 1 0 10.5 10"/>
@@ -1580,13 +1580,13 @@ function ReviewPage() {
       {selectedImages.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-3 px-4 py-2.5 rounded-[12px] shadow-2xl"
           style={{ background: 'var(--bg)', border: '0.5px solid var(--line)', backdropFilter: 'blur(12px)' }}>
-          <span className="text-[0.89rem] font-medium text-[var(--text2)] whitespace-nowrap">
+          <span className="text-[var(--font-sm)] font-medium text-[var(--text2)] whitespace-nowrap">
             {selectedImages.size} image{selectedImages.size !== 1 ? 's' : ''} selected
           </span>
           <div className="w-px h-4 bg-[var(--line)]" />
-          <span className="text-[0.85rem] text-[var(--text3)] whitespace-nowrap">Move to:</span>
+          <span className="text-[var(--font-sm)] text-[var(--text3)] whitespace-nowrap">Move to:</span>
           <select
-            className="input text-[0.87rem] py-[4px] pr-6"
+            className="input text-[var(--font-sm)] py-[4px] pr-6"
             defaultValue=""
             onChange={(e) => { if (e.target.value) { moveSelectedImages(e.target.value); e.target.value = '' } }}
           >
@@ -1599,7 +1599,7 @@ function ReviewPage() {
           </select>
           <button
             onClick={() => { setSelectedImages(new Set()); setSelectedCluster(null) }}
-            className="text-[0.85rem] text-[var(--text3)] hover:text-[var(--text)] transition-colors px-1"
+            className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[var(--text)] transition-colors px-1"
             title="Clear selection (Esc)"
           >
             Clear
@@ -1637,7 +1637,7 @@ function ReviewPage() {
                 className="max-w-full max-h-[82vh] object-contain rounded-[6px] shadow-2xl"
                 style={{ userSelect: 'none' }}
               />
-              <div className="flex items-center gap-3 text-[0.92rem]">
+              <div className="flex items-center gap-3 text-[var(--font-base)]">
                 <span className="px-2 py-0.5 rounded-[4px] bg-white/10 text-white/80 uppercase tracking-wide font-medium">{current.viewLabel.replace(/-/g, ' ')}</span>
                 <span className="text-white/50 font-mono truncate max-w-[300px]">{current.filename}</span>
                 <span className="text-white/30">{currentIdx + 1} / {allImages.length}</span>
@@ -1659,7 +1659,7 @@ function ReviewPage() {
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
             </button>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/25 text-[0.86rem]">Space or Esc to close · ← → to navigate</div>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/25 text-[var(--font-sm)]">Space or Esc to close · ← → to navigate</div>
           </div>
         )
       })()}
@@ -2559,7 +2559,7 @@ function ExportPanel({
       <div onClick={onToggle} className="relative w-[36px] h-[20px] rounded-full transition-colors cursor-pointer flex-shrink-0" style={{ background: on ? 'var(--accent)' : 'var(--bg4)' }}>
         <span className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow transition-all duration-200" style={{ left: on ? '18px' : '2px' }} />
       </div>
-      <span className="text-[0.87rem] text-[var(--text2)]">{label}{sub && <span className="text-[var(--text3)] ml-1">{sub}</span>}</span>
+      <span className="text-[var(--font-sm)] text-[var(--text2)]">{label}{sub && <span className="text-[var(--text3)] ml-1">{sub}</span>}</span>
     </label>
   )
 
@@ -2570,17 +2570,17 @@ function ExportPanel({
       <div className="flex items-center gap-4 px-6 h-[56px] border-b border-[var(--line)] flex-shrink-0">
         <button
           onClick={onClose}
-          className="flex items-center gap-1.5 text-[0.92rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
+          className="flex items-center gap-1.5 text-[var(--font-base)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 2L4 7l5 5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           Back to review
         </button>
         <div className="h-4 w-px bg-[var(--line2)]" />
-        <h1 className="text-[0.99rem] font-semibold text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
+        <h1 className="text-[var(--font-md)] font-semibold text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>
           Export{jobName ? ` · ${jobName}` : ''}
         </h1>
         {confirmedClusters.length > 0 && (
-          <span className="text-[0.87rem] text-[var(--text3)]">
+          <span className="text-[var(--font-sm)] text-[var(--text3)]">
             {confirmedClusters.length} cluster{confirmedClusters.length !== 1 ? 's' : ''} · {totalSourceImages} images
           </span>
         )}
@@ -2595,9 +2595,9 @@ function ExportPanel({
           style={{ opacity: isExporting ? 0.3 : 1, pointerEvents: isExporting ? 'none' : 'auto' }}
         >
           <div className="flex items-center justify-between mb-4 flex-shrink-0">
-            <p className="text-[0.93rem] font-semibold text-[var(--text3)] uppercase tracking-wide">Marketplaces</p>
+            <p className="text-[var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide">Marketplaces</p>
             {selectedMarketplaces.length === 0 && (
-              <p className="text-[0.92rem] text-[var(--accent3)]">Select at least one</p>
+              <p className="text-[var(--font-base)] text-[var(--accent3)]">Select at least one</p>
             )}
           </div>
           <MarketplaceSelector
@@ -2621,7 +2621,7 @@ function ExportPanel({
         >
           {/* Output format */}
           <div className="flex-shrink-0 pb-5 border-b border-[var(--line)]">
-            <p className="text-[0.93rem] font-semibold text-[var(--text3)] uppercase tracking-wide mb-3">Output format</p>
+            <p className="text-[var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide mb-3">Output format</p>
             <div className="flex flex-col gap-[2px] bg-[var(--bg3)] p-[3px] rounded-sm">
               {([
                 ['zip', 'Download ZIP'],
@@ -2631,23 +2631,23 @@ function ExportPanel({
                 ...(activeBrand?.cloud_connections?.s3 ? [['s3', 'AWS S3']] : []),
               ] as [string, string][]).map(([id, label]) => (
                 <button key={id} onClick={() => { setExportMode(id as typeof exportMode); if (id === 'folder' && !folderRef.current && fsaSupported) pickFolder() }}
-                  className={`w-full px-3 py-[6px] rounded-[4px] text-left text-[0.87rem] font-medium transition-all ${exportMode === id ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
+                  className={`w-full px-3 py-[6px] rounded-[4px] text-left text-[var(--font-sm)] font-medium transition-all ${exportMode === id ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text2)] hover:text-[var(--text)]'}`}>
                   {label}
                 </button>
               ))}
             </div>
             <div className="mt-2 min-h-[18px]">
-              {exportMode === 'folder' && <p className="text-[0.92rem] text-[var(--text3)]">Chrome and Edge only</p>}
-              {exportMode === 'dropbox' && <p className="text-[0.92rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.dropbox?.account_email}</span></p>}
-              {exportMode === 'google-drive' && <p className="text-[0.92rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.google_drive?.email}</span></p>}
-              {exportMode === 's3' && <p className="text-[0.92rem] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.s3?.bucket}{activeBrand?.cloud_connections?.s3?.prefix ? `/${activeBrand.cloud_connections.s3.prefix}` : ''}</span></p>}
+              {exportMode === 'folder' && <p className="text-[var(--font-base)] text-[var(--text3)]">Chrome and Edge only</p>}
+              {exportMode === 'dropbox' && <p className="text-[var(--font-base)] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.dropbox?.account_email}</span></p>}
+              {exportMode === 'google-drive' && <p className="text-[var(--font-base)] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.google_drive?.email}</span></p>}
+              {exportMode === 's3' && <p className="text-[var(--font-base)] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.s3?.bucket}{activeBrand?.cloud_connections?.s3?.prefix ? `/${activeBrand.cloud_connections.s3.prefix}` : ''}</span></p>}
             </div>
             {exportMode === 'folder' && (
               <div className="flex items-center gap-2 mt-2">
                 <button onClick={pickFolder} disabled={!fsaSupported} className="btn btn-ghost btn-sm">Choose folder</button>
                 {folderName
-                  ? <span className="text-[0.87rem] text-[var(--accent2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>/{folderName}</span>
-                  : <span className="text-[0.92rem] text-[var(--text3)]">{fsaSupported ? 'None selected' : 'Requires Chrome/Edge'}</span>
+                  ? <span className="text-[var(--font-sm)] text-[var(--accent2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>/{folderName}</span>
+                  : <span className="text-[var(--font-base)] text-[var(--text3)]">{fsaSupported ? 'None selected' : 'Requires Chrome/Edge'}</span>
                 }
               </div>
             )}
@@ -2655,7 +2655,7 @@ function ExportPanel({
 
           {/* Options */}
           <div className="flex-shrink-0 py-5 border-b border-[var(--line)]">
-            <p className="text-[0.93rem] font-semibold text-[var(--text3)] uppercase tracking-wide mb-4">Options</p>
+            <p className="text-[var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide mb-4">Options</p>
             <div className="flex flex-col gap-4">
               <Toggle on={flatExport} onToggle={() => setFlatExport(v => !v)}
                 label="Flat export" sub="All images in one folder per marketplace" />
@@ -2673,11 +2673,11 @@ function ExportPanel({
                     <div className="relative w-[36px] h-[20px] rounded-full flex-shrink-0" style={{ background: 'var(--bg4)' }}>
                       <span className="absolute top-[2px] left-[2px] w-[16px] h-[16px] rounded-full bg-white shadow" />
                     </div>
-                    <span className="text-[0.87rem] text-[var(--text2)]">
+                    <span className="text-[var(--font-sm)] text-[var(--text2)]">
                       Background removal
                       <span className="text-[var(--text3)] ml-1">— </span>
                       <button onClick={() => openUpgrade('Background removal is available on the Growth plan and above')}
-                        className="text-[0.92rem] text-[var(--accent)] hover:underline">
+                        className="text-[var(--font-base)] text-[var(--accent)] hover:underline">
                         Growth plan required
                       </button>
                     </span>
@@ -2690,11 +2690,11 @@ function ExportPanel({
           {/* File naming */}
           <div className="flex-shrink-0 pt-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[0.93rem] font-semibold text-[var(--text3)] uppercase tracking-wide">File naming</p>
+              <p className="text-[var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide">File naming</p>
             </div>
-            <input className="input w-full mb-2" style={{ fontFamily: 'var(--font-dm-mono)', fontSize: '0.87rem' }}
+            <input className="input w-full mb-2" style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 'var(--font-sm)' }}
               value={localTemplate} onChange={(e) => setLocalTemplate(e.target.value)} placeholder="{BRAND}_{SEQ}_{VIEW}" />
-            <p className="text-[0.90rem] text-[var(--text3)] leading-loose flex flex-wrap gap-x-1">
+            <p className="text-[var(--font-base)] text-[var(--text3)] leading-loose flex flex-wrap gap-x-1">
               {['{BRAND}','{SKU}','{COLOR}','{VIEW}','{SEQ}','{INDEX}','{STYLE_NUMBER}','{COLOUR_CODE}'].map(t => (
                 <code key={t} style={{ fontFamily: 'var(--font-dm-mono)' }}>{t}</code>
               ))}
@@ -2712,25 +2712,25 @@ function ExportPanel({
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="var(--accent2)" strokeWidth="2.5"><polyline points="5 14 11 20 23 8"/></svg>
               </div>
               <div>
-                <p className="text-[1.57rem] font-semibold text-[var(--text)] leading-tight" style={{ fontFamily: 'var(--font-syne)', letterSpacing: '-.3px' }}>Job complete</p>
+                <p className="text-[var(--font-2xl)] font-semibold text-[var(--text)] leading-tight" style={{ fontFamily: 'var(--font-syne)', letterSpacing: '-.3px' }}>Job complete</p>
                 <p className="text-[1rem] text-[var(--text3)] mt-2">
                   {totalSourceImages} images exported across {selectedMarketplaces.length} marketplace{selectedMarketplaces.length !== 1 ? 's' : ''}.
                 </p>
               </div>
               {exportError && (
-                <div className="text-[0.87rem] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-left w-full">
+                <div className="text-[var(--font-sm)] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-left w-full">
                   <span className="font-medium">Note:</span> {exportError}
                 </div>
               )}
               {historySaved && !historySaveError && (
-                <div className="text-[0.87rem] bg-[rgba(48,209,88,0.08)] border border-[rgba(48,209,88,0.3)] rounded-lg px-4 py-3 text-left w-full" style={{ color: '#30d158' }}>
+                <div className="text-[var(--font-sm)] bg-[rgba(48,209,88,0.08)] border border-[rgba(48,209,88,0.3)] rounded-lg px-4 py-3 text-left w-full" style={{ color: '#30d158' }}>
                   <span className="font-medium">Saved to history.</span> This job is now visible in All Jobs.
                 </div>
               )}
               {historySaveError && (
-                <div className="text-[0.87rem] bg-[rgba(255,159,10,0.08)] border border-[rgba(255,159,10,0.3)] rounded-lg px-4 py-3 text-left w-full" style={{ color: '#a05c00' }}>
+                <div className="text-[var(--font-sm)] bg-[rgba(255,159,10,0.08)] border border-[rgba(255,159,10,0.3)] rounded-lg px-4 py-3 text-left w-full" style={{ color: '#a05c00' }}>
                   <span className="font-medium">Job not saved to history.</span> Your export completed but this job couldn't be recorded in All Jobs.
-                  <span className="block mt-1 font-mono text-[0.82rem] opacity-70">{historySaveError}</span>
+                  <span className="block mt-1 font-mono text-[var(--font-xs)] opacity-70">{historySaveError}</span>
                 </div>
               )}
               <div className="flex gap-3 w-full justify-center">
@@ -2743,11 +2743,11 @@ function ExportPanel({
           ) : isExporting ? (
             <div className="flex flex-col justify-center h-full gap-7 max-w-[520px]">
               <div>
-                <p className="text-[0.92rem] text-[var(--text3)] uppercase tracking-wide font-semibold mb-2">In progress</p>
-                <p className="text-[1.22rem] font-semibold text-[var(--text)] leading-snug" style={{ fontFamily: 'var(--font-syne)' }}>{progress.phase}</p>
+                <p className="text-[var(--font-base)] text-[var(--text3)] uppercase tracking-wide font-semibold mb-2">In progress</p>
+                <p className="text-[var(--font-xl)] font-semibold text-[var(--text)] leading-snug" style={{ fontFamily: 'var(--font-syne)' }}>{progress.phase}</p>
               </div>
               <div>
-                <div className="flex justify-between text-[0.87rem] mb-2">
+                <div className="flex justify-between text-[var(--font-sm)] mb-2">
                   <span className="text-[var(--text2)]">{progress.done} of {progress.total}</span>
                   <span style={{ fontFamily: 'var(--font-dm-mono)', color: 'var(--accent)', fontWeight: 600 }}>{pct}%</span>
                 </div>
@@ -2756,13 +2756,13 @@ function ExportPanel({
                 </div>
               </div>
               {cloudExportStatus && (exportMode === 'dropbox' || exportMode === 'google-drive' || exportMode === 's3') && (
-                <div className="px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)] text-[0.92rem] text-[var(--text2)]">
+                <div className="px-4 py-3 rounded-sm bg-[var(--bg3)] border border-[var(--line)] text-[var(--font-base)] text-[var(--text2)]">
                   Uploading {cloudExportStatus.done} / {cloudExportStatus.total} files
                   {cloudExportStatus.errors > 0 && <span className="text-[var(--accent3)] ml-2">· {cloudExportStatus.errors} failed</span>}
                 </div>
               )}
               {exportError && (
-                <div className="text-[0.87rem] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                <div className="text-[var(--font-sm)] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
                   <span className="font-medium">Warning:</span> {exportError}
                 </div>
               )}
@@ -2780,15 +2780,15 @@ function ExportPanel({
                   { label: 'Marketplaces', value: selectedMarketplaces.length },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-4">
-                    <p className="text-[1.67rem] font-semibold text-[var(--text)] leading-none" style={{ fontFamily: 'var(--font-syne)' }}>{value}</p>
-                    <p className="text-[0.92rem] text-[var(--text3)] mt-1.5">{label}</p>
+                    <p className="text-[var(--font-3xl)] font-semibold text-[var(--text)] leading-none" style={{ fontFamily: 'var(--font-syne)' }}>{value}</p>
+                    <p className="text-[var(--font-base)] text-[var(--text3)] mt-1.5">{label}</p>
                   </div>
                 ))}
               </div>
 
               {/* BG removal estimate */}
               {hasBgRemoval && bgRemovalEnabled && canUseBgRemoval && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-sm border border-[var(--line2)] bg-[var(--bg3)] w-fit text-[0.87rem] text-[var(--text2)] flex-shrink-0">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-sm border border-[var(--line2)] bg-[var(--bg3)] w-fit text-[var(--font-sm)] text-[var(--text2)] flex-shrink-0">
                   <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.6"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 1.5" strokeLinecap="round"/></svg>
                   Background removal · {bgCount} images · est. <strong className="text-[var(--text)] mx-1">~{estBgMins} min</strong> · <strong className="text-[var(--text)] ml-1">${bgCostAud} AUD</strong>&nbsp;billed on use
                 </div>
@@ -2799,16 +2799,16 @@ function ExportPanel({
                 <div className="flex-shrink-0 border border-[var(--line)] rounded-sm px-4 py-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-[1rem] font-medium text-[var(--text)]">Shopify draft listings</p>
-                    <span className="text-[0.90rem] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
+                    <span className="text-[var(--font-base)] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
                   </div>
-                  <p className="text-[0.87rem] text-[var(--text3)] mb-3 leading-relaxed">
+                  <p className="text-[var(--font-sm)] text-[var(--text3)] mb-3 leading-relaxed">
                     Creates a draft product in Shopify for each cluster — images, SKU, colour and AI copy included.
                     {(() => { const n = confirmedClusters.filter(c => clusterCopy[c.id]?.title).length; return n > 0 ? <> <span className="text-[var(--accent2)] font-medium">AI copy ready for {n} listing{n !== 1 ? 's' : ''}.</span></> : null })()}
                   </p>
                   {shopifyResults && (
                     <div className="bg-[var(--bg3)] rounded-sm p-2.5 mb-3 flex flex-col gap-1 max-h-[100px] overflow-y-auto">
                       {shopifyResults.map((r) => (
-                        <div key={r.sku} className="flex items-center justify-between text-[0.92rem]">
+                        <div key={r.sku} className="flex items-center justify-between text-[var(--font-base)]">
                           <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.sku}</span>
                           <span className={r.status === 'created' || r.status === 'updated' ? 'text-[var(--accent2)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
                             {r.status === 'created' ? '✓ Draft created' : r.status === 'updated' ? '✓ Images added' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
@@ -2836,15 +2836,15 @@ function ExportPanel({
                       </div>
                       <p className="text-[1rem] font-medium text-[var(--text)]">Cin7 Core</p>
                     </div>
-                    <span className="text-[0.90rem] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
+                    <span className="text-[var(--font-base)] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
                   </div>
-                  <p className="text-[0.87rem] text-[var(--text3)] mb-3 leading-relaxed">
+                  <p className="text-[var(--font-sm)] text-[var(--text3)] mb-3 leading-relaxed">
                     Creates a new product in Cin7 for each cluster — all metadata, AI copy and images included. New SKUs only; existing SKUs are skipped.
                   </p>
                   {cin7Results && (
                     <div className="bg-[var(--bg3)] rounded-sm p-2.5 mb-3 flex flex-col gap-1 max-h-[100px] overflow-y-auto">
                       {cin7Results.map((r) => (
-                        <div key={r.sku} className="flex items-center justify-between text-[0.92rem]">
+                        <div key={r.sku} className="flex items-center justify-between text-[var(--font-base)]">
                           <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.sku}</span>
                           <span className={r.status === 'created' ? 'text-[var(--accent2)]' : r.status === 'skipped' ? 'text-[var(--text3)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
                             {r.status === 'created' ? '✓ Created' : r.status === 'skipped' ? '— Already exists' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
@@ -2865,8 +2865,8 @@ function ExportPanel({
               {/* Output preview — takes remaining vertical space */}
               {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (
                 <div className="flex-1 min-h-0 flex flex-col">
-                  <p className="text-[0.93rem] font-semibold text-[var(--text3)] uppercase tracking-wide mb-2 flex-shrink-0">Output preview</p>
-                  <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-3 text-[0.87rem]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                  <p className="text-[var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide mb-2 flex-shrink-0">Output preview</p>
+                  <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-3 text-[var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                     {selectedMarketplaces.slice(0, 3).map((m) => {
                       const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
                       const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
@@ -2903,7 +2903,7 @@ function ExportPanel({
               )}
 
               {exportError && (
-                <div className="text-[0.87rem] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex-shrink-0">
+                <div className="text-[var(--font-sm)] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex-shrink-0">
                   <span className="font-medium">Export error:</span> {exportError}
                 </div>
               )}
@@ -2915,7 +2915,7 @@ function ExportPanel({
       {/* ── Footer CTA ─────────────────────────────────────────────────────── */}
       {!done && (
         <div className="border-t border-[var(--line)] px-6 h-[60px] flex items-center justify-between flex-shrink-0">
-          <p className="text-[0.87rem] text-[var(--text3)]">
+          <p className="text-[var(--font-sm)] text-[var(--text3)]">
             {confirmedClusters.length === 0
               ? 'Confirm at least one cluster to export'
               : selectedMarketplaces.length === 0

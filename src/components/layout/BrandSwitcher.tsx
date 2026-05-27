@@ -41,14 +41,14 @@ export function BrandSwitcher() {
       >
         {/* Brand avatar */}
         <div
-          className="w-7 h-7 rounded-[5px] flex items-center justify-center font-bold text-[0.90rem] text-black flex-shrink-0"
+          className="w-7 h-7 rounded-[5px] flex items-center justify-center font-bold text-[var(--font-base)] text-black flex-shrink-0"
           style={{ background: color, fontFamily: 'var(--font-dm-mono)' }}
         >
           {initials}
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-[0.87rem] font-medium text-[var(--text)] truncate leading-tight">
+          <p className="text-[var(--font-sm)] font-medium text-[var(--text)] truncate leading-tight">
             {activeBrand?.name ?? 'No brand'}
           </p>
         </div>
@@ -67,7 +67,7 @@ export function BrandSwitcher() {
       {open && (
         <div className="absolute left-0 right-0 top-[calc(100%+4px)] bg-[var(--bg2)] border border-[var(--line2)] rounded-sm shadow-[0_8px_24px_rgba(0,0,0,0.4)] z-50 overflow-hidden">
           <div className="px-3 pt-2 pb-1">
-            <p className="text-[0.90rem] text-[var(--text3)] uppercase tracking-[0.1em] font-medium">Switch brand</p>
+            <p className="text-[var(--font-base)] text-[var(--text3)] uppercase tracking-[0.1em] font-medium">Switch brand</p>
           </div>
 
           <div className="flex flex-col gap-[2px] px-[6px] pb-[6px]">
@@ -85,13 +85,13 @@ export function BrandSwitcher() {
                   )}
                 >
                   <div
-                    className="w-6 h-6 rounded-[4px] flex items-center justify-center font-bold text-[0.74rem] text-black flex-shrink-0"
+                    className="w-6 h-6 rounded-[4px] flex items-center justify-center font-bold text-[var(--font-2xs)] text-black flex-shrink-0"
                     style={{ background: brand.logo_color, fontFamily: 'var(--font-dm-mono)' }}
                   >
                     {brand.brand_code}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={cn('text-[0.87rem] truncate', isActive ? 'text-[var(--accent)] font-medium' : 'text-[var(--text2)]')}>
+                    <p className={cn('text-[var(--font-sm)] truncate', isActive ? 'text-[var(--accent)] font-medium' : 'text-[var(--text2)]')}>
                       {brand.name}
                     </p>
                   </div>
@@ -108,7 +108,7 @@ export function BrandSwitcher() {
           <div className="border-t border-[var(--line)] px-[6px] py-[6px]">
             <button
               onClick={() => { setOpen(false); router.push('/dashboard/brands') }}
-              className="w-full flex items-center gap-2 px-[8px] py-[7px] rounded-[4px] text-[0.87rem] text-[var(--text3)] hover:text-[var(--text2)] hover:bg-[var(--bg3)] transition-colors"
+              className="w-full flex items-center gap-2 px-[8px] py-[7px] rounded-[4px] text-[var(--font-sm)] text-[var(--text3)] hover:text-[var(--text2)] hover:bg-[var(--bg3)] transition-colors"
             >
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M5.5 1v9M1 5.5h9" strokeLinecap="round"/>

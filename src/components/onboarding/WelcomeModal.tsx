@@ -103,11 +103,11 @@ export function WelcomeModal() {
                 <rect x="1" y="5" width="15" height="14" rx="2"/>
               </svg>
             </div>
-            <h2 className="text-[1.17rem] font-bold tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
+            <h2 className="text-[var(--font-xl)] font-bold tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-display)' }}>
               Welcome to Shot<span style={{ color: '#6e6e73' }}>Sync</span>.ai
             </h2>
           </div>
-          <p className="text-[0.92rem] text-[var(--text2)]">
+          <p className="text-[var(--font-base)] text-[var(--text2)]">
             Your post-production workflow in four steps. Here's how it works.
           </p>
         </div>
@@ -129,13 +129,13 @@ export function WelcomeModal() {
                   {step.icon}
                 </span>
                 <div>
-                  <p className="text-[13px] font-semibold tracking-[0.1em] uppercase" style={{ color: step.color }}>
+                  <p className="text-[var(--font-sm)] font-semibold tracking-[0.1em] uppercase" style={{ color: step.color }}>
                     Step {step.number}
                   </p>
-                  <p className="text-[0.87rem] font-semibold text-[var(--text)] leading-tight">{step.title}</p>
+                  <p className="text-[var(--font-sm)] font-semibold text-[var(--text)] leading-tight">{step.title}</p>
                 </div>
               </div>
-              <p className="text-[0.92rem] text-[var(--text3)] leading-relaxed">{step.description}</p>
+              <p className="text-[var(--font-base)] text-[var(--text3)] leading-relaxed">{step.description}</p>
             </Link>
           ))}
         </div>
@@ -144,7 +144,7 @@ export function WelcomeModal() {
         <div className="px-6 pb-5 flex items-center justify-between">
           <button
             onClick={() => dismiss(true)}
-            className="text-[0.87rem] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
+            className="text-[var(--font-sm)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors"
           >
             Don't show this again
           </button>
