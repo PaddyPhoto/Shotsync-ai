@@ -214,7 +214,9 @@ function getEdmHtml2(unsubscribeUrl: string): string {
 
     <!-- HERO IMAGE — full portrait, no forced height -->
     <tr><td bgcolor="#f5f5f7" style="padding:0;line-height:0;font-size:0;">
-      <img src="https://www.shotsync.ai/email/hero2.jpg" width="680" alt="ShotSync in action" style="display:block;width:100%;max-width:680px;height:auto;">
+      <a href="https://www.shotsync.ai" style="display:block;line-height:0;font-size:0;">
+        <img src="https://www.shotsync.ai/email/hero2.jpg" width="680" alt="ShotSync in action" style="display:block;width:100%;max-width:680px;height:auto;border:0;">
+      </a>
     </td></tr>
 
     <!-- CTA STRIP -->
