@@ -454,6 +454,25 @@ export default function AdminPage() {
 
               {recipientList && !result && (
                 <div className="flex flex-col gap-3">
+
+                  {/* Merge prompt — shown when extra emails were typed after the list was loaded */}
+                  {(() => {
+                    const missing = extraEmails.filter(e => !recipientList.includes(e.toLowerCase()))
+                    return missing.length > 0 ? (
+                      <div className="flex items-center justify-between bg-[rgba(232,217,122,0.07)] border border-[rgba(232,217,122,0.18)] rounded-[8px] px-3 py-2">
+                        <span className="text-[length:var(--font-sm)] text-[var(--text2)]">
+                          {missing.length} address{missing.length !== 1 ? 'es' : ''} not yet in list
+                        </span>
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => setRecipientList(prev => prev ? [...new Set([...prev, ...missing])] : missing)}
+                        >
+                          Add to list
+                        </button>
+                      </div>
+                    ) : null
+                  })()}
+
                   <div style={{ background: 'var(--bg3)', borderRadius: '10px', border: '0.5px solid var(--line)', overflow: 'hidden' }}>
                     <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)]">
                       <p className="text-[length:var(--font-sm)] font-[500] text-[var(--text)]">
