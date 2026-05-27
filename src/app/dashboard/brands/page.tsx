@@ -9,6 +9,8 @@ import type { Brand } from '@/lib/brands'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import { HelpTooltip } from '@/components/ui/HelpTooltip'
+import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
+import type { MarketplaceName } from '@/types'
 
 
 const STILL_LIFE_GROUPS = [
@@ -41,6 +43,7 @@ type BrandForm = {
   copy_examples: string[]
   cin7_account_id: string
   cin7_application_key: string
+  default_marketplaces: MarketplaceName[]
 }
 
 const DEFAULT_FORM: BrandForm = {
@@ -60,6 +63,7 @@ const DEFAULT_FORM: BrandForm = {
   copy_examples: [],
   cin7_account_id: '',
   cin7_application_key: '',
+  default_marketplaces: [],
 }
 
 function brandToForm(b: Brand): BrandForm {
@@ -80,6 +84,7 @@ function brandToForm(b: Brand): BrandForm {
     copy_examples: b.copy_examples ?? [],
     cin7_account_id: b.cin7_account_id ?? '',
     cin7_application_key: b.cin7_application_key ?? '',
+    default_marketplaces: (b.default_marketplaces ?? []) as MarketplaceName[],
   }
 }
 
@@ -500,8 +505,10 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                   <p className="text-[length:var(--font-md)] text-[var(--text2)]">{brand!.images_per_look ?? 4} on-model</p>
                 </div>
                 <div>
-                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">GM position</p>
-                  <p className="text-[length:var(--font-md)] text-[var(--text2)] capitalize">{brand!.gm_position ?? 'last'}</p>
+                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Default marketplaces</p>
+                  <p className="text-[length:var(--font-md)] text-[var(--text2)]">
+                    {brand!.default_marketplaces?.length ? brand!.default_marketplaces.join(', ') : 'None set'}
+                  </p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">On-model sequence</p>
@@ -580,6 +587,19 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             {/* ── Step 2: Shot Configuration ── */}
             {step === 2 && (
               <div className="px-6 pb-5">
+
+                {/* Default marketplaces */}
+                <div className="mb-6">
+                  <h4 className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] tracking-[-0.2px] mb-[3px]">Default Marketplaces</h4>
+                  <p className="text-[length:var(--font-base)] text-[var(--text3)] mb-3">Pre-selected on every new upload for this brand. You can still change them per shoot.</p>
+                  <MarketplaceSelector
+                    selected={form.default_marketplaces}
+                    onChange={(mps) => onFormChange({ default_marketplaces: mps as MarketplaceName[] })}
+                  />
+                </div>
+
+                <div className="border-t border-[var(--line)] mb-5" />
+
                 <div className="mb-5 px-4 py-3 rounded-[10px] text-[length:var(--font-base)] leading-relaxed" style={{ background: 'var(--accent-glow)', border: '1px solid rgba(0,122,255,0.3)', color: 'var(--text)' }}>
                   <span className="font-semibold">Set the order your photographer shoots each look.</span> ShotSync uses this sequence to automatically label incoming images by angle. Export order per marketplace is configured separately in <strong style={{ color: 'var(--accent)' }}>Marketplace Settings</strong>.
                 </div>

@@ -236,7 +236,11 @@ export default function UploadPage() {
   }, [setStyleList])
 
   const [jobName, setJobName] = useState('')
-  const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(['the-iconic'])
+  const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(() =>
+    activeBrand?.default_marketplaces?.length
+      ? activeBrand.default_marketplaces as MarketplaceName[]
+      : ['the-iconic' as MarketplaceName]
+  )
   const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'front-3/4', 'back-3/4']
   const defaultImagesPerLook = activeBrand?.images_per_look ?? 4
   const [imagesPerLook, setImagesPerLook] = useState<number>(defaultImagesPerLook)
@@ -256,6 +260,11 @@ export default function UploadPage() {
     const seq = [...base]
     while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
     setAngleSequence(seq.slice(0, n))
+    setMarketplaces(
+      activeBrand?.default_marketplaces?.length
+        ? activeBrand.default_marketplaces as MarketplaceName[]
+        : ['the-iconic' as MarketplaceName]
+    )
   }, [activeBrand?.id, shootType])
 
   useEffect(() => {

@@ -23,6 +23,8 @@ export interface Brand {
   gm_position: 'first' | 'last' | null
   cin7_account_id: string | null
   cin7_application_key: string | null
+  /** Default marketplaces pre-selected on the upload page for this brand */
+  default_marketplaces: string[] | null
   /** Cloud storage connections (Dropbox, Google Drive, S3) stored per brand */
   cloud_connections: CloudConnections | null
   voice_brief: string | null
@@ -190,6 +192,7 @@ export const DEMO_BRANDS: Brand[] = [
     gm_position: 'last',
     cin7_account_id: null,
     cin7_application_key: null,
+    default_marketplaces: null,
     cloud_connections: null,
     voice_brief: null,
     copy_examples: null,
@@ -214,6 +217,7 @@ export const DEMO_BRANDS: Brand[] = [
     gm_position: 'last',
     cin7_account_id: null,
     cin7_application_key: null,
+    default_marketplaces: null,
     cloud_connections: null,
     voice_brief: null,
     copy_examples: null,
@@ -238,6 +242,7 @@ export const DEMO_BRANDS: Brand[] = [
     gm_position: 'last',
     cin7_account_id: null,
     cin7_application_key: null,
+    default_marketplaces: null,
     cloud_connections: null,
     voice_brief: null,
     copy_examples: null,
