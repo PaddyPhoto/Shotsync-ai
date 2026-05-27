@@ -21,14 +21,16 @@ function getEdmHtml(unsubscribeUrl: string): string {
 
     <!-- HEADER -->
     <tr><td bgcolor="#ffffff" style="padding:18px 32px;border-bottom:1px solid #f0f0f2;">
-      <table cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="padding-right:9px;vertical-align:middle;">
-          <img src="https://www.shotsync.ai/icon.png" width="26" height="26" alt="" style="display:block;border-radius:6px;">
-        </td>
-        <td style="vertical-align:middle;">
-          <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#0a0a0a;">Shot<span style="color:#aeaeb2;font-weight:400;">Sync</span></span>
-        </td>
-      </tr></table>
+      <a href="https://www.shotsync.ai" style="text-decoration:none;display:inline-block;">
+        <table cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="padding-right:9px;vertical-align:middle;">
+            <img src="https://www.shotsync.ai/icon.png" width="26" height="26" alt="" style="display:block;border-radius:6px;border:0;">
+          </td>
+          <td style="vertical-align:middle;">
+            <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#0a0a0a;">Shot<span style="color:#aeaeb2;font-weight:400;">Sync</span></span>
+          </td>
+        </tr></table>
+      </a>
     </td></tr>
 
     <!-- HERO -->
@@ -202,14 +204,16 @@ function getEdmHtml2(unsubscribeUrl: string): string {
 
     <!-- HEADER -->
     <tr><td bgcolor="#ffffff" style="padding:18px 32px;border-bottom:1px solid #f0f0f2;">
-      <table cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="padding-right:9px;vertical-align:middle;">
-          <img src="https://www.shotsync.ai/icon.png" width="26" height="26" alt="" style="display:block;border-radius:6px;">
-        </td>
-        <td style="vertical-align:middle;">
-          <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#0a0a0a;">Shot<span style="color:#aeaeb2;font-weight:400;">Sync</span></span>
-        </td>
-      </tr></table>
+      <a href="https://www.shotsync.ai" style="text-decoration:none;display:inline-block;">
+        <table cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="padding-right:9px;vertical-align:middle;">
+            <img src="https://www.shotsync.ai/icon.png" width="26" height="26" alt="" style="display:block;border-radius:6px;border:0;">
+          </td>
+          <td style="vertical-align:middle;">
+            <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#0a0a0a;">Shot<span style="color:#aeaeb2;font-weight:400;">Sync</span></span>
+          </td>
+        </tr></table>
+      </a>
     </td></tr>
 
     <!-- HERO IMAGE — full portrait, no forced height -->
