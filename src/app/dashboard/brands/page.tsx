@@ -504,7 +504,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                   <p className="text-[length:var(--font-md)] text-[var(--text2)]">{brand!.images_per_look ?? 4} on-model</p>
                 </div>
                 <div>
-                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Default marketplaces</p>
+                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Sells on</p>
                   <p className="text-[length:var(--font-md)] text-[var(--text2)]">
                     {brand!.default_marketplaces?.length ? brand!.default_marketplaces.join(', ') : 'None set'}
                   </p>
@@ -589,7 +589,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
 
                 {/* Default marketplaces */}
                 <div className="mb-5">
-                  <label className="text-[length:var(--font-base)] text-[var(--text3)] mb-2 block">Default Marketplaces</label>
+                  <label className="text-[length:var(--font-base)] text-[var(--text3)] mb-2 block">Marketplaces this brand sells on</label>
                   <div className="flex flex-wrap gap-2">
                     {([
                       { id: 'shopify',     name: 'Shopify',      color: '#30d158' },
@@ -621,7 +621,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                       )
                     })}
                   </div>
-                  <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-2">Pre-selected on new uploads — can be changed per shoot.</p>
+                  <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-2">Pre-selected on new uploads for this brand — override per shoot if needed.</p>
                 </div>
 
                 <div className="border-t border-[var(--line)] mb-5" />
