@@ -729,7 +729,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
                             const isOpen = expandedStillLife === cat.id
                             const hasCustom = customSeq && customSeq.length > 0
                             return (
-                              <div key={cat.id} className="border border-[var(--line2)] rounded-sm overflow-hidden" style={{ gridColumn: isOpen ? 'span 2' : undefined }}>
+                              <div key={cat.id} className="border border-[var(--line2)] rounded-sm overflow-hidden">
                                 <button type="button" onClick={() => onSetStillLife(cat.id)} className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[var(--bg3)] transition-colors">
                                   <div className="flex items-center gap-2 min-w-0">
                                     <span className="text-[length:var(--font-md)] text-[var(--text)] truncate">{cat.label}</span>
