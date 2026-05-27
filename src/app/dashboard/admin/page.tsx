@@ -71,8 +71,10 @@ export default function AdminPage() {
   const [testLoading, setTestLoading] = useState(false)
   const [testResult, setTestResult] = useState<string | null>(null)
 
-  // Transactional email preview state
+  // Email card tabs + transactional state
+  const [emailTab, setEmailTab] = useState<'broadcast' | 'transactional'>('broadcast')
   const [previewTemplate, setPreviewTemplate] = useState('re-engagement')
+  const [transTestEmail, setTransTestEmail] = useState(ADMIN_EMAIL)
   const [previewTestLoading, setPreviewTestLoading] = useState(false)
   const [previewTestResult, setPreviewTestResult] = useState<string | null>(null)
 
@@ -224,7 +226,7 @@ export default function AdminPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar breadcrumbs={[{ label: 'Admin' }]} />
-      <div style={{ padding: '32px', maxWidth: '640px' }}>
+      <div style={{ padding: '32px', maxWidth: '1100px', width: '100%' }}>
 
         {/* Plan Override */}
         <div className="card" style={{ marginBottom: '16px' }}>
@@ -291,186 +293,220 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Broadcast EDM */}
+        {/* Emails (Broadcast + Transactional) */}
         <div className="card" style={{ marginBottom: '16px' }}>
           <div className="card-head">
             <div>
-              <h2 className="text-[1rem] font-[600] text-[var(--text)]">Broadcast EDM</h2>
-              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">Send the ShotSync promotional email to all signed-up users.</p>
+              <h2 className="text-[1rem] font-[600] text-[var(--text)]">Emails</h2>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">Broadcast EDMs and transactional email templates</p>
+            </div>
+            {/* Segmented tab control */}
+            <div className="flex" style={{ background: 'var(--bg3)', borderRadius: '8px', padding: '3px', gap: '2px', border: '0.5px solid var(--line)' }}>
+              {(['broadcast', 'transactional'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setEmailTab(tab)}
+                  className="text-[length:var(--font-sm)] font-[500] px-3 py-[4px] rounded-[6px] transition-all duration-150 capitalize border-0"
+                  style={{
+                    background: emailTab === tab ? 'var(--bg2)' : 'transparent',
+                    color: emailTab === tab ? 'var(--text)' : 'var(--text3)',
+                    boxShadow: emailTab === tab ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+                  }}
+                >
+                  {tab === 'broadcast' ? 'Broadcast' : 'Transactional'}
+                </button>
+              ))}
             </div>
           </div>
+
           <div className="card-body flex flex-col gap-4">
 
-            <div>
-              <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">Subject line</label>
-              <input
-                className="input"
-                value={subject}
-                onChange={e => setSubject(e.target.value)}
-                placeholder="Email subject..."
-              />
-            </div>
+            {emailTab === 'broadcast' && (<>
 
-            <div>
-              <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">
-                Additional recipients
-                <span className="text-[var(--text3)] font-normal ml-1">(comma or newline separated — merged with all app users)</span>
-              </label>
-              <textarea
-                className="input"
-                style={{ minHeight: '90px', resize: 'vertical', fontFamily: 'monospace', fontSize: 'var(--font-sm)' }}
-                value={extraEmailsRaw}
-                onChange={e => setExtraEmailsRaw(e.target.value)}
-                placeholder="jane@example.com, john@example.com"
-              />
-              {extraEmails.length > 0 && (
-                <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">{extraEmails.length} extra address{extraEmails.length !== 1 ? 'es' : ''} added</p>
-              )}
-            </div>
-
-            {error && (
-              <p className="text-[length:var(--font-base)] text-[var(--accent3)] bg-[rgba(255,59,48,0.07)] rounded-[8px] px-3 py-2">{error}</p>
-            )}
-
-            {testResult && (
-              <p className="text-[length:var(--font-sm)] text-[var(--accent2)] bg-[rgba(48,209,88,0.08)] rounded-[8px] px-3 py-2">{testResult}</p>
-            )}
-
-            {!recipientList && !result && (
-              <div className="flex gap-2">
-                <button
-                  className="btn flex-1 justify-center"
-                  onClick={sendTestEmail}
-                  disabled={testLoading || loading || !subject.trim()}
-                >
-                  {testLoading ? 'Sending…' : 'Send test to me'}
-                </button>
-                <button
-                  className="btn btn-primary flex-1 justify-center"
-                  onClick={loadPreview}
-                  disabled={loading || testLoading || !subject.trim()}
-                >
-                  {loading ? 'Loading…' : 'Load recipients'}
-                </button>
+              <div>
+                <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">Subject line</label>
+                <input
+                  className="input"
+                  value={subject}
+                  onChange={e => setSubject(e.target.value)}
+                  placeholder="Email subject..."
+                />
               </div>
-            )}
 
-            {recipientList && !result && (
-              <div className="flex flex-col gap-3">
-                <div style={{ background: 'var(--bg3)', borderRadius: '10px', border: '0.5px solid var(--line)', overflow: 'hidden' }}>
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)]">
-                    <p className="text-[length:var(--font-sm)] font-[500] text-[var(--text)]">
-                      {recipientList.length} recipient{recipientList.length !== 1 ? 's' : ''}
-                    </p>
-                    <p className="text-[length:var(--font-sm)] text-[var(--text3)]">Click × to remove</p>
-                  </div>
-                  <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '8px 0' }}>
-                    {recipientList.map(e => (
-                      <div key={e} className="flex items-center justify-between px-4 py-[5px] hover:bg-[var(--bg2)] group">
-                        <p className="text-[length:var(--font-sm)] text-[var(--text2)] font-mono truncate flex-1">{e}</p>
-                        <button
-                          className="text-[var(--text3)] hover:text-[var(--accent3)] ml-3 text-[1rem] leading-none flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => setRecipientList(prev => prev ? prev.filter(x => x !== e) : null)}
-                          title="Remove"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={confirmed}
-                    onChange={e => setConfirmed(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-[length:var(--font-sm)] text-[var(--text2)]">
-                    I confirm I want to send this EDM to {recipientList.length} recipient{recipientList.length !== 1 ? 's' : ''}
-                  </span>
+              <div>
+                <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">
+                  Additional recipients
+                  <span className="text-[var(--text3)] font-normal ml-1">(comma or newline separated — merged with all app users)</span>
                 </label>
+                <textarea
+                  className="input"
+                  style={{ minHeight: '90px', resize: 'vertical', fontFamily: 'monospace', fontSize: 'var(--font-sm)' }}
+                  value={extraEmailsRaw}
+                  onChange={e => setExtraEmailsRaw(e.target.value)}
+                  placeholder="jane@example.com, john@example.com"
+                />
+                {extraEmails.length > 0 && (
+                  <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">{extraEmails.length} extra address{extraEmails.length !== 1 ? 'es' : ''} added</p>
+                )}
+              </div>
 
+              {error && (
+                <p className="text-[length:var(--font-base)] text-[var(--accent3)] bg-[rgba(255,59,48,0.07)] rounded-[8px] px-3 py-2">{error}</p>
+              )}
+
+              {testResult && (
+                <p className="text-[length:var(--font-sm)] text-[var(--accent2)] bg-[rgba(48,209,88,0.08)] rounded-[8px] px-3 py-2">{testResult}</p>
+              )}
+
+              {!recipientList && !result && (
                 <div className="flex gap-2">
                   <button
-                    className="btn btn-primary flex-1 justify-center"
-                    onClick={sendBroadcast}
-                    disabled={loading || !confirmed || recipientList.length === 0}
+                    className="btn flex-1 justify-center"
+                    onClick={sendTestEmail}
+                    disabled={testLoading || loading || !subject.trim()}
                   >
-                    {loading ? 'Sending…' : `Send to ${recipientList.length}`}
+                    {testLoading ? 'Sending…' : 'Send test to me'}
                   </button>
                   <button
-                    className="btn flex-1 justify-center"
-                    onClick={() => { setRecipientList(null); setConfirmed(false) }}
-                    disabled={loading}
+                    className="btn btn-primary flex-1 justify-center"
+                    onClick={loadPreview}
+                    disabled={loading || testLoading || !subject.trim()}
                   >
-                    Cancel
+                    {loading ? 'Loading…' : 'Load recipients'}
                   </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {result && (
-              <div style={{ background: 'rgba(48,209,88,0.08)', borderRadius: '10px', padding: '16px', border: '0.5px solid rgba(48,209,88,0.2)' }}>
-                <p className="text-[length:var(--font-md)] font-[600] text-[var(--accent2)] mb-1">Broadcast sent</p>
-                <p className="text-[length:var(--font-sm)] text-[var(--text2)]">
-                  ✓ {result.sent} sent · {result.failed} failed · {result.total} total
-                </p>
-                {result.failedEmails.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-[length:var(--font-sm)] text-[var(--accent3)] font-[500] mb-1">Failed to send:</p>
-                    {result.failedEmails.map(({ email, reason }) => (
-                      <div key={email} className="mb-1">
-                        <p className="text-[length:var(--font-sm)] text-[var(--accent3)] font-mono">{email}</p>
-                        <p className="text-[length:var(--font-sm)] text-[var(--text3)]">{reason}</p>
-                      </div>
-                    ))}
+              {recipientList && !result && (
+                <div className="flex flex-col gap-3">
+                  <div style={{ background: 'var(--bg3)', borderRadius: '10px', border: '0.5px solid var(--line)', overflow: 'hidden' }}>
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)]">
+                      <p className="text-[length:var(--font-sm)] font-[500] text-[var(--text)]">
+                        {recipientList.length} recipient{recipientList.length !== 1 ? 's' : ''}
+                      </p>
+                      <p className="text-[length:var(--font-sm)] text-[var(--text3)]">Click × to remove</p>
+                    </div>
+                    <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '8px 0' }}>
+                      {recipientList.map(e => (
+                        <div key={e} className="flex items-center justify-between px-4 py-[5px] hover:bg-[var(--bg2)] group">
+                          <p className="text-[length:var(--font-sm)] text-[var(--text2)] font-mono truncate flex-1">{e}</p>
+                          <button
+                            className="text-[var(--text3)] hover:text-[var(--accent3)] ml-3 text-[1rem] leading-none flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => setRecipientList(prev => prev ? prev.filter(x => x !== e) : null)}
+                            title="Remove"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
-                <button
-                  className="btn mt-3"
-                  onClick={() => { setResult(null); setRecipientList(null) }}
-                >
-                  Send another
-                </button>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={confirmed}
+                      onChange={e => setConfirmed(e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-[length:var(--font-sm)] text-[var(--text2)]">
+                      I confirm I want to send this EDM to {recipientList.length} recipient{recipientList.length !== 1 ? 's' : ''}
+                    </span>
+                  </label>
+
+                  <div className="flex gap-2">
+                    <button
+                      className="btn btn-primary flex-1 justify-center"
+                      onClick={sendBroadcast}
+                      disabled={loading || !confirmed || recipientList.length === 0}
+                    >
+                      {loading ? 'Sending…' : `Send to ${recipientList.length}`}
+                    </button>
+                    <button
+                      className="btn flex-1 justify-center"
+                      onClick={() => { setRecipientList(null); setConfirmed(false) }}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {result && (
+                <div style={{ background: 'rgba(48,209,88,0.08)', borderRadius: '10px', padding: '16px', border: '0.5px solid rgba(48,209,88,0.2)' }}>
+                  <p className="text-[length:var(--font-md)] font-[600] text-[var(--accent2)] mb-1">Broadcast sent</p>
+                  <p className="text-[length:var(--font-sm)] text-[var(--text2)]">
+                    ✓ {result.sent} sent · {result.failed} failed · {result.total} total
+                  </p>
+                  {result.failedEmails.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[length:var(--font-sm)] text-[var(--accent3)] font-[500] mb-1">Failed to send:</p>
+                      {result.failedEmails.map(({ email, reason }) => (
+                        <div key={email} className="mb-1">
+                          <p className="text-[length:var(--font-sm)] text-[var(--accent3)] font-mono">{email}</p>
+                          <p className="text-[length:var(--font-sm)] text-[var(--text3)]">{reason}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    className="btn mt-3"
+                    onClick={() => { setResult(null); setRecipientList(null) }}
+                  >
+                    Send another
+                  </button>
+                </div>
+              )}
+
+            </>)}
+
+            {emailTab === 'transactional' && (<>
+
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">Template</label>
+                  <select
+                    className="input text-[length:var(--font-base)] py-[6px]"
+                    value={previewTemplate}
+                    onChange={(e) => { setPreviewTemplate(e.target.value); setPreviewTestResult(null) }}
+                  >
+                    <option value="re-engagement">Re-engagement (inactive users)</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">Send test to</label>
+                  <input
+                    className="input text-[length:var(--font-base)] py-[6px]"
+                    type="email"
+                    value={transTestEmail}
+                    onChange={e => { setTransTestEmail(e.target.value); setPreviewTestResult(null) }}
+                    placeholder="email@example.com"
+                  />
+                </div>
               </div>
-            )}
 
-          </div>
-        </div>
+              {previewTestResult && (
+                <p className={`text-[length:var(--font-sm)] font-[500] ${previewTestResult.startsWith('✓') ? 'text-[var(--accent2)]' : 'text-[var(--accent3)]'}`}>
+                  {previewTestResult}
+                </p>
+              )}
 
-        {/* Transactional Emails */}
-        <div className="card" style={{ marginBottom: '16px' }}>
-          <div className="card-head">
-            <h2 className="text-[1rem] font-[600] text-[var(--text)]">Transactional Emails</h2>
-            <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">Preview and test-send automated emails</p>
-          </div>
-          <div className="card-body flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <select
-                className="input text-[length:var(--font-base)] py-[6px] flex-1"
-                value={previewTemplate}
-                onChange={(e) => { setPreviewTemplate(e.target.value); setPreviewTestResult(null) }}
-              >
-                <option value="re-engagement">Re-engagement (inactive users)</option>
-              </select>
               <button
-                className="btn btn-sm"
-                style={{ whiteSpace: 'nowrap' }}
-                disabled={previewTestLoading}
+                className="btn btn-primary w-full justify-center"
+                disabled={previewTestLoading || !transTestEmail.trim().includes('@')}
                 onClick={async () => {
                   if (!session) return
                   setPreviewTestLoading(true)
                   setPreviewTestResult(null)
                   try {
-                    const tok = session.access_token
                     const res = await fetch('/api/admin/send-test-email', {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
-                      body: JSON.stringify({ template: previewTemplate }),
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+                      body: JSON.stringify({ template: previewTemplate, email: transTestEmail.trim() }),
                     })
-                    setPreviewTestResult(res.ok ? '✓ Sent to your inbox' : '✗ Failed to send')
+                    const json = await res.json()
+                    setPreviewTestResult(res.ok ? `✓ Sent to ${json.to}` : '✗ Failed to send')
                   } catch {
                     setPreviewTestResult('✗ Request error')
                   } finally {
@@ -478,26 +514,24 @@ export default function AdminPage() {
                   }
                 }}
               >
-                {previewTestLoading ? 'Sending…' : 'Send test to me'}
+                {previewTestLoading ? 'Sending…' : 'Send test email'}
               </button>
-            </div>
-            {previewTestResult && (
-              <p className={`text-[length:var(--font-sm)] font-[500] ${previewTestResult.startsWith('✓') ? 'text-[var(--accent2)]' : 'text-[var(--accent3)]'}`}>
-                {previewTestResult}
-              </p>
-            )}
-            {previewTemplate === 're-engagement' && (() => {
-              const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><style>body{margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}.wrap{max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:0.5px solid rgba(0,0,0,0.08)}.header{padding:28px 32px 20px;border-bottom:0.5px solid rgba(0,0,0,0.06)}.logo{font-size:17px;font-weight:600;letter-spacing:-0.3px;color:#1d1d1f}.logo span{color:#6e6e73;font-weight:400}.body{padding:28px 32px;font-size:15px;line-height:1.6;color:#3a3a3c}.body p{margin:0 0 14px}.body p:last-child{margin-bottom:0}.btn{display:inline-block;margin:20px 0;background:#1d1d1f;color:#fff!important;text-decoration:none;padding:11px 22px;border-radius:9px;font-size:14px;font-weight:500;letter-spacing:-0.2px}.footer{padding:18px 32px;border-top:0.5px solid rgba(0,0,0,0.06);font-size:12px;color:#aeaeb2}.label{display:inline-block;background:rgba(0,122,255,0.08);color:#005fc4;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:3px 8px;border-radius:5px;margin-bottom:14px}</style></head><body><div class="wrap"><div class="header"><div class="logo">Shot<span>Sync</span></div></div><div class="body"><p class="label">We miss you</p><p>Hi there,</p><p>It looks like you haven&rsquo;t been on ShotSync in a while. With a new season coming up, it&rsquo;s a great time to get back in and start processing your shoot images.</p><p>Pick up exactly where you left off &mdash; your brand settings, marketplace rules, and naming templates are all saved and ready to go.</p><a class="btn" href="https://shotsync.ai/dashboard">Open ShotSync</a><p>If you have any questions or feedback, just reply to this email &mdash; we&rsquo;d love to hear from you.</p><p>&mdash; The ShotSync team</p></div><div class="footer">&copy; 2026 ShotSync.ai</div></div></body></html>`
-              return (
-                <div style={{ border: '0.5px solid var(--line)', borderRadius: '10px', overflow: 'hidden' }}>
-                  <iframe
-                    srcDoc={html}
-                    style={{ width: '100%', height: '460px', border: 'none', background: '#f5f5f7' }}
-                    title="Email preview"
-                  />
-                </div>
-              )
-            })()}
+
+              {previewTemplate === 're-engagement' && (() => {
+                const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><style>body{margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}.wrap{max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:0.5px solid rgba(0,0,0,0.08)}.header{padding:28px 32px 20px;border-bottom:0.5px solid rgba(0,0,0,0.06)}.logo{font-size:17px;font-weight:600;letter-spacing:-0.3px;color:#1d1d1f}.logo span{color:#6e6e73;font-weight:400}.body{padding:28px 32px;font-size:15px;line-height:1.6;color:#3a3a3c}.body p{margin:0 0 14px}.body p:last-child{margin-bottom:0}.btn{display:inline-block;margin:20px 0;background:#1d1d1f;color:#fff!important;text-decoration:none;padding:11px 22px;border-radius:9px;font-size:14px;font-weight:500;letter-spacing:-0.2px}.footer{padding:18px 32px;border-top:0.5px solid rgba(0,0,0,0.06);font-size:12px;color:#aeaeb2}.label{display:inline-block;background:rgba(0,122,255,0.08);color:#005fc4;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:3px 8px;border-radius:5px;margin-bottom:14px}</style></head><body><div class="wrap"><div class="header"><div class="logo">Shot<span>Sync</span></div></div><div class="body"><p class="label">We miss you</p><p>Hi there,</p><p>It looks like you haven&rsquo;t been on ShotSync in a while. With a new season coming up, it&rsquo;s a great time to get back in and start processing your shoot images.</p><p>Pick up exactly where you left off &mdash; your brand settings, marketplace rules, and naming templates are all saved and ready to go.</p><a class="btn" href="https://shotsync.ai/dashboard">Open ShotSync</a><p>If you have any questions or feedback, just reply to this email &mdash; we&rsquo;d love to hear from you.</p><p>&mdash; The ShotSync team</p></div><div class="footer">&copy; 2026 ShotSync.ai</div></div></body></html>`
+                return (
+                  <div style={{ border: '0.5px solid var(--line)', borderRadius: '10px', overflow: 'hidden' }}>
+                    <iframe
+                      srcDoc={html}
+                      style={{ width: '100%', height: '460px', border: 'none', background: '#f5f5f7' }}
+                      title="Email preview"
+                    />
+                  </div>
+                )
+              })()}
+
+            </>)}
+
           </div>
         </div>
 

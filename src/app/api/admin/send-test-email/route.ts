@@ -10,11 +10,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { template } = await req.json()
+  const { template, email } = await req.json()
+  const to: string = email?.trim() || ADMIN_EMAIL
 
   if (template === 're-engagement') {
-    await sendEmail(reEngagementEmail(ADMIN_EMAIL))
-    return NextResponse.json({ ok: true })
+    await sendEmail(reEngagementEmail(to))
+    return NextResponse.json({ ok: true, to })
   }
 
   return NextResponse.json({ error: 'Unknown template' }, { status: 400 })
