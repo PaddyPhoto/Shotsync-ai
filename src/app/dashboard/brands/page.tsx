@@ -836,6 +836,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
       </div>
       {/* end Card 1: Brand Settings */}
 
+      <div style={{ height: '48px' }} />
 
       {/* ═══ Card 2: Platform Connections ═══════════════════════════════════ */}
       <div className="card overflow-hidden" style={{ borderLeft: `3px solid ${brand!.logo_color}` }}>
