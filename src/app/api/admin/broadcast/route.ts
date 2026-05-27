@@ -185,6 +185,156 @@ function getEdmHtml(unsubscribeUrl: string): string {
 </html>`
 }
 
+function getEdmHtml2(unsubscribeUrl: string): string {
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShotSync — 25 minutes. Every shoot.</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f0f2;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f0f0f2">
+<tr><td align="center" style="padding:32px 16px;">
+
+  <table width="680" cellpadding="0" cellspacing="0" border="0" style="max-width:680px;border-radius:20px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.10);">
+
+    <!-- HEADER -->
+    <tr><td bgcolor="#0a0a0a" style="padding:18px 32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+      <table cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="padding-right:9px;vertical-align:middle;">
+          <img src="https://www.shotsync.ai/icon.png" width="26" height="26" alt="" style="display:block;border-radius:6px;">
+        </td>
+        <td style="vertical-align:middle;">
+          <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#ffffff;">Shot<span style="color:rgba(255,255,255,0.4);font-weight:400;">Sync</span></span>
+        </td>
+      </tr></table>
+    </td></tr>
+
+    <!-- HERO IMAGE -->
+    <tr><td bgcolor="#0a0a0a" style="padding:0;line-height:0;font-size:0;">
+      <img src="https://www.shotsync.ai/email/hero2.jpg" width="680" alt="ShotSync in action" style="display:block;width:100%;max-width:680px;">
+    </td></tr>
+
+    <!-- HEADLINE -->
+    <tr><td bgcolor="#ffffff" style="padding:44px 40px 32px;text-align:center;">
+      <p style="margin:0 0 16px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#aeaeb2;">The numbers don&rsquo;t lie</p>
+      <h1 style="margin:0 0 16px;font-size:38px;font-weight:600;letter-spacing:-1.8px;line-height:1.1;color:#0a0a0a;">What used to take 2&ndash;3 days<br>now takes 25 minutes.</h1>
+      <p style="margin:0 auto;max-width:460px;font-size:15px;line-height:1.65;color:#6e6e73;letter-spacing:-0.1px;">ShotSync automates the post-shoot workflow that&rsquo;s been stealing time from fashion teams for years. Upload your shoot, confirm the SKUs, export everywhere at once.</p>
+    </td></tr>
+
+    <!-- STATS ROW -->
+    <tr><td bgcolor="#ffffff" style="padding:0 32px 36px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="text-align:center;padding:24px 16px;background:#fafafa;border:1px solid #e8e8ed;border-radius:12px;">
+          <div style="font-size:32px;font-weight:600;letter-spacing:-1.5px;color:#0a0a0a;line-height:1;margin-bottom:6px;">500+</div>
+          <div style="font-size:12px;color:#aeaeb2;line-height:1.4;">images per shoot,<br>auto-named</div>
+        </td>
+        <td width="10"></td>
+        <td style="text-align:center;padding:24px 16px;background:#0a0a0a;border-radius:12px;">
+          <div style="font-size:32px;font-weight:600;letter-spacing:-1.5px;color:#ffffff;line-height:1;margin-bottom:6px;">25 min</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);line-height:1.4;">upload to export,<br>end-to-end</div>
+        </td>
+        <td width="10"></td>
+        <td style="text-align:center;padding:24px 16px;background:#fafafa;border:1px solid #e8e8ed;border-radius:12px;">
+          <div style="font-size:32px;font-weight:600;letter-spacing:-1.5px;color:#0a0a0a;line-height:1;margin-bottom:6px;">1-click</div>
+          <div style="font-size:12px;color:#aeaeb2;line-height:1.4;">to every<br>marketplace</div>
+        </td>
+      </tr></table>
+    </td></tr>
+
+    <!-- DIVIDER -->
+    <tr><td bgcolor="#ffffff" style="padding:0 32px;"><div style="height:1px;background:#f0f0f2;"></div></td></tr>
+
+    <!-- FEATURES CHECKLIST -->
+    <tr><td bgcolor="#ffffff" style="padding:36px 40px;">
+      <p style="margin:0 0 20px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#aeaeb2;">What it does</p>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td style="padding-bottom:16px;">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="padding-right:12px;vertical-align:top;padding-top:1px;">
+              <div style="width:20px;height:20px;background:#0a0a0a;border-radius:50%;text-align:center;line-height:20px;font-size:11px;color:#ffffff;font-weight:700;">&checkmark;</div>
+            </td>
+            <td>
+              <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">Auto-rename every file by SKU and angle</div>
+              <div style="font-size:13px;color:#6e6e73;line-height:1.5;">Every image named, sorted and formatted to your spec the moment you upload.</div>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding-bottom:16px;">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="padding-right:12px;vertical-align:top;padding-top:1px;">
+              <div style="width:20px;height:20px;background:#0a0a0a;border-radius:50%;text-align:center;line-height:20px;font-size:11px;color:#ffffff;font-weight:700;">&checkmark;</div>
+            </td>
+            <td>
+              <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">AI product copy in your brand voice</div>
+              <div style="font-size:13px;color:#6e6e73;line-height:1.5;">Titles, descriptions and bullet points written instantly — trained on your tone, not a generic template.</div>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding-bottom:16px;">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="padding-right:12px;vertical-align:top;padding-top:1px;">
+              <div style="width:20px;height:20px;background:#0a0a0a;border-radius:50%;text-align:center;line-height:20px;font-size:11px;color:#ffffff;font-weight:700;">&checkmark;</div>
+            </td>
+            <td>
+              <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">Export to every marketplace at once</div>
+              <div style="font-size:13px;color:#6e6e73;line-height:1.5;">THE ICONIC, MYER, David Jones, JOOR, Shopify — all formatted to spec in a single export.</div>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td>
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="padding-right:12px;vertical-align:top;padding-top:1px;">
+              <div style="width:20px;height:20px;background:#0a0a0a;border-radius:50%;text-align:center;line-height:20px;font-size:11px;color:#ffffff;font-weight:700;">&checkmark;</div>
+            </td>
+            <td>
+              <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:2px;">Publish direct to Shopify</div>
+              <div style="font-size:13px;color:#6e6e73;line-height:1.5;">Images and product data pushed straight to your store — no CSV imports, no copy-paste.</div>
+            </td>
+          </tr></table>
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <!-- CTA -->
+    <tr><td style="padding:0 16px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td bgcolor="#0a0a0a" style="padding:48px 40px;text-align:center;border-radius:16px;">
+          <h2 style="margin:0 0 10px;font-size:26px;font-weight:600;letter-spacing:-1px;color:#ffffff;line-height:1.2;">30 days free.<br>No credit card needed.</h2>
+          <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.4);line-height:1.6;">Set up takes minutes. Your next shoot can be processed the same day.</p>
+          <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start free trial</a>
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <!-- FOOTER -->
+    <tr><td bgcolor="#f0f0f2" style="padding:28px 32px;text-align:center;">
+      <div style="margin-bottom:10px;">
+        <a href="https://www.shotsync.ai" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Website</a>
+        <a href="https://www.shotsync.ai/#pricing" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Pricing</a>
+        <a href="mailto:hello@shotsync.ai" style="font-size:12px;color:#aeaeb2;text-decoration:none;margin:0 8px;">Contact</a>
+      </div>
+      <div style="font-size:11px;color:#c7c7cc;line-height:1.8;">
+        &copy; 2026 ShotSync.ai &middot; hello@shotsync.ai<br>
+        <a href="${unsubscribeUrl}" style="color:#c7c7cc;text-decoration:underline;">Unsubscribe</a>
+      </div>
+    </td></tr>
+
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>`
+}
+
+function getTemplate(template: number, unsubscribeUrl: string): string {
+  return template === 2 ? getEdmHtml2(unsubscribeUrl) : getEdmHtml(unsubscribeUrl)
+}
+
 export async function POST(req: NextRequest) {
   try {
     const service = createServiceClient()
@@ -198,8 +348,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const body = await req.json() as { subject?: string; preview?: boolean; extraEmails?: string[]; overrideEmails?: string[]; testOnly?: boolean }
+    const body = await req.json() as { subject?: string; preview?: boolean; extraEmails?: string[]; overrideEmails?: string[]; testOnly?: boolean; template?: number }
     const subject = body.subject || 'ShotSync.ai is live — post-production on autopilot'
+    const tmpl = body.template ?? 1
     const preview = body.preview ?? false
     const testOnly = body.testOnly ?? false
     const overrideEmails: string[] | undefined = body.overrideEmails
@@ -218,7 +369,7 @@ export async function POST(req: NextRequest) {
         to: ADMIN_EMAIL,
         replyTo: 'hello@shotsync.ai',
         subject: `[TEST] ${subject}`,
-        html: getEdmHtml(`${APP_URL}/unsubscribe?email=${encodeURIComponent(ADMIN_EMAIL)}`),
+        html: getTemplate(tmpl, `${APP_URL}/unsubscribe?email=${encodeURIComponent(ADMIN_EMAIL)}`),
       })
       if (r.error) return NextResponse.json({ error: r.error.message }, { status: 500 })
       return NextResponse.json({ sent: 1, failed: 0, failedEmails: [], total: 1 })
@@ -243,7 +394,7 @@ export async function POST(req: NextRequest) {
               to: email,
               replyTo: 'hello@shotsync.ai',
               subject,
-              html: getEdmHtml(`${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`),
+              html: getTemplate(tmpl, `${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`),
             }).then((r) => { if (r.error) throw new Error(r.error.message); return r })
           )
         )
