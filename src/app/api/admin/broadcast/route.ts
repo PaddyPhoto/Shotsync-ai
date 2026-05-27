@@ -272,6 +272,39 @@ function getTemplate(template: number, unsubscribeUrl: string): string {
   return template === 2 ? getEdmHtml2(unsubscribeUrl) : getEdmHtml(unsubscribeUrl)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function batchSend(
+  resend: any,
+  emails: string[],
+  subject: string,
+  tmpl: number,
+  APP_URL: string
+): Promise<{ sent: number; failed: { email: string; reason: string }[] }> {
+  let sent = 0
+  const failed: { email: string; reason: string }[] = []
+  const BATCH = 100
+
+  for (let i = 0; i < emails.length; i += BATCH) {
+    const chunk = emails.slice(i, i + BATCH)
+    const { data, error } = await resend.batch.send(
+      chunk.map((email) => ({
+        from: 'ShotSync <hello@shotsync.ai>',
+        to: email,
+        replyTo: 'hello@shotsync.ai',
+        subject,
+        html: getTemplate(tmpl, `${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`),
+      }))
+    )
+    if (error) {
+      chunk.forEach((email) => failed.push({ email, reason: error.message }))
+    } else {
+      sent += data?.length ?? chunk.length
+    }
+  }
+
+  return { sent, failed }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const service = createServiceClient()
@@ -319,27 +352,7 @@ export async function POST(req: NextRequest) {
       const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://shotsync.ai'
       const { Resend } = await import('resend')
       const resend = new Resend(process.env.RESEND_API_KEY)
-      const BATCH = 50
-      let sent = 0
-      const failed: { email: string; reason: string }[] = []
-      for (let i = 0; i < emails.length; i += BATCH) {
-        const batch = emails.slice(i, i + BATCH)
-        const results = await Promise.allSettled(
-          batch.map((email: string) =>
-            resend.emails.send({
-              from: 'ShotSync <hello@shotsync.ai>',
-              to: email,
-              replyTo: 'hello@shotsync.ai',
-              subject,
-              html: getTemplate(tmpl, `${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`),
-            }).then((r) => { if (r.error) throw new Error(r.error.message); return r })
-          )
-        )
-        results.forEach((r: PromiseSettledResult<unknown>, idx: number) => {
-          if (r.status === 'fulfilled') { sent++ }
-          else { failed.push({ email: batch[idx], reason: r.status === 'rejected' && r.reason instanceof Error ? r.reason.message : 'Unknown error' }) }
-        })
-      }
+      const { sent, failed } = await batchSend(resend, emails, subject, tmpl, APP_URL)
       return NextResponse.json({ sent, failed: failed.length, failedEmails: failed, total: emails.length })
     }
 
@@ -369,38 +382,7 @@ export async function POST(req: NextRequest) {
     const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://shotsync.ai'
     const { Resend } = await import('resend')
     const resend = new Resend(process.env.RESEND_API_KEY)
-
-    // Send in batches of 50 (Resend batch limit)
-    const BATCH = 50
-    let sent = 0
-    const failed: { email: string; reason: string }[] = []
-
-    for (let i = 0; i < emails.length; i += BATCH) {
-      const batch = emails.slice(i, i + BATCH)
-      const results = await Promise.allSettled(
-        batch.map((email: string) =>
-          resend.emails.send({
-            from: 'ShotSync <hello@shotsync.ai>',
-            to: email,
-            replyTo: 'hello@shotsync.ai',
-            subject,
-            html: getEdmHtml(`${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`),
-          }).then((r) => {
-            if (r.error) throw new Error(r.error.message)
-            return r
-          })
-        )
-      )
-      results.forEach((r: PromiseSettledResult<unknown>, idx: number) => {
-        if (r.status === 'fulfilled') {
-          sent++
-        } else {
-          const reason = r.status === 'rejected' && r.reason instanceof Error ? r.reason.message : 'Unknown error'
-          failed.push({ email: batch[idx], reason })
-        }
-      })
-    }
-
+    const { sent, failed } = await batchSend(resend, emails, subject, tmpl, APP_URL)
     return NextResponse.json({ sent, failed: failed.length, failedEmails: failed, total: emails.length })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Broadcast failed'
