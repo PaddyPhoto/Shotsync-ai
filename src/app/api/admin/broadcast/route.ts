@@ -20,16 +20,27 @@ function getEdmHtml(unsubscribeUrl: string): string {
   <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;border-radius:20px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.10);">
 
     <!-- HEADER -->
-    <tr><td bgcolor="#ffffff" style="padding:20px 32px;border-bottom:1px solid #f0f0f2;">
-      <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#0a0a0a;">Shot<span style="color:#aeaeb2;font-weight:400;">Sync</span></span>
+    <tr><td bgcolor="#ffffff" style="padding:18px 32px;border-bottom:1px solid #f0f0f2;">
+      <table cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="padding-right:9px;vertical-align:middle;">
+          <img src="https://www.shotsync.ai/icon.png" width="26" height="26" alt="" style="display:block;border-radius:6px;">
+        </td>
+        <td style="vertical-align:middle;">
+          <span style="font-size:16px;font-weight:700;letter-spacing:-0.5px;color:#0a0a0a;">Shot<span style="color:#aeaeb2;font-weight:400;">Sync</span></span>
+        </td>
+      </tr></table>
     </td></tr>
 
     <!-- HERO -->
-    <tr><td bgcolor="#0a0a0a" style="padding:56px 40px 52px;text-align:center;">
-      <p style="margin:0 0 20px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);">Post-production, automated</p>
-      <h1 style="margin:0 0 18px;font-size:42px;font-weight:600;letter-spacing:-2px;line-height:1.06;color:#ffffff;">Your shoot is wrapped.<br><span style="color:rgba(255,255,255,0.38);">The work isn&rsquo;t.</span></h1>
-      <p style="margin:0 auto 36px;max-width:420px;font-size:16px;line-height:1.6;color:rgba(255,255,255,0.5);letter-spacing:-0.2px;">ShotSync renames every image, writes product copy, and publishes directly to your marketplaces — in the time it used to take just to sort a folder.</p>
-      <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start free — 30 days on us</a>
+    <tr><td bgcolor="#0a0a0a" background="https://www.shotsync.ai/email/hero-bg.jpg" style="background-image:url('https://www.shotsync.ai/email/hero-bg.jpg');background-size:cover;background-position:center top;background-repeat:no-repeat;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>
+        <td style="padding:56px 40px 52px;text-align:center;background-color:rgba(10,10,10,0.78);">
+          <p style="margin:0 0 20px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);">Post-production, automated</p>
+          <h1 style="margin:0 0 18px;font-size:42px;font-weight:600;letter-spacing:-2px;line-height:1.06;color:#ffffff;">Your shoot is wrapped.<br><span style="color:rgba(255,255,255,0.38);">The work isn&rsquo;t.</span></h1>
+          <p style="margin:0 auto 36px;max-width:420px;font-size:16px;line-height:1.6;color:rgba(255,255,255,0.5);letter-spacing:-0.2px;">ShotSync renames every image, writes product copy, and publishes directly to your marketplaces — in the time it used to take just to sort a folder.</p>
+          <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start free — 30 days on us</a>
+        </td>
+      </tr></table>
     </td></tr>
 
     <!-- TIME COMPARISON -->
