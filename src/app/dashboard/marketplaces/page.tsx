@@ -304,8 +304,8 @@ function MarketplacesInner() {
                     <div>
                       <div className="card mb-4">
                         <div className="card-head">
-                          <span className="card-title">Required angles</span>
-                          <span className="text-[length:var(--font-sm)] text-[var(--text3)]">Tap to include or exclude</span>
+                          <span className="card-title">Required for completion</span>
+                          <span className="text-[length:var(--font-sm)] text-[var(--text3)]">Clusters missing these angles are flagged incomplete</span>
                         </div>
                         <div className="card-body">
                           <div className="flex flex-wrap gap-2 mb-4">
@@ -335,7 +335,7 @@ function MarketplacesInner() {
                           </div>
                           <div className="h-px bg-[var(--line)] mb-4" />
                           <div className="flex items-start justify-between mb-3">
-                            <p className="text-[length:var(--font-base)] font-medium text-[var(--text)]">Shot sequence</p>
+                            <p className="text-[length:var(--font-base)] font-medium text-[var(--text)]">Export order</p>
                             <div className="flex flex-col gap-[3px] items-end">
                               {['Drag to reorder', 'Hover pill to remove', 'Click faded to add'].map((label) => (
                                 <span key={label} className="text-[length:var(--font-xs)] text-[var(--text3)]">{label}</span>
@@ -344,7 +344,7 @@ function MarketplacesInner() {
                           </div>
                           <div className="bg-[var(--bg2)] rounded-[8px] border border-[var(--line)] p-3 mb-4">
                             {overrideCount > 0 && (
-                              <p className="text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] mb-2">Default sequence</p>
+                              <p className="text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] mb-2">Default export order</p>
                             )}
                             <AnglePillRow
                               views={rule.angle_order ?? MARKETPLACE_RULES[id].angle_order}
@@ -373,7 +373,7 @@ function MarketplacesInner() {
                           </button>
                           {showAdvanced && (
                             <div className="mt-3 pl-4 border-l border-[var(--line)]">
-                              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-3">Set a different shot sequence for specific product categories.</p>
+                              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-3">Set a different export order for specific product categories.</p>
                               {(rule.category_overrides ?? []).map((ov) => (
                                 <div key={ov.id} className="flex items-start gap-2 py-2.5 border-b border-[var(--line)]">
                                   <select
