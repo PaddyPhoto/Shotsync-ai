@@ -2563,7 +2563,7 @@ function ExportPanel({
       <div onClick={onToggle} className="relative w-[36px] h-[20px] rounded-full transition-colors cursor-pointer flex-shrink-0" style={{ background: on ? 'var(--accent)' : 'var(--bg4)' }}>
         <span className="absolute top-[2px] w-[16px] h-[16px] rounded-full bg-white shadow transition-all duration-200" style={{ left: on ? '18px' : '2px' }} />
       </div>
-      <span className="text-[length:var(--font-sm)] text-[var(--text)]">{label}{sub && <span className="text-[var(--text2)] ml-1">{sub}</span>}</span>
+      <span className="text-[length:var(--font-sm)] text-[var(--text)]">{label}{sub && <span className="ml-1" style={{ color: 'rgba(255,255,255,0.65)' }}>{sub}</span>}</span>
     </label>
   )
 
@@ -2599,7 +2599,7 @@ function ExportPanel({
           style={{ opacity: isExporting ? 0.3 : 1, pointerEvents: isExporting ? 'none' : 'auto' }}
         >
           <div className="flex items-center justify-between mb-4 flex-shrink-0">
-            <p className="text-[length:var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide">Marketplaces</p>
+            <p className="text-[length:var(--font-base)] font-semibold uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.65)' }}>Marketplaces</p>
             {selectedMarketplaces.length === 0 && (
               <p className="text-[length:var(--font-base)] text-[var(--accent3)]">Select at least one</p>
             )}
@@ -2625,7 +2625,7 @@ function ExportPanel({
         >
           {/* Output format */}
           <div className="flex-shrink-0 pb-5 border-b border-[var(--line)]">
-            <p className="text-[length:var(--font-base)] font-semibold text-[var(--text2)] uppercase tracking-wide mb-3">Output format</p>
+            <p className="text-[length:var(--font-base)] font-semibold uppercase tracking-wide mb-3" style={{ color: 'rgba(255,255,255,0.65)' }}>Output format</p>
             <div className="flex flex-col gap-[2px] bg-[var(--bg3)] p-[3px] rounded-sm">
               {([
                 ['zip', 'Download ZIP'],
@@ -2641,7 +2641,7 @@ function ExportPanel({
               ))}
             </div>
             <div className="mt-2 min-h-[18px]">
-              {exportMode === 'folder' && <p className="text-[length:var(--font-base)] text-[var(--text2)]">Chrome and Edge only</p>}
+              {exportMode === 'folder' && <p className="text-[length:var(--font-base)]" style={{ color: 'rgba(255,255,255,0.65)' }}>Chrome and Edge only</p>}
               {exportMode === 'dropbox' && <p className="text-[length:var(--font-base)] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.dropbox?.account_email}</span></p>}
               {exportMode === 'google-drive' && <p className="text-[length:var(--font-base)] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.google_drive?.email}</span></p>}
               {exportMode === 's3' && <p className="text-[length:var(--font-base)] text-[var(--text3)]">→ <span className="font-medium text-[var(--text2)]">{activeBrand?.cloud_connections?.s3?.bucket}{activeBrand?.cloud_connections?.s3?.prefix ? `/${activeBrand.cloud_connections.s3.prefix}` : ''}</span></p>}
@@ -2651,7 +2651,7 @@ function ExportPanel({
                 <button onClick={pickFolder} disabled={!fsaSupported} className="btn btn-ghost btn-sm">Choose folder</button>
                 {folderName
                   ? <span className="text-[length:var(--font-sm)] text-[var(--accent2)] truncate" style={{ fontFamily: 'var(--font-dm-mono)' }}>/{folderName}</span>
-                  : <span className="text-[length:var(--font-base)] text-[var(--text2)]">{fsaSupported ? 'None selected' : 'Requires Chrome/Edge'}</span>
+                  : <span className="text-[length:var(--font-base)]" style={{ color: 'rgba(255,255,255,0.65)' }}>{fsaSupported ? 'None selected' : 'Requires Chrome/Edge'}</span>
                 }
               </div>
             )}
@@ -2659,7 +2659,7 @@ function ExportPanel({
 
           {/* Options */}
           <div className="flex-shrink-0 py-5 border-b border-[var(--line)]">
-            <p className="text-[length:var(--font-base)] font-semibold text-[var(--text2)] uppercase tracking-wide mb-4">Options</p>
+            <p className="text-[length:var(--font-base)] font-semibold uppercase tracking-wide mb-4" style={{ color: 'rgba(255,255,255,0.65)' }}>Options</p>
             <div className="flex flex-col gap-4">
               <Toggle on={flatExport} onToggle={() => setFlatExport(v => !v)}
                 label="Flat export" sub="All images in one folder per marketplace" />
@@ -2694,11 +2694,11 @@ function ExportPanel({
           {/* File naming */}
           <div className="flex-shrink-0 pt-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[length:var(--font-base)] font-semibold text-[var(--text2)] uppercase tracking-wide">File naming</p>
+              <p className="text-[length:var(--font-base)] font-semibold uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.65)' }}>File naming</p>
             </div>
             <input className="input w-full mb-2" style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 'var(--font-sm)' }}
               value={localTemplate} onChange={(e) => setLocalTemplate(e.target.value)} placeholder="{BRAND}_{SEQ}_{VIEW}" />
-            <p className="text-[length:var(--font-base)] text-[var(--text2)] leading-loose flex flex-wrap gap-x-1">
+            <p className="text-[length:var(--font-base)] leading-loose flex flex-wrap gap-x-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
               {['{BRAND}','{SKU}','{COLOR}','{VIEW}','{SEQ}','{INDEX}','{STYLE_NUMBER}','{COLOUR_CODE}'].map(t => (
                 <code key={t} style={{ fontFamily: 'var(--font-dm-mono)' }}>{t}</code>
               ))}
