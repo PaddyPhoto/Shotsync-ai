@@ -176,10 +176,22 @@ export const useSession = create<SessionState>((set, get) => ({
       ...source,
       id: `${source.id}-copy-${Date.now()}`,
     }
+    const FALLBACK_ORDER = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'mood-2', 'mood-3', 'full-length-side', 'full-length-back']
+    const angleOrder = state.angleSequence.length > 0 ? (state.angleSequence as string[]) : FALLBACK_ORDER
     return {
-      clusters: state.clusters.map((c) =>
-        c.id === toClusterId ? { ...c, images: [...c.images, copy] } : c
-      ),
+      clusters: state.clusters.map((c) => {
+        if (c.id !== toClusterId) return c
+        const merged = [...c.images, copy]
+        merged.sort((a, b) => {
+          const ai = angleOrder.indexOf(a.viewLabel as string)
+          const bi = angleOrder.indexOf(b.viewLabel as string)
+          const ea = ai !== -1 ? ai : angleOrder.length
+          const eb = bi !== -1 ? bi : angleOrder.length
+          if (ea !== eb) return ea - eb
+          return a.seqIndex - b.seqIndex
+        })
+        return { ...c, images: merged }
+      }),
     }
   }),
 
