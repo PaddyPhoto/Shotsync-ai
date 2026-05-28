@@ -555,7 +555,10 @@ function ReviewPage() {
     }
     if (entry.colourCode) updateClusterColourCode(clusterId, entry.colourCode)
     if (entry.styleNumber) updateClusterStyleNumber(clusterId, entry.styleNumber)
-    if (entry.category) setClusterGarmentCategory(clusterId, entry.category)
+    if (entry.category) {
+      setClusterGarmentCategory(clusterId, entry.category)
+      setClusterBottomwear(clusterId, BOTTOMWEAR_CATEGORY_LABELS.has(entry.category))
+    }
     setSkuInput((s) => ({ ...s, [clusterId]: entry.sku }))
   }
 
