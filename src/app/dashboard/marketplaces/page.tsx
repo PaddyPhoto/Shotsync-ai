@@ -304,8 +304,8 @@ function MarketplacesInner() {
                     <div>
                       <div className="card mb-4">
                         <div className="card-head">
-                          <span className="card-title">Required for completion</span>
-                          <span className="text-[length:var(--font-sm)] text-[var(--text3)]">Clusters missing these angles are flagged incomplete</span>
+                          <span className="card-title">Required for compliance</span>
+                          <span className="text-[length:var(--font-sm)] text-[var(--text3)]">Clusters missing these angles are flagged non-compliant</span>
                         </div>
                         <div className="card-body">
                           <div className="flex flex-wrap gap-2 mb-4">
