@@ -1705,7 +1705,7 @@ function ExportPanel({
   const [selectedMarketplaces, setSelectedMarketplaces] = useState<MarketplaceName[]>(
     marketplaces.length > 0 ? marketplaces : []
   )
-  const [localTemplate, setLocalTemplate] = useState('{SKU}_{VIEW}')
+  const [localTemplate, setLocalTemplate] = useState(() => namingTemplate || '{SKU}_{VIEW}')
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
   const [exportError, setExportError] = useState<string | null>(null)
@@ -2789,6 +2789,41 @@ function ExportPanel({
                   </div>
                 ))}
               </div>
+
+              {/* Per-marketplace settings summary */}
+              {selectedMarketplaces.length > 0 && (
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[length:var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide">Export settings</p>
+                    <a href="/dashboard/marketplaces" className="text-[length:var(--font-sm)] text-[var(--accent)] hover:opacity-70 transition-opacity flex items-center gap-1">
+                      Edit
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M2 8L8 2M8 2H5M8 2v3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </a>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {selectedMarketplaces.map((m) => {
+                      const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
+                      const isWhite = rule.background_color?.toUpperCase() === '#FFFFFF' || rule.background_color?.toUpperCase() === '#FFF'
+                      const bgLabel = isWhite ? 'White' : rule.background_color
+                      return (
+                        <div key={m} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-3 py-2.5">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="font-medium text-[var(--text)] text-[length:var(--font-base)] flex-shrink-0">{rule.name}</span>
+                            <span className="text-[var(--text3)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.image_dimensions.width}×{rule.image_dimensions.height}</span>
+                            <div className="flex items-center gap-1 ml-auto flex-shrink-0">
+                              <div className="w-3 h-3 rounded-[2px]" style={{ background: rule.background_color, border: '1px solid rgba(0,0,0,0.18)' }} />
+                              <span className="text-[length:var(--font-xs)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{bgLabel}</span>
+                            </div>
+                          </div>
+                          <p className="text-[length:var(--font-xs)] text-[var(--text3)]">
+                            {rule.angle_order.slice(0, 5).join(' · ')}{rule.angle_order.length > 5 ? ` +${rule.angle_order.length - 5}` : ''}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* BG removal estimate */}
               {hasBgRemoval && bgRemovalEnabled && canUseBgRemoval && (
