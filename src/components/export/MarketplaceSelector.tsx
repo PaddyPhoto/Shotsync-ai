@@ -144,10 +144,10 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
             <p style={{ fontSize: 'var(--font-lg)', fontWeight: 600, letterSpacing: '-.2px', marginBottom: '3px', color: isSelected ? palette.nameColor : 'var(--text)' }}>
               {rule.name}
             </p>
-            <p style={{ fontSize: 'var(--font-base)', color: '#ff4040', marginBottom: '12px' }}>
+            <p style={{ fontSize: 'var(--font-base)', color: '#c8c8c8', marginBottom: '12px' }}>
               {MARKETPLACE_DESCRIPTIONS[id]}
             </p>
-            <div style={{ fontSize: 'var(--font-sm)', lineHeight: 1.8, fontFamily: 'var(--font-dm-mono)', color: '#ff4040' }}>
+            <div style={{ fontSize: 'var(--font-sm)', lineHeight: 1.8, fontFamily: 'var(--font-dm-mono)', color: '#c8c8c8' }}>
               <p>{rule.image_dimensions.width}×{rule.image_dimensions.height}px</p>
               <p>{rule.file_format.toUpperCase()} · Q{rule.quality}</p>
             </div>

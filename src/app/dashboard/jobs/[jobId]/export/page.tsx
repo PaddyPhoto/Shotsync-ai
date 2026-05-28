@@ -35,8 +35,8 @@ const CARD    = '#2f2f2f'
 const CARD2   = '#363636'
 const BORDER  = 'rgba(255,255,255,0.08)'
 const T1      = '#ffffff'
-const T2      = 'rgba(255,255,255,0.55)'
-const T3      = 'rgba(255,255,255,0.3)'
+const T2      = 'rgba(255,255,255,0.72)'
+const T3      = 'rgba(255,255,255,0.5)'
 
 // ── Marketplace palette (dark theme) ─────────────────────────────────────────
 const PALETTE: Record<MarketplaceName, { dot: string; text: string; selBg: string; selBorder: string }> = {
