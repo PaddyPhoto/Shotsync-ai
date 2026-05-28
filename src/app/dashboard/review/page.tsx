@@ -292,7 +292,7 @@ function ReviewPage() {
       return next
     })
   }
-  const { rules: marketplaceRules } = useMarketplaceRules()
+  const { rules: marketplaceRules } = useMarketplaceRules(activeBrand?.id)
 
   const activeTemplate = '{SKU}_{VIEW}'
   const [showExportPanel, setShowExportPanel] = useState(false)

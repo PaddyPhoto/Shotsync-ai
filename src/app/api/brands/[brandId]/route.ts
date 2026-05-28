@@ -29,7 +29,7 @@ export async function PATCH(
     const { createServiceClient } = await import('@/lib/supabase/server')
     const service = createServiceClient()
 
-    const allowed = ['name', 'brand_code', 'shopify_store_url', 'shopify_access_token', 'logo_color', 'images_per_look', 'naming_template', 'on_model_angle_sequence', 'still_life_angle_sequences', 'category_angle_sequences', 'gm_position', 'cloud_connections', 'default_marketplaces']
+    const allowed = ['name', 'brand_code', 'shopify_store_url', 'shopify_access_token', 'logo_color', 'images_per_look', 'naming_template', 'on_model_angle_sequence', 'still_life_angle_sequences', 'category_angle_sequences', 'gm_position', 'cloud_connections', 'default_marketplaces', 'iconic_user_id', 'iconic_api_key', 'voice_brief', 'copy_examples', 'cin7_account_id', 'cin7_application_key']
     const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
     if (updates.brand_code) {
@@ -81,7 +81,7 @@ export async function PATCH(
       .update(updates)
       .eq('id', params.brandId)
       .eq('org_id', user.id)
-      .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, on_model_angle_sequence, still_life_angle_sequences, category_angle_sequences, gm_position, cloud_connections, default_marketplaces, created_at')
+      .select('id, org_id, name, brand_code, shopify_store_url, shopify_access_token, logo_color, images_per_look, naming_template, on_model_angle_sequence, still_life_angle_sequences, category_angle_sequences, gm_position, cloud_connections, default_marketplaces, iconic_user_id, iconic_api_key, voice_brief, copy_examples, cin7_account_id, cin7_application_key, created_at')
       .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
