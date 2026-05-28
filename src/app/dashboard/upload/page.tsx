@@ -761,7 +761,11 @@ export default function UploadPage() {
                   (s) => s.category.trim().toLowerCase() === category.trim().toLowerCase()
                 )
                 if (catSeq?.angles?.length) {
-                  cluster.images.forEach((img, idx) => {
+                  // Sort by seqIndex (original shooting order) before applying positional labels
+                  // cluster.images is sorted for display (VIEW_ORDER_ALL) — using those indices
+                  // would assign labels based on display position, not shooting position
+                  const inShootOrder = [...cluster.images].sort((a, b) => a.seqIndex - b.seqIndex)
+                  inShootOrder.forEach((img, idx) => {
                     img.viewLabel = (catSeq.angles[idx % catSeq.angles.length] ?? 'front') as ViewLabel
                   })
                 }
