@@ -735,6 +735,22 @@ function ReviewPage() {
     </div>
   )
 
+  if (showExportPanel) return (
+    <ExportPanel
+      jobName={jobName}
+      clusters={clusters}
+      activeBrand={activeBrand}
+      marketplaces={sessionMarketplaces as MarketplaceName[]}
+      marketplaceRules={marketplaceRules}
+      namingTemplate={activeTemplate}
+      clusterCopy={clusterCopy}
+      shootType={shootType}
+      onClose={() => setShowExportPanel(false)}
+      onStartNewJob={() => { reset(); router.push('/dashboard/upload') }}
+      onBackToDashboard={() => { reset(); router.push('/dashboard') }}
+    />
+  )
+
   return (
     <div className="flex flex-col h-full">
       <Topbar
@@ -1567,23 +1583,6 @@ function ReviewPage() {
             })}
           </div>
       </div>
-
-      {/* Export panel overlay */}
-      {showExportPanel && (
-        <ExportPanel
-          jobName={jobName}
-          clusters={clusters}
-          activeBrand={activeBrand}
-          marketplaces={sessionMarketplaces as MarketplaceName[]}
-          marketplaceRules={marketplaceRules}
-          namingTemplate={activeTemplate}
-          clusterCopy={clusterCopy}
-          shootType={shootType}
-          onClose={() => setShowExportPanel(false)}
-          onStartNewJob={() => { reset(); router.push('/dashboard/upload') }}
-          onBackToDashboard={() => { reset(); router.push('/dashboard') }}
-        />
-      )}
 
       {/* Multi-select floating action bar */}
       {selectedImages.size > 0 && (
@@ -2569,7 +2568,7 @@ function ExportPanel({
   )
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg)]">
+    <div className="flex flex-col h-screen bg-[var(--bg)]">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-4 px-6 h-[56px] border-b border-[var(--line)] flex-shrink-0">
@@ -2607,6 +2606,7 @@ function ExportPanel({
           </div>
           <MarketplaceSelector
             selected={selectedMarketplaces}
+            columns={2}
             lockedMarketplaces={lockedMarketplaces}
             onLockedClick={() => openUpgrade('ANZ marketplace exports (The Iconic, Myer, David Jones) are available on the Launch plan and above.')}
             onChange={(next) => {

@@ -8,6 +8,7 @@ interface MarketplaceSelectorProps {
   onChange: (markets: MarketplaceName[]) => void
   lockedMarketplaces?: MarketplaceName[]
   onLockedClick?: () => void
+  columns?: 2 | 3 | 4
 }
 
 const MARKETPLACE_DESCRIPTIONS: Record<MarketplaceName, string> = {
@@ -56,7 +57,7 @@ const MARKETPLACE_PALETTE: Record<MarketplaceName, { bgRest: string; bgSelected:
   },
 }
 
-export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [], onLockedClick }: MarketplaceSelectorProps) {
+export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [], onLockedClick, columns = 4 }: MarketplaceSelectorProps) {
   const toggle = (id: MarketplaceName) => {
     if (selected.includes(id)) {
       onChange(selected.filter((m) => m !== id))
@@ -66,7 +67,7 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
   }
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className={`grid gap-3 ${columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
       {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[]).map((id) => {
         const rule = MARKETPLACE_RULES[id]
         const isSelected = selected.includes(id)
