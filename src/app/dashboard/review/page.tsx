@@ -2805,13 +2805,14 @@ function ExportPanel({
                       const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
                       return (
                         <div key={m} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-3 py-2.5">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="font-medium text-[var(--text)] text-[length:var(--font-base)] flex-shrink-0">{rule.name}</span>
-                            <span className="text-[var(--text3)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.image_dimensions.width}×{rule.image_dimensions.height}</span>
+                          <p className="font-medium text-[var(--text)] text-[length:var(--font-base)] mb-1.5">{rule.name}</p>
+                          <div className="flex flex-wrap gap-x-3 gap-y-1">
+                            {rule.angle_order.map((a, i) => (
+                              <span key={a} className="text-[length:var(--font-xs)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                                <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{i + 1}</span> {a}
+                              </span>
+                            ))}
                           </div>
-                          <p className="text-[length:var(--font-xs)] text-[var(--text3)]">
-                            {rule.angle_order.slice(0, 5).join(' · ')}{rule.angle_order.length > 5 ? ` +${rule.angle_order.length - 5}` : ''}
-                          </p>
                         </div>
                       )
                     })}
