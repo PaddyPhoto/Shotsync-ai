@@ -335,7 +335,7 @@ function MarketplacesInner() {
                           </div>
                           <div className="h-px bg-[var(--line)] mb-4" />
                           <div className="flex items-start justify-between mb-3">
-                            <p className="text-[length:var(--font-base)] font-medium text-[var(--text)]">Export order</p>
+                            <p className="text-[length:var(--font-lg)] font-medium text-[var(--text)]" style={{ letterSpacing: '-0.2px' }}>Export order</p>
                             <div className="flex flex-col gap-[3px] items-end">
                               {['Drag to reorder', 'Hover pill to remove', 'Click faded to add'].map((label) => (
                                 <span key={label} className="text-[length:var(--font-xs)] text-[var(--text3)]">{label}</span>
