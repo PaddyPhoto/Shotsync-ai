@@ -322,13 +322,14 @@ export async function processFiles(
       img.viewLabel = (positionalOrder[idx % positionalOrder.length] ?? 'front') as ViewLabel
     })
 
-    // Sort within the look by the full VIEW_ORDER_ALL for consistent display
+    // Sort within the look by the configured sequence so display matches the user's shooting order.
+    // Fall back to VIEW_ORDER_ALL position for any label not in the configured sequence (e.g. legacy values).
     const orderedChunk = [...groupImages].sort((a, b) => {
-      const ai = VIEW_ORDER_ALL.indexOf(a.viewLabel as ViewLabel)
-      const bi = VIEW_ORDER_ALL.indexOf(b.viewLabel as ViewLabel)
-      const aIdx = ai === -1 ? VIEW_ORDER_ALL.length : ai
-      const bIdx = bi === -1 ? VIEW_ORDER_ALL.length : bi
-      if (aIdx !== bIdx) return aIdx - bIdx
+      const userIdxA = positionalOrder.indexOf(a.viewLabel as string)
+      const userIdxB = positionalOrder.indexOf(b.viewLabel as string)
+      const ai = userIdxA !== -1 ? userIdxA : positionalOrder.length + VIEW_ORDER_ALL.indexOf(a.viewLabel as ViewLabel)
+      const bi = userIdxB !== -1 ? userIdxB : positionalOrder.length + VIEW_ORDER_ALL.indexOf(b.viewLabel as ViewLabel)
+      if (ai !== bi) return ai - bi
       return a.seqIndex - b.seqIndex
     })
 
