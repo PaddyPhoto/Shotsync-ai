@@ -81,7 +81,7 @@ export async function PATCH(
       .update(updates)
       .eq('id', params.brandId)
       .eq('org_id', user.id)
-      .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, on_model_angle_sequence, still_life_angle_sequences, gm_position, cloud_connections, default_marketplaces, created_at')
+      .select('id, org_id, name, brand_code, shopify_store_url, logo_color, images_per_look, naming_template, on_model_angle_sequence, still_life_angle_sequences, category_angle_sequences, gm_position, cloud_connections, default_marketplaces, created_at')
       .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

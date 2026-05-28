@@ -252,7 +252,7 @@ export default function UploadPage() {
       ? activeBrand.default_marketplaces as MarketplaceName[]
       : ['the-iconic' as MarketplaceName]
   )
-  const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'mood-2', 'mood-3', 'detail', 'back', 'full-length-side', 'full-length-back']
+  const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'mood-2', 'mood-3', 'full-length-side', 'full-length-back']
   const defaultImagesPerLook = activeBrand?.images_per_look ?? 4
   const [imagesPerLook, setImagesPerLook] = useState<number>(defaultImagesPerLook)
   const [angleSequence, setAngleSequence] = useState<string[]>(() => {
@@ -1337,7 +1337,9 @@ export default function UploadPage() {
                               const base = activeBrand?.on_model_angle_sequence?.length
                                 ? activeBrand.on_model_angle_sequence
                                 : ALL_ON_MODEL_ANGLES
-                              setAngleSequence(base.slice(0, n))
+                              const seq = [...base]
+                              while (seq.length < n) seq.push(ALL_ON_MODEL_ANGLES[seq.length] ?? 'front')
+                              setAngleSequence(seq.slice(0, n))
                             }}
                             style={{
                               width: '36px', height: '36px', borderRadius: '9px',

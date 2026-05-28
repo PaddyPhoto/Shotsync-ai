@@ -249,7 +249,7 @@ function ReviewPage() {
     }
   }
 
-  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'mood-2', 'mood-3', 'detail', 'back', 'full-length-side', 'full-length-back']
+  const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'mood-2', 'mood-3', 'full-length-side', 'full-length-back']
   const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
 
   // Returns the ordered angle sequence for a cluster.

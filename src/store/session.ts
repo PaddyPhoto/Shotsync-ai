@@ -398,7 +398,7 @@ export const useSession = create<SessionState>((set, get) => ({
 
     // Positional angle order for relabelling
     const angleOrder: ViewLabel[] = (state.angleSequence.length > 0 ? state.angleSequence : [
-      'full-length', 'front', 'side', 'mood', 'mood-2', 'mood-3', 'detail', 'back', 'full-length-side', 'full-length-back',
+      'full-length', 'front', 'side', 'mood', 'detail', 'back', 'mood-2', 'mood-3', 'full-length-side', 'full-length-back',
     ]) as ViewLabel[]
 
     const relabel = (imgs: SessionImage[]): SessionImage[] =>
