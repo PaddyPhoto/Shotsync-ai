@@ -132,6 +132,7 @@ export function applyNamingTemplate(
     color?: string
     view: string
     index: number
+    viewNum?: number
     isBottomwear?: boolean
     supplierCode?: string
     styleNumber?: string
@@ -143,7 +144,7 @@ export function applyNamingTemplate(
   const seq = String(vars.seq).padStart(3, '0')
   const sku = (vars.sku?.trim() || seq).toUpperCase()
   const view = vars.view.toUpperCase().replace(/-/g, '_')
-  const viewNum = getViewNum(vars.view, vars.isBottomwear ?? false)
+  const viewNum = vars.viewNum !== undefined ? String(vars.viewNum) : getViewNum(vars.view, vars.isBottomwear ?? false)
   const idx = String(vars.index)
   const brand = vars.brand.toUpperCase()
   const color = (vars.color || '').toUpperCase()

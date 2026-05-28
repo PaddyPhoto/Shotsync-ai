@@ -2217,9 +2217,8 @@ function ExportPanel({
                 ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
                 : applyNamingTemplate(template, {
                     brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                    view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                    view: img.viewLabel, index: imgIdx + 1, viewNum: imgIdx + 1, supplierCode, season,
                     styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
-                    isBottomwear: cluster.isBottomwear,
                   }) + '.jpg'
               const dirHandle = flatExport ? mpHandle : await mpHandle.getDirectoryHandle(folderName, { create: true })
               const fh = await dirHandle.getFileHandle(filename, { create: true })
@@ -2287,9 +2286,8 @@ function ExportPanel({
                   ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
                   : applyNamingTemplate(template, {
                       brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                      view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                      view: img.viewLabel, index: imgIdx + 1, viewNum: imgIdx + 1, supplierCode, season,
                       styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
-                      isBottomwear: cluster.isBottomwear,
                     }) + '.jpg'
                 marketplaceFolder.file(flatExport ? filename : `${folderName}/${filename}`, buffer)
               } catch (err) {
@@ -2350,9 +2348,8 @@ function ExportPanel({
               ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
               : applyNamingTemplate(template, {
                   brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                  view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                  view: img.viewLabel, index: imgIdx + 1, viewNum: imgIdx + 1, supplierCode, season,
                   styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
-                  isBottomwear: cluster.isBottomwear,
                 }) + '.jpg'
             const mpFolder = rule.name.replace(/\s+/g, '_')
             allKeys.push(`${mpFolder}/${filename}`)
@@ -2423,9 +2420,8 @@ function ExportPanel({
                 ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
                 : applyNamingTemplate(template, {
                     brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                    view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                    view: img.viewLabel, index: imgIdx + 1, viewNum: imgIdx + 1, supplierCode, season,
                     styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
-                    isBottomwear: cluster.isBottomwear,
                   }) + '.jpg'
 
               if (exportMode === 'dropbox' && cloudLib && 'uploadToDropbox' in cloudLib) {
