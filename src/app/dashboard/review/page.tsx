@@ -2803,17 +2803,11 @@ function ExportPanel({
                   <div className="flex flex-col gap-1.5">
                     {selectedMarketplaces.map((m) => {
                       const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
-                      const isWhite = rule.background_color?.toUpperCase() === '#FFFFFF' || rule.background_color?.toUpperCase() === '#FFF'
-                      const bgLabel = isWhite ? 'White' : rule.background_color
                       return (
                         <div key={m} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-3 py-2.5">
                           <div className="flex items-center gap-2 mb-1.5">
                             <span className="font-medium text-[var(--text)] text-[length:var(--font-base)] flex-shrink-0">{rule.name}</span>
                             <span className="text-[var(--text3)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{rule.image_dimensions.width}×{rule.image_dimensions.height}</span>
-                            <div className="flex items-center gap-1 ml-auto flex-shrink-0">
-                              <div className="w-3 h-3 rounded-[2px]" style={{ background: rule.background_color, border: '1px solid rgba(0,0,0,0.18)' }} />
-                              <span className="text-[length:var(--font-xs)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{bgLabel}</span>
-                            </div>
                           </div>
                           <p className="text-[length:var(--font-xs)] text-[var(--text3)]">
                             {rule.angle_order.slice(0, 5).join(' · ')}{rule.angle_order.length > 5 ? ` +${rule.angle_order.length - 5}` : ''}
