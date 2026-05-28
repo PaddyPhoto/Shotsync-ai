@@ -677,8 +677,8 @@ function AnglePillRow({
               onDragEnd={() => setDragState(null)}
               className={`group relative cursor-grab active:cursor-grabbing transition-all ${isDragging ? 'opacity-25 scale-95' : ''} ${isTarget ? 'ring-2 ring-[var(--accent)] ring-offset-1 ring-offset-[var(--bg)]' : ''}`}
             >
-              <span className="shot-pill select-none pointer-events-none flex items-center gap-[5px] pr-[8px]" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text)', border: '0.5px solid rgba(255,255,255,0.14)', fontWeight: 400 }}>
-                <span className="text-[10px] font-medium leading-none w-[14px] text-center flex-shrink-0" style={{ color: 'var(--text3)' }}>{i + 1}</span>
+              <span className="shot-pill select-none pointer-events-none flex items-center gap-[5px] pr-[8px]" style={{ background: 'rgba(48,209,88,0.15)', color: '#30d158', border: '1px solid rgba(48,209,88,0.3)', fontWeight: 400 }}>
+                <span className="text-[10px] font-medium leading-none w-[14px] text-center flex-shrink-0" style={{ color: 'rgba(48,209,88,0.6)' }}>{i + 1}</span>
                 <svg width="6" height="8" viewBox="0 0 6 8" fill="currentColor" className="opacity-40 flex-shrink-0">
                   <circle cx="1.5" cy="1.5" r="1"/><circle cx="4.5" cy="1.5" r="1"/>
                   <circle cx="1.5" cy="4" r="1"/><circle cx="4.5" cy="4" r="1"/>
