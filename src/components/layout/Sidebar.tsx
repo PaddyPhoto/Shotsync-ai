@@ -64,7 +64,8 @@ const NAV_WORKFLOW: NavItem[] = [
   },
   {
     label: 'Export',
-    href: '/dashboard/jobs/session/export',
+    href: '/dashboard/review?export=1',
+    activeWhen: () => false,
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M8 10V3M5 7l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -375,7 +376,7 @@ export function Sidebar() {
                   key={item.href}
                   item={item}
                   disabled={
-                    (item.href === '/dashboard/review' || item.href.includes('session/export'))
+                    (item.href === '/dashboard/review' || item.href.includes('review?export'))
                       ? !hasSession
                       : item.disabled
                   }

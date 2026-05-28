@@ -8,6 +8,7 @@ import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import { useSession } from '@/store/session'
 import { useBrand } from '@/context/BrandContext'
 import { applyNamingTemplate } from '@/lib/brands'
+import { processImageOnCanvas } from '@/lib/export/image-processing'
 import type { MarketplaceName, Job } from '@/types'
 
 declare global {
@@ -102,30 +103,10 @@ function buildProductCsv(
   return [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))].join('\n')
 }
 
-// ── Image processing (canvas resize + crop to fit) ───────────────────────────
+// Thin wrapper — returns Blob for callers that need it (Shopify, FSA write)
 async function processImage(file: File, w: number, h: number, bg = '#ffffff'): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file)
-    const img = new window.Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = w; canvas.height = h
-      const ctx = canvas.getContext('2d')!
-      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
-      const sa = img.width / img.height; const da = w / h
-      let sx = 0, sy = 0, sw = img.width, sh = img.height
-      if (sa > da) { sw = img.height * da; sx = (img.width - sw) / 2 }
-      else { sh = img.width / da; sy = (img.height - sh) / 2 }
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h)
-      URL.revokeObjectURL(url)
-      canvas.toBlob((blob) => {
-        if (!blob) { reject(new Error('toBlob failed')); return }
-        resolve(blob)
-      }, 'image/jpeg', 0.92)
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('load failed')) }
-    img.src = url
-  })
+  const buffer = await processImageOnCanvas(file, w, h, bg, 0.92, 0, false)
+  return new Blob([buffer], { type: 'image/jpeg' })
 }
 
 export default function ExportPage({ params }: { params: { jobId: string } }) {
