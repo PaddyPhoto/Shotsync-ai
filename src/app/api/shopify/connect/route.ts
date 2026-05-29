@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
     `?client_id=${clientId}` +
     `&scope=${scopes}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-    `&state=${encodeURIComponent(state)}`
+    `&state=${encodeURIComponent(state)}` +
+    `&grant_options[]=offline_access`
 
   return NextResponse.redirect(authUrl)
 }
