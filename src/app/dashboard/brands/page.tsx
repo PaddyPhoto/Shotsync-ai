@@ -202,7 +202,7 @@ function BrandsPage() {
     const res = await fetch(`/api/brands/${brand.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
-      body: JSON.stringify({ shopify_store_url: null, shopify_access_token: null, shopify_authenticated: false }),
+      body: JSON.stringify({ shopify_store_url: null, shopify_access_token: null }),
     })
     if (!res.ok) {
       const json = await res.json().catch(() => ({}))
