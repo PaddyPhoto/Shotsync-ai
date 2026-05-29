@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
 
   const { error: updateErr } = await service
     .from('brands')
-    .update({ shopify_store_url: shop, shopify_access_token: access_token })
+    .update({ shopify_store_url: shop, shopify_access_token: access_token, shopify_authenticated: true })
     .eq('id', brand_id)
 
   if (updateErr) {
