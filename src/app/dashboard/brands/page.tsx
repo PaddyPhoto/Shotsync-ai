@@ -120,8 +120,11 @@ function BrandsPage() {
         token_exchange_failed: 'Could not complete Shopify authorisation. Try again.',
         invalid_state: 'Security check failed. Try connecting again.',
         save_failed: 'Connected but failed to save — please try again.',
+        invalid_signature: 'HMAC signature mismatch — check SHOPIFY_CLIENT_SECRET in Vercel.',
+        missing_params: 'Missing OAuth parameters — store URL or brand ID was empty.',
+        state_mismatch: 'Shop domain mismatch — try connecting again.',
       }
-      setToastOk(false); setToast(msgs[error] ?? 'Shopify connection failed. Try again.')
+      setToastOk(false); setToast(msgs[error] ?? `Shopify connection failed (${error}). Try again.`)
       window.history.replaceState({}, '', '/dashboard/brands')
     }
   }, [searchParams, refreshBrands])
