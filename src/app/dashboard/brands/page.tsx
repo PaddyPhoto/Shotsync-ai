@@ -199,13 +199,21 @@ function BrandsPage() {
   const disconnectShopify = async (brand: Brand) => {
     const { createClient } = await import('@/lib/supabase/client')
     const { data: { session } } = await createClient().auth.getSession()
-    await fetch(`/api/brands/${brand.id}`, {
+    const res = await fetch(`/api/brands/${brand.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
       body: JSON.stringify({ shopify_store_url: null, shopify_access_token: null, shopify_authenticated: false }),
     })
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setToastOk(false)
+      setToast(json.error ?? 'Failed to disconnect Shopify')
+      return
+    }
     await refreshBrands()
     setFormField(brand.id, { shopify_store_url: '' })
+    setToastOk(true)
+    setToast('Shopify disconnected')
   }
 
   return (
@@ -387,6 +395,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
   const [cin7TestMsg, setCin7TestMsg] = useState('')
   const [cin7AttrSet, setCin7AttrSet] = useState<'found' | 'missing' | 'unknown' | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false)
 
   useEffect(() => { if (!expanded) setStep(1) }, [expanded])
 
@@ -871,8 +880,19 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
               <a href={`/api/shopify/connect?brand_id=${brand.id}&shop=${encodeURIComponent(brand.shopify_store_url)}`} className="btn btn-ghost btn-sm text-[length:var(--font-base)]">
                 {shopifyConnected ? 'Re-authorise' : 'Connect'}
               </a>
-              {onDisconnectShopify && (
-                <button type="button" onClick={onDisconnectShopify} className="text-[length:var(--font-base)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Disconnect</button>
+              {onDisconnectShopify && !confirmDisconnect && (
+                <button type="button" onClick={() => setConfirmDisconnect(true)} className="text-[length:var(--font-base)] text-[var(--text3)] hover:text-[#ff3b30] transition-colors">Disconnect</button>
+              )}
+              {onDisconnectShopify && confirmDisconnect && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[length:var(--font-base)] text-[#ff3b30]">Disconnect store?</span>
+                  <button type="button" onClick={() => { setConfirmDisconnect(false); onDisconnectShopify() }}
+                    className="text-[length:var(--font-base)] font-semibold text-[#ff3b30] border border-[rgba(255,59,48,0.4)] px-2 py-[2px] rounded-sm hover:bg-[rgba(255,59,48,0.1)] transition-colors">
+                    Confirm
+                  </button>
+                  <button type="button" onClick={() => setConfirmDisconnect(false)}
+                    className="text-[length:var(--font-base)] text-[var(--text3)] hover:text-[var(--text)] transition-colors">Cancel</button>
+                </div>
               )}
             </div>
           ) : (
