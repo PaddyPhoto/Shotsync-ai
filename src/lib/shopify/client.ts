@@ -16,7 +16,7 @@ export class ShopifyClient {
       .replace(/^https?:\/\//i, '')
       .replace(/\/admin.*$/i, '')
       .replace(/\/+$/, '')
-    this.baseUrl = `https://${cleanDomain}/admin/api/2025-01`
+    this.baseUrl = `https://${cleanDomain}/admin/api/2024-07`
     this.headers = {
       'X-Shopify-Access-Token': accessToken,
       'Content-Type': 'application/json',
