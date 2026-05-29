@@ -45,10 +45,11 @@ export async function GET(req: NextRequest) {
 
   // Persist the install so we can auto-connect when the merchant signs up
   const service = createServiceClient()
-  await service
-    .from('shopify_app_installs')
-    .upsert({ shop, access_token, installed_at: new Date().toISOString() }, { onConflict: 'shop' })
-    .catch(() => {})
+  try {
+    await service
+      .from('shopify_app_installs')
+      .upsert({ shop, access_token, installed_at: new Date().toISOString() }, { onConflict: 'shop' })
+  } catch { /* non-fatal */ }
 
   // Redirect to embedded app shell inside Shopify admin
   const dest = new URL('https://www.shotsync.ai/shopify')
