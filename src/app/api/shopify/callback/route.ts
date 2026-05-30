@@ -19,15 +19,13 @@ export async function GET(req: NextRequest) {
   if (!code || !state || !shop || !hmac) return FAIL(req, 'missing_params')
 
   // Validate HMAC signature from Shopify
+  // Note: Shopify adds 'host' to the callback URL after signing, so exclude it from HMAC params
   const clientSecret = process.env.SHOPIFY_CLIENT_SECRET!
   const params: Record<string, string> = {}
-  searchParams.forEach((v, k) => { if (k !== 'hmac' && k !== 'signature') params[k] = v })
+  searchParams.forEach((v, k) => { if (k !== 'hmac' && k !== 'signature' && k !== 'host') params[k] = v })
   const message = Object.keys(params).sort().map((k) => `${k}=${params[k]}`).join('&')
   const digest = crypto.createHmac('sha256', clientSecret).update(message).digest('hex')
-  if (digest !== hmac) {
-    const keys = Object.keys(params).sort().join(',')
-    return FAIL(req, `hmac_fail__keys_${keys}__msg_${message.slice(0, 80).replace(/&/g, '-')}`)
-  }
+  if (digest !== hmac) return FAIL(req, 'invalid_signature')
 
   // Decode brand_id + shop from signed state param
   const parts = state.split('|')
