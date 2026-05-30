@@ -35,11 +35,11 @@ export async function GET(req: NextRequest) {
   if (sig !== expectedSig) return FAIL(req, 'invalid_state')
   if (savedShop !== shop) return FAIL(req, 'state_mismatch')
 
-  // Exchange code for access token
+  // Exchange code for access token — expiring=1 requests an expiring offline token
   const tokenRes = await fetch(`https://${shop}/admin/oauth/access_token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ client_id: process.env.SHOPIFY_CLIENT_ID, client_secret: clientSecret, code }),
+    body: JSON.stringify({ client_id: process.env.SHOPIFY_CLIENT_ID, client_secret: clientSecret, code, expiring: 1 }),
   })
   if (!tokenRes.ok) return FAIL(req, 'token_exchange_failed')
   const tokenData = await tokenRes.json() as {
@@ -48,7 +48,6 @@ export async function GET(req: NextRequest) {
     expires_in?: number
   }
   const { access_token, refresh_token, expires_in } = tokenData
-  console.log('[shopify-callback] token fields:', { has_access_token: !!access_token, has_refresh_token: !!refresh_token, expires_in })
   const shopify_token_expires_at = expires_in
     ? new Date(Date.now() + expires_in * 1000).toISOString()
     : null
