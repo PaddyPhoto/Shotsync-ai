@@ -35,11 +35,11 @@ export async function GET(req: NextRequest) {
   if (sig !== expectedSig) return FAIL(req, 'invalid_state')
   if (savedShop !== shop) return FAIL(req, 'state_mismatch')
 
-  // Exchange code for access token — expiring=1 requests an expiring offline token
+  // Exchange code for access token — must be form-encoded; expiring=1 requests an expiring offline token
   const tokenRes = await fetch(`https://${shop}/admin/oauth/access_token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ client_id: process.env.SHOPIFY_CLIENT_ID, client_secret: clientSecret, code, expiring: 1 }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+    body: new URLSearchParams({ client_id: process.env.SHOPIFY_CLIENT_ID!, client_secret: clientSecret, code, expiring: '1' }).toString(),
   })
   if (!tokenRes.ok) return FAIL(req, 'token_exchange_failed')
   const tokenData = await tokenRes.json() as {
