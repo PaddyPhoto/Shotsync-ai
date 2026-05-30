@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
   searchParams.forEach((v, k) => { if (k !== 'hmac' && k !== 'signature') params[k] = v })
   const message = Object.keys(params).sort().map((k) => `${k}=${params[k]}`).join('&')
   const digest = crypto.createHmac('sha256', clientSecret).update(message).digest('hex')
-  if (digest !== hmac) return FAIL(req, `hmac_fail__sec${clientSecret.slice(0, 6)}__got${digest.slice(0, 6)}__exp${hmac.slice(0, 6)}`)
+  if (digest !== hmac) {
+    const keys = Object.keys(params).sort().join(',')
+    return FAIL(req, `hmac_fail__keys_${keys}__msg_${message.slice(0, 80).replace(/&/g, '-')}`)
+  }
 
   // Decode brand_id + shop from signed state param
   const parts = state.split('|')
