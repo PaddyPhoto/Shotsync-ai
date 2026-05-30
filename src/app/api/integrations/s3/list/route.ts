@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/integrations/s3/list
  *
