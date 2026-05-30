@@ -173,7 +173,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
   const confirmedClusters = sessionClusters
     .filter((c) => c.confirmed)
     .sort((a, b) => parseInt(a.label?.match(/\d+/)?.[0] ?? '0', 10) - parseInt(b.label?.match(/\d+/)?.[0] ?? '0', 10))
-  const shopifyBrands = brands.filter((b) => b.shopify_store_url && b.shopify_authenticated)
+  const shopifyBrands = brands.filter((b) => b.shopify_store_url && b.shopify_access_token)
   const shopifyBrand = shopifyBrands.find((b) => b.id === selectedBrandId) ?? shopifyBrands[0] ?? null
 
   // Brand-specific marketplace rules (overrides hardcoded defaults per brand)
