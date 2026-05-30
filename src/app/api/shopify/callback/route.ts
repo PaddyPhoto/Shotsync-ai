@@ -48,6 +48,7 @@ export async function GET(req: NextRequest) {
     expires_in?: number
   }
   const { access_token, refresh_token, expires_in } = tokenData
+  console.log('[shopify-callback] token fields:', { has_access_token: !!access_token, has_refresh_token: !!refresh_token, expires_in })
   const shopify_token_expires_at = expires_in
     ? new Date(Date.now() + expires_in * 1000).toISOString()
     : null
