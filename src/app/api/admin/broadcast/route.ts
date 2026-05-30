@@ -33,12 +33,19 @@ function getEdmHtml(unsubscribeUrl: string): string {
       </a>
     </td></tr>
 
-    <!-- HERO -->
-    <tr><td bgcolor="#0a0a0a" style="padding:56px 40px 52px;text-align:center;">
-      <p style="margin:0 0 20px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);">Post-production, automated</p>
-      <h1 style="margin:0 0 18px;font-size:42px;font-weight:600;letter-spacing:-2px;line-height:1.06;color:#ffffff;">Your shoot is wrapped.<br><span style="color:rgba(255,255,255,0.38);">The work isn&rsquo;t.</span></h1>
-      <p style="margin:0 auto 36px;max-width:420px;font-size:16px;line-height:1.6;color:rgba(255,255,255,0.5);letter-spacing:-0.2px;">ShotSync renames every image, writes product copy, and publishes directly to your marketplaces — in the time it used to take just to sort a folder.</p>
-      <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start free — 30 days on us</a>
+    <!-- HERO IMAGE -->
+    <tr><td bgcolor="#0a0a0a" style="padding:0;line-height:0;font-size:0;">
+      <a href="https://www.shotsync.ai" style="display:block;line-height:0;font-size:0;">
+        <img src="https://www.shotsync.ai/email/hero-bg.jpg" width="680" alt="ShotSync — fashion post-production automated" style="display:block;width:100%;max-width:680px;height:auto;border:0;">
+      </a>
+    </td></tr>
+
+    <!-- HERO TEXT -->
+    <tr><td bgcolor="#0a0a0a" style="background:linear-gradient(160deg,#0f0f1a 0%,#0a0a0a 60%);padding:48px 40px 44px;text-align:center;">
+      <p style="margin:0 0 18px;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#007aff;">Post-production, automated</p>
+      <h1 style="margin:0 0 18px;font-size:40px;font-weight:600;letter-spacing:-2px;line-height:1.06;color:#ffffff;">Your shoot is wrapped.<br><span style="color:rgba(255,255,255,0.35);">The work isn&rsquo;t.</span></h1>
+      <p style="margin:0 auto 32px;max-width:420px;font-size:15px;line-height:1.65;color:rgba(255,255,255,0.48);letter-spacing:-0.2px;">ShotSync renames every image, writes product copy, and publishes directly to your marketplaces — in the time it used to take just to sort a folder.</p>
+      <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#007aff;color:#ffffff;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start free — 30 days on us</a>
     </td></tr>
 
     <!-- TIME COMPARISON -->
@@ -51,12 +58,12 @@ function getEdmHtml(unsubscribeUrl: string): string {
             <div style="font-size:12px;color:#c7c7cc;line-height:1.5;">Renaming, resizing, writing copy, formatting per marketplace</div>
           </td>
           <td width="12%" style="text-align:center;vertical-align:middle;">
-            <div style="font-size:20px;color:#d1d1d6;">&rarr;</div>
+            <div style="font-size:20px;color:#007aff;">&rarr;</div>
           </td>
-          <td width="44%" style="background:#0a0a0a;border-radius:14px;padding:24px;text-align:center;vertical-align:top;">
-            <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:12px;">With ShotSync</div>
+          <td width="44%" style="background:#007aff;border-radius:14px;padding:24px;text-align:center;vertical-align:top;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:12px;">With ShotSync</div>
             <div style="font-size:36px;font-weight:600;letter-spacing:-2px;color:#ffffff;line-height:1;margin-bottom:6px;">25 min</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.4);line-height:1.5;">Upload, review, export — done</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;">Upload, review, export — done</div>
           </td>
         </tr>
       </table>
@@ -73,7 +80,7 @@ function getEdmHtml(unsubscribeUrl: string): string {
           <td style="padding-bottom:20px;vertical-align:top;">
             <table cellpadding="0" cellspacing="0" border="0"><tr>
               <td style="vertical-align:top;padding-right:16px;">
-                <div style="width:28px;height:28px;background:#0a0a0a;border-radius:8px;text-align:center;line-height:28px;font-size:11px;font-weight:700;color:#ffffff;">01</div>
+                <div style="width:28px;height:28px;background:#007aff;border-radius:8px;text-align:center;line-height:28px;font-size:11px;font-weight:700;color:#ffffff;">01</div>
               </td>
               <td style="vertical-align:top;">
                 <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:3px;">Upload your shoot folder</div>
@@ -86,7 +93,7 @@ function getEdmHtml(unsubscribeUrl: string): string {
           <td style="padding-bottom:20px;vertical-align:top;">
             <table cellpadding="0" cellspacing="0" border="0"><tr>
               <td style="vertical-align:top;padding-right:16px;">
-                <div style="width:28px;height:28px;background:#0a0a0a;border-radius:8px;text-align:center;line-height:28px;font-size:11px;font-weight:700;color:#ffffff;">02</div>
+                <div style="width:28px;height:28px;background:#007aff;border-radius:8px;text-align:center;line-height:28px;font-size:11px;font-weight:700;color:#ffffff;">02</div>
               </td>
               <td style="vertical-align:top;">
                 <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:3px;">Review, assign SKUs, generate copy</div>
@@ -99,7 +106,7 @@ function getEdmHtml(unsubscribeUrl: string): string {
           <td style="vertical-align:top;">
             <table cellpadding="0" cellspacing="0" border="0"><tr>
               <td style="vertical-align:top;padding-right:16px;">
-                <div style="width:28px;height:28px;background:#0a0a0a;border-radius:8px;text-align:center;line-height:28px;font-size:11px;font-weight:700;color:#ffffff;">03</div>
+                <div style="width:28px;height:28px;background:#007aff;border-radius:8px;text-align:center;line-height:28px;font-size:11px;font-weight:700;color:#ffffff;">03</div>
               </td>
               <td style="vertical-align:top;">
                 <div style="font-size:14px;font-weight:600;color:#0a0a0a;margin-bottom:3px;">Export to every channel at once</div>
@@ -120,30 +127,40 @@ function getEdmHtml(unsubscribeUrl: string): string {
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding:14px 18px;border:1px solid #e8e8ed;border-radius:10px;vertical-align:middle;">
-            <div style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">THE ICONIC</div>
-            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;">Auto-formatted to spec</div>
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#ff9f0a;display:inline-block;margin-right:6px;"></div><span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">THE ICONIC</span>
+            </div>
+            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;padding-left:13px;">Auto-formatted to spec</div>
           </td>
           <td width="8"></td>
           <td style="padding:14px 18px;border:1px solid #e8e8ed;border-radius:10px;vertical-align:middle;">
-            <div style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">MYER</div>
-            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;">ShotSync export ready</div>
+            <div style="margin-bottom:2px;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#ff3b30;display:inline-block;margin-right:6px;"></div><span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">MYER</span>
+            </div>
+            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;padding-left:13px;">ShotSync export ready</div>
           </td>
           <td width="8"></td>
           <td style="padding:14px 18px;border:1px solid #e8e8ed;border-radius:10px;vertical-align:middle;">
-            <div style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">DAVID JONES</div>
-            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;">ShotSync export ready</div>
+            <div style="margin-bottom:2px;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#0a84ff;display:inline-block;margin-right:6px;"></div><span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">DAVID JONES</span>
+            </div>
+            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;padding-left:13px;">ShotSync export ready</div>
           </td>
         </tr>
         <tr><td colspan="5" style="height:8px;"></td></tr>
         <tr>
           <td style="padding:14px 18px;border:1px solid #e8e8ed;border-radius:10px;vertical-align:middle;">
-            <div style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">SHOPIFY</div>
-            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;">Direct publish to store</div>
+            <div style="margin-bottom:2px;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#30d158;display:inline-block;margin-right:6px;"></div><span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">SHOPIFY</span>
+            </div>
+            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;padding-left:13px;">Direct publish to store</div>
           </td>
           <td width="8"></td>
           <td style="padding:14px 18px;border:1px solid #e8e8ed;border-radius:10px;vertical-align:middle;">
-            <div style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">JOOR</div>
-            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;">Wholesale ready</div>
+            <div style="margin-bottom:2px;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#5856d6;display:inline-block;margin-right:6px;"></div><span style="font-size:12px;font-weight:700;letter-spacing:0.04em;color:#0a0a0a;">JOOR</span>
+            </div>
+            <div style="font-size:11px;color:#aeaeb2;margin-top:1px;padding-left:13px;">Wholesale ready</div>
           </td>
           <td width="8"></td>
           <td style="padding:14px 18px;border:1px solid rgba(0,0,0,0.04);border-radius:10px;background:#fafafa;vertical-align:middle;">
@@ -157,10 +174,10 @@ function getEdmHtml(unsubscribeUrl: string): string {
     <!-- CTA -->
     <tr><td style="padding:0 16px 0;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr><td bgcolor="#0a0a0a" style="padding:48px 40px;text-align:center;border-radius:16px;">
+        <tr><td bgcolor="#0a0a0a" style="background:linear-gradient(135deg,#0f0f1a 0%,#0a0a0a 100%);padding:48px 40px;text-align:center;border-radius:16px;">
           <h2 style="margin:0 0 10px;font-size:28px;font-weight:600;letter-spacing:-1.2px;color:#ffffff;line-height:1.2;">Ready to cut post-production<br>from days to minutes?</h2>
           <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.4);line-height:1.6;letter-spacing:-0.1px;">No credit card. No setup fee. Cancel any time.</p>
-          <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#ffffff;color:#0a0a0a;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start your free trial</a>
+          <a href="https://www.shotsync.ai/signup" style="display:inline-block;background:#007aff;color:#ffffff;font-size:14px;font-weight:600;letter-spacing:-0.3px;padding:13px 32px;border-radius:10px;text-decoration:none;">Start your free trial</a>
         </td></tr>
       </table>
     </td></tr>
