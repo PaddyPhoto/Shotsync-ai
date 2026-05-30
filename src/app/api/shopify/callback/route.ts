@@ -24,8 +24,7 @@ export async function GET(req: NextRequest) {
   searchParams.forEach((v, k) => { if (k !== 'hmac' && k !== 'signature') params[k] = v })
   const message = Object.keys(params).sort().map((k) => `${k}=${params[k]}`).join('&')
   const digest = crypto.createHmac('sha256', clientSecret).update(message).digest('hex')
-  console.log('[shopify-callback] HMAC debug — secret prefix:', clientSecret.slice(0, 4), '| message:', message, '| digest:', digest, '| provided:', hmac)
-  if (digest !== hmac) return FAIL(req, 'invalid_signature')
+  if (digest !== hmac) return FAIL(req, `hmac_fail__sec${clientSecret.slice(0, 6)}__got${digest.slice(0, 6)}__exp${hmac.slice(0, 6)}`)
 
   // Decode brand_id + shop from signed state param
   const parts = state.split('|')
