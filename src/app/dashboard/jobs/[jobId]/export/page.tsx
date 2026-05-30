@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import { useSession } from '@/store/session'
+import type { StyleListEntry } from '@/store/session'
 import { useBrand } from '@/context/BrandContext'
 import { applyNamingTemplate } from '@/lib/brands'
 import { processImageOnCanvas } from '@/lib/export/image-processing'
@@ -226,10 +227,21 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     const { data: { session } } = await createClient().auth.getSession()
     const authHeader: Record<string, string> = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
 
+    // Load style list for CSV metadata enrichment — prefer live session, fall back to IDB
+    let styleList: StyleListEntry[] = useSession.getState().styleList
+    if (!styleList.length && params.jobId !== 'session') {
+      try {
+        const { loadSession } = await import('@/lib/session-store')
+        const stored = await loadSession(params.jobId)
+        if (stored?.styleList?.length) styleList = stored.styleList
+      } catch { /* no style list available */ }
+    }
+
     for (let ci = 0; ci < confirmedClusters.length; ci++) {
       if (cancelPushRef.current) break
       const cluster = confirmedClusters[ci]
       const draftSku = cluster.sku ?? `${shopifyBrand.brand_code}-${String(ci + 1).padStart(3, '0')}`
+      const styleEntry = styleList.find((e) => e.sku.toUpperCase() === draftSku.toUpperCase())
 
       setDrafts((prev) => prev.map((d) => d.id === cluster.id ? { ...d, status: 'creating' } : d))
 
@@ -265,12 +277,34 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           headers: { 'Content-Type': 'application/json', ...authHeader },
           body: JSON.stringify({
             brand_id: shopifyBrand.id,
+            vendor: shopifyBrand.name,
             clusters: [{
               sku: draftSku,
               productName: cluster.productName || cluster.label || draftSku,
               color: cluster.color ?? '',
+              colourCode: cluster.colourCode ?? '',
+              styleNumber: cluster.styleNumber ?? '',
+              garmentCategory: cluster.garmentCategory || null,
               gmPosition: shopifyBrand.gm_position ?? 'last',
               images,
+              ...((cluster.copyDescription || cluster.copyBullets?.length) ? { copy: {
+                title: cluster.productName || draftSku,
+                description: cluster.copyDescription || '',
+                bullets: cluster.copyBullets ?? [],
+              } } : {}),
+              ...(styleEntry ? { styleEntry: {
+                composition: styleEntry.composition,
+                care: styleEntry.care,
+                fit: styleEntry.fit,
+                length: styleEntry.length,
+                rrp: styleEntry.rrp,
+                season: styleEntry.season,
+                occasion: styleEntry.occasion,
+                gender: styleEntry.gender,
+                subCategory: styleEntry.subCategory,
+                origin: styleEntry.origin,
+                sizeRange: styleEntry.sizeRange,
+              } } : {}),
             }],
             tempPaths,
           }),
