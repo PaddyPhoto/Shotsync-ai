@@ -42,7 +42,15 @@ export async function GET(req: NextRequest) {
     body: JSON.stringify({ client_id: process.env.SHOPIFY_CLIENT_ID, client_secret: clientSecret, code }),
   })
   if (!tokenRes.ok) return FAIL(req, 'token_exchange_failed')
-  const { access_token } = await tokenRes.json()
+  const tokenData = await tokenRes.json() as {
+    access_token: string
+    refresh_token?: string
+    expires_in?: number
+  }
+  const { access_token, refresh_token, expires_in } = tokenData
+  const shopify_token_expires_at = expires_in
+    ? new Date(Date.now() + expires_in * 1000).toISOString()
+    : null
 
   // Check plan limits
   const user = await getAuthUser(req)
@@ -76,7 +84,12 @@ export async function GET(req: NextRequest) {
 
   const { error: updateErr } = await service
     .from('brands')
-    .update({ shopify_store_url: shop, shopify_access_token: access_token })
+    .update({
+      shopify_store_url: shop,
+      shopify_access_token: access_token,
+      shopify_refresh_token: refresh_token ?? null,
+      shopify_token_expires_at,
+    })
     .eq('id', brand_id)
 
   if (updateErr) {

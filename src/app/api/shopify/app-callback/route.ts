@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     body: JSON.stringify({ client_id: process.env.SHOPIFY_CLIENT_ID, client_secret: clientSecret, code }),
   })
   if (!tokenRes.ok) return NextResponse.redirect(`${FAIL_URL}token_exchange_failed`)
-  const { access_token } = await tokenRes.json()
+  const { access_token } = await tokenRes.json() as { access_token: string }
 
   // Persist the install so we can auto-connect when the merchant signs up
   const service = createServiceClient()

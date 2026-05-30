@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient, getAuthUser } from '@/lib/supabase/server'
 import { ShopifyClient, type ShopifyMetafield } from '@/lib/shopify/client'
+import { getShopifyToken } from '@/lib/shopify/get-token'
 
 export const maxDuration = 60
 
@@ -59,15 +60,23 @@ export async function POST(req: NextRequest) {
 
   const { data: brand, error: brandErr } = await service
     .from('brands')
-    .select('shopify_store_url, shopify_access_token, name')
+    .select('shopify_store_url, name')
     .eq('id', brand_id)
     .single()
 
-  if (brandErr || !brand?.shopify_store_url || !brand?.shopify_access_token) {
+  if (brandErr || !brand?.shopify_store_url) {
     return NextResponse.json({ error: 'Brand has no Shopify credentials configured' }, { status: 400 })
   }
 
-  const client = new ShopifyClient(brand.shopify_store_url, brand.shopify_access_token)
+  const accessToken = await getShopifyToken(brand_id, service)
+  if (!accessToken) {
+    return NextResponse.json(
+      { error: 'Shopify token expired or missing. Please reconnect Shopify in Brand Settings.' },
+      { status: 401 },
+    )
+  }
+
+  const client = new ShopifyClient(brand.shopify_store_url, accessToken)
   const brandVendor = vendor || brand.name || ''
 
   const results: {
