@@ -20,12 +20,11 @@ export async function GET(req: NextRequest) {
 
   // Validate HMAC signature from Shopify
   const clientSecret = process.env.SHOPIFY_CLIENT_SECRET!
-  const clientId = process.env.SHOPIFY_CLIENT_ID ?? 'unset'
   const params: Record<string, string> = {}
   searchParams.forEach((v, k) => { if (k !== 'hmac' && k !== 'signature') params[k] = v })
   const message = Object.keys(params).sort().map((k) => `${k}=${params[k]}`).join('&')
   const digest = crypto.createHmac('sha256', clientSecret).update(message).digest('hex')
-  if (digest !== hmac) return FAIL(req, `hmac_fail__cid${clientId.slice(0, 8)}__sec${clientSecret.slice(0, 8)}__got${digest.slice(0, 6)}__exp${hmac.slice(0, 6)}`)
+  if (digest !== hmac) return FAIL(req, 'invalid_signature')
 
   // Decode brand_id + shop from signed state param
   const parts = state.split('|')
