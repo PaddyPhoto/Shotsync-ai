@@ -21,14 +21,12 @@ export async function GET(req: NextRequest) {
   const sig = crypto.createHmac('sha256', process.env.SHOPIFY_CLIENT_SECRET!).update(payload).digest('hex').slice(0, 16)
   const state = `${payload}|${sig}`
 
-  // grant_options[]=per-user requests an online (expiring) token — required by Shopify Admin API
   const authUrl =
     `https://${cleanShop}/admin/oauth/authorize` +
     `?client_id=${clientId}` +
     `&scope=${scopes}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-    `&state=${encodeURIComponent(state)}` +
-    `&grant_options[]=per-user`
+    `&state=${encodeURIComponent(state)}`
 
   return NextResponse.redirect(authUrl)
 }
