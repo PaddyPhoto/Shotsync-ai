@@ -90,6 +90,7 @@ function ReviewPage() {
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber, setClusterCopyText,
     setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, unconfirmCluster, setClusterIncomplete, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
+    setClusterProduct,
   } = useSession()
 
   // Resolves the AccessoryCategory config for a cluster.
@@ -129,6 +130,14 @@ function ReviewPage() {
   }>>({})
   const [generatingAll, setGeneratingAll] = useState(false)
   const [generateAllProgress, setGenerateAllProgress] = useState({ done: 0, total: 0, failed: 0 })
+
+  type ProductMatch = {
+    productId: string
+    productTitle: string
+    colourways: { id: string; name: string; code: string | null }[]
+  }
+  const [productMatchMap, setProductMatchMap] = useState<Record<string, ProductMatch>>({})
+  const [linkingClusters, setLinkingClusters] = useState<Set<string>>(new Set())
 
   const COPY_LIMIT = 200
 
@@ -377,6 +386,27 @@ function ReviewPage() {
     })
   }, [isReady, styleList])
 
+  // Fetch PIM product matches for all cluster SKUs once the session is ready.
+  // Results are keyed by SKU — clusters with matching products show a link badge.
+  useEffect(() => {
+    if (!isReady) return
+    const skus = [...new Set(clusters.filter((c) => c.sku).map((c) => c.sku.trim().toUpperCase()))]
+    if (!skus.length) return
+    import('@/lib/supabase/client').then(({ createClient }) =>
+      createClient().auth.getSession()
+    ).then(({ data: { session } }) => {
+      if (!session) return null
+      return fetch('/api/products/match-skus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ skus }),
+      }).then((r) => r.json())
+    }).then((result) => {
+      if (result?.matches) setProductMatchMap(result.matches)
+    }).catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReady])
+
   // Auto-detect accessory category for uncategorised still-life clusters using GPT-4o vision.
   // Runs once when the session loads. Only fires for still-life shoots with no category set.
   useEffect(() => {
@@ -563,6 +593,82 @@ function ReviewPage() {
     setSkuInput((s) => ({ ...s, [clusterId]: entry.sku }))
   }
 
+  // Compress a File to a base64 JPEG string at max 1400px for product image storage.
+  const compressToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image()
+      const src = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(src)
+        const scale = Math.min(1, 1400 / Math.max(img.width, img.height))
+        const w = Math.round(img.width * scale)
+        const h = Math.round(img.height * scale)
+        const canvas = document.createElement('canvas')
+        canvas.width = w; canvas.height = h
+        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+        canvas.toBlob((blob) => {
+          if (!blob) { reject(new Error('compress failed')); return }
+          const reader = new FileReader()
+          reader.onload = () => resolve((reader.result as string).split(',')[1])
+          reader.onerror = reject
+          reader.readAsDataURL(blob)
+        }, 'image/jpeg', 0.82)
+      }
+      img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('load failed')) }
+      img.src = src
+    })
+
+  // Resolve the best colourway match for a cluster's colour against a product's colourway list.
+  const resolveColourway = (colour: string, colourways: { id: string; name: string }[]): string | null => {
+    if (!colourways.length) return null
+    if (colourways.length === 1) return colourways[0].id
+    if (!colour) return null
+    const c = colour.toLowerCase()
+    const exact = colourways.find((cw) => cw.name.toLowerCase() === c)
+    if (exact) return exact.id
+    const sub = colourways.find((cw) => cw.name.toLowerCase().includes(c) || c.includes(cw.name.toLowerCase()))
+    return sub?.id ?? null
+  }
+
+  // Upload cluster images to the linked product colourway in the background after confirm.
+  const saveClusterToProduct = async (cluster: SessionCluster, productId: string, colourwayId: string) => {
+    setLinkingClusters((prev) => new Set([...prev, cluster.id]))
+    try {
+      const { data: { session } } = await import('@/lib/supabase/client').then((m) => m.createClient().auth.getSession())
+      if (!session) return
+      const images = await Promise.all(
+        cluster.images.map(async (img, idx) => ({
+          viewLabel: img.viewLabel as string,
+          sortOrder: idx,
+          filename: img.filename,
+          data: await compressToBase64(img.file),
+        }))
+      )
+      await fetch(`/api/products/${productId}/images`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ colourwayId, images }),
+      })
+      setClusterProduct(cluster.id, productId, colourwayId)
+    } catch {
+      // non-critical — images can be linked later from the product page
+    } finally {
+      setLinkingClusters((prev) => { const n = new Set(prev); n.delete(cluster.id); return n })
+    }
+  }
+
+  // After confirming a cluster, attempt to link its images to the matching PIM product.
+  const triggerProductLink = (clusterId: string, overrideSku?: string) => {
+    const cluster = clusters.find((c) => c.id === clusterId)
+    if (!cluster) return
+    const sku = (overrideSku ?? skuInput[clusterId] ?? cluster.sku).trim().toUpperCase()
+    const match = productMatchMap[sku]
+    if (!match) return
+    const colourwayId = resolveColourway(cluster.color, match.colourways)
+    if (!colourwayId) return
+    saveClusterToProduct(cluster, match.productId, colourwayId)
+  }
+
   const handleConfirm = (clusterId: string) => {
     const cluster = clusters.find((c) => c.id === clusterId)
     if (!cluster) return
@@ -571,6 +677,7 @@ function ReviewPage() {
 
     if (!styleList.length) {
       confirmCluster(clusterId)
+      triggerProductLink(clusterId, typed)
       return
     }
 
@@ -580,10 +687,12 @@ function ReviewPage() {
     if (matches.length === 0) {
       setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'no-match' }))
       confirmCluster(clusterId)
+      triggerProductLink(clusterId, typed)
     } else if (matches.length === 1) {
       applyStyleEntry(clusterId, matches[0])
       setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'matched' }))
       confirmCluster(clusterId)
+      triggerProductLink(clusterId, matches[0].sku.toUpperCase())
     } else {
       setSkuMatches((prev) => ({ ...prev, [clusterId]: matches }))
       setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'multiple' }))
@@ -1217,18 +1326,61 @@ function ReviewPage() {
                         <span className="hidden group-hover:inline">Unmark</span>
                       </button>
                     ) : cluster.confirmed ? (
-                      <button
-                        onClick={() => unconfirmCluster(cluster.id)}
-                        title="Click to unconfirm"
-                        className="group text-[length:var(--font-base)] font-semibold text-[var(--accent2)] flex items-center gap-1 flex-shrink-0 hover:text-[var(--text3)] transition-colors"
-                      >
-                        <svg className="group-hover:hidden" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
-                        <svg className="hidden group-hover:block" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
-                        <span className="group-hover:hidden">Confirmed</span>
-                        <span className="hidden group-hover:inline">Unconfirm</span>
-                      </button>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {linkingClusters.has(cluster.id) ? (
+                          <span className="text-[length:var(--font-xs)] text-[var(--text3)] flex items-center gap-1">
+                            <span style={{ width: 8, height: 8, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.2)', borderTopColor: 'var(--accent2)', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                            linking…
+                          </span>
+                        ) : cluster.productId ? (
+                          (() => {
+                            const match = productMatchMap[cluster.sku?.toUpperCase()]
+                            const cw = match?.colourways.find((c) => c.id === cluster.colourwayId)
+                            return (
+                              <span
+                                className="text-[length:var(--font-xs)] flex items-center gap-1 px-[6px] py-[2px] rounded-[5px]"
+                                style={{ background: 'rgba(48,209,88,0.1)', color: '#30d158' }}
+                                title={`Images saved to ${match?.productTitle ?? 'product'}${cw ? ` — ${cw.name}` : ''}`}
+                              >
+                                <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
+                                {cw ? cw.name : 'Linked'}
+                              </span>
+                            )
+                          })()
+                        ) : (() => {
+                          const sku = cluster.sku?.toUpperCase()
+                          const match = sku ? productMatchMap[sku] : null
+                          return match ? (
+                            <span className="text-[length:var(--font-xs)] text-[var(--text3)] italic">no colourway match</span>
+                          ) : null
+                        })()}
+                        <button
+                          onClick={() => unconfirmCluster(cluster.id)}
+                          title="Click to unconfirm"
+                          className="group text-[length:var(--font-base)] font-semibold text-[var(--accent2)] flex items-center gap-1 hover:text-[var(--text3)] transition-colors"
+                        >
+                          <svg className="group-hover:hidden" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 5 4.5 7.5 8 2.5"/></svg>
+                          <svg className="hidden group-hover:block" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 2l6 6M8 2L2 8"/></svg>
+                          <span className="group-hover:hidden">Confirmed</span>
+                          <span className="hidden group-hover:inline">Unconfirm</span>
+                        </button>
+                      </div>
                     ) : (
-                      <div className="flex items-center gap-1 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {(() => {
+                          const sku = (skuInput[cluster.id] ?? cluster.sku)?.trim().toUpperCase()
+                          const match = sku ? productMatchMap[sku] : null
+                          return match ? (
+                            <span
+                              className="text-[length:var(--font-xs)] flex items-center gap-1 px-[6px] py-[2px] rounded-[5px]"
+                              style={{ background: 'rgba(48,209,88,0.06)', color: 'rgba(48,209,88,0.7)', border: '0.5px solid rgba(48,209,88,0.2)' }}
+                              title={`Will link to product: ${match.productTitle}`}
+                            >
+                              <svg width="7" height="7" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M2 5h6M6 2.5l2.5 2.5L6 7.5"/></svg>
+                              {match.productTitle}
+                            </span>
+                          ) : null
+                        })()}
                         <button
                           onClick={() => setClusterIncomplete(cluster.id, true)}
                           title="Mark as incomplete — skips this cluster when confirming all"
@@ -1260,6 +1412,7 @@ function ReviewPage() {
                               setSkuMatchState((s) => ({ ...s, [cluster.id]: 'matched' }))
                               setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
                               confirmCluster(cluster.id)
+                              triggerProductLink(cluster.id, entry.sku.toUpperCase())
                             }}
                             className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[5px] text-[length:var(--font-sm)] border border-[var(--line2)] hover:border-[var(--accent)] hover:text-[var(--text)] transition-colors"
                             style={{ color: 'var(--text2)' }}

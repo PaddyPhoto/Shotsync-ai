@@ -28,6 +28,8 @@ export interface SessionCluster {
   exported: boolean
   copyDescription?: string
   copyBullets?: string[]
+  productId?: string      // linked PIM product (matched by SKU)
+  colourwayId?: string    // linked PIM colourway (matched by colour name)
 }
 
 export interface StyleListEntry {
@@ -75,6 +77,7 @@ interface SessionState {
   updateClusterColor: (clusterId: string, color: string) => void
   updateClusterColourCode: (clusterId: string, colourCode: string) => void
   updateClusterStyleNumber: (clusterId: string, styleNumber: string) => void
+  setClusterProduct: (clusterId: string, productId: string | null, colourwayId: string | null) => void
   setClusterCategory: (clusterId: string, category: string | null) => void
   setClusterGarmentCategory: (clusterId: string, garmentCategory: string | null) => void
   setClusterBottomwear: (clusterId: string, isBottomwear: boolean) => void
@@ -264,6 +267,14 @@ export const useSession = create<SessionState>((set, get) => ({
   updateClusterStyleNumber: (clusterId, styleNumber) => set((state) => ({
     clusters: state.clusters.map((c) =>
       c.id === clusterId ? { ...c, styleNumber } : c
+    ),
+  })),
+
+  setClusterProduct: (clusterId, productId, colourwayId) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId
+        ? { ...c, productId: productId ?? undefined, colourwayId: colourwayId ?? undefined }
+        : c
     ),
   })),
 
