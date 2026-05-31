@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "ShotSync",
+  "version": "0.1.0",
+  "description": "Publish product listings from ShotSync directly to marketplace seller portals.",
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+
+  "host_permissions": [
+    "https://seller.theiconic.com.au/*",
+    "https://supplier.myer.com.au/*",
+    "https://vendorportal.davidjones.com.au/*",
+    "https://app.joor.com/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16":  "icons/icon-16.png",
+      "48":  "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://seller.theiconic.com.au/*"],
+      "js": ["content/iconic.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://supplier.myer.com.au/*"],
+      "js": ["content/myer.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://vendorportal.davidjones.com.au/*"],
+      "js": ["content/dj.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "icons": {
+    "16":  "icons/icon-16.png",
+    "48":  "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShotSync</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 360px;
+      min-height: 480px;
+      background: #0a0a0a;
+      color: #f5f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.1);
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    .header-logo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #007aff;
+    }
+    .header-channel {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+    .channel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    /* Auth screen */
+    #auth-screen {
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .auth-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    .auth-sub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.5;
+    }
+    .input {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 0.5px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: #f5f5f7;
+      outline: none;
+    }
+    .input:focus { border-color: #007aff; }
+    .btn-primary {
+      width: 100%;
+      padding: 9px;
+      background: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #0066d6; }
+    .btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+    /* Main screen */
+    #main-screen { display: none; }
+
+    /* Colourway tabs */
+    .cw-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 10px 16px 0;
+    }
+    .cw-tab {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 0.5px solid rgba(255,255,255,0.1);
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+    }
+    .cw-tab.active {
+      border-color: #007aff;
+      background: rgba(0,122,255,0.1);
+      color: #007aff;
+    }
+    .cw-swatch {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Product card */
+    .product-card {
+      margin: 10px 16px 0;
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .product-name {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      margin-bottom: 2px;
+    }
+    .product-meta {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      display: flex;
+      gap: 8px;
+    }
+    .product-meta span { font-family: monospace; }
+
+    /* Readiness checklist */
+    .readiness {
+      margin: 10px 16px 0;
+    }
+    .readiness-title {
+      font-size: 10px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .readiness-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      border-bottom: 0.5px solid rgba(255,255,255,0.05);
+    }
+    .readiness-item:last-child { border-bottom: none; }
+    .check-icon { width: 14px; height: 14px; flex-shrink: 0; }
+    .readiness-item.done { color: rgba(255,255,255,0.85); }
+    .readiness-item.missing { color: rgba(255,59,48,0.7); }
+
+    /* Field preview */
+    .field-preview {
+      margin: 10px 16px 0;
+    }
+    .field-row {
+      display: flex;
+      padding: 5px 0;
+      border-bottom: 0.5px solid rgba(255,255,255,0.05);
+      gap: 8px;
+    }
+    .field-row:last-child { border-bottom: none; }
+    .field-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      width: 90px;
+      flex-shrink: 0;
+    }
+    .field-value {
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Actions */
+    .actions {
+      padding: 12px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .btn-push {
+      width: 100%;
+      padding: 10px;
+      background: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .btn-push:hover { background: #0066d6; }
+    .btn-push:disabled { opacity: 0.4; cursor: default; }
+    .btn-secondary {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.2); }
+
+    /* Status bar */
+    .status-bar {
+      padding: 8px 16px;
+      font-size: 11px;
+      border-radius: 6px;
+      margin: 0 16px;
+      display: none;
+    }
+    .status-bar.success { background: rgba(48,209,88,0.1); color: #30d158; display: block; }
+    .status-bar.error   { background: rgba(255,59,48,0.1);  color: #ff3b30; display: block; }
+    .status-bar.loading { background: rgba(0,122,255,0.08); color: #007aff; display: block; }
+
+    /* No portal warning */
+    .no-portal {
+      padding: 20px 16px;
+      text-align: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .no-portal strong { color: rgba(255,255,255,0.5); display: block; margin-bottom: 4px; }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    /* Product picker */
+    .product-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 8px 16px 0;
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .product-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      cursor: pointer;
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
+      transition: background 0.1s;
+    }
+    .product-list-item:last-child { border-bottom: none; }
+    .product-list-item:hover { background: rgba(255,255,255,0.04); }
+    .product-list-item.selected { background: rgba(0,122,255,0.08); }
+    .product-list-item-name { font-size: 12px; font-weight: 500; }
+    .product-list-item-sku  { font-size: 11px; color: rgba(255,255,255,0.3); font-family: monospace; }
+  </style>
+</head>
+<body>
+
+  <!-- Header (always visible) -->
+  <div class="header">
+    <div class="header-logo">
+      <div class="header-logo-dot"></div>
+      ShotSync
+    </div>
+    <div class="header-channel" id="channel-indicator">
+      <div class="channel-dot" id="channel-dot" style="background:#555"></div>
+      <span id="channel-name">Not on a marketplace</span>
+    </div>
+  </div>
+
+  <!-- Auth screen -->
+  <div id="auth-screen">
+    <div>
+      <div class="auth-title">Connect your account</div>
+      <div class="auth-sub" style="margin-top:6px">Enter your ShotSync API key to start publishing listings directly from your browser.</div>
+    </div>
+    <input class="input" id="api-key-input" type="password" placeholder="API key from ShotSync settings…" />
+    <input class="input" id="shotsync-url-input" type="text" placeholder="Your ShotSync URL (e.g. https://app.shotsync.ai)" />
+    <button class="btn-primary" id="connect-btn">Connect</button>
+    <div class="status-bar" id="auth-status"></div>
+  </div>
+
+  <!-- Main screen -->
+  <div id="main-screen">
+
+    <!-- No portal warning -->
+    <div id="no-portal-warning" class="no-portal" style="display:none">
+      <strong>Not on a supported portal</strong>
+      Navigate to The Iconic, Myer, or David Jones seller portal to publish a listing.
+    </div>
+
+    <!-- Product content (shown when on a portal) -->
+    <div id="portal-content" style="display:none">
+
+      <!-- Product picker -->
+      <div style="padding:10px 16px 0; display:flex; align-items:center; justify-content:space-between">
+        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.06em">Select product</div>
+        <button id="refresh-btn" style="font-size:11px;color:rgba(255,255,255,0.3);background:none;border:none;cursor:pointer">↻ Refresh</button>
+      </div>
+      <div class="product-list" id="product-list">
+        <div style="padding:16px;text-align:center;color:rgba(255,255,255,0.3);font-size:12px">Loading products…</div>
+      </div>
+
+      <!-- Colourway tabs -->
+      <div class="cw-tabs" id="cw-tabs"></div>
+
+      <!-- Product detail -->
+      <div class="product-card" id="product-card" style="display:none">
+        <div class="product-name" id="product-name"></div>
+        <div class="product-meta">
+          <span id="product-sku"></span>
+          <span id="product-colour"></span>
+        </div>
+      </div>
+
+      <!-- Readiness -->
+      <div class="readiness" id="readiness" style="display:none">
+        <div class="readiness-title">Ready to publish</div>
+        <div id="readiness-list"></div>
+      </div>
+
+      <!-- Field preview -->
+      <div class="field-preview" id="field-preview" style="display:none">
+        <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Will fill in</div>
+        <div id="field-list"></div>
+      </div>
+
+      <!-- Status -->
+      <div class="status-bar" id="push-status"></div>
+
+      <!-- Actions -->
+      <div class="actions" id="actions" style="display:none">
+        <button class="btn-push" id="push-btn">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
+            <path d="M7 10V2M4 5l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M2 12h10" strokeLinecap="round"/>
+          </svg>
+          Push to <span id="push-channel-label">portal</span>
+        </button>
+        <button class="btn-secondary" id="disconnect-btn">Disconnect account</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

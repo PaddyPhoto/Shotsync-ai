@@ -729,9 +729,9 @@ function ReviewPage() {
           <rect x="3" y="3" width="7" height="10" rx="1"/><rect x="14" y="3" width="7" height="6" rx="1"/><rect x="14" y="13" width="7" height="8" rx="1"/>
         </svg>
       </div>
-      <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>No active session</p>
-      <p style={{ fontSize: 'var(--font-md)', color: '#4e4e53', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>Upload and process images to start reviewing clusters.</p>
-      <a href="/dashboard/upload" className="btn btn-primary" style={{ marginTop: '4px' }}>New upload</a>
+      <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>No active job</p>
+      <p style={{ fontSize: 'var(--font-md)', color: '#4e4e53', textAlign: 'center', maxWidth: '280px', lineHeight: 1.5 }}>Start a new job to build and review your product listings.</p>
+      <a href="/dashboard/upload" className="btn btn-primary" style={{ marginTop: '4px' }}>New job</a>
     </div>
   )
 
@@ -878,7 +878,7 @@ function ReviewPage() {
                 <path d="M7 10V2M4 7l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M2 12h10" strokeLinecap="round"/>
               </svg>
-              Export
+              Export listings
             </button>
           </div>
         }
@@ -943,9 +943,16 @@ function ReviewPage() {
                 >
                   {/* Card header */}
                   <div className="flex items-center gap-2 px-3 py-[10px] bg-[var(--bg3)] border-b border-[var(--line)]">
-                    <span className="text-[length:var(--font-base)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
-                      {cluster.label}
-                    </span>
+                    <div className="flex flex-col min-w-0 flex-shrink-0 mr-1">
+                      {cluster.productName ? (
+                        <>
+                          <span className="text-[length:var(--font-base)] font-semibold text-[var(--text)] leading-tight truncate max-w-[130px]">{cluster.productName}</span>
+                          <span className="text-[length:var(--font-2xs)] text-[var(--text3)] leading-tight" style={{ fontFamily: 'var(--font-dm-mono)' }}>{cluster.sku || cluster.label}</span>
+                        </>
+                      ) : (
+                        <span className="text-[length:var(--font-base)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{cluster.label}</span>
+                      )}
+                    </div>
                     {/* Garment category — tags cluster for export overrides + relabels angles if a per-category shoot sequence is configured */}
                     <select
                       value={cluster.garmentCategory ?? ''}
@@ -1391,7 +1398,7 @@ function ReviewPage() {
                     </div>
                   </div>
 
-                  {/* Product details from style sheet — always visible compact grid */}
+                  {/* Listing data — product attributes from imported spec sheet */}
                   {(() => {
                     const entry = styleList.find((e) => e.sku.toUpperCase() === cluster.sku.toUpperCase())
                     const fields = entry ? [
@@ -1409,6 +1416,7 @@ function ReviewPage() {
                     if (!fields.length) return null
                     return (
                       <div className="px-3 pb-[10px] border-t border-[var(--line)] pt-[8px]">
+                        <p className="text-[length:var(--font-2xs)] text-[var(--text3)] uppercase tracking-widest mb-[6px]">Listing data</p>
                         <div className="flex flex-wrap gap-x-4 gap-y-[5px]">
                           {fields.map(({ label, value }) => (
                             <div key={label} className="flex flex-col min-w-[60px]">

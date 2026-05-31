@@ -735,7 +735,7 @@ export default function UploadPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'New Upload' }]} />
+      <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'New Job' }]} />
 
       <div style={{ padding: '28px', paddingBottom: files.length > 0 && !isProcessing ? '100px' : '28px', flex: 1 }}>
 
@@ -866,11 +866,11 @@ export default function UploadPage() {
 
             {/* Job name */}
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Shoot name</label>
+              <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Job name</label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <input
                   className="input"
-                  placeholder="e.g. SS25 Studio Shoot"
+                  placeholder="e.g. SS25 Drop 01"
                   value={jobName}
                   onChange={(e) => setJobName(e.target.value)}
                   style={{ flex: 1 }}
@@ -884,9 +884,68 @@ export default function UploadPage() {
               </div>
             </div>
 
-            {/* Shoot type */}
+            {/* Product data */}
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Shoot type</label>
+              <div style={{
+                borderRadius: '12px',
+                border: styleList.length > 0 ? '1px solid rgba(48,209,88,0.4)' : '1px solid rgba(48,209,88,0.22)',
+                background: styleList.length > 0 ? 'rgba(48,209,88,0.06)' : 'rgba(48,209,88,0.03)',
+                padding: '14px 16px',
+                transition: 'all 0.15s',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="1.5">
+                    <rect x="2" y="2" width="12" height="12" rx="1.5"/>
+                    <path d="M5 6h6M5 9h4" strokeLinecap="round"/>
+                  </svg>
+                  <span style={{ fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Product data</span>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#1a8a35', background: 'rgba(48,209,88,0.18)', padding: '2px 7px', borderRadius: '20px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Recommended</span>
+                </div>
+                <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text2)', lineHeight: 1.5, marginBottom: '12px' }}>
+                  Import your product specs and ShotSync automatically matches each image group to its SKU, name, attributes, and listing data. If your images are already SKU-named, <strong style={{ color: 'var(--text)' }}>listings fill with zero typing</strong>. Without product data, all fields are manual.
+                </p>
+                {styleList.length === 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content' }}>
+                    <button
+                      onClick={() => styleListRef.current?.click()}
+                      style={{ padding: '8px 16px', background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0 }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M8 11V3M5 6l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M2 13h12" strokeLinecap="round"/>
+                      </svg>
+                      Import product data
+                    </button>
+                    <a
+                      href="/shotsync-range-list-template.csv"
+                      download="shotsync-range-list-template.csv"
+                      style={{ padding: '7px 13px', border: '1px solid var(--line)', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 500, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', background: 'var(--bg3)', flexShrink: 0 }}
+                    >
+                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/><path d="M8 2v7M5 9l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      Download template
+                    </a>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="2"><path d="M3 8l4 4 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 'var(--font-base)', fontWeight: 600, color: 'var(--text)' }}>{styleListName}</p>
+                      <p style={{ fontSize: 'var(--font-sm)', color: '#30d158', marginTop: '1px' }}>
+                        {styleList.length} products · {[...new Set(styleList.map(e => e.colour).filter(Boolean))].length} colourways
+                      </p>
+                    </div>
+                    <button onClick={() => { setStyleListLocal([]); setStyleList([]); setStyleListName(null) }} style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', background: 'none', border: '1px solid var(--line)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
+                      Remove
+                    </button>
+                  </div>
+                )}
+                <input ref={styleListRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importStyleList(f) }} />
+              </div>
+            </div>
+
+            {/* Image type */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Image type</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
 
                 {/* On-Model */}
@@ -1007,69 +1066,8 @@ export default function UploadPage() {
               )}
             </div>
 
-            {/* Upload zone */}
+            {/* Images */}
             <div style={{ marginBottom: '16px' }}>
-              {/* Style list — featured card */}
-              <div style={{
-                marginBottom: '12px',
-                borderRadius: '12px',
-                border: styleList.length > 0 ? '1px solid rgba(48,209,88,0.4)' : '1px solid rgba(48,209,88,0.22)',
-                background: styleList.length > 0 ? 'rgba(48,209,88,0.06)' : 'rgba(48,209,88,0.03)',
-                padding: '14px 16px',
-                transition: 'all 0.15s',
-              }}>
-                {/* Header row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="1.5">
-                    <rect x="2" y="2" width="12" height="12" rx="1.5"/>
-                    <path d="M5 6h6M5 9h4" strokeLinecap="round"/>
-                  </svg>
-                  <span style={{ fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Style List</span>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#1a8a35', background: 'rgba(48,209,88,0.18)', padding: '2px 7px', borderRadius: '20px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Recommended</span>
-                </div>
-                {/* Benefit line */}
-                <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text2)', lineHeight: 1.5, marginBottom: '12px' }}>
-                  Upload your style sheet and ShotSync matches each cluster to its SKU, product name, colour, and spec data automatically. If your images are already SKU-named, <strong style={{ color: 'var(--text)' }}>clusters fill with zero typing</strong>. Without a style list, all fields are manual.
-                </p>
-                {/* Action row */}
-                {styleList.length === 0 ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content' }}>
-                    <button
-                      onClick={() => styleListRef.current?.click()}
-                      style={{ padding: '8px 16px', background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0 }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
-                        <path d="M8 11V3M5 6l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M2 13h12" strokeLinecap="round"/>
-                      </svg>
-                      Upload sheet
-                    </button>
-                    <a
-                      href="/shotsync-range-list-template.csv"
-                      download="shotsync-range-list-template.csv"
-                      style={{ padding: '7px 13px', border: '1px solid var(--line)', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 500, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', background: 'var(--bg3)', flexShrink: 0 }}
-                    >
-                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/><path d="M8 2v7M5 9l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Download template
-                    </a>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="2"><path d="M3 8l4 4 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 'var(--font-base)', fontWeight: 600, color: 'var(--text)' }}>{styleListName}</p>
-                      <p style={{ fontSize: 'var(--font-sm)', color: '#30d158', marginTop: '1px' }}>
-                        {styleList.length} styles · {[...new Set(styleList.map(e => e.colour).filter(Boolean))].length} colours
-                      </p>
-                    </div>
-                    <button onClick={() => { setStyleListLocal([]); setStyleList([]); setStyleListName(null) }} style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', background: 'none', border: '1px solid var(--line)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
-                      Remove
-                    </button>
-                  </div>
-                )}
-                <input ref={styleListRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importStyleList(f) }} />
-              </div>
-
               {/* Drop zone */}
               <div
                 onDragOver={(e) => { e.preventDefault(); setIsDraggingOver(true) }}

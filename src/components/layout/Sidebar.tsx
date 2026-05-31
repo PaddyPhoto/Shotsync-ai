@@ -86,6 +86,34 @@ const NAV_WORKFLOW: NavItem[] = [
   },
 ]
 
+const NAV_PRODUCTS: NavItem[] = [
+  {
+    label: 'Products',
+    href: '/dashboard/products',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="2" y="2" width="5" height="5" rx="1"/>
+        <rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/>
+        <rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+    ),
+    badge: { text: 'New', variant: 'blue' },
+  },
+  {
+    label: 'Connections',
+    href: '/dashboard/connections',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <circle cx="4" cy="8" r="2"/>
+        <circle cx="12" cy="4" r="2"/>
+        <circle cx="12" cy="12" r="2"/>
+        <path d="M6 7l4-2M6 9l4 2" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+]
+
 const NAV_CONFIG: NavItem[] = [
   {
     label: 'Brands',
@@ -382,6 +410,14 @@ export function Sidebar() {
                   }
                 />
               ))}
+            </nav>
+          </div>
+
+          {/* Products */}
+          <div style={{ padding: '8px 10px 6px' }}>
+            <p style={SL}>Products</p>
+            <nav className="flex flex-col gap-[2px]">
+              {NAV_PRODUCTS.map((item) => <NavLink key={item.href} item={item} />)}
             </nav>
           </div>
 
