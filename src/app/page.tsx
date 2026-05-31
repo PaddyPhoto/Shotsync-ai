@@ -180,13 +180,13 @@ export default function LandingPage() {
         <section className="hero-section" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '80px 40px 60px', position: 'relative' }}>
           <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '22px' }}>
             <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
-            Now in early access — fashion brands
+            The listing platform for fashion brands
           </div>
-          <h1 className="hero-h1" style={{ fontSize: 'clamp(36px,3.8vw,76px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '1000px', marginBottom: '20px' }}>
-            From Shoot to Live Product Listings<span style={{ color: '#8e8e93', whiteSpace: 'nowrap' }}> – In Minutes</span>
+          <h1 className="hero-h1" style={{ fontSize: 'clamp(36px,3.8vw,76px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '1200px', marginBottom: '20px' }}>
+            Create your product listing once.<br /><span style={{ color: '#8e8e93' }}>Publish everywhere, instantly.</span>
           </h1>
           <p className="hero-sub" style={{ fontSize: 'clamp(16px,1.8vw,22px)', color: '#3a3a3c', maxWidth: '640px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '36px' }}>
-            Automatically rename images, generate product copy, and publish to Shopify and marketplaces—without days of manual work.
+            ShotSync builds your complete listing — images, metadata, copy — and delivers it to every marketplace and retailer in their exact required format. No reformatting. No repetition. No delays.
           </p>
           <div className="hero-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/signup" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
@@ -202,14 +202,14 @@ export default function LandingPage() {
           {/* Stats bar */}
           <div className="hero-stats" style={{ display: 'flex', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', marginTop: '44px', overflow: 'hidden' }}>
             {[
-              { value: '2 – 3 days', label: 'Manual post-production', color: '#1d1d1f' },
-              { value: '25 min',   label: 'With ShotSync',          color: '#30d158' },
-              { value: <>500<span style={{fontSize:'0.75em',position:'relative',top:'-0.18em'}}>+</span></>, label: 'Images per job',         color: '#1d1d1f' },
-              { value: '1-click',  label: 'ERP & platform push',    color: '#1d1d1f' },
+              { value: '1 listing', label: 'Created once',            color: '#1d1d1f' },
+              { value: '5+',       label: 'Channels, one workflow',  color: '#30d158' },
+              { value: '25 min',   label: 'From listing to live',    color: '#1d1d1f' },
+              { value: 'Zero',     label: 'Manual reformatting',     color: '#1d1d1f' },
             ].map(({ value, label, color }, i) => (
               <div key={i} className="hero-stat-cell" style={{ padding: '24px 36px', textAlign: 'center', borderRight: '0.5px solid rgba(0,0,0,0.08)', flex: 1 }}>
                 <div style={{ fontSize: 'clamp(28px,3vw,42px)', fontWeight: 500, letterSpacing: '-1px', color, marginBottom: '4px', lineHeight: 1, whiteSpace: 'nowrap' }}>{value}</div>
-                <div style={{ fontSize: 'clamp(12px,1vw,15px)', color: '#4a4a4f', letterSpacing: '-.1px' }}>{label}</div>
+                <div style={{ fontSize: 'clamp(14px,1vw,17px)', color: '#4a4a4f', letterSpacing: '-.1px' }}>{label}</div>
               </div>
             ))}
           </div>
@@ -330,34 +330,34 @@ export default function LandingPage() {
         {/* ── HOW IT WORKS ── */}
         <section id="how-it-works" className="section-pad" style={{ padding: '100px 40px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p>
-          <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Three steps. Zero manual work.</h2>
+          <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Three steps. Every channel.</h2>
           <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '580px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
-            Drop your shoot. ShotSync handles everything between the photographer&apos;s delivery and your marketplace upload.
+            Build your listing once. ShotSync handles the formatting, compliance, and delivery to every marketplace automatically.
           </p>
           <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: 'clamp(1050px,75vw,1280px)', margin: '0 auto' }}>
             {[
               {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
-                title: 'Upload your shoot',
-                desc: 'Drop up to 1,000 images. ShotSync ingests, reads your CSV catalogue, and starts the pipeline.',
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>,
+                title: 'Build your listing',
+                desc: 'Add images, import your style sheet, and generate copy. One complete product record with everything every channel needs.',
               },
               {
                 icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>,
-                title: 'AI does the work',
-                desc: 'Images are clustered by SKU, angles detected, colours matched, and files renamed.',
+                title: 'Select your channels',
+                desc: 'Choose Shopify, The Iconic, Myer, David Jones, JOOR — or all of them. ShotSync knows the exact spec for each.',
               },
               {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-                title: 'Download and upload',
-                desc: 'Export a ZIP per marketplace — THE ICONIC, Myer, David Jones — cropped and sized to their exact specs. Ready to upload.',
+                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>,
+                title: 'Publish everywhere at once',
+                desc: 'Each channel receives the listing in their exact required format. No reformatting. No repetition. No manual rework.',
               },
             ].map(({ icon, title, desc }) => (
               <div key={title} style={{ background: '#fff', padding: '40px 36px', textAlign: 'left' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
                   {icon}
                 </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 500, letterSpacing: '-.3px', marginBottom: '8px', color: '#1d1d1f' }}>{title}</h3>
-                <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>{desc}</p>
+                <h3 style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.3px', marginBottom: '8px', color: '#1d1d1f' }}>{title}</h3>
+                <p style={{ fontSize: '17px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>{desc}</p>
               </div>
             ))}
           </div>
@@ -370,12 +370,12 @@ export default function LandingPage() {
 
               {/* Feature 1: Auto-rename */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,122,255,0.08)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#005fc4', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,122,255,0.08)', borderRadius: '999px', padding: '4px 10px', fontSize: '15px', fontWeight: 500, color: '#005fc4', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#007aff' }} />
                   Auto-rename
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Files named right. Every time.</h3>
-                <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Configure your naming convention once. ShotSync applies it to every image, every job — no manual renaming, no typos, no rejections.</p>
+                <p style={{ fontSize: '17px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Configure your naming convention once. ShotSync applies it to every image, every job — no manual renaming, no typos, no rejections.</p>
                 <div style={{ marginTop: '28px', background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.05)', borderRadius: '12px', padding: '16px' }}>
                   {[
                     { old: 'IMG_4821.jpg',  neo: 'PR05324.062_FRONT.jpg' },
@@ -384,9 +384,9 @@ export default function LandingPage() {
                     { old: 'DSC_0020.jpg',  neo: 'PR06001.034_SIDE.jpg' },
                   ].map(({ old, neo }) => (
                     <div key={old} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
-                      <span style={{ fontSize: '12px', color: '#aeaeb2', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{old}</span>
-                      <span style={{ fontSize: '12px', color: '#aeaeb2', flexShrink: 0 }}>→</span>
-                      <span style={{ fontSize: '12px', color: '#1d1d1f', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{neo}</span>
+                      <span style={{ fontSize: '14px', color: '#aeaeb2', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{old}</span>
+                      <span style={{ fontSize: '14px', color: '#aeaeb2', flexShrink: 0 }}>→</span>
+                      <span style={{ fontSize: '14px', color: '#1d1d1f', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{neo}</span>
                     </div>
                   ))}
                 </div>
@@ -394,12 +394,12 @@ export default function LandingPage() {
 
               {/* Feature 2: AI clustering */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(175,82,222,0.08)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#7b2fa0', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(175,82,222,0.08)', borderRadius: '999px', padding: '4px 10px', fontSize: '15px', fontWeight: 500, color: '#7b2fa0', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#af52de' }} />
                   AI clustering
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Groups images by SKU automatically.</h3>
-                <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload a raw, unsorted shoot. The AI clusters every image by product using visual similarity — no manual sorting by your senior staff.</p>
+                <p style={{ fontSize: '17px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload a raw, unsorted shoot. The AI clusters every image by product using visual similarity — no manual sorting by your senior staff.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px', marginTop: '28px' }}>
                   {([
                     { bg: '#1a1a1a', label: 'Front', figure: null },
@@ -417,12 +417,12 @@ export default function LandingPage() {
 
               {/* Feature 3: Marketplace rules */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(255,159,10,0.10)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#c27800', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(255,159,10,0.10)', borderRadius: '999px', padding: '4px 10px', fontSize: '15px', fontWeight: 500, color: '#c27800', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ff9f0a' }} />
                   Marketplace rules
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>THE ICONIC. Myer. David Jones.</h3>
-                <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Every marketplace has different dimensions, view requirements, and naming rules. ShotSync knows them all and packages output to spec.</p>
+                <p style={{ fontSize: '17px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Every marketplace has different dimensions, view requirements, and naming rules. ShotSync knows them all and packages output to spec.</p>
                 <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {[
                     { name: 'THE ICONIC',     spec: '2000×2667 · 4 views' },
@@ -433,8 +433,8 @@ export default function LandingPage() {
                       <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(48,209,88,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: 500, color: '#1d1d1f', flex: 1 }}>{name}</span>
-                      <span style={{ fontSize: '12px', color: '#aeaeb2', background: 'rgba(0,0,0,0.04)', padding: '2px 7px', borderRadius: '4px' }}>{spec}</span>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', flex: 1 }}>{name}</span>
+                      <span style={{ fontSize: '14px', color: '#aeaeb2', background: 'rgba(0,0,0,0.04)', padding: '2px 7px', borderRadius: '4px' }}>{spec}</span>
                     </div>
                   ))}
                 </div>
@@ -442,12 +442,12 @@ export default function LandingPage() {
 
               {/* Feature 4: CSV catalogue */}
               <div style={{ background: '#fff', padding: '40px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(48,209,88,0.10)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#1a8a35', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(48,209,88,0.10)', borderRadius: '999px', padding: '4px 10px', fontSize: '15px', fontWeight: 500, color: '#1a8a35', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#30d158' }} />
                   CSV catalogue
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Works without Shopify.</h3>
-                <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload your season&apos;s SKU sheet — any format, any columns. ShotSync maps your data and matches images against it automatically. No API required.</p>
+                <p style={{ fontSize: '17px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>Upload your season&apos;s SKU sheet — any format, any columns. ShotSync maps your data and matches images against it automatically. No API required.</p>
                 <div style={{ marginTop: '28px', background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.05)', borderRadius: '12px', padding: '16px' }}>
                   {[
                     { style: 'Style', colour: 'Colour', code: 'Code', name: 'Name', isHeader: true },
@@ -457,7 +457,7 @@ export default function LandingPage() {
                   ].map((row, i) => (
                     <div key={i} style={{ display: 'flex', gap: '10px', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
                       {[row.style, row.colour, row.code, row.name].map((cell, j) => (
-                        <span key={j} style={{ fontSize: '12px', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, color: row.isHeader ? '#aeaeb2' : '#1d1d1f', fontWeight: row.isHeader ? 400 : 500 }}>{cell}</span>
+                        <span key={j} style={{ fontSize: '14px', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, color: row.isHeader ? '#aeaeb2' : '#1d1d1f', fontWeight: row.isHeader ? 400 : 500 }}>{cell}</span>
                       ))}
                     </div>
                   ))}
@@ -469,31 +469,31 @@ export default function LandingPage() {
             {/* Feature 5: AI Copywriting — full width */}
             <div className="ai-copy-feature" style={{ background: '#f0f0f2', padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'center', borderRadius: '24px', border: '0.5px solid rgba(0,0,0,0.08)', marginTop: '12px', overflow: 'hidden' }}>
               <div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '15px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#5e32f5' }} />
                   AI copywriting
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 500, letterSpacing: '-.5px', marginBottom: '10px', color: '#1d1d1f' }}>Product listings written in your brand&apos;s voice.</h3>
-                <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>After clustering, ShotSync uses GPT-4o vision to look at your hero image and write a title, description, and bullet points — in your brand&apos;s tone of voice. Paste in a few examples of copy you love and every description will sound like you wrote it. One click, ready to publish.</p>
+                <p style={{ fontSize: '17px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>After clustering, ShotSync uses GPT-4o vision to look at your hero image and write a title, description, and bullet points — in your brand&apos;s tone of voice. Paste in a few examples of copy you love and every description will sound like you wrote it. One click, ready to publish.</p>
               </div>
               <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.06em', textTransform: 'uppercase' }}>Generated copy</div>
+                <div style={{ fontSize: '13px', fontWeight: 500, color: '#aeaeb2', letterSpacing: '.06em', textTransform: 'uppercase' }}>Generated copy</div>
                 <div>
-                  <div style={{ fontSize: '11px', color: '#aeaeb2', marginBottom: '4px' }}>Title</div>
-                  <div style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Relaxed Linen Blazer — Tailored, Breathable</div>
+                  <div style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '4px' }}>Title</div>
+                  <div style={{ fontSize: '15px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Relaxed Linen Blazer — Tailored, Breathable</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '11px', color: '#aeaeb2', marginBottom: '4px' }}>Description</div>
-                  <div style={{ fontSize: '12px', color: '#6e6e73', lineHeight: 1.6 }}>A relaxed-fit blazer in lightweight linen. Clean lapels, a slightly oversized silhouette, and a single-button closure make this a season-spanning layer.</div>
+                  <div style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '4px' }}>Description</div>
+                  <div style={{ fontSize: '14px', color: '#6e6e73', lineHeight: 1.6 }}>A relaxed-fit blazer in lightweight linen. Clean lapels, a slightly oversized silhouette, and a single-button closure make this a season-spanning layer.</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '11px', color: '#aeaeb2', marginBottom: '6px' }}>Bullets</div>
+                  <div style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '6px' }}>Bullets</div>
                   {['Relaxed linen blazer with clean lapels', 'Slightly oversized, single-button closure', 'Lightweight woven linen — breathable', 'Wear over a slip dress or with tailored trousers'].map((b) => (
                     <div key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', marginBottom: '5px' }}>
                       <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: 'rgba(48,209,88,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
-                      <span style={{ fontSize: '12px', color: '#6e6e73' }}>{b}</span>
+                      <span style={{ fontSize: '14px', color: '#6e6e73' }}>{b}</span>
                     </div>
                   ))}
                 </div>
@@ -505,7 +505,7 @@ export default function LandingPage() {
 
         {/* ── MARKETPLACE LOGOS ── */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Integrates with the platforms you already use</p>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Publish to the channels you already sell on</p>
           <div className="mp-logos-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
             {[
               { name: 'THE ICONIC', sub: "Australia's largest fashion retailer" },
@@ -513,8 +513,8 @@ export default function LandingPage() {
               { name: 'David Jones',sub: 'PIM asset management ready' },
             ].map(({ name, sub }, i) => (
               <div key={name} className="mp-logo-cell" style={{ flex: 1, padding: '28px 20px', borderRight: '0.5px solid rgba(0,0,0,0.08)', textAlign: 'center' }}>
-                <div style={{ fontSize: '14px', fontWeight: 600, letterSpacing: '-.2px', color: '#1d1d1f' }}>{name}</div>
-                <div style={{ fontSize: '13px', color: '#6e6e73', marginTop: '4px' }}>{sub}</div>
+                <div style={{ fontSize: '16px', fontWeight: 600, letterSpacing: '-.2px', color: '#1d1d1f' }}>{name}</div>
+                <div style={{ fontSize: '15px', color: '#6e6e73', marginTop: '4px' }}>{sub}</div>
               </div>
             ))}
           </div>
@@ -524,82 +524,37 @@ export default function LandingPage() {
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Who it&apos;s for</p>
           <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '780px', margin: '0 auto 48px' }}>
-            Built for the person who manages what happens after the shoot.
+            Built for the person responsible for getting product live.
           </h2>
           <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto' }}>
             {[
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
                 title: 'eCommerce coordinators',
-                body: 'You receive the shoot, match the images, populate the attributes, write the listings, and push everything live. ShotSync automates the part that takes the longest — so you can focus on what actually needs your judgment.',
+                body: 'You receive the product data, build the listings, populate attributes for each channel, and push everything live. ShotSync automates the formatting and delivery — so you can focus on what actually needs your judgment.',
               },
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
                 title: 'Emerging DTC brands',
-                body: 'No marketplace account, no production team — just you, a Shopify store, and a seasonal shoot to turn into live product pages. ShotSync gives you the workflow automation of a much larger team, at a price built for growing brands.',
+                body: 'No dedicated team, no complex ops setup — just you, a Shopify store, and a product range to get live. ShotSync gives you the listing workflow of a much larger team, at a price built for growing brands.',
               },
               {
                 icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>,
                 title: 'Mid-tier wholesale brands',
-                body: "Selling into THE ICONIC, Myer, or David Jones through Cin7? ShotSync enriches your product data before it enters the ERP — so what your retail partners receive is already compliant and publish-ready.",
+                body: "Selling into THE ICONIC, Myer, or David Jones? ShotSync builds your listing once and delivers it to every retailer in their exact required format — so what your partners receive is always compliant and ready to go live.",
               },
             ].map(({ icon, title, body }) => (
               <div key={title} style={{ background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '16px', padding: '28px 24px', textAlign: 'left' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', border: '0.5px solid rgba(0,0,0,0.07)' }}>
                   {icon}
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '10px' }}>{title}</div>
-                <div style={{ fontSize: '13px', color: '#4a4a4f', lineHeight: 1.7, letterSpacing: '-.1px' }}>{body}</div>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '10px' }}>{title}</div>
+                <div style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.7, letterSpacing: '-.1px' }}>{body}</div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── PRIVACY TRUST ── */}
-        <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Built for brands with unreleased product imagery</p>
-          <h2 style={{ fontSize: 'clamp(28px,4vw,42px)', fontWeight: 500, letterSpacing: '-1.2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '780px', margin: '0 auto 16px' }}>Your images never leave your device.</h2>
-          <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '560px', margin: '0 auto 48px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Everything — clustering, renaming, resizing, export packaging — runs entirely in your browser.</p>
-          <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '20px', overflow: 'hidden', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto' }}>
-            {[
-              {
-                icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                  </svg>
-                ),
-                title: 'Processed on-device',
-                body: 'Images are handled entirely by your browser using IndexedDB and canvas. Nothing is uploaded to our servers as part of the standard workflow.',
-              },
-              {
-                icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-                  </svg>
-                ),
-                title: 'Never used to train AI',
-                body: "Your images and brand assets are never shared with third parties or used to train any AI model. What you upload stays yours.",
-              },
-              {
-                icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
-                ),
-                title: 'Account data in Australia',
-                body: 'Your account information is stored on cloud infrastructure hosted in Australia, encrypted in transit and at rest.',
-              },
-            ].map(({ icon, title, body }) => (
-              <div key={title} style={{ background: '#fff', padding: '36px 32px', textAlign: 'left' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                  {icon}
-                </div>
-                <div style={{ fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', color: '#1d1d1f', marginBottom: '8px' }}>{title}</div>
-                <div style={{ fontSize: '13px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>{body}</div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* ── PRICING ── */}
         <section id="pricing" className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
@@ -659,7 +614,7 @@ export default function LandingPage() {
                     <div style={{ fontSize: '13px', color: featured ? 'rgba(255,255,255,0.75)' : '#3a3a3c', marginBottom: '24px', letterSpacing: '-.1px' }}>{period}</div>
                     <div style={{ height: '0.5px', background: featured ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
                     {p.highlights.map((f) => (
-                      <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '13px', color: featured ? 'rgba(255,255,255,0.92)' : '#1d1d1f', letterSpacing: '-.1px' }}>
+                      <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '15px', color: featured ? 'rgba(255,255,255,0.92)' : '#1d1d1f', letterSpacing: '-.1px' }}>
                         <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: featured ? 'rgba(48,209,88,0.2)' : 'rgba(48,209,88,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
                         </div>
@@ -719,7 +674,7 @@ export default function LandingPage() {
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <div className="testimonial-pad" style={{ maxWidth: '680px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', padding: '52px 60px' }}>
             <p style={{ fontSize: 'clamp(18px,2.5vw,24px)', fontWeight: 400, letterSpacing: '-.5px', lineHeight: 1.5, color: '#1d1d1f', marginBottom: '32px' }}>
-              &ldquo;I used to spend 2–3 days after every shoot just renaming files and uploading to marketplaces. ShotSync has automated the entire process&mdash;it&apos;s been a complete game changer for my workflow.&rdquo;
+              &ldquo;I used to spend 2–3 days after every shoot building listings for each marketplace separately. ShotSync has automated the entire process&mdash;it&apos;s been a complete game changer for my workflow.&rdquo;
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 500, color: '#6e6e73', flexShrink: 0 }}>KC</div>
@@ -735,7 +690,7 @@ export default function LandingPage() {
         {/* ── CTA ── */}
         <section className="section-pad" style={{ padding: '0 40px 120px', textAlign: 'center', position: 'relative' }}>
           <div className="cta-pad" style={{ maxWidth: '680px', margin: '0 auto', background: '#1d1d1f', borderRadius: '24px', padding: '72px 60px' }}>
-            <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.5px', color: '#f5f5f7', lineHeight: 1.1, marginBottom: '16px' }}>Shoot. Sync. Done.</h2>
+            <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.5px', color: '#f5f5f7', lineHeight: 1.1, marginBottom: '16px' }}>List once. Sell everywhere.</h2>
             <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', marginBottom: '36px', letterSpacing: '-.2px', lineHeight: 1.5 }}>Start free — no credit card required. Upgrade when you&apos;re ready.</p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/signup" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none' }}>
