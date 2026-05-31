@@ -1,5 +1,15 @@
 const BASE_URL = 'https://inventory.dearsystems.com/ExternalApi/v2'
 
+export interface Cin7ProductRaw {
+  ID: string
+  SKU: string
+  Name: string
+  Category: string
+  Brand: string
+  Price: number
+  Attributes: Record<string, string>
+}
+
 export interface Cin7Image {
   ImageUrl: string
   Filename: string
@@ -28,6 +38,23 @@ export class Cin7Client {
       'api-auth-applicationkey': applicationKey,
       'Content-Type': 'application/json',
     }
+  }
+
+  async listProducts(): Promise<Cin7ProductRaw[]> {
+    const all: Cin7ProductRaw[] = []
+    let page = 1
+    while (true) {
+      const url = `${BASE_URL}/Product?Limit=100&Page=${page}`
+      const res = await fetch(url, { method: 'GET', headers: this.headers })
+      if (!res.ok) break
+      const json = await res.json().catch(() => null)
+      const batch: Cin7ProductRaw[] = json?.Products ?? []
+      if (!batch.length) break
+      all.push(...batch)
+      if (batch.length < 100) break
+      page++
+    }
+    return all
   }
 
   async findProductBySku(sku: string): Promise<{ id: string } | null> {

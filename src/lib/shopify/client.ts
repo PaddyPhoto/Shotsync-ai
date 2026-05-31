@@ -1,3 +1,18 @@
+export interface ShopifyProductRaw {
+  id: number
+  title: string
+  product_type: string
+  tags: string
+  options: { name: string; values: string[] }[]
+  variants: {
+    sku: string
+    price: string
+    option1?: string | null
+    option2?: string | null
+    option3?: string | null
+  }[]
+}
+
 export interface ShopifyMetafield {
   namespace: string
   key: string
@@ -21,6 +36,26 @@ export class ShopifyClient {
       'X-Shopify-Access-Token': accessToken,
       'Content-Type': 'application/json',
     }
+  }
+
+  /**
+   * Fetch all products from the store with pagination.
+   * Returns title, product_type, options, and variants (sku, price, options).
+   */
+  async listProducts(): Promise<ShopifyProductRaw[]> {
+    const all: ShopifyProductRaw[] = []
+    let url: string | null =
+      `${this.baseUrl}/products.json?limit=250&fields=id,title,product_type,tags,options,variants`
+    while (url) {
+      const res: Response = await fetch(url, { headers: this.headers })
+      if (!res.ok) break
+      const json = await res.json().catch(() => null)
+      all.push(...(json?.products ?? []))
+      const link: string = res.headers.get('Link') ?? ''
+      const next: RegExpMatchArray | null = link.match(/<([^>]+)>;\s*rel="next"/)
+      url = next ? next[1] : null
+    }
+    return all
   }
 
   /**
