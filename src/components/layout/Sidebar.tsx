@@ -100,18 +100,6 @@ const NAV_PRODUCTS: NavItem[] = [
     ),
     badge: { text: 'New', variant: 'blue' },
   },
-  {
-    label: 'Connections',
-    href: '/dashboard/connections',
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="4" cy="8" r="2"/>
-        <circle cx="12" cy="4" r="2"/>
-        <circle cx="12" cy="12" r="2"/>
-        <path d="M6 7l4-2M6 9l4 2" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
 ]
 
 const NAV_CONFIG: NavItem[] = [
