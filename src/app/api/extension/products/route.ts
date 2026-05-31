@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/supabase/server'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -12,12 +12,8 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
-
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
+  const user = await getAuthUser(req)
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
 
   // TODO: query real products table once migration is applied
   // const { data: products } = await supabase
