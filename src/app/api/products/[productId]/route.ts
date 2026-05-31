@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
         id, colour_name, colour_code, rrp, listing_title, listing_description, listing_bullets,
         product_images ( id, storage_url, angle, sort_order, original_filename ),
         product_variants ( id, size, barcode, stock, price ),
-        channel_listings ( channel, status, last_synced_at )
+        channel_listings ( channel, status, external_id, last_published_at, error )
       )
     `)
     .eq('id', productId)

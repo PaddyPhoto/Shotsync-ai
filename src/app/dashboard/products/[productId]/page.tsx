@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useCallback } from 'react'
 import { Topbar } from '@/components/layout/Topbar'
 import { createClient } from '@/lib/supabase/client'
 
 const CHANNELS = [
   { key: 'shopify', label: 'Shopify',     dot: '#30d158' },
+  { key: 'cin7',    label: 'Cin7',        dot: '#ff9f0a' },
   { key: 'iconic',  label: 'The Iconic',  dot: '#ff9f0a' },
   { key: 'myer',    label: 'Myer',        dot: '#ff3b30' },
   { key: 'dj',      label: 'David Jones', dot: '#0a84ff' },
@@ -15,12 +16,13 @@ const CHANNELS = [
 const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
   live:       { label: 'Live',       color: '#30d158',        bg: 'rgba(48,209,88,0.1)' },
   draft:      { label: 'Draft',      color: '#ff9f0a',        bg: 'rgba(255,159,10,0.1)' },
+  error:      { label: 'Error',      color: '#ff3b30',        bg: 'rgba(255,59,48,0.1)' },
   not_listed: { label: 'Not listed', color: 'var(--text3)',   bg: 'rgba(255,255,255,0.06)' },
 }
 
 type Variant    = { id: string; size: string; barcode: string | null; stock: number; price: number }
 type Image      = { id: string; storage_url: string | null; angle: string; sort_order: number; original_filename: string | null }
-type Listing    = { channel: string; status: string; last_synced_at: string | null }
+type Listing    = { channel: string; status: string; external_id: string | null; last_published_at: string | null; error: string | null }
 type Colourway  = { id: string; colour_name: string; colour_code: string | null; rrp: number | null; listing_title: string | null; listing_description: string | null; listing_bullets: string[]; product_images: Image[]; product_variants: Variant[]; channel_listings: Listing[] }
 type Attribute  = { key: string; value: string }
 type Product    = { id: string; sku: string; title: string; category: string | null; gender: string | null; season: string | null; status: string; product_attributes: Attribute[]; product_colourways: Colourway[] }
@@ -33,21 +35,103 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [activeColourwayId, setActiveColourwayId] = useState<string | null>(null)
+  const [channelMap, setChannelMap] = useState<Record<string, Listing>>({})
+  const [publishingChannels, setPublishingChannels] = useState<Set<string>>(new Set())
+  const [token, setToken] = useState<string | null>(null)
 
   useEffect(() => {
     createClient().auth.getSession().then(({ data: { session } }) => {
       if (!session) { setLoading(false); return }
+      setToken(session.access_token)
       fetch(`/api/products/${productId}`, { headers: { Authorization: `Bearer ${session.access_token}` } })
         .then(r => { if (r.status === 404) { setNotFound(true); setLoading(false); return null } return r.json() })
         .then(json => {
           if (!json) return
           setProduct(json.data)
-          setActiveColourwayId(json.data.product_colourways[0]?.id ?? null)
+          const firstColourway = json.data.product_colourways[0]
+          setActiveColourwayId(firstColourway?.id ?? null)
+          if (firstColourway) {
+            const map: Record<string, Listing> = {}
+            for (const l of (firstColourway.channel_listings ?? [])) map[l.channel] = l
+            setChannelMap(map)
+          }
           setLoading(false)
         })
         .catch(() => setLoading(false))
     })
   }, [productId])
+
+  useEffect(() => {
+    if (!product || !activeColourwayId) return
+    const cw = product.product_colourways.find(c => c.id === activeColourwayId)
+    if (!cw) return
+    const map: Record<string, Listing> = {}
+    for (const l of (cw.channel_listings ?? [])) map[l.channel] = l
+    setChannelMap(map)
+  }, [activeColourwayId, product])
+
+  const publishChannel = useCallback(async (channelKey: string) => {
+    if (!token || !activeColourwayId || publishingChannels.has(channelKey)) return
+    setPublishingChannels(prev => new Set([...prev, channelKey]))
+
+    try {
+      const res = await fetch(`/api/products/${productId}/publish`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ colourwayId: activeColourwayId, channels: [channelKey] }),
+      })
+      const json = await res.json()
+      const result = json.results?.[0]
+      if (result) {
+        setChannelMap(prev => ({
+          ...prev,
+          [channelKey]: {
+            channel: channelKey,
+            status: result.status,
+            external_id: result.externalId ?? prev[channelKey]?.external_id ?? null,
+            last_published_at: new Date().toISOString(),
+            error: result.error ?? null,
+          },
+        }))
+      }
+    } finally {
+      setPublishingChannels(prev => { const s = new Set(prev); s.delete(channelKey); return s })
+    }
+  }, [token, activeColourwayId, productId, publishingChannels])
+
+  const publishAll = useCallback(async () => {
+    if (!token || !activeColourwayId) return
+    const allKeys = CHANNELS.map(c => c.key)
+    const queued = allKeys.filter(k => !publishingChannels.has(k))
+    if (!queued.length) return
+    setPublishingChannels(new Set(allKeys))
+
+    try {
+      const res = await fetch(`/api/products/${productId}/publish`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ colourwayId: activeColourwayId, channels: queued }),
+      })
+      const json = await res.json()
+      if (json.results) {
+        setChannelMap(prev => {
+          const updated = { ...prev }
+          for (const result of json.results) {
+            updated[result.channel] = {
+              channel: result.channel,
+              status: result.status,
+              external_id: result.externalId ?? prev[result.channel]?.external_id ?? null,
+              last_published_at: new Date().toISOString(),
+              error: result.error ?? null,
+            }
+          }
+          return updated
+        })
+      }
+    } finally {
+      setPublishingChannels(new Set())
+    }
+  }, [token, activeColourwayId, productId, publishingChannels])
 
   if (loading) return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -65,15 +149,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
 
   const cw = product.product_colourways.find(c => c.id === activeColourwayId) ?? product.product_colourways[0]
   const totalStock = cw?.product_variants.reduce((s, v) => s + v.stock, 0) ?? 0
-  const liveChannels = cw?.channel_listings.filter(l => l.status === 'live').length ?? 0
+  const liveChannels = Object.values(channelMap).filter(l => l.status === 'live').length
 
   const imagesByAngle: Record<string, Image | null> = {}
   ANGLE_SLOTS.forEach(angle => {
     imagesByAngle[angle] = cw?.product_images.find(img => img.angle.toLowerCase() === angle.toLowerCase()) ?? null
   })
 
-  const channelMap: Record<string, string> = {}
-  cw?.channel_listings.forEach(l => { channelMap[l.channel] = l.status })
+  const isPublishingAll = publishingChannels.size > 1
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -82,7 +165,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '12px', background: product.status === 'active' ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.06)', color: product.status === 'active' ? '#30d158' : 'var(--text3)', padding: '4px 10px', borderRadius: '20px', fontWeight: 500, textTransform: 'capitalize' }}>{product.status}</span>
-            <button style={{ padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>Publish to all</button>
+            <button
+              onClick={publishAll}
+              disabled={isPublishingAll}
+              style={{ padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, background: isPublishingAll ? 'rgba(0,122,255,0.4)' : 'var(--accent)', color: '#fff', border: 'none', cursor: isPublishingAll ? 'default' : 'pointer', opacity: isPublishingAll ? 0.7 : 1 }}
+            >
+              {isPublishingAll ? 'Publishing…' : 'Publish to all'}
+            </button>
           </div>
         }
       />
@@ -237,20 +326,45 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
               <div style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '12px' }}>Channels</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {CHANNELS.map(ch => {
-                  const status = channelMap[ch.key] ?? 'not_listed'
+                  const listing = channelMap[ch.key]
+                  const status = listing?.status ?? 'not_listed'
                   const s = STATUS_LABEL[status] ?? STATUS_LABEL.not_listed
+                  const isPublishing = publishingChannels.has(ch.key)
+                  const hasError = status === 'error' && listing?.error
                   return (
-                    <div key={ch.key} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: '8px' }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: status === 'live' ? ch.dot : 'transparent', border: status !== 'live' ? `1.5px solid ${status === 'draft' ? ch.dot : 'rgba(255,255,255,0.15)'}` : 'none', flexShrink: 0 }} />
+                    <div key={ch.key} title={hasError ? listing!.error! : undefined} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', background: 'var(--surface)', border: hasError ? '0.5px solid rgba(255,59,48,0.3)' : '0.5px solid var(--border)', borderRadius: '8px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, background: status === 'live' ? ch.dot : 'transparent', border: status !== 'live' ? `1.5px solid ${status === 'draft' ? ch.dot : status === 'error' ? '#ff3b30' : 'rgba(255,255,255,0.15)'}` : 'none' }} />
                       <span style={{ fontSize: '12px', color: 'var(--text2)', flex: 1 }}>{ch.label}</span>
                       <span style={{ fontSize: '11px', color: s.color, background: s.bg, padding: '2px 7px', borderRadius: '20px', fontWeight: 500 }}>{s.label}</span>
+                      <button
+                        onClick={() => publishChannel(ch.key)}
+                        disabled={isPublishing}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '5px', border: '0.5px solid var(--border)', background: 'rgba(255,255,255,0.04)', cursor: isPublishing ? 'default' : 'pointer', flexShrink: 0, opacity: isPublishing ? 0.5 : 1 }}
+                        title={status === 'live' ? `Republish to ${ch.label}` : `Publish to ${ch.label}`}
+                      >
+                        {isPublishing ? (
+                          <svg viewBox="0 0 16 16" fill="none" width="10" height="10" style={{ animation: 'spin 0.8s linear infinite' }}>
+                            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2"/>
+                            <path d="M8 2a6 6 0 0 1 6 6" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        ) : (
+                          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" width="10" height="10" style={{ color: 'var(--text3)' }}>
+                            <path d="M6 8V2M3.5 4.5L6 2l2.5 2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 8v1.5A0.5 0.5 0 0 0 2.5 10h7a0.5 0.5 0 0 0 0.5-0.5V8" strokeLinecap="round"/>
+                          </svg>
+                        )}
+                      </button>
                     </div>
                   )
                 })}
               </div>
-              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <button style={{ width: '100%', padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>
-                  Publish to all channels
+              <div style={{ marginTop: '10px' }}>
+                <button
+                  onClick={publishAll}
+                  disabled={isPublishingAll}
+                  style={{ width: '100%', padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, background: isPublishingAll ? 'rgba(0,122,255,0.3)' : 'var(--accent)', color: '#fff', border: 'none', cursor: isPublishingAll ? 'default' : 'pointer', opacity: isPublishingAll ? 0.7 : 1 }}
+                >
+                  {isPublishingAll ? 'Publishing…' : 'Publish to all channels'}
                 </button>
               </div>
             </div>
@@ -302,6 +416,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   )
 }

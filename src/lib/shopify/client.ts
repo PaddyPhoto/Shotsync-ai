@@ -203,4 +203,22 @@ export class ShopifyClient {
     }
   }
 
+  async patchProduct(productId: string, opts: { title?: string; bodyHtml?: string; status?: 'active' | 'draft' | 'archived' }): Promise<void> {
+    const url = `${this.baseUrl}/products/${productId}.json`
+    const update: Record<string, string> = {}
+    if (opts.title !== undefined) update.title = opts.title
+    if (opts.bodyHtml !== undefined) update.body_html = opts.bodyHtml
+    if (opts.status !== undefined) update.status = opts.status
+
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: this.headers,
+      body: JSON.stringify({ product: update }),
+    })
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      throw new Error(`Shopify update ${res.status}: ${errText.slice(0, 200)}`)
+    }
+  }
+
 }
