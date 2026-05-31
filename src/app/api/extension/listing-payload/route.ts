@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// Builds a channel-specific listing payload for the extension to inject into the portal
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS })
+}
+
 export async function POST(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
 
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
 
   const { productId, colourwayId, channel } = await req.json()
   if (!productId || !colourwayId || !channel) {
-    return NextResponse.json({ error: 'Missing productId, colourwayId or channel' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing productId, colourwayId or channel' }, { status: 400, headers: CORS })
   }
 
   // TODO: fetch from real products table after migration
@@ -47,5 +56,5 @@ export async function POST(req: NextRequest) {
     channel,
   }
 
-  return NextResponse.json(payload)
+  return NextResponse.json(payload, { headers: CORS })
 }

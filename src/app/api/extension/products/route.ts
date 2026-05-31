@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// Returns all products for the authenticated user's brand — used by the extension popup
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS })
+}
+
 export async function GET(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
 
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
 
   // TODO: query real products table once migration is applied
   // const { data: products } = await supabase
@@ -68,5 +77,5 @@ export async function GET(req: NextRequest) {
     },
   ]
 
-  return NextResponse.json(mockProducts)
+  return NextResponse.json(mockProducts, { headers: CORS })
 }
