@@ -11,6 +11,92 @@ import { PLANS } from '@/lib/plans'
 
 type Tab = 'general' | 'billing' | 'team'
 
+function ExtensionKeySection() {
+  const [token, setToken] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [revealed, setRevealed] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    import('@/lib/supabase/client').then(({ createClient }) =>
+      createClient().auth.getSession()
+    ).then(({ data: { session } }) => {
+      if (!session?.access_token) { setLoading(false); return }
+      return fetch('/api/extension/token', { headers: { Authorization: `Bearer ${session.access_token}` } })
+        .then(r => r.json())
+        .then(({ token }) => { setToken(token); setLoading(false) })
+    }).catch(() => setLoading(false))
+  }, [])
+
+  const generate = async () => {
+    if (token && !confirm('Regenerating will invalidate your existing key. Continue?')) return
+    setGenerating(true)
+    const { createClient } = await import('@/lib/supabase/client')
+    const { data: { session } } = await createClient().auth.getSession()
+    const res = await fetch('/api/extension/token', { method: 'POST', headers: { Authorization: `Bearer ${session?.access_token}` } })
+    const { token: newToken } = await res.json()
+    setToken(newToken)
+    setRevealed(true)
+    setGenerating(false)
+  }
+
+  const copy = () => {
+    if (!token) return
+    navigator.clipboard.writeText(token)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const masked = token ? `ss_${'•'.repeat(28)}` : null
+
+  return (
+    <div className="card">
+      <div className="card-head">
+        <span className="card-title">Browser Extension</span>
+        <span className="text-[length:var(--font-sm)] text-[var(--text3)]">ShotSync Chrome Extension</span>
+      </div>
+      <div className="card-body">
+        <div className="flex items-center justify-between py-[14px] border-b border-[var(--line)]">
+          <div>
+            <p className="text-[1rem] font-medium text-[var(--text)]">Extension API Key</p>
+            <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-[2px]">Paste this into the ShotSync Chrome extension to connect it to your account</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {loading ? (
+              <span className="text-[length:var(--font-sm)] text-[var(--text3)]">Loading…</span>
+            ) : token ? (
+              <>
+                <code className="px-3 py-[6px] rounded-sm bg-[var(--bg3)] text-[length:var(--font-sm)] font-mono text-[var(--text2)] tracking-wider select-all">
+                  {revealed ? token : masked}
+                </code>
+                <button onClick={() => setRevealed(r => !r)} className="btn btn-sm" style={{ minWidth: 60 }}>
+                  {revealed ? 'Hide' : 'Show'}
+                </button>
+                <button onClick={copy} className="btn btn-sm btn-primary" style={{ minWidth: 64 }}>
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+                <button onClick={generate} disabled={generating} className="btn btn-sm">
+                  {generating ? 'Regenerating…' : 'Regenerate'}
+                </button>
+              </>
+            ) : (
+              <button onClick={generate} disabled={generating} className="btn btn-primary btn-sm">
+                {generating ? 'Generating…' : 'Generate API Key'}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="pt-[14px]">
+          <p className="text-[length:var(--font-sm)] text-[var(--text3)]">
+            Install the extension in Chrome, click the ShotSync icon, enter your key and <code className="text-[var(--text2)]">https://www.shotsync.ai</code> as the URL.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   return <Suspense><SettingsInner /></Suspense>
 }
@@ -203,6 +289,7 @@ function SettingsInner() {
         {/* ── General ───────────────────────────────────────────────────────── */}
         {tab === 'general' && (
           <div className="flex flex-col gap-4 max-w-[1100px]">
+            <ExtensionKeySection />
             <div className="card">
               <div className="card-head"><span className="card-title">General Settings</span></div>
               <div className="card-body">

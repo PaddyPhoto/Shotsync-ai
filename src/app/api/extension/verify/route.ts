@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthUser } from '@/lib/supabase/server'
+import { getAuthUser, createServiceClient } from '@/lib/supabase/server'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -12,8 +12,24 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
-  const user = await getAuthUser(req)
-  if (!user) return NextResponse.json({ error: 'Invalid token' }, { status: 401, headers: CORS })
+  const token = req.headers.get('authorization')?.replace('Bearer ', '')
+  if (!token) return NextResponse.json({ error: 'Missing token' }, { status: 401, headers: CORS })
 
-  return NextResponse.json({ ok: true, email: user.email }, { headers: CORS })
+  // Try JWT auth first
+  const user = await getAuthUser(req)
+  if (user) return NextResponse.json({ ok: true, email: user.email }, { headers: CORS })
+
+  // Fall back to extension token lookup
+  if (token.startsWith('ss_')) {
+    const supabase = createServiceClient()
+    const { data: org } = await supabase
+      .from('orgs')
+      .select('id, name')
+      .eq('extension_token', token)
+      .single()
+
+    if (org) return NextResponse.json({ ok: true, email: org.name }, { headers: CORS })
+  }
+
+  return NextResponse.json({ error: 'Invalid token' }, { status: 401, headers: CORS })
 }
