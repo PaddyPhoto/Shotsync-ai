@@ -1,24 +1,39 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
+import { createClient } from '@/lib/supabase/client'
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL']
-const COLOURS = [
-  { label: 'Natural', hex: '#e8dcc8' },
-  { label: 'Black',   hex: '#1a1a1a' },
-]
+const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL']
 
-const CHANNELS = [
-  { key: 'shopify', label: 'Shopify',      dot: '#30d158', connected: true,  status: 'ready' },
-  { key: 'iconic',  label: 'The Iconic',   dot: '#ff9f0a', connected: true,  status: 'ready' },
-  { key: 'myer',    label: 'Myer',         dot: '#ff3b30', connected: true,  status: 'ready' },
-  { key: 'dj',      label: 'David Jones',  dot: '#0a84ff', connected: false, status: 'connect' },
-  { key: 'joor',    label: 'JOOR',         dot: '#bf5af2', connected: true,  status: 'ready' },
-]
+type Variant = { size: string; barcode: string; stock: string; price: string }
+type Colourway = { id: string; name: string; hex: string; rrp: string; variants: Variant[] }
+
+function newColourway(name = '', hex = '#000000'): Colourway {
+  return {
+    id: crypto.randomUUID(),
+    name,
+    hex,
+    rrp: '',
+    variants: DEFAULT_SIZES.map(size => ({ size, barcode: '', stock: '', price: '' })),
+  }
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', background: 'var(--bg)', border: '0.5px solid var(--border)',
+  borderRadius: '8px', padding: '9px 12px', fontSize: '13px', color: 'var(--text)',
+  outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+}
+
+const monoInputStyle: React.CSSProperties = {
+  background: 'transparent', border: 'none', outline: 'none',
+  fontSize: '11px', color: 'var(--text2)', fontFamily: 'monospace', width: '100%',
+}
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text3)', marginBottom: '7px', letterSpacing: '0.03em' }}>{children}</div>
+  return <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text3)', marginBottom: '7px' }}>{children}</div>
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -30,154 +45,204 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function Input({ placeholder, value, mono }: { placeholder: string; value?: string; mono?: boolean }) {
-  return (
-    <input
-      defaultValue={value}
-      placeholder={placeholder}
-      style={{
-        width: '100%', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: '8px',
-        padding: '9px 12px', fontSize: mono ? '12px' : '13px', color: 'var(--text)', outline: 'none',
-        fontFamily: mono ? 'monospace' : 'inherit', boxSizing: 'border-box',
-      }}
-    />
-  )
-}
-
-function Textarea({ placeholder, rows = 4 }: { placeholder: string; rows?: number }) {
-  return (
-    <textarea
-      placeholder={placeholder}
-      rows={rows}
-      style={{
-        width: '100%', background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: '8px',
-        padding: '9px 12px', fontSize: '13px', color: 'var(--text)', outline: 'none', resize: 'vertical',
-        fontFamily: 'inherit', lineHeight: 1.6, boxSizing: 'border-box',
-      }}
-    />
-  )
-}
-
 export default function NewProductPage() {
+  const router = useRouter()
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Product fields
+  const [title, setTitle]       = useState('')
+  const [sku, setSku]           = useState('')
+  const [category, setCategory] = useState('')
+  const [gender, setGender]     = useState('')
+  const [season, setSeason]     = useState('')
+
+  // Attributes
+  const [composition, setComposition] = useState('')
+  const [care, setCare]               = useState('')
+  const [fit, setFit]                 = useState('')
+  const [origin, setOrigin]           = useState('')
+
+  // Colourways
+  const [colourways, setColourways] = useState<Colourway[]>([newColourway()])
+  const [activeIdx, setActiveIdx]   = useState(0)
+
+  function updateColourway(id: string, patch: Partial<Colourway>) {
+    setColourways(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c))
+  }
+
+  function updateVariant(cwId: string, size: string, patch: Partial<Variant>) {
+    setColourways(prev => prev.map(c => c.id === cwId
+      ? { ...c, variants: c.variants.map(v => v.size === size ? { ...v, ...patch } : v) }
+      : c
+    ))
+  }
+
+  function addColourway() {
+    const cw = newColourway()
+    setColourways(prev => [...prev, cw])
+    setActiveIdx(colourways.length)
+  }
+
+  function removeColourway(id: string) {
+    if (colourways.length === 1) return
+    const newList = colourways.filter(c => c.id !== id)
+    setColourways(newList)
+    setActiveIdx(Math.min(activeIdx, newList.length - 1))
+  }
+
+  async function save(publish: boolean) {
+    if (!title.trim() || !sku.trim()) { setError('Title and SKU are required.'); return }
+    if (colourways.some(c => !c.name.trim())) { setError('All colourways need a name.'); return }
+
+    setError(null)
+    setSaving(true)
+
+    try {
+      const { data: { session } } = await createClient().auth.getSession()
+      if (!session) { setError('Not signed in.'); return }
+
+      const attributes: Record<string, string> = {}
+      if (composition) attributes['composition'] = composition
+      if (care)        attributes['care'] = care
+      if (fit)         attributes['fit'] = fit
+      if (origin)      attributes['origin'] = origin
+
+      const payload = {
+        title: title.trim(),
+        sku: sku.trim(),
+        category: category.trim() || null,
+        gender: gender.trim() || null,
+        season: season.trim() || null,
+        attributes,
+        colourways: colourways.map(c => ({
+          name: c.name.trim(),
+          code: c.hex,
+          rrp: c.rrp ? parseFloat(c.rrp) : null,
+          variants: c.variants
+            .filter(v => v.size)
+            .map(v => ({
+              size: v.size,
+              barcode: v.barcode || null,
+              stock: parseInt(v.stock) || 0,
+              price: v.price ? parseFloat(v.price) : (c.rrp ? parseFloat(c.rrp) : null),
+            })),
+        })),
+      }
+
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify(payload),
+      })
+
+      const json = await res.json()
+      if (!res.ok) { setError(json.error ?? 'Failed to save product.'); return }
+
+      router.push(`/dashboard/products/${json.data.id}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const cw = colourways[activeIdx] ?? colourways[0]
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <Topbar breadcrumbs={[{ label: 'Products', href: '/dashboard/products' }, { label: 'New product' }]} />
 
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg)' }}>
-        {/* Breadcrumb */}
-        <div style={{ padding: '16px 32px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Link href="/dashboard/products" style={{ fontSize: '13px', color: 'var(--text3)', textDecoration: 'none' }}>Products</Link>
-          <span style={{ color: 'var(--text3)', fontSize: '13px' }}>/</span>
-          <span style={{ fontSize: '13px', color: 'var(--text)' }}>New product</span>
-        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', padding: '24px 32px 40px', alignItems: 'start' }}>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', padding: '20px 32px 40px', alignItems: 'start' }}>
-
-          {/* ── LEFT COLUMN ── */}
+          {/* ── LEFT ── */}
           <div>
-
-            {/* Images */}
-            <Section title="Images">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
-                {/* Cover image slot */}
-                <div style={{ gridColumn: 'span 2', gridRow: 'span 2', aspectRatio: '3/4', background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', position: 'relative' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="28" height="28" style={{ opacity: 0.25 }}>
-                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
-                  </svg>
-                  <span style={{ fontSize: '12px', color: 'var(--text3)' }}>Cover image</span>
-                  <div style={{ position: 'absolute', top: '8px', left: '8px', background: 'var(--accent)', color: '#fff', fontSize: '10px', fontWeight: 600, padding: '2px 7px', borderRadius: '4px' }}>FRONT</div>
-                </div>
-                {/* Angle slots */}
-                {[{ label: 'BACK' }, { label: 'SIDE' }, { label: 'DETAIL' }, { label: '+ Add' }].map(({ label }) => (
-                  <div key={label} style={{ aspectRatio: '3/4', background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', position: 'relative' }}>
-                    {label === '+ Add' ? (
-                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" width="18" height="18" style={{ opacity: 0.2 }}>
-                        <path d="M8 3v10M3 8h10" strokeLinecap="round"/>
-                      </svg>
-                    ) : (
-                      <>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18" style={{ opacity: 0.18 }}>
-                          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
-                        </svg>
-                        <div style={{ position: 'absolute', top: '5px', left: '5px', background: 'rgba(255,255,255,0.08)', color: 'var(--text3)', fontSize: '9px', fontWeight: 600, padding: '1px 5px', borderRadius: '3px' }}>{label}</div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <p style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '12px' }}>Drag to reorder. ShotSync detects angles automatically when you upload from a shoot job.</p>
-            </Section>
 
             {/* Product info */}
             <Section title="Product info">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                 <div>
-                  <Label>Title</Label>
-                  <Input placeholder="e.g. Relaxed Linen Blazer" value="Relaxed Linen Blazer" />
+                  <Label>Title *</Label>
+                  <input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Relaxed Linen Blazer" />
                 </div>
                 <div>
-                  <Label>Brand</Label>
-                  <Input placeholder="Your brand name" value="Studio Label" />
+                  <Label>Master SKU *</Label>
+                  <input style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '12px' }} value={sku} onChange={e => setSku(e.target.value)} placeholder="e.g. PR05324" />
                 </div>
-              </div>
-              <div style={{ marginBottom: '14px' }}>
-                <Label>Description</Label>
-                <Textarea placeholder="Describe this product…" rows={4} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                 <div>
                   <Label>Category</Label>
-                  <Input placeholder="e.g. Blazers" value="Blazers" />
+                  <input style={inputStyle} value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Blazers" />
                 </div>
                 <div>
                   <Label>Gender</Label>
-                  <Input placeholder="e.g. Women" value="Women" />
+                  <input style={inputStyle} value={gender} onChange={e => setGender(e.target.value)} placeholder="e.g. Women" />
                 </div>
                 <div>
                   <Label>Season</Label>
-                  <Input placeholder="e.g. SS25" value="SS25" />
+                  <input style={inputStyle} value={season} onChange={e => setSeason(e.target.value)} placeholder="e.g. SS25" />
                 </div>
               </div>
             </Section>
 
-            {/* Variants */}
-            <Section title="Variants">
-              <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '16px' }}>Each row is a unique combination of colour × size with its own SKU, barcode, stock and price.</p>
+            {/* Colourways */}
+            <Section title="Colourways & Variants">
+              <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '16px' }}>Each colourway has its own stock, pricing, and listing data.</p>
 
-              {/* Table */}
+              {/* Tabs */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                {colourways.map((c, i) => (
+                  <button key={c.id} onClick={() => setActiveIdx(i)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', border: activeIdx === i ? '1.5px solid var(--accent)' : '0.5px solid var(--border)', background: activeIdx === i ? 'rgba(0,122,255,0.08)' : 'transparent', color: activeIdx === i ? 'var(--accent)' : 'var(--text2)' }}>
+                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: c.hex, border: '0.5px solid rgba(255,255,255,0.2)', flexShrink: 0 }} />
+                    {c.name || `Colour ${i + 1}`}
+                  </button>
+                ))}
+                <button onClick={addColourway} style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', color: 'var(--text3)', background: 'transparent', border: '0.5px dashed rgba(255,255,255,0.15)', cursor: 'pointer' }}>
+                  + Add colour
+                </button>
+              </div>
+
+              {/* Colourway editor */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', marginBottom: '20px', alignItems: 'end' }}>
+                <div>
+                  <Label>Colour name</Label>
+                  <input style={inputStyle} value={cw.name} onChange={e => updateColourway(cw.id, { name: e.target.value })} placeholder="e.g. Natural" />
+                </div>
+                <div>
+                  <Label>Hex code</Label>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input type="color" value={cw.hex} onChange={e => updateColourway(cw.id, { hex: e.target.value })} style={{ width: '36px', height: '36px', borderRadius: '6px', border: '0.5px solid var(--border)', background: 'none', cursor: 'pointer', padding: '2px' }} />
+                    <input style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '12px' }} value={cw.hex} onChange={e => updateColourway(cw.id, { hex: e.target.value })} placeholder="#000000" />
+                  </div>
+                </div>
+                <div>
+                  <Label>RRP ($)</Label>
+                  <input style={inputStyle} value={cw.rrp} onChange={e => updateColourway(cw.id, { rrp: e.target.value })} placeholder="189.00" type="number" min="0" step="0.01" />
+                </div>
+                {colourways.length > 1 && (
+                  <button onClick={() => removeColourway(cw.id)} style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '12px', color: '#ff3b30', background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Remove
+                  </button>
+                )}
+              </div>
+
+              {/* Variants table */}
               <div style={{ border: '0.5px solid var(--border)', borderRadius: '10px', overflow: 'hidden' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '100px 60px 140px 130px 80px 80px 44px', padding: '8px 12px', borderBottom: '0.5px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
-                  {['Colour', 'Size', 'SKU', 'Barcode', 'Stock', 'Price', ''].map((h) => (
+                <div style={{ display: 'grid', gridTemplateColumns: '60px 150px 120px 80px 80px', padding: '8px 12px', borderBottom: '0.5px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
+                  {['Size', 'Barcode / EAN', 'SKU', 'Stock', 'Price'].map(h => (
                     <div key={h} style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{h}</div>
                   ))}
                 </div>
-                {COLOURS.flatMap((colour) =>
-                  SIZES.map((size, si) => (
-                    <div key={`${colour.label}-${size}`} style={{ display: 'grid', gridTemplateColumns: '100px 60px 140px 130px 80px 80px 44px', padding: '7px 12px', borderBottom: '0.5px solid var(--border)', alignItems: 'center', gap: '0' }}>
-                      {/* Colour — only show on first size */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                        {si === 0 ? (
-                          <>
-                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: colour.hex, border: '0.5px solid rgba(255,255,255,0.15)', flexShrink: 0 }} />
-                            <span style={{ fontSize: '12px', color: 'var(--text2)' }}>{colour.label}</span>
-                          </>
-                        ) : null}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{size}</div>
-                      <input defaultValue={`PR05324-062-${size}`} style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '11px', color: 'var(--text3)', fontFamily: 'monospace', width: '100%' }} />
-                      <input placeholder="—" style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '11px', color: 'var(--text3)', fontFamily: 'monospace', width: '100%' }} />
-                      <input defaultValue={si < 3 ? String((si + 1) * 8) : '0'} style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '12px', color: 'var(--text2)', width: '60px' }} />
-                      <input defaultValue="$189.00" style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '12px', color: 'var(--text2)', width: '70px' }} />
-                      <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', opacity: 0.4, padding: '2px' }}>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" width="12" height="12"><path d="M3 8h10" strokeLinecap="round"/></svg>
-                      </button>
-                    </div>
-                  ))
-                )}
+                {cw.variants.map((v, i) => (
+                  <div key={v.size} style={{ display: 'grid', gridTemplateColumns: '60px 150px 120px 80px 80px', padding: '8px 12px', borderBottom: i < cw.variants.length - 1 ? '0.5px solid var(--border)' : 'none', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>{v.size}</span>
+                    <input value={v.barcode} onChange={e => updateVariant(cw.id, v.size, { barcode: e.target.value })} placeholder="—" style={monoInputStyle} />
+                    <span style={{ fontSize: '11px', color: 'var(--text3)', fontFamily: 'monospace' }}>{sku ? `${sku}-${v.size}` : '—'}</span>
+                    <input value={v.stock} onChange={e => updateVariant(cw.id, v.size, { stock: e.target.value })} placeholder="0" type="number" min="0" style={{ ...monoInputStyle, width: '60px' }} />
+                    <input value={v.price} onChange={e => updateVariant(cw.id, v.size, { price: e.target.value })} placeholder={cw.rrp || '—'} type="number" min="0" step="0.01" style={{ ...monoInputStyle, width: '70px' }} />
+                  </div>
+                ))}
               </div>
-              <button style={{ marginTop: '10px', background: 'none', border: '0.5px dashed rgba(255,255,255,0.15)', borderRadius: '8px', padding: '8px 14px', fontSize: '13px', color: 'var(--text3)', cursor: 'pointer', width: '100%' }}>
-                + Add colour
-              </button>
             </Section>
 
             {/* Attributes */}
@@ -185,19 +250,19 @@ export default function NewProductPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
                   <Label>Composition</Label>
-                  <Input placeholder="e.g. 100% Linen" value="100% Linen" />
+                  <input style={inputStyle} value={composition} onChange={e => setComposition(e.target.value)} placeholder="e.g. 100% Linen" />
                 </div>
                 <div>
                   <Label>Care instructions</Label>
-                  <Input placeholder="e.g. Dry clean only" value="Dry clean only" />
+                  <input style={inputStyle} value={care} onChange={e => setCare(e.target.value)} placeholder="e.g. Hand wash cold" />
                 </div>
                 <div>
                   <Label>Fit</Label>
-                  <Input placeholder="e.g. Relaxed" value="Relaxed" />
+                  <input style={inputStyle} value={fit} onChange={e => setFit(e.target.value)} placeholder="e.g. Relaxed" />
                 </div>
                 <div>
                   <Label>Country of origin</Label>
-                  <Input placeholder="e.g. China" value="China" />
+                  <input style={inputStyle} value={origin} onChange={e => setOrigin(e.target.value)} placeholder="e.g. Italy" />
                 </div>
               </div>
             </Section>
@@ -207,78 +272,66 @@ export default function NewProductPage() {
           {/* ── RIGHT SIDEBAR ── */}
           <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-            {/* Publish */}
+            {/* Save actions */}
             <div style={{ background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: '14px', padding: '18px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '16px' }}>Publish to</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
-                {CHANNELS.map(({ key, label, dot, connected }) => (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <input type="checkbox" defaultChecked={connected} disabled={!connected} style={{ accentColor: dot, cursor: connected ? 'pointer' : 'not-allowed', width: '14px', height: '14px', flexShrink: 0 }} />
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: dot, flexShrink: 0 }} />
-                    <span style={{ fontSize: '13px', color: connected ? 'var(--text)' : 'var(--text3)', flex: 1 }}>{label}</span>
-                    {!connected && (
-                      <Link href="/dashboard/connections" style={{ fontSize: '11px', color: 'var(--accent)', textDecoration: 'none' }}>Connect</Link>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <button style={{ width: '100%', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '9px', padding: '10px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', letterSpacing: '-0.2px' }}>
-                Publish listing
-              </button>
-              <button style={{ width: '100%', background: 'rgba(255,255,255,0.06)', color: 'var(--text2)', border: 'none', borderRadius: '9px', padding: '9px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', marginTop: '8px' }}>
-                Save as draft
-              </button>
-            </div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '16px' }}>Save product</div>
 
-            {/* Pricing */}
-            <div style={{ background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: '14px', padding: '18px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '14px' }}>Pricing</div>
-              <div style={{ marginBottom: '12px' }}>
-                <Label>RRP</Label>
-                <Input placeholder="$0.00" value="$189.00" />
-              </div>
-              <div style={{ marginBottom: '12px' }}>
-                <Label>Sale price</Label>
-                <Input placeholder="Optional" />
-              </div>
-              <div style={{ height: '0.5px', background: 'var(--border)', margin: '14px 0' }} />
-              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px' }}>Per-channel pricing override</div>
-              {CHANNELS.filter(c => c.connected).map(({ label, dot }) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: dot, flexShrink: 0 }} />
-                  <span style={{ fontSize: '12px', color: 'var(--text3)', flex: 1 }}>{label}</span>
-                  <input placeholder="Default" style={{ background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', color: 'var(--text)', outline: 'none', width: '72px', textAlign: 'right' }} />
+              {error && (
+                <div style={{ padding: '10px 12px', background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', borderRadius: '8px', fontSize: '12px', color: '#ff3b30', marginBottom: '12px' }}>
+                  {error}
                 </div>
-              ))}
+              )}
+
+              <button
+                onClick={() => save(false)}
+                disabled={saving}
+                style={{ width: '100%', background: 'rgba(255,255,255,0.06)', color: 'var(--text2)', border: '0.5px solid var(--border)', borderRadius: '9px', padding: '10px', fontSize: '13px', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', marginBottom: '8px' }}
+              >
+                {saving ? 'Saving…' : 'Save as draft'}
+              </button>
+              <button
+                onClick={() => save(true)}
+                disabled={saving}
+                style={{ width: '100%', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '9px', padding: '10px', fontSize: '14px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', letterSpacing: '-0.2px' }}
+              >
+                {saving ? 'Saving…' : 'Save & view product'}
+              </button>
             </div>
 
-            {/* Status */}
+            {/* Readiness */}
             <div style={{ background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: '14px', padding: '18px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '14px' }}>Status</div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '14px' }}>Checklist</div>
               {[
-                { label: 'Images',     ok: true },
-                { label: 'Title',      ok: true },
-                { label: 'Variants',   ok: true },
-                { label: 'Attributes', ok: false },
-                { label: 'Copy',       ok: false },
+                { label: 'Title',      ok: !!title.trim() },
+                { label: 'SKU',        ok: !!sku.trim() },
+                { label: 'Colourway',  ok: colourways.some(c => c.name.trim()) },
+                { label: 'Variants',   ok: colourways.some(c => c.variants.some(v => parseInt(v.stock) > 0)) },
+                { label: 'Attributes', ok: !!(composition || care || fit || origin) },
               ].map(({ label, ok }) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: ok ? 'rgba(48,209,88,0.15)' : 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {ok ? (
-                      <svg viewBox="0 0 12 12" fill="none" stroke="#30d158" strokeWidth="2" width="8" height="8"><polyline points="10 3 5 8.5 2 5.5"/></svg>
-                    ) : (
-                      <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
-                    )}
+                    {ok
+                      ? <svg viewBox="0 0 12 12" fill="none" stroke="#30d158" strokeWidth="2" width="8" height="8"><polyline points="10 3 5 8.5 2 5.5"/></svg>
+                      : <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
+                    }
                   </div>
                   <span style={{ fontSize: '13px', color: ok ? 'var(--text)' : 'var(--text3)' }}>{label}</span>
-                  {!ok && <span style={{ marginLeft: 'auto', fontSize: '11px', color: 'var(--text3)' }}>Required</span>}
                 </div>
               ))}
-              <button style={{ width: '100%', background: 'rgba(94,50,245,0.15)', color: '#bf5af2', border: 'none', borderRadius: '8px', padding: '8px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" width="13" height="13"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Generate copy with AI
-              </button>
             </div>
+
+            {/* Pricing summary */}
+            {colourways.some(c => c.rrp) && (
+              <div style={{ background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: '14px', padding: '18px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', marginBottom: '12px' }}>Pricing</div>
+                {colourways.filter(c => c.rrp).map(c => (
+                  <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{c.name || 'Colour'} RRP</span>
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text)' }}>${c.rrp}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
           </div>
         </div>
