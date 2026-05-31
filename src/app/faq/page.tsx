@@ -93,6 +93,35 @@ const FAQS = [
     ],
   },
   {
+    category: 'Chrome Extension',
+    items: [
+      {
+        q: 'What is the ShotSync Chrome extension?',
+        a: 'The ShotSync Chrome extension lets you push product listings directly into marketplace seller portals — like THE ICONIC, Myer, and David Jones — without copying and pasting. Once connected, it reads your product data from ShotSync and fills in all the fields automatically: title, description, category, sizes, barcodes, and images.',
+      },
+      {
+        q: 'How do I install the Chrome extension?',
+        a: 'Search for "ShotSync" in the Chrome Web Store and click Add to Chrome. Once installed, the ShotSync icon will appear in your Chrome toolbar. If you don\'t see it, click the puzzle piece icon in the toolbar and pin ShotSync.',
+      },
+      {
+        q: 'How do I connect the extension to my account?',
+        a: 'In ShotSync, go to Settings → General and click Generate API Key. Copy the key that appears. Then click the ShotSync extension icon in Chrome, paste the key into the API Key field, enter https://www.shotsync.ai as the URL, and click Connect. You only need to do this once.',
+      },
+      {
+        q: 'How do I push a listing to THE ICONIC?',
+        a: 'Make sure your product is ready in ShotSync with images, copy, and variants filled in. Then open THE ICONIC seller portal in Chrome and navigate to Create new listing. Click the ShotSync extension icon, select your product and colourway, and click Push to THE ICONIC. The extension will fill in all the fields automatically — review and submit.',
+      },
+      {
+        q: 'Which portals does the extension support?',
+        a: 'THE ICONIC is fully supported. Myer and David Jones support is coming soon — the extension will show a "coming soon" message on those portals until field mapping is complete.',
+      },
+      {
+        q: 'Does the extension work in other browsers?',
+        a: 'Currently Chrome only. Support for Edge (which uses the same extension format) is planned.',
+      },
+    ],
+  },
+  {
     category: 'Plans & Billing',
     items: [
       {
