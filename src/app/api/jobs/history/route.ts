@@ -90,7 +90,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ data: data ?? [], stats, planId, historyDepth: depth })
+    // Attach SKU lists from job_clusters so the UI can search by SKU
+    const jobIds = (data ?? []).map((j: { id: string }) => j.id)
+    const skuMap: Record<string, string[]> = {}
+    if (jobIds.length > 0) {
+      const { data: clusterRows } = await service
+        .from('job_clusters')
+        .select('job_history_id, sku')
+        .in('job_history_id', jobIds)
+        .not('sku', 'is', null)
+      for (const row of (clusterRows ?? [])) {
+        const sku = (row.sku as string | null)?.trim()
+        if (!sku) continue
+        if (!skuMap[row.job_history_id as string]) skuMap[row.job_history_id as string] = []
+        if (!skuMap[row.job_history_id as string].includes(sku)) skuMap[row.job_history_id as string].push(sku)
+      }
+    }
+    const enriched = (data ?? []).map((j: { id: string }) => ({ ...j, skus: skuMap[j.id] ?? [] }))
+
+    return NextResponse.json({ data: enriched, stats, planId, historyDepth: depth })
   } catch (err) {
     console.error('GET /api/jobs/history error:', err)
     return NextResponse.json({ data: [] })

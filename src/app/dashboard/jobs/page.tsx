@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
@@ -42,6 +42,7 @@ interface JobRecord {
   created_at: string
   brand_id?: string | null
   brands?: { name: string; brand_code: string; logo_color: string } | null
+  skus?: string[]
 }
 
 // IDB session IDs are loaded lazily — only after jobs are fetched
@@ -73,10 +74,20 @@ export default function JobsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [reopeningId, setReopeningId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const { activeBrand, isLoading: brandsLoading } = useBrand()
   const { setSession } = useSession()
   const router = useRouter()
   const storedSessions = useStoredSessions(jobs.map((j) => j.id))
+
+  const filteredJobs = useMemo(() => {
+    const q = searchQuery.trim().toUpperCase()
+    if (!q) return jobs
+    return jobs.filter((job) =>
+      job.job_name.toUpperCase().includes(q) ||
+      (job.skus ?? []).some((sku) => sku.toUpperCase().includes(q))
+    )
+  }, [jobs, searchQuery])
 
   const handleReopen = async (jobId: string) => {
     setReopeningId(jobId)
@@ -254,14 +265,60 @@ export default function JobsPage() {
       />
 
       <div className="p-7">
-        <div className="mb-6">
-          <h1 style={{ fontSize: 'var(--font-3xl)', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', marginBottom: '3px' }}>
-            All Jobs
-          </h1>
-          {!loading && (
-            <p style={{ fontSize: 'var(--font-lg)', color: 'var(--text3)' }}>
-              {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} — click any row to open
-            </p>
+        <div className="mb-6" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ fontSize: 'var(--font-3xl)', fontWeight: 500, letterSpacing: '-.8px', color: 'var(--text)', marginBottom: '3px' }}>
+              All Jobs
+            </h1>
+            {!loading && (
+              <p style={{ fontSize: 'var(--font-lg)', color: 'var(--text3)' }}>
+                {searchQuery.trim()
+                  ? `${filteredJobs.length} of ${jobs.length} ${jobs.length === 1 ? 'job' : 'jobs'}`
+                  : `${jobs.length} ${jobs.length === 1 ? 'job' : 'jobs'}`
+                } — click any row to open
+              </p>
+            )}
+          </div>
+
+          {!loading && jobs.length > 0 && (
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <svg
+                width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" strokeWidth="1.5"
+                style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+              >
+                <circle cx="6" cy="6" r="4.5"/>
+                <path d="M9.5 9.5L12 12" strokeLinecap="round"/>
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by job or SKU…"
+                style={{
+                  background: 'var(--bg2)',
+                  border: '0.5px solid var(--line2)',
+                  borderRadius: '10px',
+                  color: 'var(--text)',
+                  fontSize: 'var(--font-lg)',
+                  padding: '7px 12px 7px 32px',
+                  outline: 'none',
+                  width: '240px',
+                  fontFamily: 'inherit',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--accent)' }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line2)' }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M2 2l8 8M10 2l-8 8" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -286,9 +343,15 @@ export default function JobsPage() {
             <p style={{ fontSize: 'var(--font-lg)', color: 'var(--text3)', marginBottom: '16px' }}>Completed jobs will appear here.</p>
             <Link href="/dashboard/upload" className="btn btn-primary">Start a shoot</Link>
           </div>
+        ) : filteredJobs.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '64px 0' }}>
+            <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>No results for &ldquo;{searchQuery.trim()}&rdquo;</p>
+            <p style={{ fontSize: 'var(--font-lg)', color: 'var(--text3)', marginBottom: '14px' }}>Try searching by job name or SKU.</p>
+            <button onClick={() => setSearchQuery('')} className="btn btn-ghost btn-sm">Clear search</button>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {jobs.map((job) => {
+            {filteredJobs.map((job) => {
               const chip = STATUS_MAP[job.status] ?? STATUS_MAP.completed
               const isDeleting = deletingId === job.id
               const isConfirming = confirmDeleteId === job.id
@@ -355,6 +418,12 @@ export default function JobsPage() {
                         {job.image_count} images · {job.cluster_count} clusters
                         {job.marketplaces?.length > 0 && <> · {job.marketplaces.length} marketplace{job.marketplaces.length !== 1 ? 's' : ''}</>}
                       </p>
+                      {/* Show matched SKUs when searching */}
+                      {searchQuery.trim() && (job.skus ?? []).some((s) => s.toUpperCase().includes(searchQuery.trim().toUpperCase())) && (
+                        <p style={{ fontSize: 'var(--font-sm)', color: 'var(--accent)', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {(job.skus ?? []).filter((s) => s.toUpperCase().includes(searchQuery.trim().toUpperCase())).join(' · ')}
+                        </p>
+                      )}
                     </div>
 
                     {/* Date */}
