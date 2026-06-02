@@ -321,12 +321,12 @@ export function Sidebar() {
       </div>
 
       {/* Logo */}
-      <div className="flex items-center gap-[9px]" style={{ padding: '20px 16px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
+      <Link href="/dashboard" className="flex items-center gap-[9px]" style={{ padding: '20px 16px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
         <img src="/icon.png" alt="ShotSync" className="w-[28px] h-[28px] rounded-[7px] flex-shrink-0" />
         <div className="text-[length:var(--font-lg)] font-medium tracking-[-0.3px]" style={{ color: '#f0f0f0', fontFamily: "'Inter', sans-serif" }}>
           Shot<span style={{ color: 'rgba(255,255,255,0.4)' }}>Sync</span>
         </div>
-      </div>
+      </Link>
 
       {/* Brand Switcher */}
       <BrandSwitcher />
