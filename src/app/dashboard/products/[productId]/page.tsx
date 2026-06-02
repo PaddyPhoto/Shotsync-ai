@@ -22,10 +22,10 @@ const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }>
 
 type Variant    = { id: string; size: string; barcode: string | null; stock: number; price: number }
 type Image      = { id: string; storage_url: string | null; angle: string; sort_order: number; original_filename: string | null }
-type Listing    = { channel: string; status: string; external_id: string | null; last_published_at: string | null; error: string | null }
-type Colourway  = { id: string; colour_name: string; colour_code: string | null; rrp: number | null; listing_title: string | null; listing_description: string | null; listing_bullets: string[]; product_images: Image[]; product_variants: Variant[]; channel_listings: Listing[] }
+type ChannelListing = { channel: string; status: string; external_id: string | null; last_published_at: string | null; error: string | null }
+type ProductListing = { id: string; colour_name: string; colour_code: string | null; rrp: number | null; listing_title: string | null; listing_description: string | null; listing_bullets: string[]; product_images: Image[]; product_variants: Variant[]; channel_listings: ChannelListing[] }
 type Attribute  = { key: string; value: string }
-type Product    = { id: string; sku: string; title: string; category: string | null; gender: string | null; season: string | null; status: string; product_attributes: Attribute[]; product_colourways: Colourway[] }
+type Product    = { id: string; sku: string; title: string; category: string | null; gender: string | null; season: string | null; status: string; product_attributes: Attribute[]; product_listings: ProductListing[] }
 
 const ANGLE_SLOTS = ['Front', 'Back', 'Side', 'Detail', 'Mood', 'Full length']
 
@@ -34,8 +34,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [activeColourwayId, setActiveColourwayId] = useState<string | null>(null)
-  const [channelMap, setChannelMap] = useState<Record<string, Listing>>({})
+  const [activeListingId, setActiveListingId] = useState<string | null>(null)
+  const [channelMap, setChannelMap] = useState<Record<string, ChannelListing>>({})
   const [publishingChannels, setPublishingChannels] = useState<Set<string>>(new Set())
   const [token, setToken] = useState<string | null>(null)
 
@@ -48,11 +48,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
         .then(json => {
           if (!json) return
           setProduct(json.data)
-          const firstColourway = json.data.product_colourways[0]
-          setActiveColourwayId(firstColourway?.id ?? null)
-          if (firstColourway) {
-            const map: Record<string, Listing> = {}
-            for (const l of (firstColourway.channel_listings ?? [])) map[l.channel] = l
+          const firstListing: ProductListing = json.data.product_listings[0]
+          setActiveListingId(firstListing?.id ?? null)
+          if (firstListing) {
+            const map: Record<string, ChannelListing> = {}
+            for (const l of (firstListing.channel_listings ?? [])) map[l.channel] = l
             setChannelMap(map)
           }
           setLoading(false)
@@ -62,23 +62,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
   }, [productId])
 
   useEffect(() => {
-    if (!product || !activeColourwayId) return
-    const cw = product.product_colourways.find(c => c.id === activeColourwayId)
+    if (!product || !activeListingId) return
+    const cw = product.product_listings.find(c => c.id === activeListingId)
     if (!cw) return
-    const map: Record<string, Listing> = {}
+    const map: Record<string, ChannelListing> = {}
     for (const l of (cw.channel_listings ?? [])) map[l.channel] = l
     setChannelMap(map)
-  }, [activeColourwayId, product])
+  }, [activeListingId, product])
 
   const publishChannel = useCallback(async (channelKey: string) => {
-    if (!token || !activeColourwayId || publishingChannels.has(channelKey)) return
+    if (!token || !activeListingId || publishingChannels.has(channelKey)) return
     setPublishingChannels(prev => new Set([...prev, channelKey]))
 
     try {
       const res = await fetch(`/api/products/${productId}/publish`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ colourwayId: activeColourwayId, channels: [channelKey] }),
+        body: JSON.stringify({ listingId: activeListingId, channels: [channelKey] }),
       })
       const json = await res.json()
       const result = json.results?.[0]
@@ -97,10 +97,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
     } finally {
       setPublishingChannels(prev => { const s = new Set(prev); s.delete(channelKey); return s })
     }
-  }, [token, activeColourwayId, productId, publishingChannels])
+  }, [token, activeListingId, productId, publishingChannels])
 
   const publishAll = useCallback(async () => {
-    if (!token || !activeColourwayId) return
+    if (!token || !activeListingId) return
     const allKeys = CHANNELS.map(c => c.key)
     const queued = allKeys.filter(k => !publishingChannels.has(k))
     if (!queued.length) return
@@ -110,7 +110,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
       const res = await fetch(`/api/products/${productId}/publish`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ colourwayId: activeColourwayId, channels: queued }),
+        body: JSON.stringify({ listingId: activeListingId, channels: queued }),
       })
       const json = await res.json()
       if (json.results) {
@@ -131,7 +131,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
     } finally {
       setPublishingChannels(new Set())
     }
-  }, [token, activeColourwayId, productId, publishingChannels])
+  }, [token, activeListingId, productId, publishingChannels])
 
   if (loading) return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -147,7 +147,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
     </div>
   )
 
-  const cw = product.product_colourways.find(c => c.id === activeColourwayId) ?? product.product_colourways[0]
+  const cw = product.product_listings.find(c => c.id === activeListingId) ?? product.product_listings[0]
   const totalStock = cw?.product_variants.reduce((s, v) => s + v.stock, 0) ?? 0
   const liveChannels = Object.values(channelMap).filter(l => l.status === 'live').length
 
@@ -197,14 +197,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
 
             {/* Colourway tabs */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '24px' }}>
-              {product.product_colourways.map(c => (
-                <button key={c.id} onClick={() => setActiveColourwayId(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', border: activeColourwayId === c.id ? '1.5px solid var(--accent)' : '0.5px solid var(--border)', background: activeColourwayId === c.id ? 'rgba(0,122,255,0.08)' : 'var(--surface)', color: activeColourwayId === c.id ? 'var(--accent)' : 'var(--text2)' }}>
+              {product.product_listings.map(c => (
+                <button key={c.id} onClick={() => setActiveListingId(c.id)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', border: activeListingId === c.id ? '1.5px solid var(--accent)' : '0.5px solid var(--border)', background: activeListingId === c.id ? 'rgba(0,122,255,0.08)' : 'var(--surface)', color: activeListingId === c.id ? 'var(--accent)' : 'var(--text2)' }}>
                   {c.colour_code && <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: c.colour_code.startsWith('#') ? c.colour_code : '#888', border: '0.5px solid rgba(255,255,255,0.15)', flexShrink: 0 }} />}
                   {c.colour_name}
                   {c.colour_code && <span style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--text3)' }}>{c.colour_code}</span>}
                 </button>
               ))}
-              {product.product_colourways.length === 0 && (
+              {product.product_listings.length === 0 && (
                 <span style={{ fontSize: '13px', color: 'var(--text3)' }}>No colourways added yet</span>
               )}
             </div>

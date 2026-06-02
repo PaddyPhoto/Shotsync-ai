@@ -9,9 +9,9 @@ import { createClient } from '@/lib/supabase/client'
 const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL']
 
 type Variant = { size: string; barcode: string; stock: string; price: string }
-type Colourway = { id: string; name: string; hex: string; rrp: string; variants: Variant[] }
+type Listing = { id: string; name: string; hex: string; rrp: string; variants: Variant[] }
 
-function newColourway(name = '', hex = '#000000'): Colourway {
+function newListing(name = '', hex = '#000000'): Listing {
   return {
     id: crypto.randomUUID(),
     name,
@@ -63,31 +63,31 @@ export default function NewProductPage() {
   const [fit, setFit]                 = useState('')
   const [origin, setOrigin]           = useState('')
 
-  // Colourways
-  const [colourways, setColourways] = useState<Colourway[]>([newColourway()])
+  // Listings
+  const [colourways, setListings] = useState<Listing[]>([newListing()])
   const [activeIdx, setActiveIdx]   = useState(0)
 
-  function updateColourway(id: string, patch: Partial<Colourway>) {
-    setColourways(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c))
+  function updateListing(id: string, patch: Partial<Listing>) {
+    setListings(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c))
   }
 
   function updateVariant(cwId: string, size: string, patch: Partial<Variant>) {
-    setColourways(prev => prev.map(c => c.id === cwId
+    setListings(prev => prev.map(c => c.id === cwId
       ? { ...c, variants: c.variants.map(v => v.size === size ? { ...v, ...patch } : v) }
       : c
     ))
   }
 
-  function addColourway() {
-    const cw = newColourway()
-    setColourways(prev => [...prev, cw])
+  function addListing() {
+    const cw = newListing()
+    setListings(prev => [...prev, cw])
     setActiveIdx(colourways.length)
   }
 
-  function removeColourway(id: string) {
+  function removeListing(id: string) {
     if (colourways.length === 1) return
     const newList = colourways.filter(c => c.id !== id)
-    setColourways(newList)
+    setListings(newList)
     setActiveIdx(Math.min(activeIdx, newList.length - 1))
   }
 
@@ -185,9 +185,9 @@ export default function NewProductPage() {
               </div>
             </Section>
 
-            {/* Colourways */}
-            <Section title="Colourways & Variants">
-              <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '16px' }}>Each colourway has its own stock, pricing, and listing data.</p>
+            {/* Listings */}
+            <Section title="Colour & Variants">
+              <p style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '16px' }}>Each listing has its own stock, pricing, and listing data.</p>
 
               {/* Tabs */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -197,30 +197,30 @@ export default function NewProductPage() {
                     {c.name || `Colour ${i + 1}`}
                   </button>
                 ))}
-                <button onClick={addColourway} style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', color: 'var(--text3)', background: 'transparent', border: '0.5px dashed rgba(255,255,255,0.15)', cursor: 'pointer' }}>
+                <button onClick={addListing} style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '12px', color: 'var(--text3)', background: 'transparent', border: '0.5px dashed rgba(255,255,255,0.15)', cursor: 'pointer' }}>
                   + Add colour
                 </button>
               </div>
 
-              {/* Colourway editor */}
+              {/* Listing editor */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', marginBottom: '20px', alignItems: 'end' }}>
                 <div>
                   <Label>Colour name</Label>
-                  <input style={inputStyle} value={cw.name} onChange={e => updateColourway(cw.id, { name: e.target.value })} placeholder="e.g. Natural" />
+                  <input style={inputStyle} value={cw.name} onChange={e => updateListing(cw.id, { name: e.target.value })} placeholder="e.g. Natural" />
                 </div>
                 <div>
                   <Label>Hex code</Label>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input type="color" value={cw.hex} onChange={e => updateColourway(cw.id, { hex: e.target.value })} style={{ width: '36px', height: '36px', borderRadius: '6px', border: '0.5px solid var(--border)', background: 'none', cursor: 'pointer', padding: '2px' }} />
-                    <input style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '12px' }} value={cw.hex} onChange={e => updateColourway(cw.id, { hex: e.target.value })} placeholder="#000000" />
+                    <input type="color" value={cw.hex} onChange={e => updateListing(cw.id, { hex: e.target.value })} style={{ width: '36px', height: '36px', borderRadius: '6px', border: '0.5px solid var(--border)', background: 'none', cursor: 'pointer', padding: '2px' }} />
+                    <input style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '12px' }} value={cw.hex} onChange={e => updateListing(cw.id, { hex: e.target.value })} placeholder="#000000" />
                   </div>
                 </div>
                 <div>
                   <Label>RRP ($)</Label>
-                  <input style={inputStyle} value={cw.rrp} onChange={e => updateColourway(cw.id, { rrp: e.target.value })} placeholder="189.00" type="number" min="0" step="0.01" />
+                  <input style={inputStyle} value={cw.rrp} onChange={e => updateListing(cw.id, { rrp: e.target.value })} placeholder="189.00" type="number" min="0" step="0.01" />
                 </div>
                 {colourways.length > 1 && (
-                  <button onClick={() => removeColourway(cw.id)} style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '12px', color: '#ff3b30', background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  <button onClick={() => removeListing(cw.id)} style={{ padding: '9px 12px', borderRadius: '8px', fontSize: '12px', color: '#ff3b30', background: 'rgba(255,59,48,0.08)', border: '0.5px solid rgba(255,59,48,0.2)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     Remove
                   </button>
                 )}
@@ -304,7 +304,7 @@ export default function NewProductPage() {
               {[
                 { label: 'Title',      ok: !!title.trim() },
                 { label: 'SKU',        ok: !!sku.trim() },
-                { label: 'Colourway',  ok: colourways.some(c => c.name.trim()) },
+                { label: 'Colour',  ok: colourways.some(c => c.name.trim()) },
                 { label: 'Variants',   ok: colourways.some(c => c.variants.some(v => parseInt(v.stock) > 0)) },
                 { label: 'Attributes', ok: !!(composition || care || fit || origin) },
               ].map(({ label, ok }) => (

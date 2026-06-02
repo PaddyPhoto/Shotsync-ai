@@ -29,43 +29,35 @@ export interface SessionCluster {
   copyDescription?: string
   copyBullets?: string[]
   productId?: string      // linked PIM product (matched by SKU)
-  colourwayId?: string    // linked PIM colourway (matched by colour name)
-}
-
-export interface StyleListEntry {
-  sku: string
-  productName: string
-  colour: string
-  colourCode: string
-  styleNumber: string
-  composition?: string
-  care?: string
-  fit?: string
-  length?: string
-  rrp?: string
-  season?: string
-  occasion?: string
-  gender?: string
-  category?: string
-  subCategory?: string
-  origin?: string
-  sizeRange?: string
+  listingId?: string    // linked PIM colourway (matched by colour name)
 }
 
 export type ShootType = 'on-model' | 'still-life'
+
+export interface StyleListEntry {
+  sku: string
+  color?: string
+  colourCode?: string
+  styleNumber?: string
+  category?: string
+  gender?: string
+  season?: string
+}
 
 interface SessionState {
   jobName: string
   clusters: SessionCluster[]
   marketplaces: string[]
-  styleList: StyleListEntry[]
   shootType: ShootType
   accessoryCategory: string | null
   imagesPerLook: number
   angleSequence: ViewLabel[]
   isReady: boolean
+  useStyleList: boolean
+  styleList: StyleListEntry[]
+  setUseStyleList: (val: boolean) => void
+  setStyleList: (list: StyleListEntry[]) => void
   setSession: (jobName: string, clusters: SessionCluster[], marketplaces?: string[], imagesPerLook?: number, angleSequence?: ViewLabel[]) => void
-  setStyleList: (entries: StyleListEntry[]) => void
   setShootConfig: (shootType: ShootType, accessoryCategory: string | null) => void
   moveImage: (imageId: string, toClusterId: string) => void
   copyImageToCluster: (imageId: string, toClusterId: string) => void
@@ -77,7 +69,7 @@ interface SessionState {
   updateClusterColor: (clusterId: string, color: string) => void
   updateClusterColourCode: (clusterId: string, colourCode: string) => void
   updateClusterStyleNumber: (clusterId: string, styleNumber: string) => void
-  setClusterProduct: (clusterId: string, productId: string | null, colourwayId: string | null) => void
+  setClusterProduct: (clusterId: string, productId: string | null, listingId: string | null) => void
   setClusterCategory: (clusterId: string, category: string | null) => void
   setClusterGarmentCategory: (clusterId: string, garmentCategory: string | null) => void
   setClusterBottomwear: (clusterId: string, isBottomwear: boolean) => void
@@ -106,15 +98,17 @@ export const useSession = create<SessionState>((set, get) => ({
   jobName: '',
   clusters: [],
   marketplaces: ['the-iconic'],
-  styleList: [],
   shootType: 'on-model',
   accessoryCategory: null,
   imagesPerLook: 6,
   angleSequence: [],
   isReady: false,
+  useStyleList: false,
+  styleList: [],
+  setUseStyleList: (val) => set({ useStyleList: val }),
+  setStyleList: (list) => set({ styleList: list }),
   undoStack: [],
 
-  setStyleList: (entries) => set({ styleList: entries }),
   setShootConfig: (shootType, accessoryCategory) => set({ shootType, accessoryCategory }),
 
   setSession: (jobName, clusters, marketplaces, imagesPerLook, angleSequence) => {
@@ -270,10 +264,10 @@ export const useSession = create<SessionState>((set, get) => ({
     ),
   })),
 
-  setClusterProduct: (clusterId, productId, colourwayId) => set((state) => ({
+  setClusterProduct: (clusterId, productId, listingId) => set((state) => ({
     clusters: state.clusters.map((c) =>
       c.id === clusterId
-        ? { ...c, productId: productId ?? undefined, colourwayId: colourwayId ?? undefined }
+        ? { ...c, productId: productId ?? undefined, listingId: listingId ?? undefined }
         : c
     ),
   })),
@@ -462,6 +456,6 @@ export const useSession = create<SessionState>((set, get) => ({
   reset: () => {
     try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
     try { sessionStorage.removeItem('shotsync:reimport') } catch { /* ignore */ }
-    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], styleList: [], shootType: 'on-model', accessoryCategory: null, imagesPerLook: 6, angleSequence: [], isReady: false, undoStack: [] })
+    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], shootType: 'on-model', accessoryCategory: null, imagesPerLook: 6, angleSequence: [], isReady: false, undoStack: [], useStyleList: false, styleList: [] })
   },
 }))

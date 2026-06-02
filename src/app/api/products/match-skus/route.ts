@@ -22,28 +22,39 @@ export async function POST(req: NextRequest) {
 
   const normalised = [...new Set(skus.map((s) => s.trim().toUpperCase()))]
 
+  type ListingRow = { id: string; colour_name: string; colour_code: string | null; rrp: number | null }
+  type AttrRow = { key: string; value: string }
+  type MatchEntry = {
+    productId: string
+    productTitle: string
+    sku: string
+    colourways: { id: string; name: string; code: string | null; rrp: number | null }[]
+    attributes: Record<string, string>
+    gender: string | null
+    season: string | null
+    category: string | null
+  }
+
   const { data: products } = await service
     .from('products')
-    .select('id, sku, title, product_colourways(id, colour_name, colour_code)')
+    .select('id, sku, title, category, gender, season, product_attributes(key, value), product_listings(id, colour_name, colour_code, rrp)')
     .eq('org_id', member.org_id)
     .in('sku', normalised)
 
-  type ColourwayRow = { id: string; colour_name: string; colour_code: string | null }
-  const matches: Record<string, {
-    productId: string
-    productTitle: string
-    colourways: { id: string; name: string; code: string | null }[]
-  }> = {}
+  const matches: Record<string, MatchEntry> = {}
 
   for (const p of products ?? []) {
+    const attrs: Record<string, string> = {}
+    for (const a of (p.product_attributes as AttrRow[])) attrs[a.key] = a.value
     matches[p.sku] = {
       productId: p.id,
       productTitle: p.title ?? p.sku,
-      colourways: (p.product_colourways as ColourwayRow[]).map((cw) => ({
-        id: cw.id,
-        name: cw.colour_name,
-        code: cw.colour_code,
-      })),
+      sku: p.sku,
+      colourways: (p.product_listings as ListingRow[]).map((cw) => ({ id: cw.id, name: cw.colour_name, code: cw.colour_code, rrp: cw.rrp })),
+      attributes: attrs,
+      gender: p.gender ?? null,
+      season: p.season ?? null,
+      category: p.category ?? null,
     }
   }
 

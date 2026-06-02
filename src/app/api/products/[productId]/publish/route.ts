@@ -15,14 +15,14 @@ type ChannelResult = {
 }
 
 type ProductRow = { id: string; sku: string; title: string; category: string | null; product_attributes: { key: string; value: string }[] }
-type ColourwayRow = { id: string; colour_name: string; rrp: number | null; listing_title: string | null; listing_description: string | null; product_images: { id: string; storage_url: string | null; angle: string; sort_order: number }[] }
+type ListingRow = { id: string; colour_name: string; rrp: number | null; listing_title: string | null; listing_description: string | null; product_images: { id: string; storage_url: string | null; angle: string; sort_order: number }[] }
 type BrandRow = { id: string; shopify_store_url: string | null; cin7_account_id: string | null; cin7_application_key: string | null; iconic_user_id: string | null; iconic_api_key: string | null }
 type ExistingListing = { status: string; external_id: string | null } | null
 
 async function publishToShopify(
   product: ProductRow,
-  colourway: ColourwayRow,
-  images: ColourwayRow['product_images'],
+  colourway: ListingRow,
+  images: ListingRow['product_images'],
   brand: BrandRow | null,
   existing: ExistingListing,
   service: SupabaseClient,
@@ -72,8 +72,8 @@ async function publishToShopify(
 
 async function publishToCin7(
   product: ProductRow,
-  colourway: ColourwayRow,
-  images: ColourwayRow['product_images'],
+  colourway: ListingRow,
+  images: ListingRow['product_images'],
   brand: BrandRow | null,
   existing: ExistingListing,
 ): Promise<ChannelResult> {
@@ -123,10 +123,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 
   const { productId } = await params
   const body = await req.json()
-  const { colourwayId, channels } = body as { colourwayId: string; channels: string[] }
+  const { listingId, channels } = body as { listingId: string; channels: string[] }
 
-  if (!colourwayId || !Array.isArray(channels) || channels.length === 0) {
-    return NextResponse.json({ error: 'colourwayId and channels are required' }, { status: 400 })
+  if (!listingId || !Array.isArray(channels) || channels.length === 0) {
+    return NextResponse.json({ error: 'listingId and channels are required' }, { status: 400 })
   }
 
   const service = createServiceClient()
@@ -142,11 +142,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 })
 
   const { data: colourway } = await service
-    .from('product_colourways')
+    .from('product_listings')
     .select('id, colour_name, rrp, listing_title, listing_description, product_images(id, storage_url, angle, sort_order)')
-    .eq('id', colourwayId)
-    .single() as { data: ColourwayRow | null }
-  if (!colourway) return NextResponse.json({ error: 'Colourway not found' }, { status: 404 })
+    .eq('id', listingId)
+    .single() as { data: ListingRow | null }
+  if (!colourway) return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
 
   const { data: brand } = await service
     .from('brands')
@@ -158,7 +158,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
   const { data: existingListings } = await service
     .from('channel_listings')
     .select('channel, status, external_id')
-    .eq('colourway_id', colourwayId)
+    .eq('listing_id', listingId)
 
   const listingMap: Record<string, ExistingListing> = {}
   for (const l of (existingListings ?? [])) {
@@ -188,14 +188,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
     await service.from('channel_listings').upsert(
       {
         product_id: productId,
-        colourway_id: colourwayId,
+        listing_id: listingId,
         channel,
         status: result.status,
         external_id: result.externalId ?? listingMap[channel]?.external_id ?? null,
         last_published_at: result.status !== 'error' ? new Date().toISOString() : undefined,
         error: result.error ?? null,
       },
-      { onConflict: 'colourway_id,channel' },
+      { onConflict: 'listing_id,channel' },
     )
   }
 

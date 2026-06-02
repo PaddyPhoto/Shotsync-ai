@@ -13,8 +13,7 @@
   "host_permissions": [
     "https://seller.theiconic.com.au/*",
     "https://supplier.myer.com.au/*",
-    "https://vendorportal.davidjones.com.au/*",
-    "https://app.joor.com/*"
+    "https://vendorportal.davidjones.com.au/*"
   ],
 
   "background": {

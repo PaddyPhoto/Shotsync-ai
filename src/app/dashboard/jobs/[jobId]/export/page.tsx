@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import { useSession } from '@/store/session'
-import type { StyleListEntry } from '@/store/session'
 import { useBrand } from '@/context/BrandContext'
 import { applyNamingTemplate } from '@/lib/brands'
 import { processImageOnCanvas } from '@/lib/export/image-processing'
@@ -227,21 +226,30 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     const { data: { session } } = await createClient().auth.getSession()
     const authHeader: Record<string, string> = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
 
-    // Load style list for CSV metadata enrichment — prefer live session, fall back to IDB
-    let styleList: StyleListEntry[] = useSession.getState().styleList
-    if (!styleList.length && params.jobId !== 'session') {
-      try {
-        const { loadSession } = await import('@/lib/session-store')
-        const stored = await loadSession(params.jobId)
-        if (stored?.styleList?.length) styleList = stored.styleList
-      } catch { /* no style list available */ }
+    // Fetch product attributes from DB for clusters that are linked to products
+    type ProdData = { attributes: Record<string, string>; gender?: string | null; season?: string | null; category?: string | null; listings: { id: string; rrp?: number | null }[] }
+    const productAttrMap: Record<string, ProdData> = {}
+    for (const cluster of confirmedClusters) {
+      if (cluster.productId && !productAttrMap[cluster.productId]) {
+        try {
+          const res = await fetch(`/api/products/${cluster.productId}`, { headers: authHeader })
+          if (res.ok) {
+            const { data: prod } = await res.json()
+            const attrs: Record<string, string> = {}
+            for (const { key, value } of (prod?.product_attributes ?? [])) attrs[key] = value
+            productAttrMap[cluster.productId] = { attributes: attrs, gender: prod?.gender, season: prod?.season, category: prod?.category, listings: prod?.product_listings ?? [] }
+          }
+        } catch { /* no product data */ }
+      }
     }
 
     for (let ci = 0; ci < confirmedClusters.length; ci++) {
       if (cancelPushRef.current) break
       const cluster = confirmedClusters[ci]
       const draftSku = cluster.sku ?? `${shopifyBrand.brand_code}-${String(ci + 1).padStart(3, '0')}`
-      const styleEntry = styleList.find((e) => e.sku.toUpperCase() === draftSku.toUpperCase())
+      const prodData = cluster.productId ? productAttrMap[cluster.productId] : null
+      const pAttr = prodData?.attributes ?? {}
+      const matchedCw = prodData?.listings.find((c) => c.id === cluster.listingId) ?? prodData?.listings[0]
 
       setDrafts((prev) => prev.map((d) => d.id === cluster.id ? { ...d, status: 'creating' } : d))
 
@@ -292,18 +300,18 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
                 description: cluster.copyDescription || '',
                 bullets: cluster.copyBullets ?? [],
               } } : {}),
-              ...(styleEntry ? { styleEntry: {
-                composition: styleEntry.composition,
-                care: styleEntry.care,
-                fit: styleEntry.fit,
-                length: styleEntry.length,
-                rrp: styleEntry.rrp,
-                season: styleEntry.season,
-                occasion: styleEntry.occasion,
-                gender: styleEntry.gender,
-                subCategory: styleEntry.subCategory,
-                origin: styleEntry.origin,
-                sizeRange: styleEntry.sizeRange,
+              ...(prodData ? { styleEntry: {
+                composition: pAttr.composition,
+                care: pAttr.care,
+                fit: pAttr.fit,
+                length: pAttr.length,
+                rrp: matchedCw?.rrp != null ? String(matchedCw.rrp) : undefined,
+                season: prodData.season ?? undefined,
+                occasion: pAttr.occasion,
+                gender: prodData.gender ?? undefined,
+                subCategory: pAttr.sub_category,
+                origin: pAttr.origin,
+                sizeRange: pAttr.size_range,
               } } : {}),
             }],
             tempPaths,

@@ -7,7 +7,7 @@ import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
-import type { StyleListEntry, ShootType } from '@/store/session'
+import type { ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { angleDisplayName } from '@/lib/angle-utils'
@@ -53,9 +53,10 @@ export default function UploadPage() {
   const { activeBrand } = useBrand()
   const { canProcessSkus, plan, usage, openUpgrade } = usePlan()
   const setSession = useSession((s) => s.setSession)
-  const setStyleList = useSession((s) => s.setStyleList)
   const setShootConfig = useSession((s) => s.setShootConfig)
   const resetSession = useSession((s) => s.reset)
+  const setUseStyleList = useSession((s) => s.setUseStyleList)
+  const setStyleListStore = useSession((s) => s.setStyleList)
   const existingSession = useSession((s) => ({
     isReady: s.isReady,
     jobName: s.jobName,
@@ -63,7 +64,6 @@ export default function UploadPage() {
     marketplaces: s.marketplaces,
     shootType: s.shootType,
     accessoryCategory: s.accessoryCategory,
-    styleList: s.styleList,
   }))
 
   const [shootType, setShootType] = useState<ShootType>('on-model')
@@ -71,10 +71,11 @@ export default function UploadPage() {
   const [stillLifeType, setStillLifeType] = useState<string | null>(null)
 
   const [isProcessing, setIsProcessing] = useState(false)
+  const [useStyleListLocal, setUseStyleListLocal] = useState(false)
+  const [styleListData, setStyleListData] = useState<import('@/store/session').StyleListEntry[]>([])
+  const [styleListFileName, setStyleListFileName] = useState<string | null>(null)
+  const styleListInputRef = useRef<HTMLInputElement>(null)
 
-  const [styleList, setStyleListLocal] = useState<StyleListEntry[]>([])
-  const [styleListName, setStyleListName] = useState<string | null>(null)
-  const styleListRef = useRef<HTMLInputElement>(null)
   const [resumeDismissed, setResumeDismissed] = useState(false)
   const allExported = existingSession.clusters.length > 0 && existingSession.clusters.every((c) => c.exported)
   const hasSession = existingSession.isReady && existingSession.clusters.length > 0 && !resumeDismissed && !allExported && !isProcessing
@@ -150,7 +151,6 @@ export default function UploadPage() {
         existingSession.clusters,
         existingSession.marketplaces,
         activeBrand?.id ?? null,
-        existingSession.styleList,
       )
       await deleteSession('draft').catch(() => {})
     } catch { /* non-critical */ }
@@ -161,84 +161,6 @@ export default function UploadPage() {
     setParkingJob(false)
   }
 
-  const importStyleList = useCallback(async (file: File) => {
-    try {
-      const XLSX = await import('xlsx')
-      const buf = await file.arrayBuffer()
-      const wb = XLSX.read(buf, { type: 'array' })
-      const ws = wb.Sheets[wb.SheetNames[0]]
-      const rows: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as string[][]
-
-      let headerIdx = -1
-      let skuCol = -1, nameCol = -1, colourCol = -1, colourCodeCol = -1, styleNumberCol = -1
-      let compositionCol = -1, careCol = -1, fitCol = -1, lengthCol = -1, rrpCol = -1, seasonCol = -1
-      let occasionCol = -1, genderCol = -1, categoryCol = -1, subCategoryCol = -1, originCol = -1, sizeRangeCol = -1
-      for (let i = 0; i < Math.min(rows.length, 10); i++) {
-        const row = rows[i].map((c) => String(c).toUpperCase().trim())
-        const skuI = row.findIndex((c) => c.includes('STYLE CODE') || c === 'SKU' || c === 'STYLE')
-        if (skuI !== -1) {
-          headerIdx = i
-          skuCol = skuI
-          nameCol = row.findIndex((c) => c.includes('STYLE NAME') || c.includes('PRODUCT NAME') || c.includes('NAME'))
-          colourCol = row.findIndex((c) => (c.includes('COLOUR') || c.includes('COLOR')) && !c.includes('CODE'))
-          colourCodeCol = row.findIndex((c) => c.includes('COLOUR CODE') || c.includes('COLOR CODE'))
-          styleNumberCol = row.findIndex((c) => c.includes('STYLE NUMBER') || c.includes('STYLE NO') || c.includes('STYLE #'))
-          compositionCol = row.findIndex((c) => c.includes('COMPOSITION') || c.includes('FABRIC') || c.includes('MATERIAL') || c.includes('FIBRE') || c.includes('FIBER') || c.includes('CONTENT'))
-          careCol = row.findIndex((c) => c.includes('CARE') || c.includes('WASH'))
-          fitCol = row.findIndex((c) => c === 'FIT' || c.includes('FIT TYPE') || c.includes('SILHOUETTE'))
-          lengthCol = row.findIndex((c) => c === 'LENGTH' || c.includes('GARMENT LENGTH') || c.includes('DRESS LENGTH'))
-          rrpCol = row.findIndex((c) => c === 'RRP' || c.includes('RETAIL PRICE') || c === 'PRICE')
-          seasonCol = row.findIndex((c) => c.includes('SEASON') || c.includes('COLLECTION'))
-          occasionCol = row.findIndex((c) => c.includes('OCCASION'))
-          genderCol = row.findIndex((c) => c === 'GENDER' || c.includes('DEPARTMENT'))
-          categoryCol = row.findIndex((c) => c === 'CATEGORY' || c.includes('PRODUCT TYPE') || c.includes('GARMENT TYPE'))
-          subCategoryCol = row.findIndex((c) => c.includes('SUB-CATEGORY') || c.includes('SUBCATEGORY') || c.includes('SUB CATEGORY'))
-          originCol = row.findIndex((c) => c.includes('COUNTRY') || c.includes('ORIGIN') || c.includes('MADE IN'))
-          sizeRangeCol = row.findIndex((c) => c.includes('SIZE RANGE') || c === 'SIZES' || c.includes('AVAILABLE SIZES'))
-          break
-        }
-      }
-
-      if (headerIdx === -1) {
-        alert('Could not find a STYLE CODE column. Please check your spreadsheet.')
-        return
-      }
-
-      const entries: StyleListEntry[] = []
-      for (let i = headerIdx + 1; i < rows.length; i++) {
-        const row = rows[i]
-        const sku = String(row[skuCol] ?? '').trim().toUpperCase()
-        if (!sku) continue
-        const productName = nameCol !== -1 ? String(row[nameCol] ?? '').trim() : ''
-        const colour = colourCol !== -1 ? String(row[colourCol] ?? '').trim() : ''
-        const colourCode = colourCodeCol !== -1 ? String(row[colourCodeCol] ?? '').trim() : ''
-        const styleNumber = styleNumberCol !== -1 ? String(row[styleNumberCol] ?? '').trim() : ''
-        const composition = compositionCol !== -1 ? String(row[compositionCol] ?? '').trim() : undefined
-        const care = careCol !== -1 ? String(row[careCol] ?? '').trim() : undefined
-        const fit = fitCol !== -1 ? String(row[fitCol] ?? '').trim() : undefined
-        const length = lengthCol !== -1 ? String(row[lengthCol] ?? '').trim() : undefined
-        const rrp = rrpCol !== -1 ? String(row[rrpCol] ?? '').trim() : undefined
-        const season = seasonCol !== -1 ? String(row[seasonCol] ?? '').trim() : undefined
-        const occasion = occasionCol !== -1 ? String(row[occasionCol] ?? '').trim() : undefined
-        const gender = genderCol !== -1 ? String(row[genderCol] ?? '').trim() : undefined
-        const category = categoryCol !== -1 ? String(row[categoryCol] ?? '').trim() : undefined
-        const subCategory = subCategoryCol !== -1 ? String(row[subCategoryCol] ?? '').trim() : undefined
-        const origin = originCol !== -1 ? String(row[originCol] ?? '').trim() : undefined
-        const sizeRange = sizeRangeCol !== -1 ? String(row[sizeRangeCol] ?? '').trim() : undefined
-        const extra = Object.fromEntries(
-          Object.entries({ composition, care, fit, length, rrp, season, occasion, gender, category, subCategory, origin, sizeRange })
-            .filter(([, v]) => Boolean(v))
-        )
-        entries.push({ sku, productName, colour, colourCode, styleNumber, ...extra })
-      }
-
-      setStyleListLocal(entries)
-      setStyleList(entries)
-      setStyleListName(file.name)
-    } catch {
-      alert('Failed to read spreadsheet. Please use .xlsx or .csv format.')
-    }
-  }, [setStyleList])
 
   const [jobName, setJobName] = useState('')
   const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(() =>
@@ -282,7 +204,6 @@ export default function UploadPage() {
       setStillLifeType(existingSession.accessoryCategory)
     }
     if (existingSession.marketplaces.length) setMarketplaces(existingSession.marketplaces as MarketplaceName[])
-    if (existingSession.styleList.length) setStyleListLocal(existingSession.styleList)
     const existingFiles = existingSession.clusters.flatMap((c) => c.images.map((img) => img.file)).filter(Boolean)
     if (existingFiles.length) {
       setFiles(existingFiles)
@@ -678,6 +599,32 @@ export default function UploadPage() {
     router.push('/dashboard/review')
   }
 
+  const parseStyleListCsv = (text: string) => {
+    const lines = text.split(/\r?\n/).filter((l) => l.trim())
+    if (!lines.length) return []
+    const headers = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''))
+    const col = (names: string[]) => names.map((n) => headers.indexOf(n)).find((i) => i >= 0) ?? -1
+    const skuCol = col(['sku', 'stylenumber', 'style', 'code', 'productcode'])
+    const colorCol = col(['colour', 'color', 'colourname', 'colorname'])
+    const codeCol = col(['colourcode', 'colorcode', 'hex', 'code'])
+    const styleNoCol = col(['styleno', 'styleno', 'stylenumber2', 'internalstyle'])
+    const categoryCol = col(['category', 'cat', 'producttype', 'type'])
+    const genderCol = col(['gender', 'sex'])
+    const seasonCol = col(['season', 'range'])
+    if (skuCol === -1) return []
+    return lines.slice(1).map((line) => {
+      const cells = line.split(',').map((c) => c.trim().replace(/^"|"$/g, ''))
+      const entry: import('@/store/session').StyleListEntry = { sku: cells[skuCol]?.toUpperCase() ?? '' }
+      if (colorCol >= 0 && cells[colorCol]) entry.color = cells[colorCol]
+      if (codeCol >= 0 && cells[codeCol]) entry.colourCode = cells[codeCol]
+      if (styleNoCol >= 0 && cells[styleNoCol]) entry.styleNumber = cells[styleNoCol]
+      if (categoryCol >= 0 && cells[categoryCol]) entry.category = cells[categoryCol]
+      if (genderCol >= 0 && cells[genderCol]) entry.gender = cells[genderCol]
+      if (seasonCol >= 0 && cells[seasonCol]) entry.season = cells[seasonCol]
+      return entry
+    }).filter((e) => e.sku)
+  }
+
   const handleProcess = async () => {
     if (!files.length) return
     if (!canProcessSkus()) {
@@ -692,7 +639,6 @@ export default function UploadPage() {
           existingSession.clusters,
           existingSession.marketplaces,
           activeBrand?.id ?? null,
-          existingSession.styleList,
         )
       )
     }
@@ -723,9 +669,11 @@ export default function UploadPage() {
     ).catch(() => { /* non-critical */ })
 
     setSession(name, clusters, marketplaces, imagesPerLook, (effectiveAngleSeq ?? []) as import('@/types').ViewLabel[])
+    setUseStyleList(useStyleListLocal)
+    setStyleListStore(useStyleListLocal ? styleListData : [])
 
     import('@/lib/session-store').then(({ saveSession }) =>
-      saveSession('draft', name, clusters, marketplaces, activeBrand?.id ?? null, styleList)
+      saveSession('draft', name, clusters, marketplaces, activeBrand?.id ?? null)
     ).catch(() => { /* non-critical */ })
 
     router.push('/dashboard/review')
@@ -881,65 +829,6 @@ export default function UploadPage() {
                     <span style={{ fontSize: 'var(--font-base)', color: 'var(--text2)' }}>{activeBrand.name}</span>
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Product data */}
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{
-                borderRadius: '12px',
-                border: styleList.length > 0 ? '1px solid rgba(48,209,88,0.4)' : '1px solid rgba(48,209,88,0.22)',
-                background: styleList.length > 0 ? 'rgba(48,209,88,0.06)' : 'rgba(48,209,88,0.03)',
-                padding: '14px 16px',
-                transition: 'all 0.15s',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="1.5">
-                    <rect x="2" y="2" width="12" height="12" rx="1.5"/>
-                    <path d="M5 6h6M5 9h4" strokeLinecap="round"/>
-                  </svg>
-                  <span style={{ fontSize: 'var(--font-sm)', fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Product data</span>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#1a8a35', background: 'rgba(48,209,88,0.18)', padding: '2px 7px', borderRadius: '20px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Recommended</span>
-                </div>
-                <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text2)', lineHeight: 1.5, marginBottom: '12px' }}>
-                  Import your product specs and ShotSync automatically matches each image group to its SKU, name, attributes, and listing data. If your images are already SKU-named, <strong style={{ color: 'var(--text)' }}>listings fill with zero typing</strong>. Without product data, all fields are manual.
-                </p>
-                {styleList.length === 0 ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content' }}>
-                    <button
-                      onClick={() => styleListRef.current?.click()}
-                      style={{ padding: '8px 16px', background: '#1d1d1f', color: '#fff', border: 'none', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0 }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
-                        <path d="M8 11V3M5 6l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M2 13h12" strokeLinecap="round"/>
-                      </svg>
-                      Import product data
-                    </button>
-                    <a
-                      href="/shotsync-range-list-template.csv"
-                      download="shotsync-range-list-template.csv"
-                      style={{ padding: '7px 13px', border: '1px solid var(--line)', borderRadius: '8px', fontSize: 'var(--font-base)', fontWeight: 500, color: 'var(--text2)', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none', background: 'var(--bg3)', flexShrink: 0 }}
-                    >
-                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 10v2.5A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5V10" strokeLinecap="round"/><path d="M8 2v7M5 9l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Download template
-                    </a>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#30d158" strokeWidth="2"><path d="M3 8l4 4 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 'var(--font-base)', fontWeight: 600, color: 'var(--text)' }}>{styleListName}</p>
-                      <p style={{ fontSize: 'var(--font-sm)', color: '#30d158', marginTop: '1px' }}>
-                        {styleList.length} products · {[...new Set(styleList.map(e => e.colour).filter(Boolean))].length} colourways
-                      </p>
-                    </div>
-                    <button onClick={() => { setStyleListLocal([]); setStyleList([]); setStyleListName(null) }} style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', background: 'none', border: '1px solid var(--line)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
-                      Remove
-                    </button>
-                  </div>
-                )}
-                <input ref={styleListRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importStyleList(f) }} />
               </div>
             </div>
 
@@ -1290,6 +1179,70 @@ export default function UploadPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Product data source toggle */}
+                  <div style={{ marginBottom: '16px', paddingTop: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <p style={{ fontSize: 'var(--font-base)', fontWeight: 500, color: 'var(--text2)' }}>Use style list CSV</p>
+                        <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', marginTop: '2px' }}>
+                          {useStyleListLocal ? 'Matching SKUs from uploaded CSV' : 'Matching SKUs from your product catalog'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setUseStyleListLocal((v) => !v); if (useStyleListLocal) { setStyleListData([]); setStyleListFileName(null) } }}
+                        style={{
+                          width: '40px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', flexShrink: 0,
+                          background: useStyleListLocal ? 'var(--accent2)' : 'var(--bg4)',
+                          position: 'relative', transition: 'background 0.2s',
+                        }}
+                      >
+                        <span style={{
+                          position: 'absolute', top: '3px', left: useStyleListLocal ? '19px' : '3px',
+                          width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+                          transition: 'left 0.2s', display: 'block',
+                        }} />
+                      </button>
+                    </div>
+                    {useStyleListLocal && (
+                      <div style={{ marginTop: '10px' }}>
+                        {styleListFileName ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', background: 'rgba(48,209,88,0.06)', border: '0.5px solid rgba(48,209,88,0.2)' }}>
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#30d158" strokeWidth="1.5"><path d="M2 7l3 3 7-7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <span style={{ fontSize: 'var(--font-sm)', color: '#30d158', flex: 1 }}>{styleListFileName} · {styleListData.length} SKUs</span>
+                            <button type="button" onClick={() => { setStyleListData([]); setStyleListFileName(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: '14px', lineHeight: 1 }}>×</button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => styleListInputRef.current?.click()}
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '0.5px dashed var(--line2)', background: 'var(--bg3)', color: 'var(--text3)', fontSize: 'var(--font-sm)', cursor: 'pointer', textAlign: 'center' }}
+                          >
+                            Upload style list CSV
+                          </button>
+                        )}
+                        <input
+                          ref={styleListInputRef}
+                          type="file"
+                          accept=".csv"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            const reader = new FileReader()
+                            reader.onload = (ev) => {
+                              const parsed = parseStyleListCsv(ev.target?.result as string)
+                              setStyleListData(parsed)
+                              setStyleListFileName(file.name)
+                            }
+                            reader.readAsText(file)
+                            e.target.value = ''
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
 
                   {shootType === 'on-model' && (
                     <div>

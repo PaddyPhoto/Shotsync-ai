@@ -11,79 +11,83 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS })
 }
 
-async function resolveAuth(req: NextRequest): Promise<boolean> {
+async function resolveOrgId(req: NextRequest): Promise<string | null> {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!token) return false
+  if (!token) return null
+  const service = createServiceClient()
   const user = await getAuthUser(req)
-  if (user) return true
-  if (token.startsWith('ss_')) {
-    const { data } = await createServiceClient().from('orgs').select('id').eq('extension_token', token).single()
-    return !!data
+  if (user) {
+    const { data: member } = await service.from('org_members').select('org_id').eq('user_id', user.id).limit(1).single()
+    return member?.org_id ?? null
   }
-  return false
+  if (token.startsWith('ss_')) {
+    const { data: org } = await service.from('orgs').select('id').eq('extension_token', token).single()
+    return org?.id ?? null
+  }
+  return null
 }
 
 export async function GET(req: NextRequest) {
-  const ok = await resolveAuth(req)
-  if (!ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
+  const orgId = await resolveOrgId(req)
+  if (!orgId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
 
-  // TODO: query real products table once migration is applied
-  // const { data: products } = await supabase
-  //   .from('products')
-  //   .select(`*, product_colourways(*, product_images(*), product_variants(*))`)
-  //   .eq('org_id', orgId)
+  const service = createServiceClient()
 
-  // Mock response — replace with real DB query after migration
-  const mockProducts = [
-    {
-      id: '1',
-      sku: 'PR05324',
-      title: 'Relaxed Linen Blazer',
-      category: 'Jackets & Blazers',
-      gender: 'Womens',
-      attributes: { composition: '100% Linen', care: 'Hand wash cold', fit: 'Relaxed', origin: 'Italy' },
-      colourways: [
-        {
-          id: 'cw1',
-          name: 'Natural',
-          hex: '#e8dcc8',
-          rrp: 189,
-          listingTitle: 'Relaxed Linen Blazer — Natural',
-          listingDescription: 'Cut from pure Italian linen, this relaxed blazer moves effortlessly from desk to dinner.',
-          images: [
-            { angle: 'front', url: '', filename: 'PR05324_natural_front.jpg' },
-            { angle: 'back',  url: '', filename: 'PR05324_natural_back.jpg' },
-          ],
-          variants: [
-            { size: 'XS', barcode: '9341234500001', stock: 8,  price: 189 },
-            { size: 'S',  barcode: '9341234500002', stock: 12, price: 189 },
-            { size: 'M',  barcode: '9341234500003', stock: 14, price: 189 },
-            { size: 'L',  barcode: '9341234500004', stock: 10, price: 189 },
-            { size: 'XL', barcode: '9341234500005', stock: 4,  price: 189 },
-          ],
-        },
-        {
-          id: 'cw2',
-          name: 'Black',
-          hex: '#1a1a1a',
-          rrp: 189,
-          listingTitle: 'Relaxed Linen Blazer — Black',
-          listingDescription: 'The same relaxed Italian linen cut, now in a versatile black.',
-          images: [
-            { angle: 'front', url: '', filename: 'PR05324_black_front.jpg' },
-            { angle: 'back',  url: '', filename: 'PR05324_black_back.jpg' },
-          ],
-          variants: [
-            { size: 'XS', barcode: '9341234500011', stock: 6,  price: 189 },
-            { size: 'S',  barcode: '9341234500012', stock: 8,  price: 189 },
-            { size: 'M',  barcode: '9341234500013', stock: 10, price: 189 },
-            { size: 'L',  barcode: '9341234500014', stock: 6,  price: 189 },
-            { size: 'XL', barcode: '9341234500015', stock: 2,  price: 189 },
-          ],
-        },
-      ],
-    },
-  ]
+  const { data: products } = await service
+    .from('products')
+    .select(`
+      id, sku, title, category, gender, season,
+      product_attributes ( key, value ),
+      product_listings (
+        id, colour_name, colour_code, rrp, listing_title, listing_description,
+        product_images ( id, storage_url, angle, sort_order, original_filename ),
+        product_variants ( id, size, barcode, stock, price )
+      )
+    `)
+    .eq('org_id', orgId)
+    .order('sku', { ascending: true })
 
-  return NextResponse.json(mockProducts, { headers: CORS })
+  type ProductRow = { id: string; sku: string; title: string | null; category: string | null; gender: string | null; season: string | null; product_attributes: { key: string; value: string }[]; product_listings: { id: string; colour_name: string; colour_code: string | null; rrp: number | null; listing_title: string | null; listing_description: string | null; product_images: { id: string; storage_url: string | null; angle: string; sort_order: number; original_filename: string | null }[]; product_variants: { id: string; size: string; barcode: string | null; stock: number | null; price: number | null }[] }[] }
+  const result = (products ?? []).map((p: ProductRow) => {
+    const attrs: Record<string, string> = {}
+    for (const a of (p.product_attributes as { key: string; value: string }[]) ?? []) attrs[a.key] = a.value
+
+    return {
+      id: p.id,
+      sku: p.sku,
+      title: p.title ?? p.sku,
+      category: p.category ?? null,
+      gender: p.gender ?? null,
+      season: p.season ?? null,
+      attributes: attrs,
+      colourways: (p.product_listings as {
+        id: string; colour_name: string; colour_code: string | null; rrp: number | null
+        listing_title: string | null; listing_description: string | null
+        product_images: { id: string; storage_url: string | null; angle: string; sort_order: number; original_filename: string | null }[]
+        product_variants: { id: string; size: string; barcode: string | null; stock: number | null; price: number | null }[]
+      }[]).map((cw) => ({
+        id: cw.id,
+        name: cw.colour_name,
+        hex: cw.colour_code ?? '#cccccc',
+        rrp: cw.rrp ?? null,
+        listingTitle: cw.listing_title ?? `${p.title ?? p.sku} — ${cw.colour_name}`,
+        listingDescription: cw.listing_description ?? null,
+        images: [...(cw.product_images ?? [])]
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          .map((img) => ({
+            angle: img.angle,
+            url: img.storage_url ?? '',
+            filename: img.original_filename ?? '',
+          })),
+        variants: (cw.product_variants ?? []).map((v) => ({
+          size: v.size,
+          barcode: v.barcode ?? '',
+          stock: v.stock ?? 0,
+          price: v.price ?? cw.rrp ?? 0,
+        })),
+      })),
+    }
+  })
+
+  return NextResponse.json(result, { headers: CORS })
 }

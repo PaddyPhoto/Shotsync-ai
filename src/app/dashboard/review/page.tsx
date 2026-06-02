@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, Suspense } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useSession } from '@/store/session'
@@ -24,7 +25,7 @@ import { HelpTooltip } from '@/components/ui/HelpTooltip'
 import { ClusterTour, useClusterTour } from '@/components/onboarding/ClusterTour'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { ViewLabel, MarketplaceName } from '@/types'
-import type { SessionCluster, StyleListEntry } from '@/store/session'
+import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
 
 const ALL_VIEWS: ViewLabel[] = ['front', 'back', 'side', 'detail', 'mood', 'mood-2', 'mood-3', 'full-length', 'full-length-side', 'full-length-back', 'front-3/4', 'back-3/4']
@@ -85,8 +86,9 @@ function ReviewPage() {
   const searchParams = useSearchParams()
   const { activeBrand } = useBrand()
   const {
-    jobName, clusters, marketplaces: sessionMarketplaces, styleList, shootType, angleSequence, isReady,
-    setSession, setStyleList,
+    jobName, clusters, marketplaces: sessionMarketplaces, shootType, angleSequence, isReady,
+    useStyleList, styleList,
+    setSession,
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
     updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber, setClusterCopyText,
     setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, unconfirmCluster, setClusterIncomplete, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
@@ -113,8 +115,8 @@ function ReviewPage() {
   const [styleNumberInput, setStyleNumberInput] = useState<Record<string, string>>({})
   const [skuSearchOpen, setSkuSearchOpen] = useState<string | null>(null)
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
-  const [skuMatchState, setSkuMatchState] = useState<Record<string, 'matched' | 'no-match' | 'multiple' | null>>({})
-  const [skuMatches, setSkuMatches] = useState<Record<string, StyleListEntry[]>>({})
+  const [skuSearchResults, setSkuSearchResults] = useState<Record<string, ProductMatch[]>>({})
+  const skuSearchTimerRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const [disabledAngles, setDisabledAngles] = useState<Record<string, Set<ViewLabel>>>({})
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
@@ -134,7 +136,12 @@ function ReviewPage() {
   type ProductMatch = {
     productId: string
     productTitle: string
-    colourways: { id: string; name: string; code: string | null }[]
+    sku: string
+    listings: { id: string; name: string; code: string | null; rrp: number | null }[]
+    attributes: Record<string, string>
+    gender: string | null
+    season: string | null
+    category: string | null
   }
   const [productMatchMap, setProductMatchMap] = useState<Record<string, ProductMatch>>({})
   const [linkingClusters, setLinkingClusters] = useState<Set<string>>(new Set())
@@ -195,7 +202,9 @@ function ReviewPage() {
       } catch { /* proceed without image */ }
     }
 
-    const styleEntry = styleList.find((e) => e.sku.toUpperCase() === cluster.sku.toUpperCase())
+    const pMatch = productMatchMap[cluster.sku?.toUpperCase() ?? '']
+    const pAttr = pMatch?.attributes ?? {}
+    const matchedCw = pMatch?.listings.find((c) => c.id === cluster.listingId) ?? pMatch?.listings[0]
     try {
       const res = await fetch('/api/copy/generate', {
         method: 'POST',
@@ -203,22 +212,22 @@ function ReviewPage() {
         body: JSON.stringify({
           sku: cluster.sku,
           productName: cluster.productName,
-          color: cluster.color || styleEntry?.colour || '',
+          color: cluster.color || '',
           brandName: activeBrand?.name ?? '',
           angles,
           heroImage,
-          composition: styleEntry?.composition ?? '',
-          care: styleEntry?.care ?? '',
-          fit: styleEntry?.fit ?? '',
-          length: styleEntry?.length ?? '',
-          rrp: styleEntry?.rrp ?? '',
-          season: styleEntry?.season ?? '',
-          occasion: styleEntry?.occasion ?? '',
-          gender: styleEntry?.gender ?? '',
-          category: styleEntry?.category ?? '',
-          subCategory: styleEntry?.subCategory ?? '',
-          origin: styleEntry?.origin ?? '',
-          sizeRange: styleEntry?.sizeRange ?? '',
+          composition: pAttr.composition ?? '',
+          care: pAttr.care ?? '',
+          fit: pAttr.fit ?? '',
+          length: pAttr.length ?? '',
+          rrp: matchedCw?.rrp ? String(matchedCw.rrp) : '',
+          season: pMatch?.season ?? '',
+          occasion: pAttr.occasion ?? '',
+          gender: pMatch?.gender ?? '',
+          category: pMatch?.category ?? '',
+          subCategory: pAttr.sub_category ?? '',
+          origin: pAttr.origin ?? '',
+          sizeRange: pAttr.size_range ?? '',
           voiceBrief: activeBrand?.voice_brief ?? '',
           copyExamples: activeBrand?.copy_examples ?? [],
         }),
@@ -248,6 +257,25 @@ function ReviewPage() {
       const aiDescription = (data.description as string) ?? ''
       const aiBullets = Array.isArray(data.bullets) ? data.bullets as string[] : []
       if (aiDescription || aiBullets.length) setClusterCopyText(cluster.id, aiDescription, aiBullets)
+
+      // Write copy back to the product colourway record in Supabase
+      if (cluster.productId && cluster.listingId && (aiTitle || aiDescription)) {
+        import('@/lib/supabase/client').then(({ createClient }) =>
+          createClient().auth.getSession()
+        ).then(({ data: { session } }) => {
+          if (!session) return
+          fetch(`/api/products/${cluster.productId}/listings/${cluster.listingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+            body: JSON.stringify({
+              ...(aiTitle ? { listing_title: aiTitle } : {}),
+              ...(aiDescription ? { listing_description: aiDescription } : {}),
+              ...(aiBullets.length ? { listing_bullets: aiBullets } : {}),
+            }),
+          })
+        }).catch(() => { /* non-critical */ })
+      }
+
       return true
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Network error'
@@ -331,7 +359,6 @@ function ReviewPage() {
     ).then((result) => {
       if (result && result.clusters.length > 0) {
         setSession(result.jobName, result.clusters, result.marketplaces)
-        if (result.styleList.length > 0) setStyleList(result.styleList)
       }
     }).catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -343,55 +370,45 @@ function ReviewPage() {
     }
   }, [isReady, searchParams])
 
-  // Auto-match clusters to the imported style list on first load.
-  // If any image filename in a cluster contains the style code (case-insensitive),
-  // the SKU and product name are assigned automatically. Colour is only set if not
-  // already detected. Clusters that already have a SKU are skipped.
-  useEffect(() => {
-    if (!isReady || !styleList.length) return
-    clusters.forEach((cluster) => {
-      if (cluster.sku) return // already has a SKU, don't overwrite
-      const filenames = cluster.images.map((img) => img.filename.toUpperCase())
-
-      // Find all XLSX entries whose SKU appears in any of this cluster's filenames
-      const candidates = styleList.filter((entry) =>
-        filenames.some((fn) => fn.includes(entry.sku))
-      )
-      if (!candidates.length) return
-
-      // When multiple entries share the same SKU (colour variants), pick the one
-      // whose colour name appears in the filename — e.g. NS27502_CACTUS.jpg → CACTUS variant
-      const match = candidates.length > 1
-        ? candidates.find((entry) =>
-            entry.colour && filenames.some((fn) => fn.includes(entry.colour.toUpperCase()))
-          ) ?? candidates[0]
-        : candidates[0]
-
-      updateClusterSku(cluster.id, match.sku, match.productName)
-
-      // Colour priority:
-      // 1. Matched XLSX entry colour (already chosen by filename match above)
-      // 2. Filename keyword detection
-      // 3. Leave AI-detected colour as-is
-      if (match.colour) {
-        updateClusterColor(cluster.id, match.colour.toUpperCase())
-      } else {
-        const filenameColour = cluster.images
-          .map((img) => detectColourFromFilename(img.filename))
-          .find((c) => c !== null) ?? null
-        if (filenameColour) updateClusterColor(cluster.id, filenameColour)
-      }
-      if (match.colourCode) updateClusterColourCode(cluster.id, match.colourCode)
-      if (match.styleNumber) updateClusterStyleNumber(cluster.id, match.styleNumber)
-    })
-  }, [isReady, styleList])
-
-  // Fetch PIM product matches for all cluster SKUs once the session is ready.
-  // Results are keyed by SKU — clusters with matching products show a link badge.
+  // Fetch product matches for all cluster SKUs from the DB once the session is ready.
+  // Populates productMatchMap with attributes, colourways, gender, season etc.
+  // On load: match cluster SKUs against product data and back-fill fields.
+  // If useStyleList is on, matches against the uploaded CSV. Otherwise hits the product DB.
   useEffect(() => {
     if (!isReady) return
     const skus = [...new Set(clusters.filter((c) => c.sku).map((c) => c.sku.trim().toUpperCase()))]
     if (!skus.length) return
+
+    if (useStyleList && styleList.length > 0) {
+      // CSV mode — build a match map from the style list entries
+      const csvMatches: Record<string, ProductMatch> = {}
+      for (const entry of styleList) {
+        if (!entry.sku) continue
+        csvMatches[entry.sku] = {
+          productId: '',
+          productTitle: entry.sku,
+          sku: entry.sku,
+          listings: entry.color ? [{ id: entry.sku, name: entry.color, code: entry.colourCode ?? null, rrp: null }] : [],
+          attributes: { ...(entry.styleNumber ? { style_number: entry.styleNumber } : {}) },
+          gender: entry.gender ?? null,
+          season: entry.season ?? null,
+          category: entry.category ?? null,
+        }
+      }
+      setProductMatchMap(csvMatches)
+      clusters.forEach((cluster) => {
+        if (!cluster.sku) return
+        const match = csvMatches[cluster.sku.trim().toUpperCase()]
+        if (!match) return
+        if (match.attributes?.style_number && !cluster.styleNumber) updateClusterStyleNumber(cluster.id, match.attributes.style_number)
+        const cw = match.listings[0] ?? null
+        if (cw?.code && !cluster.colourCode) updateClusterColourCode(cluster.id, cw.code)
+        if (cw?.name && !cluster.color) updateClusterColor(cluster.id, cw.name)
+      })
+      return
+    }
+
+    // DB mode
     import('@/lib/supabase/client').then(({ createClient }) =>
       createClient().auth.getSession()
     ).then(({ data: { session } }) => {
@@ -402,7 +419,20 @@ function ReviewPage() {
         body: JSON.stringify({ skus }),
       }).then((r) => r.json())
     }).then((result) => {
-      if (result?.matches) setProductMatchMap(result.matches)
+      if (!result?.matches) return
+      setProductMatchMap(result.matches)
+      clusters.forEach((cluster) => {
+        if (!cluster.sku) return
+        const match = result.matches[cluster.sku.trim().toUpperCase()]
+        if (!match) return
+        if (match.attributes?.style_number && !cluster.styleNumber) updateClusterStyleNumber(cluster.id, match.attributes.style_number)
+        const matchedCw = match.listings[0] ?? null
+        if (matchedCw?.code && !cluster.colourCode) updateClusterColourCode(cluster.id, matchedCw.code)
+        if (matchedCw?.name && !cluster.color) updateClusterColor(cluster.id, matchedCw.name)
+        if (matchedCw && !cluster.productId) {
+          saveClusterToProduct(cluster, match.productId, matchedCw.id)
+        }
+      })
     }).catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady])
@@ -477,7 +507,7 @@ function ReviewPage() {
     if (!isReady || clusters.length === 0) return
     const timer = setTimeout(() => {
       import('@/lib/session-store').then(({ saveSession }) =>
-        saveSession('draft', jobName || 'Untitled Job', clusters, sessionMarketplaces, activeBrand?.id ?? null, styleList)
+        saveSession('draft', jobName || 'Untitled Job', clusters, sessionMarketplaces, activeBrand?.id ?? null)
       ).catch(() => {})
     }, 1500)
     return () => clearTimeout(timer)
@@ -573,24 +603,73 @@ function ReviewPage() {
   }, [])
 
   const confirmedCount = clusters.filter((c) => c.confirmed).length
+  const linkedCount = clusters.filter((c) => c.productId).length
+  const uniqueLinkedProductIds = [...new Set(clusters.filter((c) => c.productId).map((c) => c.productId!))]
   const incompleteCount = clusters.filter((c) => c.incomplete).length
   const confirmableClusters = clusters.filter((c) => !c.incomplete)
 
   // ── SKU input ──────────────────────────────────────────────────────────────
-  const applyStyleEntry = (clusterId: string, entry: StyleListEntry) => {
-    updateClusterSku(clusterId, entry.sku, entry.productName)
-    if (entry.colour) {
-      const col = entry.colour.toUpperCase()
-      updateClusterColor(clusterId, col)
-      setColorInput((s) => ({ ...s, [clusterId]: col }))
+  const applyProductMatch = (clusterId: string, match: ProductMatch) => {
+    updateClusterSku(clusterId, match.sku, match.productTitle)
+    setSkuInput((s) => ({ ...s, [clusterId]: match.sku }))
+    const cw = match.listings[0] ?? null
+    if (cw) {
+      updateClusterColor(clusterId, cw.name)
+      setColorInput((s) => ({ ...s, [clusterId]: cw.name }))
+      if (cw.code) {
+        updateClusterColourCode(clusterId, cw.code)
+        setColourCodeInput((s) => ({ ...s, [clusterId]: cw.code! }))
+      }
     }
-    if (entry.colourCode) updateClusterColourCode(clusterId, entry.colourCode)
-    if (entry.styleNumber) updateClusterStyleNumber(clusterId, entry.styleNumber)
-    if (entry.category) {
-      setClusterGarmentCategory(clusterId, entry.category)
-      setClusterBottomwear(clusterId, BOTTOMWEAR_CATEGORY_LABELS.has(entry.category))
+    if (match.attributes?.style_number) {
+      updateClusterStyleNumber(clusterId, match.attributes.style_number)
+      setStyleNumberInput((s) => ({ ...s, [clusterId]: match.attributes.style_number }))
     }
-    setSkuInput((s) => ({ ...s, [clusterId]: entry.sku }))
+    if (match.category) {
+      setClusterGarmentCategory(clusterId, match.category)
+      setClusterBottomwear(clusterId, BOTTOMWEAR_CATEGORY_LABELS.has(match.category))
+    }
+    setProductMatchMap((prev) => ({ ...prev, [match.sku]: match }))
+    if (cw) {
+      const cluster = clusters.find((c) => c.id === clusterId)
+      if (cluster) saveClusterToProduct(cluster, match.productId, cw.id)
+    }
+  }
+
+  const debouncedSearch = (clusterId: string, query: string) => {
+    clearTimeout(skuSearchTimerRef.current[clusterId])
+    if (!query.trim()) { setSkuSearchResults((prev) => ({ ...prev, [clusterId]: [] })); return }
+    skuSearchTimerRef.current[clusterId] = setTimeout(async () => {
+      try {
+        if (useStyleList && styleList.length > 0) {
+          const q = query.trim().toUpperCase()
+          const results = styleList
+            .filter((e) => e.sku.startsWith(q) || e.sku.includes(q))
+            .slice(0, 12)
+            .map((e) => ({
+              productId: '',
+              productTitle: e.sku,
+              sku: e.sku,
+              listings: e.color ? [{ id: e.sku, name: e.color, code: e.colourCode ?? null, rrp: null }] : [],
+              attributes: { ...(e.styleNumber ? { style_number: e.styleNumber } : {}) },
+              gender: e.gender ?? null,
+              season: e.season ?? null,
+              category: e.category ?? null,
+            }))
+          setSkuSearchResults((prev) => ({ ...prev, [clusterId]: results }))
+          return
+        }
+        const { createClient: createSC } = await import('@/lib/supabase/client')
+        const { data: { session: sc } } = await createSC().auth.getSession()
+        if (!sc) return
+        const res = await fetch(`/api/products/search?q=${encodeURIComponent(query.trim())}`, {
+          headers: { Authorization: `Bearer ${sc.access_token}` },
+        })
+        if (!res.ok) return
+        const { data } = await res.json()
+        setSkuSearchResults((prev) => ({ ...prev, [clusterId]: data ?? [] }))
+      } catch { /* silent */ }
+    }, 200)
   }
 
   // Compress a File to a base64 JPEG string at max 1400px for product image storage.
@@ -618,20 +697,8 @@ function ReviewPage() {
       img.src = src
     })
 
-  // Resolve the best colourway match for a cluster's colour against a product's colourway list.
-  const resolveColourway = (colour: string, colourways: { id: string; name: string }[]): string | null => {
-    if (!colourways.length) return null
-    if (colourways.length === 1) return colourways[0].id
-    if (!colour) return null
-    const c = colour.toLowerCase()
-    const exact = colourways.find((cw) => cw.name.toLowerCase() === c)
-    if (exact) return exact.id
-    const sub = colourways.find((cw) => cw.name.toLowerCase().includes(c) || c.includes(cw.name.toLowerCase()))
-    return sub?.id ?? null
-  }
-
   // Upload cluster images to the linked product colourway in the background after confirm.
-  const saveClusterToProduct = async (cluster: SessionCluster, productId: string, colourwayId: string) => {
+  const saveClusterToProduct = async (cluster: SessionCluster, productId: string, listingId: string) => {
     setLinkingClusters((prev) => new Set([...prev, cluster.id]))
     try {
       const { data: { session } } = await import('@/lib/supabase/client').then((m) => m.createClient().auth.getSession())
@@ -647,9 +714,9 @@ function ReviewPage() {
       await fetch(`/api/products/${productId}/images`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ colourwayId, images }),
+        body: JSON.stringify({ listingId, images }),
       })
-      setClusterProduct(cluster.id, productId, colourwayId)
+      setClusterProduct(cluster.id, productId, listingId)
     } catch {
       // non-critical — images can be linked later from the product page
     } finally {
@@ -664,9 +731,9 @@ function ReviewPage() {
     const sku = (overrideSku ?? skuInput[clusterId] ?? cluster.sku).trim().toUpperCase()
     const match = productMatchMap[sku]
     if (!match) return
-    const colourwayId = resolveColourway(cluster.color, match.colourways)
-    if (!colourwayId) return
-    saveClusterToProduct(cluster, match.productId, colourwayId)
+    const cw = match.listings[0]
+    if (!cw) return
+    saveClusterToProduct(cluster, match.productId, cw.id)
   }
 
   const handleConfirm = (clusterId: string) => {
@@ -674,29 +741,8 @@ function ReviewPage() {
     if (!cluster) return
     const typed = (skuInput[clusterId] ?? cluster.sku).trim().toUpperCase()
     if (typed) updateClusterSku(clusterId, typed)
-
-    if (!styleList.length) {
-      confirmCluster(clusterId)
-      triggerProductLink(clusterId, typed)
-      return
-    }
-
-    let matches = styleList.filter((e) => e.sku.toUpperCase() === typed)
-    if (!matches.length) matches = styleList.filter((e) => e.styleNumber && e.styleNumber.toUpperCase() === typed)
-
-    if (matches.length === 0) {
-      setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'no-match' }))
-      confirmCluster(clusterId)
-      triggerProductLink(clusterId, typed)
-    } else if (matches.length === 1) {
-      applyStyleEntry(clusterId, matches[0])
-      setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'matched' }))
-      confirmCluster(clusterId)
-      triggerProductLink(clusterId, matches[0].sku.toUpperCase())
-    } else {
-      setSkuMatches((prev) => ({ ...prev, [clusterId]: matches }))
-      setSkuMatchState((prev) => ({ ...prev, [clusterId]: 'multiple' }))
-    }
+    confirmCluster(clusterId)
+    triggerProductLink(clusterId, typed)
   }
 
   const handleSkuKeyDown = (clusterId: string, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -977,6 +1023,16 @@ function ReviewPage() {
               </svg>
               Guide
             </button>
+            {linkedCount > 0 && (
+              <Link
+                href="/dashboard/products"
+                className="btn btn-sm flex items-center gap-[6px]"
+                style={{ background: 'rgba(48,209,88,0.12)', color: '#30d158', border: '0.5px solid rgba(48,209,88,0.3)', fontWeight: 600, textDecoration: 'none' }}
+              >
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="2 6 5 9 10 3"/></svg>
+                {linkedCount === clusters.length ? 'Go to Products →' : `${linkedCount} linked — Products →`}
+              </Link>
+            )}
             <button
               onClick={() => setShowExportPanel(true)}
               className="btn btn-primary"
@@ -1021,6 +1077,27 @@ function ReviewPage() {
             )
           })()}
 
+
+          {/* All-confirmed banner */}
+          {confirmedCount === clusters.length && clusters.length > 0 && linkedCount > 0 && (
+            <div style={{ background: 'rgba(48,209,88,0.06)', border: '0.5px solid rgba(48,209,88,0.25)', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                <circle cx="8" cy="8" r="7" stroke="#30d158" strokeWidth="1.5"/>
+                <path d="M5 8l2 2 4-4" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#30d158' }}>
+                  All {clusters.length} cluster{clusters.length !== 1 ? 's' : ''} confirmed · images saved to {uniqueLinkedProductIds.length} product{uniqueLinkedProductIds.length !== 1 ? 's' : ''}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
+                  Ready to publish to channels from your product records.
+                </div>
+              </div>
+              <Link href="/dashboard/products" style={{ padding: '8px 16px', borderRadius: '8px', background: '#30d158', color: '#000', fontSize: '13px', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>
+                Go to Products →
+              </Link>
+            </div>
+          )}
 
           {/* Cluster cards */}
           <div className="grid grid-cols-3 gap-5">
@@ -1243,69 +1320,36 @@ function ReviewPage() {
                   {/* SKU input + actions */}
                   <div className="px-3 pt-[10px] pb-[6px] border-t border-[var(--line)] flex items-center gap-2" data-tour={clusterIdx === 0 ? 'confirm-btn' : undefined}>
                     <div className="flex-1 relative">
-                      {styleList.length > 0 ? (
-                        <>
+                      <>
                           <input
                             className="input text-[length:var(--font-sm)] py-[5px]"
-                            placeholder="Search style list…"
+                            placeholder="SKU or product name…"
                             value={skuSearchOpen === cluster.id ? (skuSearchQuery[cluster.id] ?? currentSku) : currentSku}
-                            onFocus={() => { setSkuSearchOpen(cluster.id); setSkuSearchQuery((q) => ({ ...q, [cluster.id]: currentSku })) }}
-                            onChange={(e) => {
-                              setSkuSearchQuery((q) => ({ ...q, [cluster.id]: e.target.value }))
-                              setSkuMatchState((s) => ({ ...s, [cluster.id]: null }))
-                              setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
-                            }}
+                            onFocus={() => { setSkuSearchOpen(cluster.id); setSkuSearchQuery((q) => ({ ...q, [cluster.id]: currentSku })); debouncedSearch(cluster.id, currentSku) }}
+                            onChange={(e) => { setSkuSearchQuery((q) => ({ ...q, [cluster.id]: e.target.value })); debouncedSearch(cluster.id, e.target.value) }}
                             onBlur={() => setTimeout(() => setSkuSearchOpen(null), 150)}
                             onKeyDown={(e) => { if (e.key === 'Enter') { setSkuInput((s) => ({ ...s, [cluster.id]: skuSearchQuery[cluster.id] ?? currentSku })); handleConfirm(cluster.id); setSkuSearchOpen(null) } }}
                             style={{ fontFamily: 'var(--font-dm-mono)' }}
                           />
-                          {skuSearchOpen === cluster.id && (
+                          {skuSearchOpen === cluster.id && (skuSearchResults[cluster.id]?.length ?? 0) > 0 && (
                             <div className="absolute top-full left-0 right-0 mt-[2px] bg-[var(--bg)] border border-[var(--line2)] rounded-sm shadow-xl z-30 max-h-[200px] overflow-y-auto">
-                              {styleList
-                                .filter((e) => {
-                                  const q = (skuSearchQuery[cluster.id] ?? '').toLowerCase()
-                                  return !q || e.sku.toLowerCase().includes(q) || e.productName.toLowerCase().includes(q) || e.colour.toLowerCase().includes(q)
-                                })
-                                .slice(0, 20)
-                                .map((entry, i) => (
-                                  <button
-                                    key={i}
-                                    className="w-full text-left px-3 py-[7px] hover:bg-[var(--bg3)] transition-colors flex items-center gap-2"
-                                    onMouseDown={() => {
-                                      applyStyleEntry(cluster.id, entry)
-                                      setSkuMatchState((s) => ({ ...s, [cluster.id]: 'matched' }))
-                                      setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
-                                      setSkuSearchOpen(null)
-                                    }}
-                                  >
-                                    <span className="text-[length:var(--font-base)] text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{entry.sku}</span>
-                                    <span className="text-[length:var(--font-base)] text-[var(--text3)] truncate flex-1">{entry.productName}</span>
-                                    {entry.colour && <span className="text-[length:var(--font-base)] text-[var(--text3)] flex-shrink-0">{entry.colour}</span>}
-                                  </button>
-                                ))}
-                              {styleList.filter((e) => {
-                                const q = (skuSearchQuery[cluster.id] ?? '').toLowerCase()
-                                return !q || e.sku.toLowerCase().includes(q) || e.productName.toLowerCase().includes(q) || e.colour.toLowerCase().includes(q)
-                              }).length === 0 && (
-                                <p className="px-3 py-2 text-[length:var(--font-sm)] text-[var(--text3)]">No matches</p>
-                              )}
+                              {(skuSearchResults[cluster.id] ?? []).map((match, i) => (
+                                <button
+                                  key={i}
+                                  className="w-full text-left px-3 py-[7px] hover:bg-[var(--bg3)] transition-colors flex items-center gap-2"
+                                  onMouseDown={() => { applyProductMatch(cluster.id, match); setSkuSearchOpen(null) }}
+                                >
+                                  <span className="text-[length:var(--font-base)] text-[var(--text)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{match.sku}</span>
+                                  <span className="text-[length:var(--font-base)] text-[var(--text3)] truncate flex-1">{match.productTitle}</span>
+                                  {match.listings.length === 1
+                                    ? <span className="text-[length:var(--font-base)] text-[var(--text3)] flex-shrink-0">{match.listings[0].name}</span>
+                                    : <span className="text-[length:var(--font-xs)] text-[var(--text3)] flex-shrink-0">{match.listings.length} listings</span>
+                                  }
+                                </button>
+                              ))}
                             </div>
                           )}
                         </>
-                      ) : (
-                        <input
-                          className="input text-[length:var(--font-sm)] py-[5px]"
-                          placeholder="Enter SKU"
-                          value={currentSku}
-                          onChange={(e) => setSkuInput((s) => ({ ...s, [cluster.id]: e.target.value }))}
-                          onKeyDown={(e) => handleSkuKeyDown(cluster.id, e)}
-                          onBlur={() => {
-                            const val = (skuInput[cluster.id] ?? '').trim().toUpperCase()
-                            if (val) updateClusterSku(cluster.id, val)
-                          }}
-                          style={{ fontFamily: 'var(--font-dm-mono)' }}
-                        />
-                      )}
                     </div>
                     <button
                       onClick={() => setClusterBottomwear(cluster.id, !cluster.isBottomwear)}
@@ -1335,7 +1379,7 @@ function ReviewPage() {
                         ) : cluster.productId ? (
                           (() => {
                             const match = productMatchMap[cluster.sku?.toUpperCase()]
-                            const cw = match?.colourways.find((c) => c.id === cluster.colourwayId)
+                            const cw = match?.listings.find((c) => c.id === cluster.listingId)
                             return (
                               <span
                                 className="text-[length:var(--font-xs)] flex items-center gap-1 px-[6px] py-[2px] rounded-[5px]"
@@ -1400,37 +1444,6 @@ function ReviewPage() {
                   </div>
 
                   {/* SKU match feedback — colourway picker or no-match message */}
-                  {skuMatchState[cluster.id] === 'multiple' && (skuMatches[cluster.id] ?? []).length > 0 && (
-                    <div className="mx-3 mb-2 px-2 py-[7px] rounded-sm bg-[var(--bg3)] border border-[var(--line)]">
-                      <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-[6px] uppercase tracking-wide">Multiple colourways — pick one:</p>
-                      <div className="flex flex-wrap gap-[5px]">
-                        {(skuMatches[cluster.id] ?? []).map((entry, i) => (
-                          <button
-                            key={i}
-                            onClick={() => {
-                              applyStyleEntry(cluster.id, entry)
-                              setSkuMatchState((s) => ({ ...s, [cluster.id]: 'matched' }))
-                              setSkuMatches((s) => ({ ...s, [cluster.id]: [] }))
-                              confirmCluster(cluster.id)
-                              triggerProductLink(cluster.id, entry.sku.toUpperCase())
-                            }}
-                            className="flex items-center gap-[5px] px-[8px] py-[3px] rounded-[5px] text-[length:var(--font-sm)] border border-[var(--line2)] hover:border-[var(--accent)] hover:text-[var(--text)] transition-colors"
-                            style={{ color: 'var(--text2)' }}
-                          >
-                            {entry.colour || entry.sku}
-                            {entry.colourCode && <span style={{ color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)', fontSize: 'var(--font-xs)' }}>{entry.colourCode}</span>}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {skuMatchState[cluster.id] === 'no-match' && (
-                    <div className="mx-3 mb-2 flex items-center gap-[6px] px-2 py-[5px] rounded-sm">
-                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="var(--text3)" strokeWidth="1.5" strokeLinecap="round"><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 8h.01"/></svg>
-                      <span className="text-[length:var(--font-sm)] text-[var(--text3)]">No match in your style list — check the SKU</span>
-                    </div>
-                  )}
-
                   {/* Missing shots per marketplace */}
                   {sessionMarketplaces.map((mp) => {
                     const missing = getMissingViewsForCluster(cluster, mp as MarketplaceName)
@@ -1551,20 +1564,22 @@ function ReviewPage() {
                     </div>
                   </div>
 
-                  {/* Listing data — product attributes from imported spec sheet */}
+                  {/* Listing data — product attributes from DB */}
                   {(() => {
-                    const entry = styleList.find((e) => e.sku.toUpperCase() === cluster.sku.toUpperCase())
-                    const fields = entry ? [
-                      entry.rrp         && { label: 'RRP',         value: `$${entry.rrp}` },
-                      entry.season      && { label: 'Season',      value: entry.season },
-                      entry.gender      && { label: 'Gender',      value: entry.gender },
-                      entry.fit         && { label: 'Fit',         value: entry.fit },
-                      entry.sizeRange   && { label: 'Sizes',       value: entry.sizeRange },
-                      entry.composition && { label: 'Fabric',      value: entry.composition },
-                      entry.care        && { label: 'Care',        value: entry.care },
-                      entry.occasion    && { label: 'Occasion',    value: entry.occasion },
-                      entry.origin      && { label: 'Origin',      value: entry.origin },
-                      entry.category    && { label: 'Category',    value: entry.category },
+                    const pMatch = productMatchMap[cluster.sku?.toUpperCase() ?? '']
+                    const pAttr = pMatch?.attributes ?? {}
+                    const matchedCw = pMatch?.listings.find((c) => c.id === cluster.listingId) ?? pMatch?.listings[0]
+                    const fields = pMatch ? [
+                      matchedCw?.rrp    && { label: 'RRP',         value: `$${matchedCw.rrp}` },
+                      pMatch.season     && { label: 'Season',      value: pMatch.season },
+                      pMatch.gender     && { label: 'Gender',      value: pMatch.gender },
+                      pAttr.fit         && { label: 'Fit',         value: pAttr.fit },
+                      pAttr.size_range  && { label: 'Sizes',       value: pAttr.size_range },
+                      pAttr.composition && { label: 'Fabric',      value: pAttr.composition },
+                      pAttr.care        && { label: 'Care',        value: pAttr.care },
+                      pAttr.occasion    && { label: 'Occasion',    value: pAttr.occasion },
+                      pAttr.origin      && { label: 'Origin',      value: pAttr.origin },
+                      pMatch.category   && { label: 'Category',    value: pMatch.category },
                     ].filter(Boolean) as { label: string; value: string }[] : []
                     if (!fields.length) return null
                     return (
@@ -1737,6 +1752,25 @@ function ReviewPage() {
                           </div>
                         )}
                       </div>
+                    )
+                  })()}
+
+                  {/* Product link footer */}
+                  {cluster.productId && !linkingClusters.has(cluster.id) && (() => {
+                    const sku = cluster.sku?.toUpperCase()
+                    const match = sku ? productMatchMap[sku] : null
+                    const cw = match?.listings.find((c) => c.id === cluster.listingId)
+                    return (
+                      <Link
+                        href={`/dashboard/products/${cluster.productId}`}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderTop: '0.5px solid rgba(48,209,88,0.2)', background: 'rgba(48,209,88,0.04)', textDecoration: 'none' }}
+                      >
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
+                        <span style={{ fontSize: 'var(--font-sm)', color: '#30d158', fontWeight: 500, flex: 1 }}>
+                          {match?.productTitle ?? 'Product'}{cw ? ` · ${cw.name}` : ''}
+                        </span>
+                        <span style={{ fontSize: 'var(--font-xs)', color: 'rgba(48,209,88,0.6)' }}>View product →</span>
+                      </Link>
                     )
                   })()}
                 </div>
@@ -1934,7 +1968,22 @@ function ExportPanel({
     console.log('[shopify v4] dimensions', { width, height, bgColor, quality })
 
     const results: { sku: string; status: string; adminUrl?: string; message?: string }[] = []
-    const shopifyStyleList = useSession.getState().styleList
+    const authHeader: Record<string, string> = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+    type ProdData = { attributes: Record<string, string>; gender?: string | null; season?: string | null; category?: string | null; listings: { id: string; rrp?: number | null }[] }
+    const shopifyProductAttrMap: Record<string, ProdData> = {}
+    for (const cluster of confirmedClusters) {
+      if (cluster.productId && !shopifyProductAttrMap[cluster.productId]) {
+        try {
+          const res = await fetch(`/api/products/${cluster.productId}`, { headers: authHeader })
+          if (res.ok) {
+            const { data: prod } = await res.json()
+            const attrs: Record<string, string> = {}
+            for (const { key, value } of (prod?.product_attributes ?? [])) attrs[key] = value
+            shopifyProductAttrMap[cluster.productId] = { attributes: attrs, gender: prod?.gender, season: prod?.season, category: prod?.category, listings: prod?.product_listings ?? [] }
+          }
+        } catch { /* no product data */ }
+      }
+    }
 
     for (const cluster of confirmedClusters) {
       const tempPaths: string[] = []
@@ -1978,7 +2027,9 @@ function ExportPanel({
         const { data: { session: freshSession } } = await supabase.auth.getSession()
         const copy = clusterCopy[cluster.id]
         const sku = cluster.sku || cluster.label
-        const styleEntry = shopifyStyleList.find((e) => e.sku.toUpperCase() === sku.toUpperCase())
+        const prodDataShop = cluster.productId ? shopifyProductAttrMap[cluster.productId] : null
+        const pAttr = prodDataShop?.attributes ?? {}
+        const matchedCwShop = prodDataShop?.listings.find((c: { id: string }) => c.id === cluster.listingId) ?? prodDataShop?.listings[0]
         let apiRes: Response
         try {
           apiRes = await fetch('/api/shopify/upload', {
@@ -2004,18 +2055,18 @@ function ExportPanel({
                   description: copy?.description || cluster.copyDescription || '',
                   bullets: copy?.bullets?.length ? copy.bullets : (cluster.copyBullets ?? []),
                 } } : {}),
-                ...(styleEntry ? { styleEntry: {
-                  composition: styleEntry.composition,
-                  care: styleEntry.care,
-                  fit: styleEntry.fit,
-                  length: styleEntry.length,
-                  rrp: styleEntry.rrp,
-                  season: styleEntry.season,
-                  occasion: styleEntry.occasion,
-                  gender: styleEntry.gender,
-                  subCategory: styleEntry.subCategory,
-                  origin: styleEntry.origin,
-                  sizeRange: styleEntry.sizeRange,
+                ...(prodDataShop ? { styleEntry: {
+                  composition: pAttr.composition,
+                  care: pAttr.care,
+                  fit: pAttr.fit,
+                  length: pAttr.length,
+                  rrp: matchedCwShop?.rrp != null ? String(matchedCwShop.rrp) : undefined,
+                  season: prodDataShop.season ?? undefined,
+                  occasion: pAttr.occasion,
+                  gender: prodDataShop.gender ?? undefined,
+                  subCategory: pAttr.sub_category,
+                  origin: pAttr.origin,
+                  sizeRange: pAttr.size_range,
                 } } : {}),
               }],
               tempPaths,
@@ -2080,7 +2131,22 @@ function ExportPanel({
     const bgColor = firstRule.background_color ?? '#ffffff'
     const quality = (firstRule.quality ?? 100) / 100
     const brandId = activeBrand.id
-    const currentStyleList = useSession.getState().styleList
+    const cin7AuthHeader: Record<string, string> = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+    type ProdDataCin7 = { attributes: Record<string, string>; gender?: string | null; season?: string | null; category?: string | null; listings: { id: string; rrp?: number | null }[] }
+    const cin7ProductAttrMap: Record<string, ProdDataCin7> = {}
+    for (const cluster of confirmedClusters) {
+      if (cluster.productId && !cin7ProductAttrMap[cluster.productId]) {
+        try {
+          const res = await fetch(`/api/products/${cluster.productId}`, { headers: cin7AuthHeader })
+          if (res.ok) {
+            const { data: prod } = await res.json()
+            const attrs: Record<string, string> = {}
+            for (const { key, value } of (prod?.product_attributes ?? [])) attrs[key] = value
+            cin7ProductAttrMap[cluster.productId] = { attributes: attrs, gender: prod?.gender, season: prod?.season, category: prod?.category, listings: prod?.product_listings ?? [] }
+          }
+        } catch { /* no product data */ }
+      }
+    }
 
     // Pre-allocate one result slot per cluster so parallel updates don't collide
     const results: { sku: string; status: string; message?: string }[] =
@@ -2119,7 +2185,9 @@ function ExportPanel({
 
         const { data: { session: freshSession } } = await supabase.auth.getSession()
         const copy = clusterCopy[cluster.id]
-        const styleEntry = currentStyleList.find((e) => e.sku.toUpperCase() === sku.toUpperCase())
+        const prodDataCin7 = cluster.productId ? cin7ProductAttrMap[cluster.productId] : null
+        const pAttrCin7 = prodDataCin7?.attributes ?? {}
+        const matchedCwCin7 = prodDataCin7?.listings.find((c: { id: string }) => c.id === cluster.listingId) ?? prodDataCin7?.listings[0]
 
         const apiRes = await fetch('/api/cin7/upload', {
           method: 'POST',
@@ -2142,18 +2210,18 @@ function ExportPanel({
                 description: copy?.description || cluster.copyDescription || '',
                 bullets: copy?.bullets?.length ? copy.bullets : (cluster.copyBullets ?? []),
               } } : {}),
-              ...(styleEntry ? { styleEntry: {
-                composition: styleEntry.composition,
-                care: styleEntry.care,
-                fit: styleEntry.fit,
-                length: styleEntry.length,
-                rrp: styleEntry.rrp,
-                season: styleEntry.season,
-                occasion: styleEntry.occasion,
-                gender: styleEntry.gender,
-                subCategory: styleEntry.subCategory,
-                origin: styleEntry.origin,
-                sizeRange: styleEntry.sizeRange,
+              ...(prodDataCin7 ? { styleEntry: {
+                composition: pAttrCin7.composition,
+                care: pAttrCin7.care,
+                fit: pAttrCin7.fit,
+                length: pAttrCin7.length,
+                rrp: matchedCwCin7?.rrp != null ? String(matchedCwCin7.rrp) : undefined,
+                season: prodDataCin7.season ?? undefined,
+                occasion: pAttrCin7.occasion,
+                gender: prodDataCin7.gender ?? undefined,
+                subCategory: pAttrCin7.sub_category,
+                origin: pAttrCin7.origin,
+                sizeRange: pAttrCin7.size_range,
               }} : {}),
             }],
             tempPaths,
@@ -2662,7 +2730,7 @@ function ExportPanel({
 
         import('@/lib/session-store').then(({ saveSession, deleteSession }) =>
           Promise.all([
-            saveSession(histId, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null, useSession.getState().styleList),
+            saveSession(histId, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null),
             deleteSession('draft'),
           ])
         ).catch(() => { /* non-critical */ })

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
     .select(`
       id, sku, title, category, gender, season, status,
       product_attributes ( key, value ),
-      product_colourways (
+      product_listings (
         id, colour_name, colour_code, rrp, listing_title, listing_description, listing_bullets,
         product_images ( id, storage_url, angle, sort_order, original_filename ),
         product_variants ( id, size, barcode, stock, price ),

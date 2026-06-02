@@ -333,10 +333,14 @@ export async function processFiles(
       return a.seqIndex - b.seqIndex
     })
 
+    // Extract SKU from filename — the full group key IS the SKU (colour variant included)
+    const groupKey = extractGroupKey(orderedChunk[0].filename)
+    const clusterSku = groupKey ? groupKey.toUpperCase() : ''
+
     clusters.push({
       id: `cluster-${lookNumber}`,
       images: orderedChunk,
-      sku: '',
+      sku: clusterSku,
       productName: '',
       color: '',
       colourCode: '',
@@ -351,7 +355,6 @@ export async function processFiles(
     })
   }
 
-  // Colour is left blank — populated from style list import on the review page.
   onProgress({ phase: 'Done', done: total, total })
   return clusters
 }

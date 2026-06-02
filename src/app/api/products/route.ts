@@ -25,10 +25,11 @@ export async function GET(req: NextRequest) {
     .from('products')
     .select(`
       id, sku, title, category, gender, season, status,
-      product_colourways (
+      product_listings (
         id, colour_name, colour_code,
         product_variants ( stock ),
-        channel_listings ( channel, status )
+        channel_listings ( channel, status ),
+        product_images ( storage_url, angle, sort_order )
       )
     `)
     .eq('org_id', orgId)
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
   if (colourways?.length) {
     for (const cw of colourways) {
       const { data: colourway } = await service
-        .from('product_colourways')
+        .from('product_listings')
         .insert({ product_id: product.id, colour_name: cw.name, colour_code: cw.code, rrp: cw.rrp, listing_title: cw.listingTitle, listing_description: cw.listingDescription })
         .select('id')
         .single()
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
         await service.from('product_variants').insert(
           cw.variants.map((v: { size: string; barcode?: string; stock: number; price: number }) => ({
             product_id: product.id,
-            colourway_id: colourway.id,
+            listing_id: colourway.id,
             size: v.size,
             barcode: v.barcode,
             stock: v.stock ?? 0,

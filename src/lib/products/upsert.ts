@@ -10,10 +10,15 @@ export interface ImportRow {
   colour_hex?: string
   rrp?: string
   sizes?: string        // pipe-separated e.g. XS|S|M|L|XL
+  style_number?: string
   composition?: string
   care?: string
   fit?: string
+  length?: string
+  occasion?: string
+  sub_category?: string
   origin?: string
+  size_range?: string
 }
 
 export async function upsertProducts(
@@ -79,10 +84,15 @@ export async function upsertProducts(
 
       // Upsert shared attributes
       const attrs: { key: string; value: string }[] = []
-      if (first.composition) attrs.push({ key: 'composition', value: first.composition })
-      if (first.care)        attrs.push({ key: 'care',        value: first.care })
-      if (first.fit)         attrs.push({ key: 'fit',         value: first.fit })
-      if (first.origin)      attrs.push({ key: 'origin',      value: first.origin })
+      if (first.style_number) attrs.push({ key: 'style_number',  value: first.style_number })
+      if (first.composition)  attrs.push({ key: 'composition',   value: first.composition })
+      if (first.care)         attrs.push({ key: 'care',          value: first.care })
+      if (first.fit)          attrs.push({ key: 'fit',           value: first.fit })
+      if (first.length)       attrs.push({ key: 'length',        value: first.length })
+      if (first.occasion)     attrs.push({ key: 'occasion',      value: first.occasion })
+      if (first.sub_category) attrs.push({ key: 'sub_category',  value: first.sub_category })
+      if (first.origin)       attrs.push({ key: 'origin',        value: first.origin })
+      if (first.size_range)   attrs.push({ key: 'size_range',    value: first.size_range })
       for (const attr of attrs) {
         await service.from('product_attributes')
           .upsert({ product_id: productId, key: attr.key, value: attr.value }, { onConflict: 'product_id,key' })
@@ -92,22 +102,22 @@ export async function upsertProducts(
       for (const row of skuRows) {
         if (!row.colourway?.trim()) continue
         const { data: existingCw } = await service
-          .from('product_colourways')
+          .from('product_listings')
           .select('id')
           .eq('product_id', productId)
           .ilike('colour_name', row.colourway.trim())
           .single()
 
-        let colourwayId: string
+        let listingId: string
         if (existingCw) {
-          colourwayId = existingCw.id
-          await service.from('product_colourways').update({
+          listingId = existingCw.id
+          await service.from('product_listings').update({
             colour_code: row.colour_hex?.trim() || null,
             rrp: row.rrp ? parseFloat(row.rrp) : null,
-          }).eq('id', colourwayId)
+          }).eq('id', listingId)
         } else {
           const { data: newCw, error: cwe } = await service
-            .from('product_colourways')
+            .from('product_listings')
             .insert({
               product_id: productId,
               colour_name: row.colourway.trim(),
@@ -117,7 +127,7 @@ export async function upsertProducts(
             .select('id')
             .single()
           if (cwe || !newCw) continue
-          colourwayId = newCw.id
+          listingId = newCw.id
         }
 
         const sizes = (row.sizes || 'XS|S|M|L|XL').split('|').map((s) => s.trim()).filter(Boolean)
@@ -126,11 +136,11 @@ export async function upsertProducts(
           await service.from('product_variants')
             .upsert({
               product_id: productId,
-              colourway_id: colourwayId,
+              listing_id: listingId,
               size,
               price: rrp,
               stock: 0,
-            }, { onConflict: 'colourway_id,size' })
+            }, { onConflict: 'listing_id,size' })
         }
       }
     } catch (e) {

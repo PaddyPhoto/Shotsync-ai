@@ -24,52 +24,30 @@ interface NavItem {
   activeWhen?: (pathname: string) => boolean
 }
 
-const NAV_WORKSPACE: NavItem[] = [
+const NAV_PRODUCTS: NavItem[] = [
   {
-    label: 'Dashboard',
-    href: '/dashboard',
+    label: 'Products',
+    href: '/dashboard/products',
+    activeWhen: (p) => p.startsWith('/dashboard/products'),
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="1" y="1" width="6" height="6" rx="1"/>
-        <rect x="9" y="1" width="6" height="6" rx="1"/>
-        <rect x="1" y="9" width="6" height="6" rx="1"/>
-        <rect x="9" y="9" width="6" height="6" rx="1"/>
+        <rect x="1.5" y="1.5" width="5" height="7" rx="1"/>
+        <rect x="9.5" y="1.5" width="5" height="5" rx="1"/>
+        <rect x="1.5" y="10.5" width="5" height="4" rx="1"/>
+        <rect x="9.5" y="8.5" width="5" height="6" rx="1"/>
       </svg>
     ),
   },
 ]
 
-const NAV_WORKFLOW: NavItem[] = [
+const NAV_SHOOTS: NavItem[] = [
   {
-    label: 'Upload',
+    label: 'New Shoot',
     href: '/dashboard/upload',
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M8 11V4M5 7l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M2 13h12" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Clusters',
-    href: '/dashboard/review',
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="1" y="1" width="6" height="6" rx="1"/>
-        <rect x="9" y="1" width="6" height="6" rx="1"/>
-        <rect x="1" y="9" width="6" height="6" rx="1"/>
-        <rect x="9" y="9" width="6" height="6" rx="1"/>
-      </svg>
-    ),
-  },
-  {
-    label: 'Export',
-    href: '/dashboard/review?export=1',
-    activeWhen: () => false,
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M8 10V3M5 7l3 3 3-3" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M2 13h12" strokeLinecap="round"/>
+        <path d="M1 5.5A1.5 1.5 0 0 1 2.5 4h1l1-2h5l1 2h1A1.5 1.5 0 0 1 13 5.5v6A1.5 1.5 0 0 1 11.5 13h-9A1.5 1.5 0 0 1 1 11.5v-6z" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="7" cy="8.5" r="2"/>
       </svg>
     ),
   },
@@ -81,48 +59,33 @@ const NAV_WORKFLOW: NavItem[] = [
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
         <rect x="2" y="3" width="12" height="10" rx="1.5"/>
         <path d="M10 3V2a2 2 0 0 0-4 0v1" strokeLinecap="round"/>
+        <path d="M5 8h6M5 11h4" strokeLinecap="round"/>
       </svg>
     ),
-  },
-]
-
-const NAV_PRODUCTS: NavItem[] = [
-  {
-    label: 'Products',
-    href: '/dashboard/products',
-    icon: (
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="2" y="2" width="5" height="5" rx="1"/>
-        <rect x="9" y="2" width="5" height="5" rx="1"/>
-        <rect x="2" y="9" width="5" height="5" rx="1"/>
-        <rect x="9" y="9" width="5" height="5" rx="1"/>
-      </svg>
-    ),
-    badge: { text: 'New', variant: 'blue' },
   },
 ]
 
 const NAV_CONFIG: NavItem[] = [
   {
-    label: 'Brands',
+    label: 'Brand',
     href: '/dashboard/brands',
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="8" cy="6" r="2.5"/>
-        <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round"/>
+        <rect x="2" y="4" width="12" height="9" rx="1.5"/>
+        <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" strokeLinecap="round"/>
+        <path d="M8 8v3M6 9.5h4" strokeLinecap="round"/>
       </svg>
     ),
   },
   {
-    label: 'Marketplaces',
+    label: 'Channels',
     href: '/dashboard/marketplaces',
     icon: (
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M6 3H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
-        <path d="M10 3h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3" strokeLinecap="round"/>
-        <path d="M6 10H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h3" strokeLinecap="round"/>
-        <path d="M10 10h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3" strokeLinecap="round"/>
-        <path d="M6 4.5h4M6 11.5h4M8 7v2" strokeLinecap="round"/>
+        <circle cx="3.5" cy="8" r="2"/>
+        <circle cx="12.5" cy="4" r="2"/>
+        <circle cx="12.5" cy="12" r="2"/>
+        <path d="M5.5 8h3l2-4M5.5 8h3l2 4" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
   },
@@ -212,14 +175,12 @@ const ANGLE_DOT: Record<string, string> = {
 
 export function Sidebar() {
   const { planId, plan, usage } = usePlan()
-  const { isReady, clusters, jobName, marketplaces, styleList, setSession, setStyleList } = useSession((s) => ({
+  const { isReady, clusters, jobName, marketplaces, setSession } = useSession((s) => ({
     isReady: s.isReady,
     clusters: s.clusters,
     jobName: s.jobName,
     marketplaces: s.marketplaces,
-    styleList: s.styleList,
     setSession: s.setSession,
-    setStyleList: s.setStyleList,
   }))
   const allExported = clusters.length > 0 && clusters.every((c) => c.exported)
   const hasSession = isReady && clusters.length > 0 && !allExported
@@ -268,12 +229,11 @@ export function Sidebar() {
     try {
       const { parkJob, resumeParkedJob } = await import('@/lib/session-store')
       if (clusters.length > 0) {
-        await parkJob(jobName || 'Untitled Job', clusters, marketplaces, null, styleList)
+        await parkJob(jobName || 'Untitled Job', clusters, marketplaces, null)
       }
       const result = await resumeParkedJob(parkId)
       if (result) {
         setSession(result.jobName, result.clusters, result.marketplaces)
-        if (result.styleList.length > 0) setStyleList(result.styleList)
         router.push('/dashboard/review')
       }
       await reloadParked()
@@ -375,43 +335,39 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto" style={{ padding: '10px 0 0' }}>
 
         <Suspense fallback={null}>
-          {/* Workspace */}
+          {/* Products — primary */}
           <div style={{ padding: '0 10px 6px' }}>
-            <p style={SL}>Workspace</p>
-            <nav className="flex flex-col gap-[2px]">
-              {NAV_WORKSPACE.map((item) => <NavLink key={item.href} item={item} />)}
-            </nav>
-          </div>
-
-          {/* Pipeline */}
-          <div style={{ padding: '8px 10px 6px' }}>
-            <p style={SL}>Pipeline</p>
-            <nav className="flex flex-col gap-[2px]">
-              {NAV_WORKFLOW.map((item) => (
-                <NavLink
-                  key={item.href}
-                  item={item}
-                  disabled={
-                    (item.href === '/dashboard/review' || item.href.includes('review?export'))
-                      ? !hasSession
-                      : item.disabled
-                  }
-                />
-              ))}
-            </nav>
-          </div>
-
-          {/* Products */}
-          <div style={{ padding: '8px 10px 6px' }}>
-            <p style={SL}>Products</p>
             <nav className="flex flex-col gap-[2px]">
               {NAV_PRODUCTS.map((item) => <NavLink key={item.href} item={item} />)}
             </nav>
           </div>
 
-          {/* Configure */}
+          {/* Shoots */}
           <div style={{ padding: '8px 10px 6px' }}>
-            <p style={SL}>Configure</p>
+            <p style={SL}>Shoots</p>
+            <nav className="flex flex-col gap-[2px]">
+              {NAV_SHOOTS.map((item) => <NavLink key={item.href} item={item} />)}
+              {hasSession && (
+                <NavLink item={{
+                  label: 'Review',
+                  href: '/dashboard/review',
+                  badge: { text: String(clusters.length), variant: 'green' },
+                  icon: (
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="1" y="1" width="6" height="6" rx="1"/>
+                      <rect x="9" y="1" width="6" height="6" rx="1"/>
+                      <rect x="1" y="9" width="6" height="6" rx="1"/>
+                      <rect x="9" y="9" width="6" height="6" rx="1"/>
+                    </svg>
+                  ),
+                }} />
+              )}
+            </nav>
+          </div>
+
+          {/* Settings */}
+          <div style={{ padding: '8px 10px 6px' }}>
+            <p style={SL}>Settings</p>
             <nav className="flex flex-col gap-[2px]">
               {NAV_CONFIG.map((item) => <NavLink key={item.href} item={item} />)}
             </nav>

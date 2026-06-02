@@ -34,21 +34,21 @@ export async function POST(
     .single()
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 })
 
-  const { colourwayId, images }: { colourwayId: string; images: ImagePayload[] } = await req.json()
+  const { listingId, images }: { listingId: string; images: ImagePayload[] } = await req.json()
 
-  if (!colourwayId || !Array.isArray(images) || images.length === 0) {
-    return NextResponse.json({ error: 'Missing colourwayId or images' }, { status: 400 })
+  if (!listingId || !Array.isArray(images) || images.length === 0) {
+    return NextResponse.json({ error: 'Missing listingId or images' }, { status: 400 })
   }
 
   // Replace existing images for this colourway (re-confirm replaces previous set)
-  await service.from('product_images').delete().eq('colourway_id', colourwayId)
+  await service.from('product_images').delete().eq('listing_id', listingId)
 
   const saved: string[] = []
 
   for (const img of images) {
     try {
       const ext = img.filename.split('.').pop()?.toLowerCase() ?? 'jpg'
-      const storagePath = `product-images/${params.productId}/${colourwayId}/${String(img.sortOrder).padStart(2, '0')}-${img.viewLabel}.${ext}`
+      const storagePath = `product-images/${params.productId}/${listingId}/${String(img.sortOrder).padStart(2, '0')}-${img.viewLabel}.${ext}`
 
       const buffer = Buffer.from(img.data, 'base64')
       const { error: uploadErr } = await service.storage
@@ -63,7 +63,7 @@ export async function POST(
         .from('product_images')
         .insert({
           product_id: params.productId,
-          colourway_id: colourwayId,
+          listing_id: listingId,
           storage_path: storagePath,
           storage_url: publicUrl,
           angle: img.viewLabel,
