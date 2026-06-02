@@ -101,7 +101,8 @@ function BrandsPage() {
   const [toastOk, setToastOk] = useState(true)
   const [expandedId, setExpandedId] = useState<string | 'new' | null>(null)
   const [forms, setForms] = useState<Record<string, BrandForm>>({})
-  const [saving, setSaving] = useState(false)
+  const [savingId, setSavingId] = useState<string | null>(null)
+  const [savedId, setSavedId] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [expandedStillLife, setExpandedStillLife] = useState<Record<string, string | null>>({})
@@ -152,7 +153,7 @@ function BrandsPage() {
     if (form.brand_code.length > 6) {
       setErrors((e) => ({ ...e, [id]: 'Brand code must be 6 characters or fewer.' })); return
     }
-    setSaving(true); setErrors((e) => ({ ...e, [id]: '' }))
+    setSavingId(id); setErrors((e) => ({ ...e, [id]: '' }))
     try {
       const { createClient } = await import('@/lib/supabase/client')
       const { data: { session } } = await createClient().auth.getSession()
@@ -182,11 +183,10 @@ function BrandsPage() {
         if (!res.ok) { setErrors((e) => ({ ...e, [id]: d.error ?? 'Failed to update brand' })); return }
         const updated = d.data ?? { ...brand, ...form }
         setBrands(brands.map((b) => (b.id === id ? updated : b)))
-        setExpandedId(null)
-        setToastOk(true); setToast('Brand saved.')
-        setTimeout(() => setToast(null), 2500)
+        setSavedId(id)
+        setTimeout(() => setSavedId(null), 2500)
       }
-    } finally { setSaving(false) }
+    } finally { setSavingId(null) }
   }
 
   const deleteBrand = async (id: string) => {
@@ -269,7 +269,7 @@ function BrandsPage() {
               brand={null}
               form={getForm('new')}
               expanded
-              saving={saving}
+              saving={savingId === 'new'}
               error={errors['new'] ?? ''}
               expandedStillLife={expandedStillLife['new'] ?? null}
               onToggle={() => openExpand('new')}
@@ -299,7 +299,8 @@ function BrandsPage() {
                 brand={brand}
                 form={getForm(brand.id)}
                 expanded={expandedId === brand.id}
-                saving={saving && expandedId === brand.id}
+                saving={savingId === brand.id}
+                justSaved={savedId === brand.id}
                 error={errors[brand.id] ?? ''}
                 expandedStillLife={expandedStillLife[brand.id] ?? null}
                 deletingId={deletingId}
@@ -384,6 +385,7 @@ interface BrandCardProps {
   form: BrandForm
   expanded: boolean
   saving: boolean
+  justSaved?: boolean
   error: string
   expandedStillLife: string | null
   deletingId?: string | null
@@ -396,7 +398,7 @@ interface BrandCardProps {
   onSetStillLife: (cat: string) => void
 }
 
-function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife, deletingId, initialStep = 1, onToggle, onFormChange, onSave, onDelete, onDisconnectShopify, onSetStillLife }: BrandCardProps) {
+function BrandCard({ id, brand, form, expanded, saving, justSaved = false, error, expandedStillLife, deletingId, initialStep = 1, onToggle, onFormChange, onSave, onDelete, onDisconnectShopify, onSetStillLife }: BrandCardProps) {
   const isNew = id === 'new'
   const shopifyConnected = !!brand?.shopify_authenticated
   const [step, setStep] = useState(initialStep)
@@ -801,8 +803,17 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
               </div>
               {step < 4
                 ? <button type="button" onClick={() => setStep(s => s + 1)} className="btn btn-primary">Next →</button>
-                : <button onClick={onSave} disabled={saving} className="btn btn-primary">
-                    {saving ? <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Saving…</> : 'Save Changes'}
+                : <button
+                    onClick={onSave}
+                    disabled={saving || justSaved}
+                    className="btn btn-primary transition-all"
+                    style={justSaved ? { background: '#30d158', borderColor: '#30d158', color: '#fff' } : {}}
+                  >
+                    {saving
+                      ? <><svg width="12" height="12" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16 8"/></svg>Saving…</>
+                      : justSaved
+                      ? <><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6l3 3 5-5"/></svg>Saved</>
+                      : 'Save Changes'}
                   </button>
               }
             </div>
