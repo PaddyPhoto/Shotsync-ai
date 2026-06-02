@@ -1214,7 +1214,10 @@ export default function UploadPage() {
 
               <div style={{ padding: '14px', background: 'var(--bg2)', border: '0.5px solid var(--line)', borderRadius: '12px' }}>
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Marketplaces</label>
+                    <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Marketplaces</label>
+                    <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', marginBottom: '10px', lineHeight: 1.5 }}>
+                      Select every platform you&apos;re delivering to. During review, ShotSync flags any clusters missing that platform&apos;s required angles. At export, each platform gets its own folder with images resized, named, and sequenced to its spec.
+                    </p>
                     <MarketplaceSelector selected={marketplaces} onChange={(mps) => setMarketplaces(mps as MarketplaceName[])} />
                   </div>
 
