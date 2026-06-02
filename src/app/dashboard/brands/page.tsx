@@ -164,8 +164,10 @@ function BrandsPage() {
         const res = await fetch('/api/brands', { method: 'POST', headers: authHeaders, body: JSON.stringify(form) })
         const d = await res.json()
         if (!res.ok) { setErrors((e) => ({ ...e, new: d.error ?? 'Failed to create brand' })); return }
-        if (d.data) setBrands([...brands, d.data])
-        else await refreshBrands()
+        if (d.data) {
+          setBrands([...brands, d.data])
+          setForms((f) => ({ ...f, [d.data.id]: brandToForm(d.data) }))
+        } else await refreshBrands()
         if (d.data?.id && form.shopify_store_url.trim()) {
           window.location.href = `/api/shopify/connect?brand_id=${d.data.id}&shop=${encodeURIComponent(form.shopify_store_url.trim())}`
           return
