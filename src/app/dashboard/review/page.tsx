@@ -2358,7 +2358,7 @@ function ExportPanel({
     }
 
     // Helper: build the task list for a marketplace (shared by both paths)
-    type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string }
+    type ExportTask = { cluster: typeof confirmedClusters[0]; seq: number; img: typeof confirmedClusters[0]['images'][0]; imgIdx: number; folderName: string; viewNum: number | undefined }
     const buildTasks = (template: string, rule: typeof MARKETPLACE_RULES[keyof typeof MARKETPLACE_RULES]): ExportTask[] => {
       const tasks: ExportTask[] = []
       for (let clusterIdx = 0; clusterIdx < confirmedClusters.length; clusterIdx++) {
@@ -2399,7 +2399,11 @@ function ExportPanel({
             return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
           })
         for (let imgIdx = 0; imgIdx < sortedImages.length; imgIdx++) {
-          tasks.push({ cluster, seq, img: sortedImages[imgIdx], imgIdx, folderName })
+          const img = sortedImages[imgIdx]
+          // {VIEW_NUM} = 1-based position of this view in the user's configured angle order
+          const orderIdx = angleOrder.indexOf(img.viewLabel ?? '')
+          const viewNum = orderIdx >= 0 ? orderIdx + 1 : undefined
+          tasks.push({ cluster, seq, img, imgIdx, folderName, viewNum })
         }
       }
       return tasks
@@ -2419,7 +2423,7 @@ function ExportPanel({
 
         // Sequential writes — FSA API holds swap files open until close(), so concurrent
         // writes stack up in memory. One-at-a-time lets each file flush to disk before the next.
-        for (const { cluster, seq, img, imgIdx, folderName } of tasks) {
+        for (const { cluster, seq, img, imgIdx, folderName, viewNum } of tasks) {
             if (!img.file) {
               console.warn(`[export] skipping ${img.filename} — file reference missing`)
               setExportError(`${img.filename}: file not available (try re-uploading)`)
@@ -2470,7 +2474,7 @@ function ExportPanel({
                 ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
                 : applyNamingTemplate(template, {
                     brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                    view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                    view: img.viewLabel, index: imgIdx + 1, viewNum, supplierCode, season,
                     styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
                     isBottomwear: cluster.isBottomwear ?? false,
                   }) + '.jpg'
@@ -2527,7 +2531,7 @@ function ExportPanel({
           const tasks = buildTasks(template, rule)
 
           for (let i = 0; i < tasks.length; i += CONCURRENCY) {
-            await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName }) => {
+            await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName, viewNum }) => {
               try {
                 const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
                 const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
@@ -2540,7 +2544,7 @@ function ExportPanel({
                   ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
                   : applyNamingTemplate(template, {
                       brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                      view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                      view: img.viewLabel, index: imgIdx + 1, viewNum, supplierCode, season,
                       styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
                       isBottomwear: cluster.isBottomwear ?? false,
                     }) + '.jpg'
@@ -2598,12 +2602,12 @@ function ExportPanel({
           const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
           const tasks = buildTasks(template, rule)
-          for (const { cluster, seq, img, imgIdx } of tasks) {
+          for (const { cluster, seq, img, imgIdx, viewNum } of tasks) {
             const filename = useOriginalNames
               ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
               : applyNamingTemplate(template, {
                   brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                  view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                  view: img.viewLabel, index: imgIdx + 1, viewNum, supplierCode, season,
                   styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
                   isBottomwear: cluster.isBottomwear ?? false,
                 }) + '.jpg'
@@ -2663,7 +2667,7 @@ function ExportPanel({
 
         const tasks = buildTasks(template, rule)
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
-          await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx }) => {
+          await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, viewNum }) => {
             try {
               const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
               const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
@@ -2676,7 +2680,7 @@ function ExportPanel({
                 ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
                 : applyNamingTemplate(template, {
                     brand: brandCode, seq, sku: cluster.sku, color: cluster.color,
-                    view: img.viewLabel, index: imgIdx + 1, supplierCode, season,
+                    view: img.viewLabel, index: imgIdx + 1, viewNum, supplierCode, season,
                     styleNumber: cluster.styleNumber, colourCode: cluster.colourCode,
                     isBottomwear: cluster.isBottomwear ?? false,
                   }) + '.jpg'
