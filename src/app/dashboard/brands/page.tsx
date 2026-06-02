@@ -105,6 +105,7 @@ function BrandsPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [expandedStillLife, setExpandedStillLife] = useState<Record<string, string | null>>({})
+  const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null)
 
   useEffect(() => {
     const connected = searchParams.get('shopify_connected')
@@ -169,6 +170,7 @@ function BrandsPage() {
           window.location.href = `/api/shopify/connect?brand_id=${d.data.id}&shop=${encodeURIComponent(form.shopify_store_url.trim())}`
           return
         }
+        if (d.data?.id) setNewlyCreatedId(d.data.id)
         setExpandedId(null)
       } else {
         const brand = brands.find((b) => b.id === id)
@@ -305,6 +307,7 @@ function BrandsPage() {
                 onDelete={() => deleteBrand(brand.id)}
                 onDisconnectShopify={() => disconnectShopify(brand)}
                 onSetStillLife={(cat) => setExpandedStillLife((s) => ({ ...s, [brand.id]: s[brand.id] === cat ? null : cat }))}
+                initialStep={brand.id === newlyCreatedId ? 2 : 1}
               />
             ))
           )}
@@ -382,6 +385,7 @@ interface BrandCardProps {
   error: string
   expandedStillLife: string | null
   deletingId?: string | null
+  initialStep?: number
   onToggle: () => void
   onFormChange: (patch: Partial<BrandForm>) => void
   onSave: () => void
@@ -390,17 +394,17 @@ interface BrandCardProps {
   onSetStillLife: (cat: string) => void
 }
 
-function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife, deletingId, onToggle, onFormChange, onSave, onDelete, onDisconnectShopify, onSetStillLife }: BrandCardProps) {
+function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife, deletingId, initialStep = 1, onToggle, onFormChange, onSave, onDelete, onDisconnectShopify, onSetStillLife }: BrandCardProps) {
   const isNew = id === 'new'
   const shopifyConnected = !!brand?.shopify_authenticated
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(initialStep)
   const [cin7TestStatus, setCin7TestStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle')
   const [cin7TestMsg, setCin7TestMsg] = useState('')
   const [cin7AttrSet, setCin7AttrSet] = useState<'found' | 'missing' | 'unknown' | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmDisconnect, setConfirmDisconnect] = useState(false)
 
-  useEffect(() => { if (!expanded) setStep(1) }, [expanded]) // still used by new-brand cancel
+  useEffect(() => { if (isNew && !expanded) setStep(1) }, [isNew, expanded])
 
   const testCin7 = async () => {
     setCin7TestStatus('testing')
