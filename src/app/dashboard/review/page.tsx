@@ -615,6 +615,7 @@ function ReviewPage() {
   const applyProductMatch = (clusterId: string, match: ProductMatch) => {
     updateClusterSku(clusterId, match.sku, match.productTitle)
     setSkuInput((s) => ({ ...s, [clusterId]: match.sku }))
+    setSkuSearchQuery((q) => ({ ...q, [clusterId]: match.sku }))
     const cw = match.listings[0] ?? null
     if (cw) {
       updateClusterColor(clusterId, cw.name)
@@ -1335,7 +1336,7 @@ function ReviewPage() {
                           <input
                             className="input text-[length:var(--font-sm)] py-[5px]"
                             placeholder="SKU or product name…"
-                            value={skuSearchOpen === cluster.id ? (skuSearchQuery[cluster.id] ?? currentSku) : currentSku}
+                            value={skuSearchQuery[cluster.id] ?? currentSku}
                             onFocus={() => { setSkuSearchOpen(cluster.id); setSkuSearchQuery((q) => ({ ...q, [cluster.id]: currentSku })); debouncedSearch(cluster.id, currentSku) }}
                             onChange={(e) => { setSkuSearchQuery((q) => ({ ...q, [cluster.id]: e.target.value })); debouncedSearch(cluster.id, e.target.value) }}
                             onBlur={() => {
