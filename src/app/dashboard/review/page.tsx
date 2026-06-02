@@ -113,6 +113,9 @@ function ReviewPage() {
   const [editingColor, setEditingColor] = useState<string | null>(null)
   const [colourCodeInput, setColourCodeInput] = useState<Record<string, string>>({})
   const [styleNumberInput, setStyleNumberInput] = useState<Record<string, string>>({})
+  // Tracks clusters where a product-match result was just selected via mouse click,
+  // so the blur handler doesn't overwrite the match with the raw search query.
+  const skuMatchJustApplied = useRef<Set<string>>(new Set())
   const [skuSearchOpen, setSkuSearchOpen] = useState<string | null>(null)
   const [skuSearchQuery, setSkuSearchQuery] = useState<Record<string, string>>({})
   const [skuSearchResults, setSkuSearchResults] = useState<Record<string, ProductMatch[]>>({})
@@ -630,6 +633,7 @@ function ReviewPage() {
       setClusterBottomwear(clusterId, BOTTOMWEAR_CATEGORY_LABELS.has(match.category))
     }
     setProductMatchMap((prev) => ({ ...prev, [match.sku]: match }))
+    skuMatchJustApplied.current.add(clusterId)
     if (cw) {
       const cluster = clusters.find((c) => c.id === clusterId)
       if (cluster) saveClusterToProduct(cluster, match.productId, cw.id)
@@ -1334,7 +1338,20 @@ function ReviewPage() {
                             value={skuSearchOpen === cluster.id ? (skuSearchQuery[cluster.id] ?? currentSku) : currentSku}
                             onFocus={() => { setSkuSearchOpen(cluster.id); setSkuSearchQuery((q) => ({ ...q, [cluster.id]: currentSku })); debouncedSearch(cluster.id, currentSku) }}
                             onChange={(e) => { setSkuSearchQuery((q) => ({ ...q, [cluster.id]: e.target.value })); debouncedSearch(cluster.id, e.target.value) }}
-                            onBlur={() => setTimeout(() => setSkuSearchOpen(null), 150)}
+                            onBlur={() => {
+                              const typed = (skuSearchQuery[cluster.id] ?? '').trim().toUpperCase()
+                              setTimeout(() => {
+                                setSkuSearchOpen(null)
+                                if (skuMatchJustApplied.current.has(cluster.id)) {
+                                  skuMatchJustApplied.current.delete(cluster.id)
+                                  return
+                                }
+                                if (typed && typed !== (cluster.sku ?? '').trim().toUpperCase()) {
+                                  setSkuInput((s) => ({ ...s, [cluster.id]: typed }))
+                                  updateClusterSku(cluster.id, typed)
+                                }
+                              }, 150)
+                            }}
                             onKeyDown={(e) => { if (e.key === 'Enter') { setSkuInput((s) => ({ ...s, [cluster.id]: skuSearchQuery[cluster.id] ?? currentSku })); handleConfirm(cluster.id); setSkuSearchOpen(null) } }}
                             style={{ fontFamily: 'var(--font-dm-mono)' }}
                           />
