@@ -529,10 +529,16 @@ function MarketplacesInner() {
                           <p className="text-[length:var(--font-xs)] text-[var(--text3)] mt-1.5">Preview filename — extension added automatically</p>
                         </div>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <button onClick={() => setStep(2)} className="btn btn-ghost text-[length:var(--font-base)]">← Back</button>
-                        <button onClick={() => setStep(1)} className="btn btn-primary text-[length:var(--font-base)]">
-                          {saved ? '✓ Saved' : 'Done'}
+                        <button
+                          onClick={() => {
+                            setToast(`${rule.name} export settings saved`)
+                            setTimeout(() => setToast(null), 3500)
+                          }}
+                          className="btn btn-primary text-[length:var(--font-base)]"
+                        >
+                          ✓ Done
                         </button>
                       </div>
                     </div>
