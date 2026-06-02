@@ -15,6 +15,7 @@ type ClusterPayload = {
   label: string
   category: string | null
   is_bottomwear: boolean
+  confirmed?: boolean
   images: Array<{
     image_id: string
     image_order: number
@@ -82,6 +83,7 @@ export async function POST(
           label: c.label,
           category: c.category,
           is_bottomwear: c.is_bottomwear,
+          confirmed: c.confirmed ?? false,
         })
         .select('id')
         .single()

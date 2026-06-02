@@ -2761,7 +2761,7 @@ function ExportPanel({
 
         import('@/lib/session-store').then(({ saveSession, deleteSession }) =>
           Promise.all([
-            saveSession(histId, jobName, confirmedClusters, selectedMarketplaces, activeBrand?.id ?? null),
+            saveSession(histId, jobName, clusters, selectedMarketplaces, activeBrand?.id ?? null),
             deleteSession('draft'),
           ])
         ).catch(() => { /* non-critical */ })
@@ -2775,7 +2775,7 @@ function ExportPanel({
                 ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
               },
               body: JSON.stringify({
-                clusters: confirmedClusters.map((c, i) => ({
+                clusters: clusters.map((c, i) => ({
                   cluster_id: c.id,
                   cluster_order: i,
                   sku: c.sku,
@@ -2786,6 +2786,7 @@ function ExportPanel({
                   label: c.label,
                   category: c.category ?? null,
                   is_bottomwear: c.isBottomwear ?? false,
+                  confirmed: c.confirmed ?? false,
                   images: c.images.map((img, j) => ({
                     image_id: img.id,
                     image_order: j,
