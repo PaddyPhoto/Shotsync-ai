@@ -79,6 +79,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* When the dashboard dark-theme div is present, set body background immediately
+   so Chrome tab switching doesn't flash a white background. Pure CSS — no JS delay. */
+body:has([data-theme="dark"]) {
+  background: #252525;
+}
+
 ::-webkit-scrollbar { width: 0; height: 0; }
 
 ::selection {

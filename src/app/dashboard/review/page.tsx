@@ -1034,7 +1034,14 @@ function ReviewPage() {
               </Link>
             )}
             <button
-              onClick={() => setShowExportPanel(true)}
+              onClick={() => {
+                // Flush any pending skuInput edits to session store before export
+                for (const c of clusters) {
+                  const pending = skuInput[c.id]?.trim().toUpperCase()
+                  if (pending && pending !== c.sku) updateClusterSku(c.id, pending)
+                }
+                setShowExportPanel(true)
+              }}
               className="btn btn-primary"
               disabled={confirmedCount === 0}
               title={confirmedCount === 0 ? 'Confirm at least one cluster to export' : undefined}

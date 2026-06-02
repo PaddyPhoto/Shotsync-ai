@@ -109,6 +109,16 @@ function BrandsPage() {
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null)
 
   useEffect(() => {
+    setForms((f) => {
+      const next = { ...f }
+      for (const b of brands) {
+        if (!next[b.id]) next[b.id] = brandToForm(b)
+      }
+      return next
+    })
+  }, [brands])
+
+  useEffect(() => {
     const connected = searchParams.get('shopify_connected')
     const error = searchParams.get('shopify_error')
     if (connected) {
