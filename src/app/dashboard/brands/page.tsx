@@ -400,7 +400,7 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmDisconnect, setConfirmDisconnect] = useState(false)
 
-  useEffect(() => { if (!expanded) setStep(1) }, [expanded])
+  useEffect(() => { if (!expanded) setStep(1) }, [expanded]) // still used by new-brand cancel
 
   const testCin7 = async () => {
     setCin7TestStatus('testing')
@@ -497,53 +497,10 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             <h2 className="text-[length:var(--font-lg)] font-semibold text-[var(--text)] leading-tight">{brand!.name}</h2>
             <p className="text-[length:var(--font-base)] text-[var(--text3)] font-mono mt-[2px]">{brand!.brand_code}</p>
           </div>
-          <button
-            type="button"
-            onClick={onToggle}
-            className="btn btn-ghost btn-sm flex-shrink-0 gap-[5px]"
-          >
-            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M9.5 2.5l2 2-7 7H2.5v-2l7-7z" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            {expanded ? 'Close' : 'Edit settings'}
-          </button>
         </div>
 
-        {/* Settings preview with gradient fade — collapsed only */}
-        {!expanded && (
-          <div className="border-t border-[var(--line)]">
-            <div className="relative overflow-hidden" style={{ maxHeight: '86px' }}>
-              <div className="px-6 pt-4 pb-2 grid grid-cols-2 gap-x-6 gap-y-3">
-                <div>
-                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Shots per look</p>
-                  <p className="text-[length:var(--font-md)] text-[var(--text2)]">{brand!.images_per_look ?? 4} on-model</p>
-                </div>
-                <div>
-                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">Sells on</p>
-                  <p className="text-[length:var(--font-md)] text-[var(--text2)]">
-                    {brand!.default_marketplaces?.length ? brand!.default_marketplaces.join(', ') : 'None set'}
-                  </p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-[length:var(--font-sm)] uppercase tracking-[0.05em] text-[var(--text3)] mb-[3px]">On-model sequence</p>
-                  <p className="text-[length:var(--font-md)] text-[var(--text2)]">{(brand!.on_model_angle_sequence ?? DEFAULT_FORM.on_model_angle_sequence).slice(0, brand!.images_per_look ?? 4).join(' · ')}</p>
-                </div>
-              </div>
-              <div className="absolute bottom-0 inset-x-0 h-[40px] pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, var(--bg2))' }} />
-            </div>
-            <button
-              type="button"
-              onClick={onToggle}
-              className="w-full flex items-center justify-center gap-2 py-[11px] text-[length:var(--font-md)] font-medium text-[var(--accent)] hover:text-[var(--accent)] hover:bg-[rgba(255,255,255,0.04)] transition-colors border-t-2 border-[var(--line2)]"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              <span>Edit brand settings</span>
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 5l4 4 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </button>
-          </div>
-        )}
-
-        {/* ── Expanded wizard ── */}
-        {expanded && (
-          <div className="border-t border-[var(--line)]">
+        {/* ── Wizard ── */}
+        <div className="border-t border-[var(--line)]">
 
             {/* Step navigator */}
             <div className="px-6 pt-5 pb-4">
@@ -845,7 +802,6 @@ function BrandCard({ id, brand, form, expanded, saving, error, expandedStillLife
             </div>
 
           </div>
-        )}
       </div>
       {/* end Card 1: Brand Settings */}
 
