@@ -214,9 +214,13 @@ function MarketplacesInner() {
                     key={id}
                     onClick={() => switchMarketplace(id)}
                     className="w-full flex flex-col items-start p-3 rounded-[10px] transition-all text-left relative"
-                    style={isActive
-                      ? { background: 'var(--bg)', border: '1px solid var(--line2)', borderTop: `2px solid ${platform.accentColor}`, boxShadow: '0 2px 10px rgba(0,0,0,0.25)' }
-                      : { background: 'var(--bg2)', border: '1px solid var(--line)', borderTop: '2px solid transparent' }}
+                    style={
+                      isActive
+                        ? { background: 'var(--bg)', border: '1px solid var(--line2)', borderTop: `2px solid ${platform.accentColor}`, boxShadow: '0 2px 10px rgba(0,0,0,0.25)' }
+                        : isModified
+                        ? { background: 'var(--bg2)', border: '1px solid var(--line)', borderTop: '2px solid rgba(48,209,88,0.45)', opacity: 0.6 }
+                        : { background: 'var(--bg2)', border: '1px solid var(--line)', borderTop: '2px solid transparent' }
+                    }
                   >
                     {/* Monogram */}
                     <div
