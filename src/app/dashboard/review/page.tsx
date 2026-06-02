@@ -1348,7 +1348,7 @@ function ReviewPage() {
                                   return
                                 }
                                 // Only update local display state — SKU commits to the store on Confirm
-                                if (typed) setSkuInput((s) => ({ ...s, [cluster.id]: typed }))
+                                setSkuInput((s) => ({ ...s, [cluster.id]: typed }))
                               }, 150)
                             }}
                             onKeyDown={(e) => { if (e.key === 'Enter') { setSkuInput((s) => ({ ...s, [cluster.id]: skuSearchQuery[cluster.id] ?? currentSku })); handleConfirm(cluster.id); setSkuSearchOpen(null) } }}
