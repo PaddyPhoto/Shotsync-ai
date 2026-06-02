@@ -377,12 +377,10 @@ export function Sidebar() {
         {/* Cluster list — visible on review page when session has clusters */}
         {onReviewPage && hasSession && (() => {
           const sorted = [...clusters].sort((a, b) => {
-            const labelA = a.sku || a.label || ''
-            const labelB = b.sku || b.label || ''
-            const numA = parseInt(labelA.match(/(\d+)/)?.[1] ?? '0', 10)
-            const numB = parseInt(labelB.match(/(\d+)/)?.[1] ?? '0', 10)
+            const numA = parseInt((a.label || '').match(/\d+/)?.[0] ?? '0', 10)
+            const numB = parseInt((b.label || '').match(/\d+/)?.[0] ?? '0', 10)
             if (numA !== numB) return numA - numB
-            return labelA.localeCompare(labelB)
+            return (a.label || '').localeCompare(b.label || '')
           })
           return (
             <div style={{ padding: '8px 10px 6px', borderTop: '1.5px solid rgba(255,255,255,0.1)', marginTop: '4px' }}>
