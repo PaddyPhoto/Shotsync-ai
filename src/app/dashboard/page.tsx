@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const [orgName, setOrgName] = useState<string | null>(null)
   const { activeBrand, brands, isLoading: brandsLoading } = useBrand()
   const { planId, plan } = usePlan()
-  const { clusters, isReady, jobName: sessionJobName } = useSession((s) => ({ clusters: s.clusters, isReady: s.isReady, jobName: s.jobName }))
+  const { clusters, isReady, jobName: sessionJobName, sessionBrandId } = useSession((s) => ({ clusters: s.clusters, isReady: s.isReady, jobName: s.jobName, sessionBrandId: s.sessionBrandId }))
   const setSession = useSession((s) => s.setSession)
   const [draftSession, setDraftSession] = useState<{ jobName: string; clusterCount: number; imageCount: number; savedAt: string } | null>(null)
   const [draftLoading, setDraftLoading] = useState(false)
@@ -157,7 +157,8 @@ export default function DashboardPage() {
   }
 
   const processingJob = jobs.find((j) => j.status === 'processing')
-  const unexportedClusters = clusters.filter((c) => !c.exported)
+  const sessionMatchesBrand = !sessionBrandId || sessionBrandId === (activeBrand?.id ?? null)
+  const unexportedClusters = (isReady && sessionMatchesBrand) ? clusters.filter((c) => !c.exported) : []
   const warningClusters = clusters.filter((c) => !c.confirmed)
   const previewClusters = unexportedClusters.slice(0, 3)
 
@@ -169,7 +170,7 @@ export default function DashboardPage() {
   })()
 
   const noBrands = !brandsLoading && brands.length === 0
-  const hasConfirmed = isReady && clusters.some((c) => c.confirmed)
+  const hasConfirmed = isReady && sessionMatchesBrand && clusters.some((c) => c.confirmed)
 
   return (
     <div>

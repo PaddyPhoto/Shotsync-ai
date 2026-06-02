@@ -53,11 +53,12 @@ interface SessionState {
   imagesPerLook: number
   angleSequence: ViewLabel[]
   isReady: boolean
+  sessionBrandId: string | null
   useStyleList: boolean
   styleList: StyleListEntry[]
   setUseStyleList: (val: boolean) => void
   setStyleList: (list: StyleListEntry[]) => void
-  setSession: (jobName: string, clusters: SessionCluster[], marketplaces?: string[], imagesPerLook?: number, angleSequence?: ViewLabel[]) => void
+  setSession: (jobName: string, clusters: SessionCluster[], marketplaces?: string[], imagesPerLook?: number, angleSequence?: ViewLabel[], brandId?: string | null) => void
   setShootConfig: (shootType: ShootType, accessoryCategory: string | null) => void
   moveImage: (imageId: string, toClusterId: string) => void
   copyImageToCluster: (imageId: string, toClusterId: string) => void
@@ -103,6 +104,7 @@ export const useSession = create<SessionState>((set, get) => ({
   imagesPerLook: 6,
   angleSequence: [],
   isReady: false,
+  sessionBrandId: null,
   useStyleList: false,
   styleList: [],
   setUseStyleList: (val) => set({ useStyleList: val }),
@@ -111,10 +113,10 @@ export const useSession = create<SessionState>((set, get) => ({
 
   setShootConfig: (shootType, accessoryCategory) => set({ shootType, accessoryCategory }),
 
-  setSession: (jobName, clusters, marketplaces, imagesPerLook, angleSequence) => {
+  setSession: (jobName, clusters, marketplaces, imagesPerLook, angleSequence, brandId) => {
     _nextClusterNum = clusters.length + 1
     const mps = marketplaces ?? ['the-iconic']
-    set({ jobName, clusters, marketplaces: mps, imagesPerLook: imagesPerLook ?? 6, angleSequence: angleSequence ?? [], isReady: true })
+    set({ jobName, clusters, marketplaces: mps, imagesPerLook: imagesPerLook ?? 6, angleSequence: angleSequence ?? [], isReady: true, sessionBrandId: brandId ?? null })
     // Persist a serialisable snapshot to sessionStorage so the review page can detect
     // whether a session exists when the user navigates back. File objects cannot be
     // serialised (they're binary + not cloneable via JSON), so only metadata and
@@ -456,6 +458,6 @@ export const useSession = create<SessionState>((set, get) => ({
   reset: () => {
     try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
     try { sessionStorage.removeItem('shotsync:reimport') } catch { /* ignore */ }
-    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], shootType: 'on-model', accessoryCategory: null, imagesPerLook: 6, angleSequence: [], isReady: false, undoStack: [], useStyleList: false, styleList: [] })
+    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], shootType: 'on-model', accessoryCategory: null, imagesPerLook: 6, angleSequence: [], isReady: false, undoStack: [], useStyleList: false, styleList: [], sessionBrandId: null })
   },
 }))

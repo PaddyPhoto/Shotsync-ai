@@ -595,7 +595,7 @@ export default function UploadPage() {
       alert(msg)
     }
 
-    setSession(reimportMeta.jobName, clusters, reimportMeta.marketplaces)
+    setSession(reimportMeta.jobName, clusters, reimportMeta.marketplaces, undefined, undefined, activeBrand?.id ?? null)
     router.push('/dashboard/review')
   }
 
@@ -668,7 +668,7 @@ export default function UploadPage() {
       })
     ).catch(() => { /* non-critical */ })
 
-    setSession(name, clusters, marketplaces, imagesPerLook, (effectiveAngleSeq ?? []) as import('@/types').ViewLabel[])
+    setSession(name, clusters, marketplaces, imagesPerLook, (effectiveAngleSeq ?? []) as import('@/types').ViewLabel[], activeBrand?.id ?? null)
     setUseStyleList(useStyleListLocal)
     setStyleListStore(useStyleListLocal ? styleListData : [])
 

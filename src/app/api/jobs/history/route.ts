@@ -51,11 +51,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const brandId = searchParams.get('brand_id')
 
-    // Lifetime stats — all records including soft-deleted, no depth/brand filter
-    const { data: allJobs } = await service
+    // Lifetime stats — scoped to brand when brand_id is provided
+    let statsQuery = service
       .from('job_history')
       .select('image_count, cluster_count, status, created_at')
       .eq('org_id', orgId)
+    if (brandId) statsQuery = statsQuery.eq('brand_id', brandId)
+    const { data: allJobs } = await statsQuery
 
     const monthStart = new Date()
     monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
