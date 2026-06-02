@@ -955,6 +955,76 @@ export default function UploadPage() {
               )}
             </div>
 
+            {/* Product data source toggle */}
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '12px',
+                padding: '10px 14px', borderRadius: '10px',
+                background: useStyleListLocal ? 'rgba(255,159,10,0.1)' : 'rgba(255,159,10,0.05)',
+                border: useStyleListLocal ? '0.5px solid rgba(255,159,10,0.45)' : '0.5px solid rgba(255,159,10,0.25)',
+                transition: 'all 0.2s',
+              }}>
+                <div>
+                  <p style={{ fontSize: 'var(--font-sm)', fontWeight: 500, color: useStyleListLocal ? '#ffaa00' : 'var(--text2)', marginBottom: '1px' }}>Style list CSV</p>
+                  <p style={{ fontSize: '11px', color: 'var(--text3)' }}>
+                    {useStyleListLocal ? 'Matching from CSV' : 'Matching from product catalog'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setUseStyleListLocal((v) => !v); if (useStyleListLocal) { setStyleListData([]); setStyleListFileName(null) } }}
+                  style={{
+                    width: '40px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', flexShrink: 0,
+                    background: useStyleListLocal ? '#ff9f0a' : 'var(--bg4)',
+                    position: 'relative', transition: 'background 0.2s',
+                  }}
+                >
+                  <span style={{
+                    position: 'absolute', top: '3px', left: useStyleListLocal ? '19px' : '3px',
+                    width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+                    transition: 'left 0.2s', display: 'block',
+                  }} />
+                </button>
+              </div>
+              {useStyleListLocal && (
+                <div style={{ marginTop: '8px' }}>
+                  {styleListFileName ? (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '7px 12px', borderRadius: '8px', background: 'rgba(48,209,88,0.06)', border: '0.5px solid rgba(48,209,88,0.2)' }}>
+                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#30d158" strokeWidth="1.5"><path d="M2 7l3 3 7-7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <span style={{ fontSize: 'var(--font-sm)', color: '#30d158' }}>{styleListFileName} · {styleListData.length} SKUs</span>
+                      <button type="button" onClick={() => { setStyleListData([]); setStyleListFileName(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: '14px', lineHeight: 1, padding: '0 2px' }}>×</button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => styleListInputRef.current?.click()}
+                      style={{ padding: '7px 14px', borderRadius: '8px', border: '0.5px dashed var(--line2)', background: 'var(--bg3)', color: 'var(--text3)', fontSize: 'var(--font-sm)', cursor: 'pointer' }}
+                    >
+                      Upload CSV
+                    </button>
+                  )}
+                  <input
+                    ref={styleListInputRef}
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = (ev) => {
+                        const parsed = parseStyleListCsv(ev.target?.result as string)
+                        setStyleListData(parsed)
+                        setStyleListFileName(file.name)
+                      }
+                      reader.readAsText(file)
+                      e.target.value = ''
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
             {/* Images */}
             <div style={{ marginBottom: '16px' }}>
               {/* Drop zone */}
@@ -1179,70 +1249,6 @@ export default function UploadPage() {
                       </div>
                     </div>
                   )}
-
-                  {/* Product data source toggle */}
-                  <div style={{ marginBottom: '16px', paddingTop: '4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <p style={{ fontSize: 'var(--font-base)', fontWeight: 500, color: 'var(--text2)' }}>Use style list CSV</p>
-                        <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', marginTop: '2px' }}>
-                          {useStyleListLocal ? 'Matching SKUs from uploaded CSV' : 'Matching SKUs from your product catalog'}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => { setUseStyleListLocal((v) => !v); if (useStyleListLocal) { setStyleListData([]); setStyleListFileName(null) } }}
-                        style={{
-                          width: '40px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', flexShrink: 0,
-                          background: useStyleListLocal ? 'var(--accent2)' : 'var(--bg4)',
-                          position: 'relative', transition: 'background 0.2s',
-                        }}
-                      >
-                        <span style={{
-                          position: 'absolute', top: '3px', left: useStyleListLocal ? '19px' : '3px',
-                          width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
-                          transition: 'left 0.2s', display: 'block',
-                        }} />
-                      </button>
-                    </div>
-                    {useStyleListLocal && (
-                      <div style={{ marginTop: '10px' }}>
-                        {styleListFileName ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', background: 'rgba(48,209,88,0.06)', border: '0.5px solid rgba(48,209,88,0.2)' }}>
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#30d158" strokeWidth="1.5"><path d="M2 7l3 3 7-7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            <span style={{ fontSize: 'var(--font-sm)', color: '#30d158', flex: 1 }}>{styleListFileName} · {styleListData.length} SKUs</span>
-                            <button type="button" onClick={() => { setStyleListData([]); setStyleListFileName(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: '14px', lineHeight: 1 }}>×</button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => styleListInputRef.current?.click()}
-                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '0.5px dashed var(--line2)', background: 'var(--bg3)', color: 'var(--text3)', fontSize: 'var(--font-sm)', cursor: 'pointer', textAlign: 'center' }}
-                          >
-                            Upload style list CSV
-                          </button>
-                        )}
-                        <input
-                          ref={styleListInputRef}
-                          type="file"
-                          accept=".csv"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (!file) return
-                            const reader = new FileReader()
-                            reader.onload = (ev) => {
-                              const parsed = parseStyleListCsv(ev.target?.result as string)
-                              setStyleListData(parsed)
-                              setStyleListFileName(file.name)
-                            }
-                            reader.readAsText(file)
-                            e.target.value = ''
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
 
                   {shootType === 'on-model' && (
                     <div>
