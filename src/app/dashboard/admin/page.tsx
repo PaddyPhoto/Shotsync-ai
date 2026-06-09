@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { createClient } from '@/lib/supabase/client'
@@ -103,8 +103,9 @@ export default function AdminPage() {
   const [activityLoading, setActivityLoading] = useState(false)
   const [activityFilter, setActivityFilter] = useState('')
 
-  // Org members state
-  const [orgMembersOrgId, setOrgMembersOrgId] = useState('')
+  // Org members state (inline per-row expansion)
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
+  const [expandedOrgId, setExpandedOrgId] = useState<string | null>(null)
   const [orgMembers, setOrgMembers] = useState<{ user_id: string; email: string; role: string; joined_at: string }[]>([])
   const [orgMembersLoading, setOrgMembersLoading] = useState(false)
   const [orgMembersError, setOrgMembersError] = useState<string | null>(null)
@@ -132,32 +133,43 @@ export default function AdminPage() {
   }
 
   const removeOrgMember = async (userId: string) => {
-    if (!session || !orgMembersOrgId) return
+    if (!session || !expandedOrgId) return
     if (!confirm('Remove this member from the org?')) return
     setRemovingMember(userId)
     try {
       const res = await fetch('/api/admin/org-members', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ org_id: orgMembersOrgId, user_id: userId }),
+        body: JSON.stringify({ org_id: expandedOrgId, user_id: userId }),
       })
       if (res.ok) setOrgMembers((prev) => prev.filter((m) => m.user_id !== userId))
     } finally { setRemovingMember(null) }
   }
 
   const sendOrgInvite = async () => {
-    if (!session || !orgMembersOrgId || !inviteEmail.trim()) return
+    if (!session || !expandedOrgId || !inviteEmail.trim()) return
     setInviteSending(true); setInviteResult(null)
     try {
       const res = await fetch('/api/admin/org-members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ org_id: orgMembersOrgId, email: inviteEmail.trim(), role: inviteRole }),
+        body: JSON.stringify({ org_id: expandedOrgId, email: inviteEmail.trim(), role: inviteRole }),
       })
       const json = await res.json()
       if (res.ok) { setInviteResult({ url: json.data?.inviteUrl }); setInviteEmail('') }
       else setInviteResult({ error: json.error ?? 'Failed to send invite' })
     } finally { setInviteSending(false) }
+  }
+
+  function toggleOrgExpand(userId: string, orgId: string) {
+    if (expandedUserId === userId) {
+      setExpandedUserId(null); setExpandedOrgId(null)
+      setOrgMembers([]); setInviteResult(null); setInviteEmail('')
+    } else {
+      setExpandedUserId(userId); setExpandedOrgId(orgId)
+      setOrgMembers([]); setInviteResult(null); setInviteEmail('')
+      if (session) fetchOrgMembers(orgId, session.access_token)
+    }
   }
 
   const fetchUsers = useCallback(async (tok: string) => {
@@ -807,26 +819,107 @@ export default function AdminPage() {
                     )
                   })
                   .map((u) => (
-                    <div key={u.id} className="flex items-center gap-3 px-3 py-[10px] rounded-[8px] hover:bg-[var(--bg3)] transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[length:var(--font-base)] font-medium text-[var(--text)] truncate">{u.email}</span>
-                          <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-wide px-[6px] py-[1px] rounded-[4px]"
-                            style={{ color: PLAN_COLOURS[u.plan] ?? 'var(--text3)', background: `color-mix(in srgb, ${PLAN_COLOURS[u.plan] ?? 'var(--text3)'} 10%, transparent)` }}>
-                            {u.plan}
-                          </span>
+                    <Fragment key={u.id}>
+                      <div className="group flex items-center gap-3 px-3 py-[10px] rounded-[8px] hover:bg-[var(--bg3)] transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[length:var(--font-base)] font-medium text-[var(--text)] truncate">{u.email}</span>
+                            <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-wide px-[6px] py-[1px] rounded-[4px]"
+                              style={{ color: PLAN_COLOURS[u.plan] ?? 'var(--text3)', background: `color-mix(in srgb, ${PLAN_COLOURS[u.plan] ?? 'var(--text3)'} 10%, transparent)` }}>
+                              {u.plan}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 mt-[2px] flex-wrap">
+                            {u.org_name && <span className="text-[length:var(--font-sm)] text-[var(--text3)]">{u.org_name}</span>}
+                            <span className="text-[length:var(--font-sm)] text-[var(--text3)]">{u.job_count} job{u.job_count !== 1 ? 's' : ''}</span>
+                            <span className="text-[length:var(--font-sm)] text-[var(--text3)]">joined {sydneyTime(u.created_at).split(',')[0]}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3 mt-[2px] flex-wrap">
-                          {u.org_name && <span className="text-[length:var(--font-sm)] text-[var(--text3)]">{u.org_name}</span>}
-                          <span className="text-[length:var(--font-sm)] text-[var(--text3)]">{u.job_count} job{u.job_count !== 1 ? 's' : ''}</span>
-                          <span className="text-[length:var(--font-sm)] text-[var(--text3)]">joined {sydneyTime(u.created_at).split(',')[0]}</span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {u.org_id && (
+                            <button
+                              className={`btn btn-ghost btn-sm transition-opacity ${expandedUserId === u.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                              onClick={() => toggleOrgExpand(u.id, u.org_id!)}
+                            >
+                              {expandedUserId === u.id ? 'Close' : 'Manage'}
+                            </button>
+                          )}
+                          <div className="text-right">
+                            <p className="text-[length:var(--font-sm)] text-[var(--text2)]">Last seen</p>
+                            <p className="text-[length:var(--font-sm)] text-[var(--text3)]">{sydneyTime(u.last_sign_in_at)}</p>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-[length:var(--font-sm)] text-[var(--text2)]">Last seen</p>
-                        <p className="text-[length:var(--font-sm)] text-[var(--text3)]">{sydneyTime(u.last_sign_in_at)}</p>
-                      </div>
-                    </div>
+                      {expandedUserId === u.id && (
+                        <div className="mx-3 mb-1 rounded-[10px] border border-[var(--line)] overflow-hidden" style={{ background: 'var(--bg3)' }}>
+                          {orgMembersLoading ? (
+                            <p className="px-4 py-3 text-[length:var(--font-sm)] text-[var(--text3)]">Loading members…</p>
+                          ) : orgMembersError ? (
+                            <p className="px-4 py-3 text-[length:var(--font-sm)] text-[var(--accent3)]">{orgMembersError}</p>
+                          ) : (
+                            <>
+                              {orgMembers.length > 0 && (
+                                <table className="w-full">
+                                  <thead>
+                                    <tr className="border-b border-[var(--line)]">
+                                      <th className="text-left text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Member</th>
+                                      <th className="text-left text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
+                                      <th />
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {orgMembers.map((m) => (
+                                      <tr key={m.user_id} className="border-b border-[var(--line)] last:border-0">
+                                        <td className="px-4 py-[8px] text-[length:var(--font-sm)] text-[var(--text)]">{m.email || m.user_id.slice(0, 12) + '…'}</td>
+                                        <td className="px-4 py-[8px]">
+                                          <span className={`chip ${m.role === 'owner' ? 'chip-ready' : m.role === 'admin' ? 'chip-review' : 'chip-uploading'}`}>{m.role}</span>
+                                        </td>
+                                        <td className="px-4 py-[8px] text-right">
+                                          <button
+                                            onClick={() => removeOrgMember(m.user_id)}
+                                            disabled={removingMember === m.user_id}
+                                            className="text-[length:var(--font-sm)] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
+                                          >
+                                            {removingMember === m.user_id ? 'Removing…' : 'Remove'}
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                              <div className={`px-4 py-3${orgMembers.length > 0 ? ' border-t border-[var(--line)]' : ''}`}>
+                                <p className="text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] mb-2">Invite replacement</p>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="email"
+                                    className="input flex-1"
+                                    placeholder="newperson@brand.com"
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') sendOrgInvite() }}
+                                  />
+                                  <select className="input w-[110px]" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'member' | 'admin')}>
+                                    <option value="member">Member</option>
+                                    <option value="admin">Admin</option>
+                                  </select>
+                                  <button onClick={sendOrgInvite} disabled={inviteSending || !inviteEmail.trim()} className="btn btn-primary">
+                                    {inviteSending ? 'Sending…' : 'Invite'}
+                                  </button>
+                                </div>
+                                {inviteResult?.error && <p className="text-[length:var(--font-sm)] text-[var(--accent3)] mt-2">{inviteResult.error}</p>}
+                                {inviteResult?.url && (
+                                  <div className="mt-2 bg-[var(--bg2)] rounded-[8px] p-3">
+                                    <p className="text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] mb-1">Invite link — copy and send to the new team member:</p>
+                                    <code className="text-[length:var(--font-sm)] text-[var(--accent2)] break-all select-all">{inviteResult.url}</code>
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </Fragment>
                   ))}
               </div>
             )}
@@ -906,120 +999,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Org Members */}
-        <div className="card" style={{ marginBottom: '16px' }}>
-          <div className="card-head">
-            <div>
-              <h2 className="text-[1rem] font-[600] text-[var(--text)]">Org Members</h2>
-              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">View, remove, and invite members for any org.</p>
-            </div>
-          </div>
-          <div className="card-body flex flex-col gap-4">
-            {/* Org picker */}
-            <div className="flex gap-2 items-end">
-              <div className="flex-1">
-                <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">Select org</label>
-                <select
-                  className="input"
-                  value={orgMembersOrgId}
-                  onChange={(e) => {
-                    setOrgMembersOrgId(e.target.value)
-                    setOrgMembers([])
-                    setInviteResult(null)
-                    setOrgMembersError(null)
-                  }}
-                >
-                  <option value="">— choose an org —</option>
-                  {Array.from(
-                    new Map(
-                      users.filter((u) => u.org_id && u.org_name).map((u) => [u.org_id!, u])
-                    ).values()
-                  ).sort((a, b) => (a.org_name ?? '').localeCompare(b.org_name ?? '')).map((u) => (
-                    <option key={u.org_id!} value={u.org_id!}>{u.org_name}</option>
-                  ))}
-                </select>
-              </div>
-              <button
-                className="btn btn-ghost"
-                disabled={!orgMembersOrgId || orgMembersLoading}
-                onClick={() => session && fetchOrgMembers(orgMembersOrgId, session.access_token)}
-              >
-                {orgMembersLoading ? 'Loading…' : 'Load members'}
-              </button>
-            </div>
-
-            {orgMembersError && <p className="text-[length:var(--font-sm)] text-[var(--accent3)]">{orgMembersError}</p>}
-
-            {/* Members table */}
-            {orgMembers.length > 0 && (
-              <div className="rounded-[10px] overflow-hidden border border-[var(--line)]">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-[var(--line)] bg-[var(--bg3)]">
-                      <th className="text-left text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">User</th>
-                      <th className="text-left text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
-                      <th className="text-left text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Joined</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orgMembers.map((m) => (
-                      <tr key={m.user_id} className="border-b border-[var(--line)] last:border-0">
-                        <td className="px-4 py-[10px] text-[length:var(--font-sm)] text-[var(--text)]">{m.email || m.user_id.slice(0, 12) + '…'}</td>
-                        <td className="px-4 py-[10px]">
-                          <span className={`chip ${m.role === 'owner' ? 'chip-ready' : m.role === 'admin' ? 'chip-review' : 'chip-uploading'}`}>{m.role}</span>
-                        </td>
-                        <td className="px-4 py-[10px] text-[length:var(--font-sm)] text-[var(--text3)]">
-                          {new Date(m.joined_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </td>
-                        <td className="px-4 py-[10px] text-right">
-                          <button
-                            onClick={() => removeOrgMember(m.user_id)}
-                            disabled={removingMember === m.user_id}
-                            className="text-[length:var(--font-sm)] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
-                          >
-                            {removingMember === m.user_id ? 'Removing…' : 'Remove'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Invite form */}
-            {orgMembersOrgId && (
-              <div>
-                <p className="text-[length:var(--font-base)] text-[var(--text2)] font-medium mb-2">Invite new member</p>
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    className="input flex-1"
-                    placeholder="newperson@brand.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') sendOrgInvite() }}
-                  />
-                  <select className="input w-[110px]" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'member' | 'admin')}>
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <button onClick={sendOrgInvite} disabled={inviteSending || !inviteEmail.trim()} className="btn btn-primary">
-                    {inviteSending ? 'Sending…' : 'Invite'}
-                  </button>
-                </div>
-                {inviteResult?.error && <p className="text-[length:var(--font-sm)] text-[var(--accent3)] mt-2">{inviteResult.error}</p>}
-                {inviteResult?.url && (
-                  <div className="mt-2 bg-[var(--bg3)] rounded-sm p-3 text-[length:var(--font-base)]">
-                    <p className="text-[var(--text2)] mb-1 font-medium">Invite link — copy and send to the new team member:</p>
-                    <code className="text-[var(--accent2)] break-all select-all">{inviteResult.url}</code>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
       </div>
     </div>

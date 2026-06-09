@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { sendEmail, teamInviteEmail } from '@/lib/email'
 
 const ADMIN_EMAIL = 'photoworkssydney@gmail.com'
 
@@ -9,13 +10,14 @@ async function verifyAdmin(req: NextRequest) {
   const service = createServiceClient()
   const { data: { user } } = await service.auth.getUser(token)
   if (!user || user.email !== ADMIN_EMAIL) return null
-  return service
+  return { service, adminId: user.id }
 }
 
 // GET /api/admin/org-members?org_id=xxx — list all members of an org
 export async function GET(req: NextRequest) {
-  const service = await verifyAdmin(req)
-  if (!service) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const auth = await verifyAdmin(req)
+  if (!auth) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const { service } = auth
 
   const orgId = req.nextUrl.searchParams.get('org_id')
   if (!orgId) return NextResponse.json({ error: 'org_id required' }, { status: 400 })
@@ -43,8 +45,9 @@ export async function GET(req: NextRequest) {
 
 // DELETE /api/admin/org-members — remove any member from an org (admin override, no owner restriction)
 export async function DELETE(req: NextRequest) {
-  const service = await verifyAdmin(req)
-  if (!service) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const auth = await verifyAdmin(req)
+  if (!auth) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const { service } = auth
 
   const { org_id, user_id } = await req.json()
   if (!org_id || !user_id) return NextResponse.json({ error: 'org_id and user_id required' }, { status: 400 })
@@ -59,10 +62,11 @@ export async function DELETE(req: NextRequest) {
   return NextResponse.json({ ok: true })
 }
 
-// POST /api/admin/org-members/invite — create an invite for any org
+// POST /api/admin/org-members — create an invite for any org
 export async function POST(req: NextRequest) {
-  const service = await verifyAdmin(req)
-  if (!service) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const auth = await verifyAdmin(req)
+  if (!auth) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const { service, adminId } = auth
 
   const { org_id, email, role = 'member' } = await req.json()
   if (!org_id || !email) return NextResponse.json({ error: 'org_id and email required' }, { status: 400 })
@@ -90,7 +94,7 @@ export async function POST(req: NextRequest) {
   } else {
     const { data } = await service
       .from('org_invites')
-      .insert({ org_id, email: email.toLowerCase(), role, expires_at: expiresAt })
+      .insert({ org_id, email: email.toLowerCase(), role, expires_at: expiresAt, invited_by: adminId })
       .select('id, token')
       .single()
     invite = data
@@ -99,5 +103,13 @@ export async function POST(req: NextRequest) {
   if (!invite) return NextResponse.json({ error: 'Failed to create invite' }, { status: 500 })
 
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/invite/${invite.token}`
+
+  // Fetch org name for the email
+  const { data: orgInfo } = await service.from('orgs').select('name').eq('id', org_id).single()
+  const orgName = orgInfo?.name ?? 'your team'
+
+  // Send invite email — non-fatal if it fails
+  sendEmail(teamInviteEmail(email, orgName, ADMIN_EMAIL, inviteUrl)).catch(() => {})
+
   return NextResponse.json({ data: { inviteUrl, expiresAt } })
 }
