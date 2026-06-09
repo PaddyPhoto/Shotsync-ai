@@ -838,7 +838,7 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {u.org_id && (
                             <button
-                              className={`btn btn-ghost btn-sm transition-opacity ${expandedUserId === u.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                              className="btn btn-ghost btn-sm"
                               onClick={() => toggleOrgExpand(u.id, u.org_id!)}
                             >
                               {expandedUserId === u.id ? 'Close' : 'Manage'}
