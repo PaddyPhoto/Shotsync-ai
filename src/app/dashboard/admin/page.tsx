@@ -103,12 +103,62 @@ export default function AdminPage() {
   const [activityLoading, setActivityLoading] = useState(false)
   const [activityFilter, setActivityFilter] = useState('')
 
+  // Org members state
+  const [orgMembersOrgId, setOrgMembersOrgId] = useState('')
+  const [orgMembers, setOrgMembers] = useState<{ user_id: string; email: string; role: string; joined_at: string }[]>([])
+  const [orgMembersLoading, setOrgMembersLoading] = useState(false)
+  const [orgMembersError, setOrgMembersError] = useState<string | null>(null)
+  const [removingMember, setRemovingMember] = useState<string | null>(null)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<'member' | 'admin'>('member')
+  const [inviteSending, setInviteSending] = useState(false)
+  const [inviteResult, setInviteResult] = useState<{ url?: string; error?: string } | null>(null)
+
   // Plan override state
   const [planEmail, setPlanEmail] = useState('')
   const [planValue, setPlanValue] = useState('growth')
   const [planLoading, setPlanLoading] = useState(false)
   const [planResult, setPlanResult] = useState<{ orgName: string; previousPlan: string; newPlan: string; email: string } | null>(null)
   const [planError, setPlanError] = useState<string | null>(null)
+
+  const fetchOrgMembers = async (orgId: string, tok: string) => {
+    setOrgMembersLoading(true); setOrgMembersError(null)
+    try {
+      const res = await fetch(`/api/admin/org-members?org_id=${orgId}`, { headers: { Authorization: `Bearer ${tok}` } })
+      const json = await res.json()
+      if (res.ok) setOrgMembers(json.data ?? [])
+      else setOrgMembersError(json.error ?? 'Failed to load')
+    } finally { setOrgMembersLoading(false) }
+  }
+
+  const removeOrgMember = async (userId: string) => {
+    if (!session || !orgMembersOrgId) return
+    if (!confirm('Remove this member from the org?')) return
+    setRemovingMember(userId)
+    try {
+      const res = await fetch('/api/admin/org-members', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ org_id: orgMembersOrgId, user_id: userId }),
+      })
+      if (res.ok) setOrgMembers((prev) => prev.filter((m) => m.user_id !== userId))
+    } finally { setRemovingMember(null) }
+  }
+
+  const sendOrgInvite = async () => {
+    if (!session || !orgMembersOrgId || !inviteEmail.trim()) return
+    setInviteSending(true); setInviteResult(null)
+    try {
+      const res = await fetch('/api/admin/org-members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ org_id: orgMembersOrgId, email: inviteEmail.trim(), role: inviteRole }),
+      })
+      const json = await res.json()
+      if (res.ok) { setInviteResult({ url: json.data?.inviteUrl }); setInviteEmail('') }
+      else setInviteResult({ error: json.error ?? 'Failed to send invite' })
+    } finally { setInviteSending(false) }
+  }
 
   const fetchUsers = useCallback(async (tok: string) => {
     setUsersLoading(true)
@@ -851,6 +901,121 @@ export default function AdminPage() {
                       </div>
                     )
                   })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Org Members */}
+        <div className="card" style={{ marginBottom: '16px' }}>
+          <div className="card-head">
+            <div>
+              <h2 className="text-[1rem] font-[600] text-[var(--text)]">Org Members</h2>
+              <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-1">View, remove, and invite members for any org.</p>
+            </div>
+          </div>
+          <div className="card-body flex flex-col gap-4">
+            {/* Org picker */}
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <label className="text-[length:var(--font-base)] text-[var(--text2)] mb-[6px] block">Select org</label>
+                <select
+                  className="input"
+                  value={orgMembersOrgId}
+                  onChange={(e) => {
+                    setOrgMembersOrgId(e.target.value)
+                    setOrgMembers([])
+                    setInviteResult(null)
+                    setOrgMembersError(null)
+                  }}
+                >
+                  <option value="">— choose an org —</option>
+                  {Array.from(
+                    new Map(
+                      users.filter((u) => u.org_id && u.org_name).map((u) => [u.org_id!, u])
+                    ).values()
+                  ).sort((a, b) => (a.org_name ?? '').localeCompare(b.org_name ?? '')).map((u) => (
+                    <option key={u.org_id!} value={u.org_id!}>{u.org_name}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                className="btn btn-ghost"
+                disabled={!orgMembersOrgId || orgMembersLoading}
+                onClick={() => session && fetchOrgMembers(orgMembersOrgId, session.access_token)}
+              >
+                {orgMembersLoading ? 'Loading…' : 'Load members'}
+              </button>
+            </div>
+
+            {orgMembersError && <p className="text-[length:var(--font-sm)] text-[var(--accent3)]">{orgMembersError}</p>}
+
+            {/* Members table */}
+            {orgMembers.length > 0 && (
+              <div className="rounded-[10px] overflow-hidden border border-[var(--line)]">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-[var(--line)] bg-[var(--bg3)]">
+                      <th className="text-left text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">User</th>
+                      <th className="text-left text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Role</th>
+                      <th className="text-left text-[length:var(--font-xs)] font-medium uppercase tracking-[0.06em] text-[var(--text3)] px-4 py-2">Joined</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orgMembers.map((m) => (
+                      <tr key={m.user_id} className="border-b border-[var(--line)] last:border-0">
+                        <td className="px-4 py-[10px] text-[length:var(--font-sm)] text-[var(--text)]">{m.email || m.user_id.slice(0, 12) + '…'}</td>
+                        <td className="px-4 py-[10px]">
+                          <span className={`chip ${m.role === 'owner' ? 'chip-ready' : m.role === 'admin' ? 'chip-review' : 'chip-uploading'}`}>{m.role}</span>
+                        </td>
+                        <td className="px-4 py-[10px] text-[length:var(--font-sm)] text-[var(--text3)]">
+                          {new Date(m.joined_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td className="px-4 py-[10px] text-right">
+                          <button
+                            onClick={() => removeOrgMember(m.user_id)}
+                            disabled={removingMember === m.user_id}
+                            className="text-[length:var(--font-sm)] text-[var(--text3)] hover:text-[var(--accent3)] transition-colors"
+                          >
+                            {removingMember === m.user_id ? 'Removing…' : 'Remove'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Invite form */}
+            {orgMembersOrgId && (
+              <div>
+                <p className="text-[length:var(--font-base)] text-[var(--text2)] font-medium mb-2">Invite new member</p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    className="input flex-1"
+                    placeholder="newperson@brand.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') sendOrgInvite() }}
+                  />
+                  <select className="input w-[110px]" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'member' | 'admin')}>
+                    <option value="member">Member</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <button onClick={sendOrgInvite} disabled={inviteSending || !inviteEmail.trim()} className="btn btn-primary">
+                    {inviteSending ? 'Sending…' : 'Invite'}
+                  </button>
+                </div>
+                {inviteResult?.error && <p className="text-[length:var(--font-sm)] text-[var(--accent3)] mt-2">{inviteResult.error}</p>}
+                {inviteResult?.url && (
+                  <div className="mt-2 bg-[var(--bg3)] rounded-sm p-3 text-[length:var(--font-base)]">
+                    <p className="text-[var(--text2)] mb-1 font-medium">Invite link — copy and send to the new team member:</p>
+                    <code className="text-[var(--accent2)] break-all select-all">{inviteResult.url}</code>
+                  </div>
+                )}
               </div>
             )}
           </div>
