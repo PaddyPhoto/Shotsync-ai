@@ -82,16 +82,19 @@ export async function runReEngagement(service: ServiceClient) {
   for (const { email, sequence } of toSend) {
     try {
       await sendEmail(reEngagementEmail(email))
-      await service.from('transactional_email_log').insert({
-        email: email.toLowerCase(),
-        template: 're-engagement',
-        sequence_number: sequence,
-        sent_at: runAt,
-      })
-      sent++
     } catch {
-      // continue — don't let one failure block the rest
+      continue
     }
+    // Log after sending — if this fails, skip counting so the next run
+    // doesn't re-send to the same person.
+    const { error: logError } = await service.from('transactional_email_log').insert({
+      email: email.toLowerCase(),
+      template: 're-engagement',
+      sequence_number: sequence,
+      sent_at: runAt,
+    })
+    if (!logError) sent++
+    else console.error('[re-engagement] failed to log send for', email, logError.message)
   }
 
   const result = { sent, skipped: toSend.length - sent, total: userData.users.length }
