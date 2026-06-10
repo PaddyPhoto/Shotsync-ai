@@ -468,7 +468,7 @@ export default function UploadPage() {
     }
   }
 
-  const MAX_FILE_SIZE_MB = 25
+  const MAX_FILE_SIZE_MB = 5
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
   const ALLOWED_EXT = /\.(jpe?g|png|webp|heic|heif)$/i
 
