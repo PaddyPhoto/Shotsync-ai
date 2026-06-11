@@ -48,6 +48,30 @@ const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = 
 }
 
 
+// Recursively collects all File objects from a dropped FileSystemEntry (file or directory).
+// Reads directory entries in batches of 100 until exhausted, then recurses into sub-entries.
+async function getFilesFromEntry(entry: FileSystemEntry): Promise<File[]> {
+  if (entry.isFile) {
+    return new Promise((resolve) => {
+      (entry as FileSystemFileEntry).file((f) => resolve([f]), () => resolve([]))
+    })
+  }
+  if (entry.isDirectory) {
+    const reader = (entry as FileSystemDirectoryEntry).createReader()
+    const all: FileSystemEntry[] = []
+    await new Promise<void>((resolve) => {
+      const read = () => reader.readEntries(
+        (batch) => { if (batch.length) { all.push(...batch); read() } else resolve() },
+        () => resolve()
+      )
+      read()
+    })
+    const nested = await Promise.all(all.map(getFilesFromEntry))
+    return nested.flat()
+  }
+  return []
+}
+
 // Checks pixel dimensions and resizes only if longest edge exceeds maxPx.
 // Files already within the limit are returned unchanged — no upscaling.
 // Processed one at a time in acceptFiles to keep peak RAM bounded.
@@ -554,11 +578,22 @@ export default function UploadPage() {
     setTimeout(() => imageGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const onDrop = useCallback((e: React.DragEvent) => {
+  const onDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault()
     setIsDraggingOver(false)
-    const dropped = Array.from(e.dataTransfer.files)
-    acceptFiles(dropped)
+    const items = Array.from(e.dataTransfer.items)
+    const files: File[] = []
+    await Promise.all(items.map(async (item) => {
+      const entry = item.webkitGetAsEntry()
+      if (entry) {
+        const entryFiles = await getFilesFromEntry(entry)
+        files.push(...entryFiles)
+      } else {
+        const f = item.getAsFile()
+        if (f) files.push(f)
+      }
+    }))
+    if (files.length) acceptFiles(files)
   }, [acceptFiles])
 
   const handleReimport = async () => {
@@ -1108,7 +1143,7 @@ export default function UploadPage() {
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: 'var(--text)', marginBottom: '3px' }}>Drop images here</p>
-                      <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)' }}>or click to browse · JPG, PNG, HEIC · 500–1000+ images supported</p>
+                      <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)' }}>or click to browse · drop a folder · JPG, PNG, HEIC</p>
                     </div>
                     <div style={{ display: 'flex', gap: '5px' }}>
                       {['JPG', 'PNG', 'WebP', 'HEIC'].map((fmt) => (
