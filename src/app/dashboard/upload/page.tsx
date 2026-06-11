@@ -255,6 +255,7 @@ export default function UploadPage() {
   const imageGridRef = useRef<HTMLDivElement>(null)
 
   const [progress, setProgress] = useState<ProcessProgress>({ phase: '', done: 0, total: 0 })
+  const [normalizing, setNormalizing] = useState<{ done: number; total: number } | null>(null)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [rejectedFiles, setRejectedFiles] = useState<{ name: string; reason: string }[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
@@ -508,6 +509,12 @@ export default function UploadPage() {
     const accepted: File[] = []
     const rejected: { name: string; reason: string }[] = []
 
+    const imageCount = newFiles.filter(
+      (f) => ALLOWED_TYPES.includes(f.type.toLowerCase()) || ALLOWED_EXT.test(f.name)
+    ).length
+    if (imageCount > 0) setNormalizing({ done: 0, total: imageCount })
+
+    let normalizedCount = 0
     for (const f of newFiles) {
       const isAllowedType = ALLOWED_TYPES.includes(f.type.toLowerCase()) || ALLOWED_EXT.test(f.name)
       if (!isAllowedType) {
@@ -521,7 +528,10 @@ export default function UploadPage() {
       } catch {
         accepted.push(f)
       }
+      normalizedCount++
+      setNormalizing({ done: normalizedCount, total: imageCount })
     }
+    setNormalizing(null)
 
     setRejectedFiles(rejected)
     if (!accepted.length) return
@@ -1071,7 +1081,20 @@ export default function UploadPage() {
                   transition: 'all 0.15s',
                 }}
               >
-                {files.length === 0 ? (
+                {normalizing !== null ? (
+                  <div style={{ padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                    <svg width="32" height="32" viewBox="0 0 12 12" className="animate-spin" fill="none" stroke="var(--accent2)" strokeWidth="1.5">
+                      <circle cx="6" cy="6" r="4" strokeDasharray="16 8"/>
+                    </svg>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }}>Preparing images…</p>
+                      <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)' }}>{normalizing.done} of {normalizing.total} ready</p>
+                    </div>
+                    <div style={{ width: '200px', height: '3px', borderRadius: '3px', background: 'var(--line2)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', borderRadius: '3px', background: 'var(--accent2)', transition: 'width 0.1s ease', width: normalizing.total > 0 ? `${Math.round((normalizing.done / normalizing.total) * 100)}%` : '0%' }} />
+                    </div>
+                  </div>
+                ) : files.length === 0 ? (
                   <div onClick={() => inputRef.current?.click()} style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
                     <div style={{ position: 'relative' }}>
                       <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, rgba(48,209,88,0.15), rgba(0,122,255,0.15))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
