@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
@@ -346,6 +346,18 @@ const STILL_LIFE_ANGLES = ['front', 'back', 'side', 'detail', 'inside', 'flat-la
 function AnglePills({ angles, onChange, options = ANGLE_OPTIONS }: { angles: string[]; onChange: (next: string[]) => void; options?: string[] }) {
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null)
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showPicker) return
+    const handler = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowPicker(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showPicker])
+
   return (
     <div className="flex flex-wrap gap-2 items-center">
       {angles.map((angle, idx) => (
@@ -377,12 +389,34 @@ function AnglePills({ angles, onChange, options = ANGLE_OPTIONS }: { angles: str
             className="hover:text-[#ff3b30] transition-colors" style={{ color: 'var(--text3)', lineHeight: 1, fontSize: 'var(--font-lg)', flexShrink: 0 }}>×</button>
         </div>
       ))}
-      <button
-        type="button"
-        onClick={() => onChange([...angles, options[0] ?? 'front'])}
-        className="hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '4px 10px', borderRadius: '20px', background: 'transparent', border: '1px dashed rgba(255,255,255,0.2)', fontSize: 'var(--font-base)', color: 'var(--text3)', cursor: 'pointer' }}
-      >+ add</button>
+      <div ref={pickerRef} style={{ position: 'relative' }}>
+        <button
+          type="button"
+          onClick={() => setShowPicker((v) => !v)}
+          className="hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '4px 10px', borderRadius: '20px', background: 'transparent', border: '1px dashed rgba(255,255,255,0.2)', fontSize: 'var(--font-base)', color: 'var(--text3)', cursor: 'pointer' }}
+        >+ add</button>
+        {showPicker && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
+            background: 'var(--bg2)', border: '0.5px solid var(--line)',
+            borderRadius: '10px', padding: '4px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.35)', minWidth: '160px',
+          }}>
+            {options.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => { onChange([...angles, opt]); setShowPicker(false) }}
+                className="hover:bg-[var(--bg3)] transition-colors"
+                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px', borderRadius: '7px', fontSize: 'var(--font-base)', color: 'var(--text)', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                {angleDisplayName(opt)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
