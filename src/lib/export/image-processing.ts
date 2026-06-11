@@ -73,33 +73,29 @@ export async function processImageOnCanvas(
       ctx.fillStyle = bgColor || '#ffffff'
       ctx.fillRect(0, 0, width, height)
 
-      const srcAspect = img.width / img.height
-      const dstAspect = width / height
-      let sx = 0, sy = 0, sw = img.width, sh = img.height
-      if (srcAspect > dstAspect) {
-        sw = img.height * dstAspect
-        sx = (img.width - sw) / 2
-      } else {
-        sh = img.width / dstAspect
-        sy = (img.height - sh) / 2
-      }
+      // Fit-to-contain: scale the entire source to fit within the target canvas,
+      // centred, with bgColor filling any remaining space on the edges.
+      // This preserves full-length models — no head or foot clipping.
+      const scale = Math.min(width / img.width, height / img.height)
+      const drawW = Math.round(img.width * scale)
+      const drawH = Math.round(img.height * scale)
+      const drawX = Math.round((width - drawW) / 2)
+      const drawY = Math.round((height - drawH) / 2)
 
       // Multi-step downscaling for sharper results when reducing by more than 50%
-      const sourceW = sw
-      const sourceH = sh
       let currentCanvas = document.createElement('canvas')
       let currentCtx = currentCanvas.getContext('2d')!
       currentCtx.imageSmoothingEnabled = true
       currentCtx.imageSmoothingQuality = 'high'
-      currentCanvas.width = sourceW
-      currentCanvas.height = sourceH
-      currentCtx.drawImage(img, sx, sy, sw, sh, 0, 0, sourceW, sourceH)
+      currentCanvas.width = img.width
+      currentCanvas.height = img.height
+      currentCtx.drawImage(img, 0, 0)
 
-      let stepW = sourceW
-      let stepH = sourceH
-      while (stepW > width * 2 || stepH > height * 2) {
-        stepW = Math.max(Math.round(stepW / 2), width)
-        stepH = Math.max(Math.round(stepH / 2), height)
+      let stepW = img.width
+      let stepH = img.height
+      while (stepW > drawW * 2 || stepH > drawH * 2) {
+        stepW = Math.max(Math.round(stepW / 2), drawW)
+        stepH = Math.max(Math.round(stepH / 2), drawH)
         const stepCanvas = document.createElement('canvas')
         stepCanvas.width = stepW
         stepCanvas.height = stepH
@@ -111,7 +107,7 @@ export async function processImageOnCanvas(
         currentCtx = stepCtx
       }
 
-      ctx.drawImage(currentCanvas, 0, 0, width, height)
+      ctx.drawImage(currentCanvas, drawX, drawY, drawW, drawH)
       URL.revokeObjectURL(url)
 
       const maxBytes = maxFileSizeKb > 0 ? maxFileSizeKb * 1024 : 0

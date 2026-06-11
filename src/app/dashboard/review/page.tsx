@@ -3259,11 +3259,12 @@ function ExportPanel({
 }
 
 // ── Canvas-based image processing ─────────────────────────────────────────────
-// Resizes, crops, and encodes a single image to the target marketplace dimensions.
+// Resizes and encodes a single image to the target marketplace dimensions.
 // Returns an ArrayBuffer (JPEG bytes) ready to be added to the ZIP.
 //
 // Key behaviours:
-// - Center crop: trims the image to the target aspect ratio before scaling
+// - Fit-to-contain: scales the full source to fit within the target canvas, centred,
+//   with background colour filling any remaining edges — no content is ever cropped.
 // - Multi-step downscaling: halves dimensions iteratively until within 2× of target,
 //   then does a final draw. This prevents the blurry result you get from a single
 //   large-to-small canvas drawImage call.
