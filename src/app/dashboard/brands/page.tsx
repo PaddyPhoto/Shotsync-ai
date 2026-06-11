@@ -119,6 +119,12 @@ function BrandsPage() {
   }, [brands])
 
   useEffect(() => {
+    if (expandedId === null && brands.length > 0) {
+      setExpandedId(brands[0].id)
+    }
+  }, [brands, expandedId])
+
+  useEffect(() => {
     const connected = searchParams.get('shopify_connected')
     const error = searchParams.get('shopify_error')
     if (connected) {
@@ -184,7 +190,7 @@ function BrandsPage() {
           return
         }
         if (d.data?.id) setNewlyCreatedId(d.data.id)
-        setExpandedId(null)
+        setExpandedId(d.data?.id ?? null)
       } else {
         const brand = brands.find((b) => b.id === id)
         if (!brand) return
@@ -233,6 +239,10 @@ function BrandsPage() {
     setToast('Shopify disconnected')
   }
 
+  const selectedBrand = expandedId !== null && expandedId !== 'new'
+    ? (brands.find((b) => b.id === expandedId) ?? null)
+    : null
+
   return (
     <div>
       {toast && (
@@ -252,79 +262,135 @@ function BrandsPage() {
       <Topbar breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Brands' }]} />
 
       <div className="p-7">
-        <div className="mb-7 flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-[length:var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Brands</h1>
-              <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-[0.08em] px-2 py-[3px] rounded-[5px]" style={{ background: 'rgba(0,122,255,0.12)', color: '#4da3ff', border: '1px solid rgba(0,122,255,0.2)' }}>Import Settings</span>
-            </div>
-            <p className="text-[length:var(--font-md)] text-[var(--text2)]">Shoot sequence and angle labelling — controls how incoming images are processed.</p>
+        <div className="mb-7">
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-[length:var(--font-3xl)] font-[700] tracking-[-0.5px] text-[var(--text)]" style={{ fontFamily: 'var(--font-syne)' }}>Brands</h1>
+            <span className="text-[length:var(--font-xs)] font-semibold uppercase tracking-[0.08em] px-2 py-[3px] rounded-[5px]" style={{ background: 'rgba(0,122,255,0.12)', color: '#4da3ff', border: '1px solid rgba(0,122,255,0.2)' }}>Import Settings</span>
           </div>
-          <button
-            onClick={() => canAddBrand(brands.length) ? openExpand('new') : openUpgrade(`Your plan supports up to ${plan.limits.brands} brand${plan.limits.brands === 1 ? '' : 's'}. Upgrade to add more.`)}
-            className="btn btn-primary btn-sm flex-shrink-0"
-          >
-            {!canAddBrand(brands.length)
-              ? <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" opacity=".8"><rect x="2" y="5" width="7" height="5" rx="1"/><path d="M3.5 5V3.5a2 2 0 0 1 4 0V5" fill="none" stroke="currentColor" strokeWidth="1.3"/></svg>
-              : <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 1v10M1 6h10" strokeLinecap="round"/></svg>
-            }
-            Add Brand
-          </button>
+          <p className="text-[length:var(--font-md)] text-[var(--text2)]">Shoot sequence and angle labelling — controls how incoming images are processed.</p>
         </div>
 
-        <div className="flex flex-col gap-10 max-w-[1100px]">
-          {expandedId === 'new' && (
-            <BrandCard
-              id="new"
-              brand={null}
-              form={getForm('new')}
-              expanded
-              saving={savingId === 'new'}
-              error={errors['new'] ?? ''}
-              expandedStillLife={expandedStillLife['new'] ?? null}
-              onToggle={() => openExpand('new')}
-              onFormChange={(patch) => setFormField('new', patch)}
-              onSave={() => saveBrand('new')}
-              onDelete={null}
-              onDisconnectShopify={null}
-              onSetStillLife={(cat) => setExpandedStillLife((s) => ({ ...s, new: s['new'] === cat ? null : cat }))}
-            />
-          )}
+        {brands.length === 0 && expandedId !== 'new' ? (
+          <div className="card" style={{ maxWidth: 480 }}>
+            <div className="card-body py-12 text-center">
+              <p className="text-[length:var(--font-md)] text-[var(--text3)]">No brands yet.</p>
+              <p className="text-[length:var(--font-md)] text-[var(--text3)] mt-1">Add a brand to start organising your jobs.</p>
+              <button
+                onClick={() => {
+                  if (canAddBrand(0)) { setExpandedId('new'); setForms((f) => ({ ...f, new: { ...DEFAULT_FORM } })) }
+                  else openUpgrade('Upgrade to add brands.')
+                }}
+                className="btn btn-primary btn-sm mt-4 mx-auto"
+              >
+                Add your first brand
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-6">
 
-          {brands.length === 0 && expandedId !== 'new' ? (
-            <div className="card">
-              <div className="card-body py-12 text-center">
-                <p className="text-[length:var(--font-md)] text-[var(--text3)]">No brands yet.</p>
-                <p className="text-[length:var(--font-md)] text-[var(--text3)] mt-1">Add a brand to start organising your jobs.</p>
-                <button onClick={() => canAddBrand(0) ? openExpand('new') : openUpgrade('Upgrade to add brands.')} className="btn btn-primary btn-sm mt-4 mx-auto">
-                  Add your first brand
+            {/* Sidebar */}
+            <div className="w-[190px] flex-shrink-0">
+              <div className="flex flex-col gap-[2px]">
+                {brands.map((brand) => (
+                  <button
+                    key={brand.id}
+                    type="button"
+                    onClick={() => {
+                      setExpandedId(brand.id)
+                      setForms((f) => ({ ...f, [brand.id]: f[brand.id] ?? brandToForm(brand) }))
+                      setErrors((e) => ({ ...e, [brand.id]: '' }))
+                    }}
+                    className="w-full flex items-center gap-[9px] px-[10px] py-[9px] rounded-[8px] text-left transition-all"
+                    style={{
+                      background: expandedId === brand.id ? 'rgba(255,255,255,0.07)' : 'transparent',
+                      border: `1px solid ${expandedId === brand.id ? 'rgba(255,255,255,0.09)' : 'transparent'}`,
+                    }}
+                  >
+                    <div className="w-[8px] h-[8px] rounded-full flex-shrink-0" style={{ background: brand.logo_color }} />
+                    <span className="text-[length:var(--font-md)] font-medium truncate" style={{ color: expandedId === brand.id ? 'var(--text)' : 'var(--text2)' }}>
+                      {brand.name}
+                    </span>
+                  </button>
+                ))}
+                {expandedId === 'new' && (
+                  <div
+                    className="flex items-center gap-[9px] px-[10px] py-[9px] rounded-[8px]"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.09)' }}
+                  >
+                    <div className="w-[8px] h-[8px] rounded-full flex-shrink-0" style={{ background: 'var(--line)' }} />
+                    <span className="text-[length:var(--font-md)] font-medium text-[var(--text)] truncate">New Brand</span>
+                  </div>
+                )}
+              </div>
+              <div className="mt-2 pt-2 border-t border-[var(--line)]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (canAddBrand(brands.length)) {
+                      setExpandedId('new')
+                      setForms((f) => ({ ...f, new: { ...DEFAULT_FORM } }))
+                      setErrors((e) => ({ ...e, new: '' }))
+                    } else {
+                      openUpgrade(`Your plan supports up to ${plan.limits.brands} brand${plan.limits.brands === 1 ? '' : 's'}. Upgrade to add more.`)
+                    }
+                  }}
+                  className="w-full flex items-center gap-[7px] px-[10px] py-[9px] rounded-[8px] text-left transition-all hover:bg-[rgba(255,255,255,0.04)]"
+                  style={{ color: !canAddBrand(brands.length) ? 'var(--text3)' : 'var(--text2)' }}
+                >
+                  {!canAddBrand(brands.length)
+                    ? <svg width="9" height="10" viewBox="0 0 9 10" fill="currentColor" opacity=".65"><rect x="1" y="4.5" width="7" height="5" rx="0.8"/><path d="M3 4.5V3a1.5 1.5 0 0 1 3 0v1.5" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg>
+                    : <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M5 1v8M1 5h8"/></svg>
+                  }
+                  <span className="text-[length:var(--font-md)]">Add Brand</span>
                 </button>
               </div>
             </div>
-          ) : (
-            brands.map((brand) => (
-              <BrandCard
-                key={brand.id}
-                id={brand.id}
-                brand={brand}
-                form={getForm(brand.id)}
-                expanded={expandedId === brand.id}
-                saving={savingId === brand.id}
-                justSaved={savedId === brand.id}
-                error={errors[brand.id] ?? ''}
-                expandedStillLife={expandedStillLife[brand.id] ?? null}
-                deletingId={deletingId}
-                onToggle={() => openExpand(brand.id, brand)}
-                onFormChange={(patch) => setFormField(brand.id, patch)}
-                onSave={() => saveBrand(brand.id)}
-                onDelete={() => deleteBrand(brand.id)}
-                onDisconnectShopify={() => disconnectShopify(brand)}
-                onSetStillLife={(cat) => setExpandedStillLife((s) => ({ ...s, [brand.id]: s[brand.id] === cat ? null : cat }))}
-                initialStep={brand.id === newlyCreatedId ? 2 : 1}
-              />
-            ))
-          )}
-        </div>
+
+            {/* Panel */}
+            <div className="flex-1 min-w-0">
+              {expandedId === 'new' && (
+                <BrandCard
+                  id="new"
+                  brand={null}
+                  form={getForm('new')}
+                  expanded
+                  saving={savingId === 'new'}
+                  error={errors['new'] ?? ''}
+                  expandedStillLife={expandedStillLife['new'] ?? null}
+                  onToggle={() => setExpandedId(brands.length > 0 ? brands[0].id : null)}
+                  onFormChange={(patch) => setFormField('new', patch)}
+                  onSave={() => saveBrand('new')}
+                  onDelete={null}
+                  onDisconnectShopify={null}
+                  onSetStillLife={(cat) => setExpandedStillLife((s) => ({ ...s, new: s['new'] === cat ? null : cat }))}
+                />
+              )}
+              {selectedBrand && (
+                <BrandCard
+                  key={selectedBrand.id}
+                  id={selectedBrand.id}
+                  brand={selectedBrand}
+                  form={getForm(selectedBrand.id)}
+                  expanded
+                  saving={savingId === selectedBrand.id}
+                  justSaved={savedId === selectedBrand.id}
+                  error={errors[selectedBrand.id] ?? ''}
+                  expandedStillLife={expandedStillLife[selectedBrand.id] ?? null}
+                  deletingId={deletingId}
+                  onToggle={() => {}}
+                  onFormChange={(patch) => setFormField(selectedBrand.id, patch)}
+                  onSave={() => saveBrand(selectedBrand.id)}
+                  onDelete={() => deleteBrand(selectedBrand.id)}
+                  onDisconnectShopify={() => disconnectShopify(selectedBrand)}
+                  onSetStillLife={(cat) => setExpandedStillLife((s) => ({ ...s, [selectedBrand.id]: s[selectedBrand.id] === cat ? null : cat }))}
+                  initialStep={selectedBrand.id === newlyCreatedId ? 2 : 1}
+                />
+              )}
+            </div>
+
+          </div>
+        )}
       </div>
     </div>
   )
