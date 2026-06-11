@@ -402,6 +402,7 @@ function AnglePills({ angles, onChange, options = ANGLE_OPTIONS }: { angles: str
             background: 'var(--bg2)', border: '0.5px solid var(--line)',
             borderRadius: '10px', padding: '4px',
             boxShadow: '0 4px 24px rgba(0,0,0,0.35)', minWidth: '160px',
+            maxHeight: '280px', overflowY: 'auto',
           }}>
             {options.map((opt) => (
               <button
