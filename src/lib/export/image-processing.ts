@@ -104,30 +104,27 @@ export async function processImageOnCanvas(
         currentCtx = stepCtx
       }
 
-      // Content-aware background: sample the four corners of the fitted image
-      // to match the studio background colour, falling back to bgColor if sampling fails.
-      let fillColor = bgColor || '#ffffff'
-      if (drawX > 0 || drawY > 0) {
-        try {
-          const cw = currentCanvas.width
-          const ch = currentCanvas.height
-          const s = Math.max(1, Math.min(12, Math.floor(Math.min(cw, ch) * 0.04)))
-          const quads = [
-            currentCtx.getImageData(0, 0, s, s),
-            currentCtx.getImageData(cw - s, 0, s, s),
-            currentCtx.getImageData(0, ch - s, s, s),
-            currentCtx.getImageData(cw - s, ch - s, s, s),
-          ]
-          let r = 0, g = 0, b = 0, n = 0
-          for (const { data } of quads) {
-            for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i + 1]; b += data[i + 2]; n++ }
-          }
-          if (n > 0) fillColor = `rgb(${Math.round(r / n)},${Math.round(g / n)},${Math.round(b / n)})`
-        } catch { /* cross-origin or tainted canvas — fall back to bgColor */ }
+      // Base fill — covers any unfilled corners when both axes have padding
+      ctx.fillStyle = bgColor || '#ffffff'
+      ctx.fillRect(0, 0, width, height)
+
+      // Edge-stretch fill: take an 8% strip from each relevant edge of the fitted
+      // image and stretch it into the padding gap. Works naturally for gradient or
+      // vignette studio backgrounds, not just plain solid colours.
+      const edgeFrac = 0.08
+      const cw = currentCanvas.width
+      const ch = currentCanvas.height
+      if (drawX > 0) {
+        const srcW = Math.max(1, Math.round(cw * edgeFrac))
+        ctx.drawImage(currentCanvas, 0, 0, srcW, ch, 0, drawY, drawX, drawH)
+        ctx.drawImage(currentCanvas, cw - srcW, 0, srcW, ch, drawX + drawW, drawY, drawX, drawH)
+      }
+      if (drawY > 0) {
+        const srcH = Math.max(1, Math.round(ch * edgeFrac))
+        ctx.drawImage(currentCanvas, 0, 0, cw, srcH, drawX, 0, drawW, drawY)
+        ctx.drawImage(currentCanvas, 0, ch - srcH, cw, srcH, drawX, drawY + drawH, drawW, drawY)
       }
 
-      ctx.fillStyle = fillColor
-      ctx.fillRect(0, 0, width, height)
       ctx.drawImage(currentCanvas, drawX, drawY, drawW, drawH)
       URL.revokeObjectURL(url)
 
