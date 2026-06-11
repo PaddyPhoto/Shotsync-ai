@@ -48,6 +48,33 @@ const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = 
 }
 
 
+// Resizes an oversized image to maxPx on the longest edge and returns a new File.
+// Runs one at a time in acceptFiles to keep peak RAM bounded.
+async function resizeToJpeg(file: File, maxPx: number, quality: number): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const src = URL.createObjectURL(file)
+    const img = new Image()
+    img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('load')) }
+    img.onload = () => {
+      URL.revokeObjectURL(src)
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+      const w = Math.round(img.width * scale)
+      const h = Math.round(img.height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      canvas.toBlob(
+        (blob) => blob
+          ? resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: file.lastModified }))
+          : reject(new Error('toBlob')),
+        'image/jpeg', quality
+      )
+    }
+    img.src = src
+  })
+}
+
 export default function UploadPage() {
   const router = useRouter()
   const { activeBrand } = useBrand()
@@ -472,9 +499,10 @@ export default function UploadPage() {
   const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
   const ALLOWED_EXT = /\.(jpe?g|png|webp|heic|heif)$/i
 
-  const acceptFiles = useCallback((newFiles: File[]) => {
+  const acceptFiles = useCallback(async (newFiles: File[]) => {
     const accepted: File[] = []
     const rejected: { name: string; reason: string }[] = []
+    const oversized: File[] = []
 
     for (const f of newFiles) {
       const isAllowedType = ALLOWED_TYPES.includes(f.type.toLowerCase()) || ALLOWED_EXT.test(f.name)
@@ -484,9 +512,17 @@ export default function UploadPage() {
         const ext = f.name.split('.').pop()?.toUpperCase() ?? 'unknown'
         rejected.push({ name: f.name, reason: `Unsupported format (.${ext}) — use JPEG, PNG, WebP or HEIC` })
       } else if (isTooBig) {
-        const sizeMb = (f.size / (1024 * 1024)).toFixed(1)
-        rejected.push({ name: f.name, reason: `File too large (${sizeMb} MB) — maximum is ${MAX_FILE_SIZE_MB} MB` })
+        oversized.push(f)
       } else {
+        accepted.push(f)
+      }
+    }
+
+    // Auto-resize oversized files to max 3000px — processed one at a time to keep RAM bounded
+    for (const f of oversized) {
+      try {
+        accepted.push(await resizeToJpeg(f, 3000, 0.85))
+      } catch {
         accepted.push(f)
       }
     }
