@@ -104,25 +104,23 @@ export async function processImageOnCanvas(
         currentCtx = stepCtx
       }
 
-      // Base fill — covers any unfilled corners when both axes have padding
-      ctx.fillStyle = bgColor || '#ffffff'
-      ctx.fillRect(0, 0, width, height)
-
-      // Edge-stretch fill: take an 8% strip from each relevant edge of the fitted
-      // image and stretch it into the padding gap. Works naturally for gradient or
-      // vignette studio backgrounds, not just plain solid colours.
+      // fit-to-contain guarantees exactly one dimension fills the canvas —
+      // only the other axis needs padding, never both.
       const edgeFrac = 0.08
       const cw = currentCanvas.width
       const ch = currentCanvas.height
       if (drawX > 0) {
+        // Image is narrower than target → pad left and right only.
+        // Stretch an 8% strip from each vertical edge to fill the gap.
         const srcW = Math.max(1, Math.round(cw * edgeFrac))
-        ctx.drawImage(currentCanvas, 0, 0, srcW, ch, 0, drawY, drawX, drawH)
-        ctx.drawImage(currentCanvas, cw - srcW, 0, srcW, ch, drawX + drawW, drawY, drawX, drawH)
-      }
-      if (drawY > 0) {
+        ctx.drawImage(currentCanvas, 0, 0, srcW, ch, 0, 0, drawX, height)
+        ctx.drawImage(currentCanvas, cw - srcW, 0, srcW, ch, drawX + drawW, 0, drawX, height)
+      } else if (drawY > 0) {
+        // Image is shorter than target → pad top and bottom only.
+        // Stretch an 8% strip from each horizontal edge to fill the gap.
         const srcH = Math.max(1, Math.round(ch * edgeFrac))
-        ctx.drawImage(currentCanvas, 0, 0, cw, srcH, drawX, 0, drawW, drawY)
-        ctx.drawImage(currentCanvas, 0, ch - srcH, cw, srcH, drawX, drawY + drawH, drawW, drawY)
+        ctx.drawImage(currentCanvas, 0, 0, cw, srcH, 0, 0, width, drawY)
+        ctx.drawImage(currentCanvas, 0, ch - srcH, cw, srcH, 0, drawY + drawH, width, drawY)
       }
 
       ctx.drawImage(currentCanvas, drawX, drawY, drawW, drawH)
