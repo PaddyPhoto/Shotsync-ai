@@ -50,6 +50,19 @@ const VIEW_CLS: Record<ViewLabel, string> = {
   unknown:              'shot-unknown',
 }
 
+const PILL_SHORT: Partial<Record<ViewLabel | 'unknown', string>> = {
+  'full-length':      'FL',
+  'full-length-side': 'FL·S',
+  'full-length-back': 'FL·B',
+  'front-3/4':        '¾F',
+  'back-3/4':         '¾B',
+  'ghost-mannequin':  'GM',
+  'flat-lay':         'Flat',
+  'top-down':         'Top',
+  'mood-2':           'Mood 2',
+  'mood-3':           'Mood 3',
+}
+
 // ReviewPage uses useSearchParams() which requires a Suspense boundary in Next.js App Router.
 // Generates a medium-resolution blob URL from a File for lightbox display.
 // Caps the longer dimension at maxPx, preserving aspect ratio.
@@ -1205,17 +1218,20 @@ function ReviewPage() {
                         )
                         return pillAngles.map((v) => {
                           const isDisabled = clusterDisabled.has(v)
+                          const fullName = angleDisplayName(v)
+                          const shortLabel = PILL_SHORT[v] ?? fullName
                           return (
                             <button
                               key={v}
                               type="button"
                               onClick={() => toggleAngle(cluster.id, v)}
-                              title={isDisabled ? `Re-enable ${v}` : `Disable ${v}`}
-                              className={`shot-pill ${VIEW_CLS[v]} transition-all cursor-pointer select-none ${
+                              title={isDisabled ? `Re-enable: ${fullName}` : fullName}
+                              className={`shot-pill normal-case ${VIEW_CLS[v]} transition-all cursor-pointer select-none ${
                                 isDisabled ? 'opacity-25 line-through' : 'hover:opacity-75'
                               }`}
+                              style={{ letterSpacing: 0 }}
                             >
-                              {v}
+                              {shortLabel}
                             </button>
                           )
                         })
