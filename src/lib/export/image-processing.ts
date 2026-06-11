@@ -70,11 +70,8 @@ export async function processImageOnCanvas(
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = 'high'
 
-      ctx.fillStyle = bgColor || '#ffffff'
-      ctx.fillRect(0, 0, width, height)
-
       // Fit-to-contain: scale the entire source to fit within the target canvas,
-      // centred, with bgColor filling any remaining space on the edges.
+      // centred, with background filling any remaining space on the edges.
       // This preserves full-length models — no head or foot clipping.
       const scale = Math.min(width / img.width, height / img.height)
       const drawW = Math.round(img.width * scale)
@@ -107,6 +104,30 @@ export async function processImageOnCanvas(
         currentCtx = stepCtx
       }
 
+      // Content-aware background: sample the four corners of the fitted image
+      // to match the studio background colour, falling back to bgColor if sampling fails.
+      let fillColor = bgColor || '#ffffff'
+      if (drawX > 0 || drawY > 0) {
+        try {
+          const cw = currentCanvas.width
+          const ch = currentCanvas.height
+          const s = Math.max(1, Math.min(12, Math.floor(Math.min(cw, ch) * 0.04)))
+          const quads = [
+            currentCtx.getImageData(0, 0, s, s),
+            currentCtx.getImageData(cw - s, 0, s, s),
+            currentCtx.getImageData(0, ch - s, s, s),
+            currentCtx.getImageData(cw - s, ch - s, s, s),
+          ]
+          let r = 0, g = 0, b = 0, n = 0
+          for (const { data } of quads) {
+            for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i + 1]; b += data[i + 2]; n++ }
+          }
+          if (n > 0) fillColor = `rgb(${Math.round(r / n)},${Math.round(g / n)},${Math.round(b / n)})`
+        } catch { /* cross-origin or tainted canvas — fall back to bgColor */ }
+      }
+
+      ctx.fillStyle = fillColor
+      ctx.fillRect(0, 0, width, height)
       ctx.drawImage(currentCanvas, drawX, drawY, drawW, drawH)
       URL.revokeObjectURL(url)
 
