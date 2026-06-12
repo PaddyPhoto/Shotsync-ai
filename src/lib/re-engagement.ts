@@ -5,6 +5,11 @@ type ServiceClient = ReturnType<typeof createServiceClient>
 
 const DAY = 86_400_000
 
+// Internal accounts that must never receive re-engagement emails.
+const INTERNAL_EMAILS = new Set([
+  'photoworkssydney@gmail.com',
+])
+
 export async function runReEngagement(service: ServiceClient) {
   // Check enabled flag
   const { data: settingsRows } = await service
@@ -15,9 +20,12 @@ export async function runReEngagement(service: ServiceClient) {
   const enabled = settingsRows?.find((s: { key: string; value: string }) => s.key === 're_engagement_enabled')?.value !== 'false'
   if (!enabled) return { skipped: true, reason: 'disabled' as const }
 
-  // Unsubscribe list
+  // Unsubscribe list + internal exclusions
   const { data: unsubData } = await service.from('email_unsubscribes').select('email')
-  const unsubSet = new Set((unsubData ?? []).map((r: { email: string }) => r.email.toLowerCase()))
+  const unsubSet = new Set([
+    ...(unsubData ?? []).map((r: { email: string }) => r.email.toLowerCase()),
+    ...INTERNAL_EMAILS,
+  ])
 
   // All users
   const { data: userData, error: userError } = await service.auth.admin.listUsers({ perPage: 1000 })
@@ -85,16 +93,24 @@ export async function runReEngagement(service: ServiceClient) {
     } catch {
       continue
     }
-    // Log after sending — if this fails, skip counting so the next run
-    // doesn't re-send to the same person.
     const { error: logError } = await service.from('transactional_email_log').insert({
       email: email.toLowerCase(),
       template: 're-engagement',
       sequence_number: sequence,
       sent_at: runAt,
     })
-    if (!logError) sent++
-    else console.error('[re-engagement] failed to log send for', email, logError.message)
+    if (!logError) {
+      sent++
+    } else {
+      // Insert failed — update historyMap in memory so a same-day re-run
+      // (e.g. manual trigger) won't send to this address again this session.
+      const key = email.toLowerCase()
+      const existing = historyMap.get(key)
+      const sentAt = new Date(runAt)
+      if (!existing) historyMap.set(key, { count: 1, latestSentAt: sentAt })
+      else { existing.count++; if (sentAt > existing.latestSentAt) existing.latestSentAt = sentAt }
+      console.error('[re-engagement] failed to log send for', email, logError.message)
+    }
   }
 
   const result = { sent, skipped: toSend.length - sent, total: userData.users.length }
