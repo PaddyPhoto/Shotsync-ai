@@ -32,7 +32,12 @@ const tsPass = tsc.ok
 const tsOutput = (tsc.stdout + tsc.stderr).trim()
 const tsErrorCount = tsPass ? 0 : (tsOutput.match(/error TS/g) || []).length
 
-// ── 2. Dependency audit (production only) ────────────────────────────────────
+// ── 2. Unit tests (plan gating, org resolution, etc.) ────────────────────────
+const tests = run('npm test')
+const testsPass = tests.ok
+const testOutput = (tests.stdout + tests.stderr).trim()
+
+// ── 3. Dependency audit (production only) ────────────────────────────────────
 let counts = { critical: 0, high: 0, moderate: 0, low: 0, total: 0 }
 const highCritList = []
 let fixableCount = 0
@@ -67,7 +72,7 @@ try {
 }
 
 const commit = (run('git rev-parse --short HEAD').stdout || '').trim()
-const healthy = tsPass && counts.critical === 0 && counts.high === 0
+const healthy = tsPass && testsPass && counts.critical === 0 && counts.high === 0
 const subject = healthy
   ? 'ShotSync Weekly Health Check — All Green'
   : 'ShotSync Weekly Health Check — Needs Attention'
@@ -89,6 +94,7 @@ const html = `
   <p style="color:#6e6e73;font-size:13px">Commit <code>${commit}</code> · run by GitHub Actions</p>
   <ul style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6">
     <li><strong>TypeScript:</strong> ${tsPass ? 'PASS ✅' : `FAIL ❌ (${tsErrorCount} errors)`}</li>
+    <li><strong>Unit tests:</strong> ${testsPass ? 'PASS ✅' : 'FAIL ❌'}</li>
     <li><strong>Security:</strong> ${auditOk ? `${counts.total} vulns (${counts.critical} critical, ${counts.high} high, ${counts.moderate} moderate, ${counts.low} low)` : 'audit could not be parsed'}</li>
     <li><strong>Fixable via <code>npm audit fix</code>:</strong> ${fixableCount}</li>
   </ul>
@@ -103,12 +109,22 @@ const html = `
           .join('\n')
           .replace(/</g, '&lt;')}</pre>`
   }
+  ${
+    testsPass
+      ? ''
+      : `<h3 style="font-family:-apple-system,Helvetica,Arial,sans-serif;color:#1d1d1f">Failing tests (last 30 lines)</h3><pre style="background:#f5f5f7;padding:12px;border-radius:8px;font-size:12px;overflow:auto">${testOutput
+          .split('\n')
+          .slice(-30)
+          .join('\n')
+          .replace(/</g, '&lt;')}</pre>`
+  }
   <p style="color:#6e6e73;font-size:13px">This is a read-only report. No code or dependencies were changed — review and apply any fixes yourself.</p>
 `
 
 // Always print a plain-text summary to the Actions log.
 console.log(`Subject: ${subject}`)
 console.log(`TypeScript: ${tsPass ? 'PASS' : `FAIL (${tsErrorCount} errors)`}`)
+console.log(`Unit tests: ${testsPass ? 'PASS' : 'FAIL'}`)
 console.log(
   `Security: ${counts.total} vulns (${counts.critical} crit, ${counts.high} high, ${counts.moderate} mod, ${counts.low} low); ${fixableCount} fixable`,
 )

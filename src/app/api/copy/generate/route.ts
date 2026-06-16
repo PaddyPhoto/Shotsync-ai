@@ -27,20 +27,15 @@ export async function POST(req: NextRequest) {
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co') {
     try {
       const { createClient, createServiceClient } = await import('@/lib/supabase/server')
+      const { getOrgForUser } = await import('@/lib/supabase/getOrgForUser')
       const supabase = await createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // Resolve the user's org + plan via org_members (orgs.id is NOT the user id).
-        // Order by role desc so an 'owner' membership wins.
+        // Resolve org + plan via the shared helper (owner_id, then org_members) —
+        // orgs.id is NOT the user id, so a direct id==user.id lookup never matches.
         const service = createServiceClient()
-        const { data: membership } = await service
-          .from('org_members')
-          .select('orgs(plan)')
-          .eq('user_id', user.id)
-          .order('role', { ascending: false })
-          .limit(1)
-          .single()
-        const planId = ((membership?.orgs as { plan: string } | null)?.plan ?? 'free') as PlanId
+        const org = await getOrgForUser(service, user.id)
+        const planId = ((org?.plan) ?? 'free') as PlanId
         if (!PLANS[planId].limits.aiCopy) {
           return NextResponse.json({
             error: 'AI copywriting is available on the Brand plan and above. Upgrade to unlock this feature.'
