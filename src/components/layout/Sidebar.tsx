@@ -24,6 +24,19 @@ interface NavItem {
   activeWhen?: (pathname: string) => boolean
 }
 
+const NAV_HOME: NavItem[] = [
+  {
+    label: 'Dashboard',
+    href: '/dashboard',
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M2 6.5L8 2l6 4.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5z" strokeLinejoin="round"/>
+        <path d="M6.5 14V9h3v5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+]
+
 const NAV_PRODUCTS: NavItem[] = [
   {
     label: 'Products',
@@ -335,10 +348,10 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto" style={{ padding: '10px 0 0' }}>
 
         <Suspense fallback={null}>
-          {/* Products — primary */}
+          {/* Dashboard — primary */}
           <div style={{ padding: '0 10px 6px' }}>
             <nav className="flex flex-col gap-[2px]">
-              {NAV_PRODUCTS.map((item) => <NavLink key={item.href} item={item} />)}
+              {NAV_HOME.map((item) => <NavLink key={item.href} item={item} />)}
             </nav>
           </div>
 
@@ -362,6 +375,13 @@ export function Sidebar() {
                   ),
                 }} />
               )}
+            </nav>
+          </div>
+
+          {/* Products — after the shoot workflow */}
+          <div style={{ padding: '8px 10px 6px' }}>
+            <nav className="flex flex-col gap-[2px]">
+              {NAV_PRODUCTS.map((item) => <NavLink key={item.href} item={item} />)}
             </nav>
           </div>
 
