@@ -3177,17 +3177,27 @@ function ExportPanel({
               )}
 
               {/* Shopify — show inline when connected */}
-              {activeBrand?.shopify_store_url && (
-                <div className="flex-shrink-0 border border-[var(--line)] rounded-sm px-4 py-4">
+              {(() => {
+                const shopifyConnected = !!activeBrand?.shopify_store_url
+                return (
+                <div className="flex-shrink-0 border border-[var(--line)] rounded-sm px-4 py-4" style={shopifyConnected ? undefined : { opacity: 0.7 }}>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-[1rem] font-medium text-[var(--text)]">Shopify draft listings</p>
-                    <span className="text-[length:var(--font-base)] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
+                    {shopifyConnected
+                      ? <span className="text-[length:var(--font-base)] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
+                      : <span className="text-[length:var(--font-base)] text-[var(--text3)] bg-[var(--bg3)] px-2 py-[2px] rounded-[6px]">Not connected</span>}
                   </div>
                   <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-3 leading-relaxed">
-                    Creates a draft product in Shopify for each cluster — images, SKU, colour and AI copy included.
-                    {(() => { const n = confirmedClusters.filter(c => clusterCopy[c.id]?.title).length; return n > 0 ? <> <span className="text-[var(--accent2)] font-medium">AI copy ready for {n} listing{n !== 1 ? 's' : ''}.</span></> : null })()}
+                    {shopifyConnected ? (
+                      <>
+                        Creates a draft product in Shopify for each cluster — images, SKU, colour and AI copy included.
+                        {(() => { const n = confirmedClusters.filter(c => clusterCopy[c.id]?.title).length; return n > 0 ? <> <span className="text-[var(--accent2)] font-medium">AI copy ready for {n} listing{n !== 1 ? 's' : ''}.</span></> : null })()}
+                      </>
+                    ) : (
+                      <>Connect a Shopify store in Brand settings to push draft listings — images, SKU, colour and AI copy — straight to your storefront.</>
+                    )}
                   </p>
-                  {shopifyResults && (
+                  {shopifyConnected && shopifyResults && (
                     <div className="bg-[var(--bg3)] rounded-sm p-2.5 mb-3 flex flex-col gap-1 max-h-[100px] overflow-y-auto">
                       {shopifyResults.map((r) => (
                         <div key={r.sku} className="flex items-center justify-between text-[length:var(--font-base)]">
@@ -3199,14 +3209,22 @@ function ExportPanel({
                       ))}
                     </div>
                   )}
-                  <button onClick={handleShopifyUpload} disabled={shopifyUploading || !confirmedClusters.length} className="btn btn-ghost btn-sm w-full justify-center">
-                    {shopifyUploading
-                      ? <><svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Creating drafts…</>
-                      : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>Create {confirmedClusters.length} draft{confirmedClusters.length !== 1 ? 's' : ''} in Shopify</>
-                    }
-                  </button>
+                  {shopifyConnected ? (
+                    <button onClick={handleShopifyUpload} disabled={shopifyUploading || !confirmedClusters.length} className="btn btn-ghost btn-sm w-full justify-center">
+                      {shopifyUploading
+                        ? <><svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Creating drafts…</>
+                        : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>Create {confirmedClusters.length} draft{confirmedClusters.length !== 1 ? 's' : ''} in Shopify</>
+                      }
+                    </button>
+                  ) : (
+                    <Link href="/dashboard/brands" className="btn btn-ghost btn-sm w-full justify-center">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                      Connect Shopify in Brand settings
+                    </Link>
+                  )}
                 </div>
-              )}
+                )
+              })()}
 
               {/* Cin7 — show inline when connected */}
               {activeBrand?.cin7_account_id && activeBrand?.cin7_application_key && (

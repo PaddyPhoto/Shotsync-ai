@@ -1063,14 +1063,14 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
 
           {/* Shopify ready-state (before push) */}
           {selectedMarketplaces.includes('shopify') && !isPushing && !pushDone && drafts.length === 0 && (
-            <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', padding: '20px 18px' }}>
+            <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: '14px', padding: '20px 18px', opacity: shopifyBrand ? 1 : 0.7 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#30d158', animation: 'pulse 2s ease-in-out infinite' }} />
-                <p style={{ fontSize: 'var(--font-md)', fontWeight: 600, color: T1 }}>Ready to push to Shopify</p>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: shopifyBrand ? '#30d158' : 'rgba(255,255,255,0.3)', animation: shopifyBrand ? 'pulse 2s ease-in-out infinite' : 'none' }} />
+                <p style={{ fontSize: 'var(--font-md)', fontWeight: 600, color: T1 }}>{shopifyBrand ? 'Ready to push to Shopify' : 'Shopify not connected'}</p>
               </div>
-              <p style={{ fontSize: 'var(--font-base)', color: T3, lineHeight: 1.5, marginBottom: canPush ? '14px' : '0' }}>
+              <p style={{ fontSize: 'var(--font-base)', color: T3, lineHeight: 1.5, marginBottom: (canPush || !shopifyBrand) ? '14px' : '0' }}>
                 {!shopifyBrand
-                  ? 'No brand has Shopify authorisation. Go to Brands, edit your brand, and click Connect with Shopify.'
+                  ? 'Connect a Shopify store in Brand settings to push draft listings — images, SKU, colour and AI copy — straight to your storefront.'
                   : confirmedClusters.length === 0
                   ? 'No confirmed clusters in this session. Return to review and confirm at least one look.'
                   : `${confirmedClusters.length} confirmed cluster${confirmedClusters.length !== 1 ? 's' : ''} · ${confirmedClusters.reduce((s, c) => s + c.images.length, 0)} images will be pushed to ${shopifyBrand.shopify_store_url}.`
@@ -1078,7 +1078,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
               </p>
               {!shopifyBrand && (
                 <Link href="/dashboard/brands" style={{ fontSize: 'var(--font-base)', color: '#0a84ff', textDecoration: 'none' }}>
-                  Configure Shopify credentials →
+                  Connect Shopify in Brand settings →
                 </Link>
               )}
               {canPush && (
