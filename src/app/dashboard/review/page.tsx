@@ -148,6 +148,8 @@ function ReviewPage() {
   }>>({})
   const [generatingAll, setGeneratingAll] = useState(false)
   const [generateAllProgress, setGenerateAllProgress] = useState({ done: 0, total: 0, failed: 0 })
+  const generateAllCancel = useRef(false)
+  const currentCopyAbort = useRef<AbortController | null>(null)
 
   type ProductMatch = {
     productId: string
@@ -165,20 +167,34 @@ function ReviewPage() {
   const COPY_LIMIT = 200
 
   const generateAllCopy = async () => {
-    const targets = clusters.filter((c) => !clusterCopy[c.id]?.title).slice(0, COPY_LIMIT)
+    // Generate in the same ascending order the clusters are displayed in, so copy
+    // visibly fills in cluster 1, 2, 3… rather than jumping around.
+    const labelNum = (s: string) => parseInt(s?.match(/\d+/)?.[0] ?? '0', 10)
+    const targets = [...clusters]
+      .sort((a, b) => labelNum(a.label) - labelNum(b.label))
+      .filter((c) => !clusterCopy[c.id]?.title)
+      .slice(0, COPY_LIMIT)
     if (targets.length === 0) return
+    generateAllCancel.current = false
     setGeneratingAll(true)
     setGenerateAllProgress({ done: 0, total: targets.length, failed: 0 })
     let failed = 0
     for (let i = 0; i < targets.length; i++) {
+      if (generateAllCancel.current) break
       const ok = await generateCopy(targets[i])
       if (!ok) failed++
       setGenerateAllProgress({ done: i + 1, total: targets.length, failed })
+      if (generateAllCancel.current) break
       // Small gap between requests to avoid hitting OpenAI RPM limits
       if (i < targets.length - 1) await new Promise((r) => setTimeout(r, 500))
     }
     setGeneratingAll(false)
     setGenerateAllProgress({ done: 0, total: 0, failed: 0 })
+  }
+
+  const stopGenerateAll = () => {
+    generateAllCancel.current = true
+    currentCopyAbort.current?.abort()
   }
 
   const generateCopy = async (cluster: SessionCluster): Promise<boolean> => {
@@ -221,10 +237,13 @@ function ReviewPage() {
     const pMatch = productMatchMap[cluster.sku?.toUpperCase() ?? '']
     const pAttr = pMatch?.attributes ?? {}
     const matchedCw = pMatch?.listings.find((c) => c.id === cluster.listingId) ?? pMatch?.listings[0]
+    const controller = new AbortController()
+    currentCopyAbort.current = controller
     try {
       const res = await fetch('/api/copy/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           sku: cluster.sku,
           productName: cluster.productName,
@@ -294,6 +313,14 @@ function ReviewPage() {
 
       return true
     } catch (err) {
+      // Cancelled via the Stop button — collapse quietly without flagging an error.
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setClusterCopy((prev) => ({
+          ...prev,
+          [cluster.id]: { ...(prev[cluster.id] ?? { title: '', description: '', bullets: [] }), loading: false, open: false },
+        }))
+        return false
+      }
       const errMsg = err instanceof Error ? err.message : 'Network error'
       setClusterCopy((prev) => ({
         ...prev,
@@ -302,6 +329,32 @@ function ReviewPage() {
       return false
     }
   }
+
+  // Rehydrate the AI-copy panel from persisted cluster fields so generated copy
+  // survives a page reload / browser restart — description + bullets are saved on
+  // the cluster, and the title lives in productName once copy has been generated.
+  useEffect(() => {
+    setClusterCopy((prev) => {
+      let changed = false
+      const next = { ...prev }
+      for (const c of clusters) {
+        if (prev[c.id]) continue // keep live UI state (generated or being edited)
+        const hasCopy = (c.copyDescription?.length ?? 0) > 0 || (c.copyBullets?.length ?? 0) > 0
+        if (hasCopy) {
+          next[c.id] = {
+            title: c.productName ?? '',
+            description: c.copyDescription ?? '',
+            bullets: c.copyBullets ?? [],
+            loading: false,
+            open: false,
+          }
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clusters])
 
   const DEFAULT_VIEW_SEQUENCE: ViewLabel[] = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'mood-2', 'mood-3', 'full-length-side', 'full-length-back']
   const STILL_LIFE_EXTRA: ViewLabel[] = ['front', 'back', 'side', 'detail', 'top-down', 'inside', 'front-3/4', 'back-3/4', 'unknown']
@@ -1016,19 +1069,36 @@ function ReviewPage() {
                 </button>
               )
             )}
-            <button
-              onClick={generateAllCopy}
-              disabled={generatingAll}
-              className="btn btn-ghost btn-sm"
-              title={clusters.length > COPY_LIMIT ? `Generates copy for first ${COPY_LIMIT} clusters` : 'Generate AI copy for all clusters'}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-              {generatingAll
-                ? `Generating ${generateAllProgress.done}/${generateAllProgress.total}…${generateAllProgress.failed > 0 ? ` (${generateAllProgress.failed} failed)` : ''}`
-                : `Generate all copy${clusters.length > COPY_LIMIT ? ` (first ${COPY_LIMIT})` : ''}`}
-            </button>
+            {generatingAll ? (
+              <div className="flex items-center gap-[6px]">
+                <span className="btn btn-ghost btn-sm" style={{ pointerEvents: 'none', opacity: 0.85 }}>
+                  <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                  Generating {generateAllProgress.done}/{generateAllProgress.total}…{generateAllProgress.failed > 0 ? ` (${generateAllProgress.failed} failed)` : ''}
+                </span>
+                <button
+                  onClick={stopGenerateAll}
+                  className="btn btn-ghost btn-sm"
+                  style={{ color: '#ff3b30' }}
+                  title="Stop generating copy"
+                >
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1.5"/></svg>
+                  Stop
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={generateAllCopy}
+                className="btn btn-ghost btn-sm"
+                title={clusters.length > COPY_LIMIT ? `Generates copy for first ${COPY_LIMIT} clusters` : 'Generate AI copy for all clusters'}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Generate all copy{clusters.length > COPY_LIMIT ? ` (first ${COPY_LIMIT})` : ''}
+              </button>
+            )}
             <button
               onClick={startTour}
               className="btn btn-ghost btn-sm"
