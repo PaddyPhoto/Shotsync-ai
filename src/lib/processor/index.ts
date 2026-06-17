@@ -115,6 +115,21 @@ function extractGroupKey(filename: string): string | null {
   return key.length >= 3 ? key : null
 }
 
+// Resolve the immediate sub-folder a file came from (folder uploads only).
+// Reads the relative path captured at ingestion — drag-drop sets `relPath`,
+// the folder picker sets the native `webkitRelativePath`. Returns the parent
+// folder name only when the file sits inside a sub-folder below the dropped
+// root (path depth ≥ 3: root / sku-folder / file), so loose files at the root
+// fall through to filename-based grouping rather than being named after the
+// shoot folder.
+function folderOf(file: File): string | null {
+  const rel = ((file as { relPath?: string }).relPath || file.webkitRelativePath || '').trim()
+  if (!rel) return null
+  const parts = rel.split('/').filter(Boolean)
+  if (parts.length < 3) return null
+  return parts[parts.length - 2] || null
+}
+
 // Groups images by filename key, falling back to fixed-size chunking when
 // filenames don't carry a reliable SKU signal (e.g. generic camera roll names).
 function groupImagesByFilename(images: SessionImage[], imagesPerLook: number): { groups: SessionImage[][]; keyBased: boolean } {
@@ -248,9 +263,11 @@ export async function processFiles(
 
   onProgress({ phase: 'Loading files…', done: 0, total })
 
-  // Step 1: Sort files by filename in natural/numeric order — preserves camera roll sequence
+  // Step 1: Sort by relative path when available (keeps each sub-folder's images
+  // together and in sequence), otherwise by filename — preserves camera-roll order.
+  const sortKey = (f: File) => ((f as { relPath?: string }).relPath || f.webkitRelativePath || f.name)
   const sorted = [...files].sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+    sortKey(a).localeCompare(sortKey(b), undefined, { numeric: true, sensitivity: 'base' })
   )
 
   // Step 2: Create session images. previewUrl starts empty — thumbnails generated next.
@@ -261,6 +278,7 @@ export async function processFiles(
       file,
       previewUrl: '',
       filename: file.name,
+      folder: folderOf(file) ?? undefined,
       seqIndex: i,
       viewLabel: detected ?? 'unknown',
       viewConfidence: detected ? 0.9 : 0.6,
@@ -299,14 +317,32 @@ export async function processFiles(
   onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
   await new Promise((r) => setTimeout(r, 0))
 
-  const { groups: filenameGroups, keyBased } = groupImagesByFilename(images, imagesPerLook)
-  const sortedGroups: [number, SessionImage[]][] = []
-  for (const group of filenameGroups) {
-    sortedGroups.push([sortedGroups.length, group])
+  // Tier 1 — one cluster per sub-folder (folder uploads): the folder name IS the SKU.
+  // Tier 2/3 — loose images (flat upload / files at the dropped root): group by
+  // filename key, falling back to fixed-size chunking.
+  const byFolder = new Map<string, SessionImage[]>()
+  const looseImages: SessionImage[] = []
+  for (const img of images) {
+    if (img.folder) {
+      const arr = byFolder.get(img.folder)
+      if (arr) arr.push(img)
+      else byFolder.set(img.folder, [img])
+    } else {
+      looseImages.push(img)
+    }
+  }
+
+  const pending: { images: SessionImage[]; sku: string | null; keyBased: boolean }[] = []
+  for (const [folder, imgs] of byFolder) {
+    pending.push({ images: imgs, sku: folder.toUpperCase(), keyBased: false })
+  }
+  if (looseImages.length) {
+    const { groups: looseGroups, keyBased } = groupImagesByFilename(looseImages, imagesPerLook)
+    for (const group of looseGroups) pending.push({ images: group, sku: null, keyBased })
   }
 
   const clusters: SessionCluster[] = []
-  for (const [, groupImages] of sortedGroups) {
+  for (const { images: groupImages, sku: folderSku, keyBased } of pending) {
     const lookNumber = clusters.length + 1
 
     // Assign positional angles based on the configured shoot sequence.
@@ -342,7 +378,7 @@ export async function processFiles(
     // collapsing to the same stripped key.
     const groupKey = extractGroupKey(orderedChunk[0].filename)
     const fullBase = orderedChunk[0].filename.replace(/\.[^.]+$/, '')
-    const clusterSku = (keyBased && groupKey ? groupKey : fullBase).toUpperCase()
+    const clusterSku = folderSku ?? (keyBased && groupKey ? groupKey : fullBase).toUpperCase()
 
     clusters.push({
       id: `cluster-${lookNumber}`,

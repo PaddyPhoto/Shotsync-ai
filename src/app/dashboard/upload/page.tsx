@@ -53,7 +53,14 @@ const ANGLE_STYLE: Record<string, { bg: string; color: string; dot: string }> = 
 async function getFilesFromEntry(entry: FileSystemEntry): Promise<File[]> {
   if (entry.isFile) {
     return new Promise((resolve) => {
-      (entry as FileSystemFileEntry).file((f) => resolve([f]), () => resolve([]))
+      (entry as FileSystemFileEntry).file(
+        (f) => {
+          // Preserve the sub-folder path so folder-per-SKU uploads can be grouped.
+          try { (f as { relPath?: string }).relPath = entry.fullPath } catch { /* read-only File */ }
+          resolve([f])
+        },
+        () => resolve([])
+      )
     })
   }
   if (entry.isDirectory) {
@@ -70,6 +77,14 @@ async function getFilesFromEntry(entry: FileSystemEntry): Promise<File[]> {
     return nested.flat()
   }
   return []
+}
+
+// Stable per-file key for dedup + preview lookups. Prefers the relative path so
+// identically-named files in different sub-folders (e.g. SKU001/01.jpg vs
+// SKU002/01.jpg) don't collide; falls back to name+size for flat uploads.
+function fileKey(f: File): string {
+  const rel = (f as { relPath?: string }).relPath || f.webkitRelativePath
+  return rel || (f.name + f.size)
 }
 
 // Checks pixel dimensions and resizes only if longest edge exceeds maxPx.
@@ -283,6 +298,7 @@ export default function UploadPage() {
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [rejectedFiles, setRejectedFiles] = useState<{ name: string; reason: string }[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
+  const folderInputRef = useRef<HTMLInputElement>(null)
 
   const [cloudImporting, setCloudImporting] = useState<'dropbox' | 'google-drive' | 's3' | null>(null)
   const [cloudImportError, setCloudImportError] = useState<string | null>(null)
@@ -546,12 +562,13 @@ export default function UploadPage() {
         rejected.push({ name: f.name, reason: `Unsupported format (.${ext}) — use JPEG, PNG, WebP or HEIC` })
         continue
       }
-      // Normalise to max 3000px — returns original file unchanged if already within limits
-      try {
-        accepted.push(await normalizeImage(f, 3000, 0.85))
-      } catch {
-        accepted.push(f)
-      }
+      // Normalise to max 3000px — returns original file unchanged if already within limits.
+      // Carry the relative path forward (resizing creates a new File that would lose it).
+      const rel = (f as { relPath?: string }).relPath || f.webkitRelativePath || ''
+      let out: File
+      try { out = await normalizeImage(f, 3000, 0.85) } catch { out = f }
+      if (rel && out !== f) { try { (out as { relPath?: string }).relPath = rel } catch { /* ignore */ } }
+      accepted.push(out)
       normalizedCount++
       setNormalizing({ done: normalizedCount, total: imageCount })
     }
@@ -561,17 +578,17 @@ export default function UploadPage() {
     if (!accepted.length) return
 
     // Filter out duplicates using the preview URL map (always current — no stale closure)
-    const toAdd = accepted.filter((f) => !filePreviewUrls.current.has(f.name + f.size))
+    const toAdd = accepted.filter((f) => !filePreviewUrls.current.has(fileKey(f)))
     setFiles((prev) => {
-      const existing = new Set(prev.map((f) => f.name + f.size))
-      return [...prev, ...accepted.filter((f) => !existing.has(f.name + f.size))]
+      const existing = new Set(prev.map((f) => fileKey(f)))
+      return [...prev, ...accepted.filter((f) => !existing.has(fileKey(f)))]
     })
 
     // Object URLs are instant — the browser decodes lazily at display size via CSS.
     // Canvas thumbnail generation was decoding full 5MB JPEGs on the main thread,
     // causing seconds of delay for large batches.
     for (const file of toAdd) {
-      filePreviewUrls.current.set(file.name + file.size, URL.createObjectURL(file))
+      filePreviewUrls.current.set(fileKey(file), URL.createObjectURL(file))
     }
     setThumbVersion((v) => v + 1)
 
@@ -1143,13 +1160,19 @@ export default function UploadPage() {
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500, color: 'var(--text)', marginBottom: '3px' }}>Drop images here</p>
-                      <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)' }}>or click to browse · drop a folder · JPG, PNG, HEIC</p>
+                      <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)' }}>click to browse, or drop a shoot folder of SKU sub-folders · JPG, PNG, HEIC</p>
                     </div>
                     <div style={{ display: 'flex', gap: '5px' }}>
                       {['JPG', 'PNG', 'WebP', 'HEIC'].map((fmt) => (
                         <span key={fmt} style={{ fontSize: 'var(--font-sm)', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: 'var(--bg3)', color: 'var(--text3)' }}>{fmt}</span>
                       ))}
                     </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); folderInputRef.current?.click() }}
+                      style={{ fontSize: 'var(--font-base)', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', marginTop: '2px' }}
+                    >
+                      Choose a folder (one sub-folder per SKU) →
+                    </button>
                   </div>
                 ) : (
                   <div style={{ padding: '12px' }} ref={imageGridRef}>
@@ -1157,13 +1180,14 @@ export default function UploadPage() {
                       <p style={{ fontSize: 'var(--font-base)', fontWeight: 500, color: 'var(--text2)' }}>{files.length} images queued</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button onClick={() => inputRef.current?.click()} style={{ fontSize: 'var(--font-base)', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>+ Add more</button>
+                        <button onClick={() => folderInputRef.current?.click()} style={{ fontSize: 'var(--font-base)', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>+ Add folder</button>
                         <button onClick={() => clearFiles()} style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', background: 'none', border: 'none', cursor: 'pointer' }}>Clear all</button>
                       </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(52px, 1fr))', gap: '3px' }}>
                       {files.slice(0, 80).map((f, i) => (
                         <div key={i} style={{ aspectRatio: '1', borderRadius: '3px', overflow: 'hidden', background: 'var(--bg4)' }}>
-                          <img src={filePreviewUrls.current.get(f.name + f.size) ?? ''} alt={f.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          <img src={filePreviewUrls.current.get(fileKey(f)) ?? ''} alt={f.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         </div>
                       ))}
                       {files.length > 80 && (
@@ -1213,6 +1237,7 @@ export default function UploadPage() {
                   </div>
                 )}
                 <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp,.heic,.heif" className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
+                <input ref={folderInputRef} type="file" {...({ webkitdirectory: '' } as Record<string, string>)} className="hidden" onChange={(e) => acceptFiles(Array.from(e.target.files ?? []))} />
                 {typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function' && (
                   <button
                     onClick={selectFolder}

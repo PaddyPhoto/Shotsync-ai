@@ -6,6 +6,7 @@ export interface SessionImage {
   file: File
   previewUrl: string
   filename: string
+  folder?: string        // sub-folder name when uploaded via a folder (one folder = one SKU)
   seqIndex: number
   viewLabel: ViewLabel
   viewConfidence: number
