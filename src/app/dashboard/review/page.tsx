@@ -1225,14 +1225,7 @@ function ReviewPage() {
                   {/* Card header */}
                   <div className="flex items-center gap-2 px-3 py-[10px] bg-[var(--bg3)] border-b border-[var(--line)]">
                     <div className="flex flex-col min-w-0 flex-shrink-0 mr-1">
-                      {cluster.productName ? (
-                        <>
-                          <span className="text-[length:var(--font-base)] font-semibold text-[var(--text)] leading-tight truncate max-w-[130px]">{cluster.productName}</span>
-                          <span className="text-[length:var(--font-2xs)] text-[var(--text3)] leading-tight" style={{ fontFamily: 'var(--font-dm-mono)' }}>{cluster.sku || cluster.label}</span>
-                        </>
-                      ) : (
-                        <span className="text-[length:var(--font-base)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{cluster.label}</span>
-                      )}
+                      <span className="text-[length:var(--font-base)] font-semibold text-[var(--text)] leading-tight truncate max-w-[160px]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{cluster.sku || cluster.label}</span>
                     </div>
                     {/* Garment category — tags cluster for export overrides + relabels angles if a per-category shoot sequence is configured */}
                     <select

@@ -117,7 +117,7 @@ function extractGroupKey(filename: string): string | null {
 
 // Groups images by filename key, falling back to fixed-size chunking when
 // filenames don't carry a reliable SKU signal (e.g. generic camera roll names).
-function groupImagesByFilename(images: SessionImage[], imagesPerLook: number): SessionImage[][] {
+function groupImagesByFilename(images: SessionImage[], imagesPerLook: number): { groups: SessionImage[][]; keyBased: boolean } {
   const keys = images.map((img) => extractGroupKey(img.filename))
   const meaningful = keys.filter((k): k is string => k !== null)
   const uniqueKeys = new Set(meaningful)
@@ -136,7 +136,7 @@ function groupImagesByFilename(images: SessionImage[], imagesPerLook: number): S
     for (let i = 0; i < images.length; i += imagesPerLook) {
       groups.push(images.slice(i, i + imagesPerLook))
     }
-    return groups
+    return { groups, keyBased: false }
   }
 
   // Key-changed boundary detection: start a new cluster whenever the group key changes
@@ -154,7 +154,7 @@ function groupImagesByFilename(images: SessionImage[], imagesPerLook: number): S
     if (current.length === 1) currentKey = key
   }
   if (current.length > 0) groups.push(current)
-  return groups
+  return { groups, keyBased: true }
 }
 
 // ── Shot angle labels in display order ───────────────────────────────────────
@@ -299,8 +299,9 @@ export async function processFiles(
   onProgress({ phase: 'Grouping into looks…', done: 0, total: 1 })
   await new Promise((r) => setTimeout(r, 0))
 
+  const { groups: filenameGroups, keyBased } = groupImagesByFilename(images, imagesPerLook)
   const sortedGroups: [number, SessionImage[]][] = []
-  for (const group of groupImagesByFilename(images, imagesPerLook)) {
+  for (const group of filenameGroups) {
     sortedGroups.push([sortedGroups.length, group])
   }
 
@@ -333,9 +334,15 @@ export async function processFiles(
       return a.seqIndex - b.seqIndex
     })
 
-    // Extract SKU from filename — the full group key IS the SKU (colour variant included)
+    // Cluster SKU from filename. When filenames carry a real SKU key (key-based
+    // grouping), use the stripped group key so every shot of a product shares one
+    // SKU (colour variant included). In the fixed-size fallback (sequential
+    // camera-roll names like FOO_0001, FOO_0002…), use the full base filename so
+    // each cluster gets a unique, searchable SKU instead of all clusters
+    // collapsing to the same stripped key.
     const groupKey = extractGroupKey(orderedChunk[0].filename)
-    const clusterSku = groupKey ? groupKey.toUpperCase() : ''
+    const fullBase = orderedChunk[0].filename.replace(/\.[^.]+$/, '')
+    const clusterSku = (keyBased && groupKey ? groupKey : fullBase).toUpperCase()
 
     clusters.push({
       id: `cluster-${lookNumber}`,
