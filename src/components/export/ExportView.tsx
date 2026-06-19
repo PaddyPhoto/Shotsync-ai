@@ -13,6 +13,51 @@ import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
 
+const CSV_ANGLE_COLUMNS = ['front', 'back', 'side', 'detail', 'mood', 'full-length'] as const
+
+// Rich product-data CSV included in every export — SKU, attributes, AI copy, and
+// the per-angle image filenames. Reads AI copy from live state when present,
+// falling back to the values persisted on the cluster, so it produces the same
+// CSV whether the export runs from the live session or a reopened saved job.
+function buildProductDataCsv(
+  clusters: SessionCluster[],
+  clusterCopy: Record<string, { title: string; description: string; bullets: string[] }>,
+  brandCode: string,
+  template: string,
+  useOriginalNames: boolean,
+): string {
+  const escape = (v: string) => `"${String(v ?? '').replace(/"/g, '""')}"`
+  const headers = [
+    'SKU', 'Product Name', 'Colour', 'Colour Code', 'Style Number', 'Category',
+    'Description', 'Key Points',
+    'Front Image', 'Back Image', 'Side Image', 'Detail Image', 'Mood Image', 'Full Length Image',
+  ]
+  const rows = clusters.map((cluster, ci) => {
+    const copy = clusterCopy[cluster.id]
+    const description = copy?.description || cluster.copyDescription || ''
+    const bullets = copy?.bullets?.length ? copy.bullets : (cluster.copyBullets ?? [])
+    const angleMap: Record<string, string> = {}
+    cluster.images.forEach((img, ii) => {
+      if (!img.viewLabel || angleMap[img.viewLabel]) return
+      const base = useOriginalNames
+        ? img.filename.replace(/\.[^.]+$/, '')
+        : (applyNamingTemplate(template, {
+            brand: brandCode, seq: ci + 1, sku: cluster.sku,
+            color: cluster.color, view: img.viewLabel,
+            index: ii + 1, isBottomwear: cluster.isBottomwear ?? false,
+          }) || `${brandCode}_${String(ci + 1).padStart(3, '0')}_${img.viewLabel}`)
+      angleMap[img.viewLabel] = base + '.jpg'
+    })
+    return [
+      cluster.sku, cluster.productName, cluster.color ?? '', cluster.colourCode ?? '',
+      cluster.styleNumber ?? '', cluster.category ?? '',
+      description, bullets.join('; '),
+      ...CSV_ANGLE_COLUMNS.map((a) => angleMap[a] ?? ''),
+    ]
+  })
+  return [headers.map(escape).join(','), ...rows.map((r) => r.map(escape).join(','))].join('\n')
+}
+
 export function ExportView({
   jobName,
   clusters,
@@ -610,19 +655,13 @@ export function ExportView({
         }
       }
 
-      // Write CSV directly to the folder root
-      if (copyClusters.length > 0) {
+      // Write the rich product data CSV to the folder root
+      if (confirmedClusters.length > 0) {
         setProgress((p) => ({ ...p, phase: 'Writing CSV…' }))
-        const headers = ['SKU', 'Product Name', 'Colour', 'Title', 'Description', 'Bullet 1', 'Bullet 2', 'Bullet 3', 'Bullet 4', 'Bullet 5']
-        const rows = copyClusters.map((c) => {
-          const copy = clusterCopy[c.id]
-          return [c.sku, c.productName, c.color, copy.title, copy.description, ...copy.bullets]
-            .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
-            .join(',')
-        })
-        const csvFh = await rootHandle.getFileHandle('product_copy.csv', { create: true })
+        const csv = buildProductDataCsv(confirmedClusters, clusterCopy, brandCode, localTemplate || '{BRAND}_{SEQ}_{VIEW}', useOriginalNames)
+        const csvFh = await rootHandle.getFileHandle('product_data.csv', { create: true })
         const csvWritable = await csvFh.createWritable()
-        await csvWritable.write([headers.join(','), ...rows].join('\n'))
+        await csvWritable.write(csv)
         await csvWritable.close()
       }
 
@@ -676,16 +715,9 @@ export function ExportView({
           }
         }
 
-        // CSV goes in the first batch only
-        if (batchIdx === 0 && copyClusters.length > 0) {
-          const headers = ['SKU', 'Product Name', 'Colour', 'Title', 'Description', 'Bullet 1', 'Bullet 2', 'Bullet 3', 'Bullet 4', 'Bullet 5']
-          const rows = copyClusters.map((c) => {
-            const copy = clusterCopy[c.id]
-            return [c.sku, c.productName, c.color, copy.title, copy.description, ...copy.bullets]
-              .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
-              .join(',')
-          })
-          zip.file('product_copy.csv', [headers.join(','), ...rows].join('\n'))
+        // Rich product data CSV goes in the first batch only
+        if (batchIdx === 0 && confirmedClusters.length > 0) {
+          zip.file('product_data.csv', buildProductDataCsv(confirmedClusters, clusterCopy, brandCode, localTemplate || '{BRAND}_{SEQ}_{VIEW}', useOriginalNames))
         }
 
         const batchSuffix = batches.length > 1 ? `_part${batchIdx + 1}of${batches.length}` : ''
