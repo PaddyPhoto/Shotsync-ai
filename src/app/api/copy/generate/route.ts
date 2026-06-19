@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
             error: 'AI copywriting is available on the Brand plan and above. Upgrade to unlock this feature.'
           }, { status: 403 })
         }
+        // Per-org throttle (defense-in-depth on AI spend, on top of the per-IP
+        // limit above). Generous enough not to block "Generate all copy", which
+        // is paced by model latency, but stops a runaway/scripted loop.
+        if (org && !rateLimit(`copy-org:${org.id}`, 80, 60_000)) return rateLimitResponse()
       }
     } catch {}
   }

@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/supabase/server'
+import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rateLimit'
 
 export const maxDuration = 60
 
@@ -45,6 +46,7 @@ const CLASSIFICATION_PROMPT = `You are classifying a fashion product photograph.
 {"angle":"front","color":"navy"}`
 
 export async function POST(req: NextRequest) {
+  if (!rateLimit(getClientIp(req), 60, 60_000)) return rateLimitResponse()
   const user = await getAuthUser(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -42,6 +43,7 @@ const ALIASES: Record<string, string> = {
 }
 
 export async function POST(req: NextRequest) {
+  if (!rateLimit(getClientIp(req), 60, 60_000)) return rateLimitResponse()
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 503 })
