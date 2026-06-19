@@ -6,7 +6,7 @@
 **Live:** https://www.shotsync.ai (www is canonical; auto-deploys on push to `main` via Vercel).
 **Owner:** photoworkssydney@gmail.com
 
-> This doc reflects the codebase as of **June 2026** (Next.js 16 + React 19, after the export-UI consolidation). It supersedes the April 2026 version. `DOCUMENTATION.md` is an older, longer reference — trust this file where they disagree.
+> This doc reflects the codebase as of **June 2026** (Next.js 16 + React 19, after the export-UI consolidation), and is the single source of truth for handover. (It replaced an older, stale `DOCUMENTATION.md`, now removed.)
 
 ---
 
