@@ -10,6 +10,30 @@
 
 ---
 
+## 0. Getting the Code
+
+This document lives **inside the repo** (`HANDOVER.md` at the root), so cloning the repo gives you the entire codebase **and** this doc together. Every file path referenced below (e.g. `src/components/export/ExportView.tsx`) is relative to the repo root and opens directly in your editor.
+
+1. **Get repo access** — the owner (photoworkssydney@gmail.com) adds you as a collaborator on GitHub: repo → **Settings → Collaborators**.
+2. **Clone it:**
+   ```bash
+   git clone https://github.com/PaddyPhoto/Shotsync-ai.git
+   cd Shotsync-ai
+   ```
+3. **Open the folder** in your editor (VS Code, etc.) and read this file first, then jump to the referenced paths.
+4. **Run it** — see §13 (Local Development) for install / env / dev-server steps.
+
+| | |
+|---|---|
+| **GitHub (source of truth)** | https://github.com/PaddyPhoto/Shotsync-ai |
+| **Default branch** | `main` (auto-deploys to production on push) |
+| **Live production** | https://www.shotsync.ai |
+| **Hosting** | Vercel (project `shotsync-ai`) |
+
+> The repo is the live truth — this doc explains *how it's organised and why*, but never pastes code (pasted snippets go stale). Always read the actual files.
+
+---
+
 ## 1. Tech Stack
 
 | Layer | Technology | Version |
