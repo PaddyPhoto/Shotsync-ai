@@ -1,9 +1,12 @@
 # ShotSync.ai — Developer Handover Document
 
-**Product:** ShotSync.ai — Fashion eCommerce post-production automation SaaS
-**Repo folder:** `framesops-ai` (legacy working name)
-**Live deployment:** Vercel, auto-deploys on push to `main`
+**Product:** ShotSync.ai — fashion eCommerce post-production automation SaaS (shoot images → marketplace-ready, named, copy-enriched listings).
+**Repo folder:** `framesops-ai` (legacy working name; product rebranded FramesOps → ShotSync).
+**Repo:** https://github.com/PaddyPhoto/Shotsync-ai
+**Live:** https://www.shotsync.ai (www is canonical; auto-deploys on push to `main` via Vercel).
 **Owner:** photoworkssydney@gmail.com
+
+> This doc reflects the codebase as of **June 2026** (Next.js 16 + React 19, after the export-UI consolidation). It supersedes the April 2026 version. `DOCUMENTATION.md` is an older, longer reference — trust this file where they disagree.
 
 ---
 
@@ -11,366 +14,256 @@
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| Framework | Next.js App Router | 14.2.5 |
+| Framework | Next.js App Router | **16.2.9** |
+| Runtime | React / React DOM | **19.2.7** |
 | Language | TypeScript | 5 |
-| Styling | Tailwind CSS | 3.4.1 |
-| Database & Auth | Supabase (PostgreSQL + Auth + Storage) | 2.43.4 |
-| AI | OpenAI GPT-4o / GPT-4o-mini / text-embedding-3-small | 4.52.7 |
-| Billing | Stripe | 21.0.1 |
-| Email | Resend (hello@shotsync.ai) | 6.10.0 |
-| Image processing | Sharp | 0.33.4 |
-| ZIP exports | JSZip | 3.10.1 |
-| Animations | Framer Motion | 11.3.19 |
-| State | Zustand + TanStack React Query | 4.5.4 / 5.51.21 |
-| Monitoring | Sentry | 10.49.0 |
-| Clustering (ML) | ml-kmeans + ml-distance | 3.0.0 / 4.0.1 |
+| Node | ≥ 20.9 (Vercel default 24) | — |
+| Styling | Tailwind CSS | 3.4 |
+| DB / Auth / Storage | Supabase (Postgres + Auth + Storage) | supabase-js 2.43 |
+| AI — copy & classification | Anthropic Claude (`@anthropic-ai/sdk`) | Sonnet 4.6 + Haiku 4.5 |
+| AI — embeddings & accessory class. | OpenAI | — |
+| Billing | Stripe | 21 |
+| Email | Resend (sender: hello@shotsync.ai) | 6 |
+| Image processing | Sharp (server) + Canvas (client) | 0.33 |
+| ZIP / spreadsheet | JSZip / xlsx | — |
+| State | Zustand + TanStack React Query | 4.5 / 5.51 |
+| Monitoring | Sentry | 10 |
+| Clustering (legacy server path) | ml-kmeans + ml-distance | 3.0 / 4.0 |
+| Background removal (inert) | @imgly/background-removal + onnxruntime-web | retired — see §10 |
+| Tests | Vitest | 2 |
+
+### Build note — Turbopack is intentionally disabled
+`dev`/`build` scripts pin **`--webpack`** (`next dev --webpack`, `next build --webpack`). Next 16 defaults to Turbopack, which ignores the custom `webpack()` config in `next.config.mjs` that resolves `onnxruntime-web` to its WASM build (used by the dormant background-removal fallback). Removing that dependency (see §10) would let you drop the pin and adopt Turbopack.
 
 ---
 
 ## 2. Project Structure
 
 ```
-/src/
+src/
 ├── app/
-│   ├── api/                      # All API routes (see Section 4)
-│   ├── dashboard/                # Authenticated app pages
-│   │   ├── page.tsx              # Dashboard home (recent jobs)
-│   │   ├── upload/               # Upload page
-│   │   ├── review/               # Cluster confirmation
-│   │   ├── jobs/                 # Job list + detail pages
-│   │   └── settings/             # Billing + account settings
-│   ├── (auth)/                   # Login / signup pages
-│   ├── auth/                     # Supabase OAuth callback handler
-│   ├── invite/                   # Org invite acceptance
-│   ├── enter/                    # Password gate page
-│   ├── faq/ privacy/ terms/      # Static content pages
-│   ├── page.tsx                  # Landing page (hero + pricing + Watch Demo)
-│   └── globals.css
+│   ├── (auth)/                 # login / signup
+│   ├── auth/                   # Supabase OAuth callback, confirm-email, reset
+│   ├── dashboard/
+│   │   ├── page.tsx            # Dashboard home (brand-setup hero when no brands)
+│   │   ├── upload/             # Upload + folder ingestion → processFiles (§6)
+│   │   ├── review/             # Cluster review/confirm + AI copy + renders <ExportView>
+│   │   ├── jobs/[jobId]/        # Saved-job detail, review, validation, download,
+│   │   │   └── export/          #   export route → thin wrapper around <ExportView>
+│   │   ├── products/           # PIM product list + detail
+│   │   ├── brands/ marketplaces/ integrations/ settings/ admin/
+│   ├── api/                    # All API routes (§4)
+│   ├── invite/[token]/ enter/  # org invites, password gate
+│   ├── faq/ privacy/ terms/ us/ what-is-shotsync/   # static/marketing
+│   ├── page.tsx                # Landing page
+│   ├── layout.tsx              # Root layout (metadata, GA4, LinkedIn, JSON-LD)
+│   ├── sitemap.ts robots.ts
 ├── components/
-│   ├── billing/                  # UpgradeModal, UsageBar
-│   ├── clusters/                 # ClusterCard, ClusterGrid
-│   ├── layout/                   # Sidebar, Topbar, BrandSwitcher
-│   ├── onboarding/               # BrandOnboardingModal, WelcomeModal
-│   ├── processing/               # PipelineSteps
-│   ├── upload/                   # DropZone, FileList
-│   ├── validation/               # ValidationPanel
-│   ├── export/                   # MarketplaceSelector
-│   ├── download/                 # DownloadCard
-│   └── ui/                       # HelpTooltip + shared UI
+│   ├── export/ExportView.tsx   # ⭐ Single shared export UI (both entry points)
+│   ├── export/MarketplaceSelector.tsx
+│   ├── layout/ (Sidebar, Topbar, BrandSwitcher) onboarding/ help/ ui/ …
 ├── lib/
-│   ├── pipeline/                 # 10-step processing pipeline (see Section 6)
-│   ├── plans/                    # Pricing tiers + feature gates
-│   ├── supabase/                 # Supabase client factories
-│   ├── brands/                   # Brand CRUD helpers
-│   ├── shopify/                  # Shopify API client
-│   ├── cloud/                    # Google Drive + Dropbox helpers
-│   ├── marketplace/              # Marketplace rules + formatting
-│   ├── naming/                   # File naming convention logic
-│   ├── email/                    # Email templates (Resend)
-│   ├── rateLimit.ts              # IP-based rate limiter
-│   └── utils.ts
-├── store/                        # Zustand stores (session, upload)
-├── types/index.ts                # All shared TypeScript types
-├── context/                      # React Context (Plan, Brand)
-└── middleware.ts                 # Auth + password gate
-/public/
-├── onboarding.html               # Interactive demo tutorial (Watch Demo modal)
-├── animations.jsx                # Tutorial animation helpers
-└── scenes.jsx                    # Tutorial scene definitions
+│   ├── processor/              # ⭐ Client-side upload→clusters (filename/folder, §6)
+│   ├── export/image-processing.ts  # Canvas resize/crop/compose; @imgly fallback (inert)
+│   ├── pipeline/               # Legacy/server processing path (embeddings + k-means, §6)
+│   ├── plans/                  # Plan matrix + feature gates (§7)
+│   ├── supabase/               # Client factories + getOrgForUser helper (§8)
+│   ├── marketplace/            # Per-brand marketplace rules + formatting
+│   ├── brands/ products/ shopify/ cin7/ sellercenter/ cloud/ email/ naming/
+│   ├── accessories/ garment-categories.ts angle-utils.ts session-store/ folder-store/
+│   ├── rateLimit.ts re-engagement.ts activity.ts
+├── store/session.ts            # ⭐ Zustand session store (active job, §5)
+├── context/                    # PlanContext, BrandContext
+├── types/index.ts              # Shared types (MarketplaceName, Job, etc.)
+├── middleware.ts               # Auth gate + SITE_PASSWORD gate + geo routing
+└── instrumentation.ts / instrumentation-client.ts   # Sentry init
 ```
 
 ---
 
 ## 3. Environment Variables
 
-Copy `.env.example` and fill in all values. Required for production:
+Source of truth is **Vercel → Project → Settings → Environment Variables**. Pull locally with `vercel env pull .env.local`. ⚠️ Vercel writes values **double-quoted** — strip surrounding quotes if copying a single value into another tool (e.g. a GitHub secret).
 
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=          # Server-side only — never expose to client
+SUPABASE_SERVICE_ROLE_KEY=        # server-only; bypasses RLS
 
-# OpenAI
-OPENAI_API_KEY=
+# AI
+ANTHROPIC_API_KEY=                # Claude — product copy, angle/garment classification
+OPENAI_API_KEY=                   # embeddings (server pipeline) + accessory classification
+REPLICATE_API_TOKEN=              # used by the (now-inert) bg-removal pre-pass
 
-# Stripe
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID=
-NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID=
-NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID=
-NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID=
+# Stripe (monthly + annual + USD price IDs per paid plan)
+STRIPE_SECRET_KEY=  STRIPE_WEBHOOK_SECRET=  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID(+_ANNUAL/_USD/_ANNUAL_USD)=     # internal id "launch"
+NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID(...)=                            # internal id "growth"
+NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID(...)=
 
-# Google Drive OAuth
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-NEXT_PUBLIC_GOOGLE_API_KEY=
-GOOGLE_CLIENT_SECRET=
-
-# Dropbox OAuth
-NEXT_PUBLIC_DROPBOX_APP_KEY=
-DROPBOX_APP_SECRET=
+# Email / integrations
+RESEND_API_KEY=
+SHOPIFY_CLIENT_ID=  SHOPIFY_CLIENT_SECRET=        # OAuth app (per-brand token stored in DB)
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=  NEXT_PUBLIC_GOOGLE_API_KEY=  GOOGLE_CLIENT_SECRET=
+NEXT_PUBLIC_DROPBOX_APP_KEY=  DROPBOX_APP_SECRET=
 
 # App
-NEXT_PUBLIC_APP_URL=               # e.g. https://shotsync.ai
-SITE_PASSWORD=                     # Optional early-access gate
-NEXT_PUBLIC_SENTRY_DSN=
+NEXT_PUBLIC_APP_URL=  NEXT_PUBLIC_SENTRY_DSN=  NEXT_PUBLIC_AI_DETECTION=
+SITE_PASSWORD=                    # optional early-access gate (middleware)
+CRON_SECRET=                      # guards /api/cron/* (re-engagement)
 ```
-
-> AWS S3 credentials are stored **per-brand** in `brands.cloud_connections` (JSONB), not in env vars.
-
----
-
-## 4. API Routes
-
-### AI
-| Method | Route | Purpose |
-|--------|-------|---------|
-| POST | `/api/ai/embed` | Generate OpenAI embeddings for images |
-| POST | `/api/ai/detect` | Angle, colour, category detection (GPT-4o vision) |
-| POST | `/api/ai/classify-accessory` | Classify accessory type |
-
-### Auth
-| Method | Route | Purpose |
-|--------|-------|---------|
-| POST | `/api/auth/set-session` | Set Supabase session cookie |
-| GET | `/api/enter` | Password gate verification |
-
-### Billing (Stripe)
-| Method | Route | Purpose |
-|--------|-------|---------|
-| POST | `/api/billing/checkout` | Create Stripe checkout session |
-| GET | `/api/billing/plan` | Get current plan for user's org |
-| GET | `/api/billing/portal` | Create Stripe customer portal link |
-| POST | `/api/billing/webhook` | Handle Stripe webhook events |
-
-### Brands
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/api/brands` | List org's brands |
-| POST | `/api/brands` | Create brand |
-| PATCH | `/api/brands/[brandId]` | Update brand settings / credentials |
-| DELETE | `/api/brands/[brandId]` | Delete brand |
-
-### Jobs
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/api/jobs` | List user's jobs |
-| POST | `/api/jobs` | Create job |
-| GET | `/api/jobs/[jobId]` | Get job detail |
-| PATCH | `/api/jobs/[jobId]` | Update job |
-| DELETE | `/api/jobs/[jobId]` | Delete job |
-| POST | `/api/jobs/[jobId]/process` | Trigger pipeline |
-| GET | `/api/jobs/history` | Job history list |
-| GET/PATCH | `/api/jobs/history/[jobId]` | Specific history record |
-
-### Clusters
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/api/clusters/[clusterId]` | Cluster detail + images |
-| PATCH | `/api/clusters/[clusterId]` | Update SKU / status |
-
-### Export
-| Method | Route | Purpose |
-|--------|-------|---------|
-| POST | `/api/export` | Trigger export (plan limits enforced) |
-| POST | `/api/export/zip` | Download ZIP |
-
-### Cloud Integrations
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/api/integrations/google/callback` | Google OAuth callback |
-| GET | `/api/integrations/google/list` | List Google Drive files |
-| GET | `/api/integrations/dropbox/callback` | Dropbox OAuth callback |
-| GET | `/api/integrations/s3/list` | List S3 bucket |
-| POST | `/api/integrations/s3/presign` | Generate presigned S3 URLs |
-
-### Organisation
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET/PATCH | `/api/orgs/me` | Get / update org |
-| GET/POST/PATCH/DELETE | `/api/orgs/members` | Manage members |
-| POST | `/api/orgs/invite` | Send invite email |
-| GET | `/api/orgs/invite/accept` | Accept invite |
-
-### Other
-| Method | Route | Purpose |
-|--------|-------|---------|
-| POST | `/api/shopify/upload` | Create Shopify draft products |
-| POST | `/api/upload` | Upload images (rate limited 30/min) |
-| POST | `/api/copy/generate` | AI product copy generation |
-| POST | `/api/users/welcome` | Send welcome email on signup |
+> Per-brand AWS S3 credentials are stored in the `brands` table, not env vars.
 
 ---
 
-## 5. Database Tables
+## 4. Key API Routes
 
-| Table | Key Columns | Notes |
-|-------|------------|-------|
-| `auth.users` | `id`, `email` | Supabase managed |
-| `profiles` | `id` (= auth.users.id), `email` | 1-to-1 with auth user |
-| `orgs` | `id`, `name`, `owner_id`, `plan`, `stripe_customer_id`, `stripe_subscription_status` | Multi-tenant root |
-| `org_members` | `org_id`, `user_id`, `role` | Roles: owner / admin / member |
-| `org_invites` | `id`, `org_id`, `email`, `token`, `expires_at` | Pending invites |
-| `brands` | `id`, `org_id`, `name`, `brand_code`, `shopify_store_url`, `shopify_access_token`, `cloud_connections` (JSONB) | Per-org brands |
-| `jobs` | `id`, `user_id`, `brand_id`, `status`, `pipeline_step`, `total_images`, `processed_images`, `cluster_count`, `selected_marketplaces` | Main processing jobs |
-| `images` | `id`, `job_id`, `cluster_id`, `storage_path`, `storage_url`, `original_filename`, `renamed_filename`, `embedding_vector`, `view_label`, `view_confidence`, `width`, `height` | Per-image records |
-| `clusters` | `id`, `job_id`, `assigned_sku`, `assigned_product_name`, `color`, `brand`, `detected_views`, `missing_views`, `status`, `image_count` | Grouped image sets |
-| `exports` | `id`, `job_id`, `cluster_id`, `marketplace`, `output_files` (JSONB), `download_url`, `file_size_bytes`, `status` | Export records |
-| `job_history` | `id`, `job_id`, `timestamp`, `step`, `status`, `data` (JSONB) | Timestamped state snapshots |
+All under `src/app/api/`. **Auth pattern:** most routes authenticate the bearer token via `createServiceClient()` + `getOrgForUser()` (see §8). ~110 routes total; the important ones:
 
-**Supabase Storage Buckets:**
-- `shoots` — Original + processed images
-- `exports` — Generated ZIP files
-
-**To delete a user (run in SQL Editor):**
-```sql
-DO $$
-DECLARE uid uuid;
-BEGIN
-  SELECT id INTO uid FROM auth.users WHERE email = 'user@example.com';
-  DELETE FROM jobs    WHERE user_id = uid;
-  DELETE FROM brands  WHERE org_id  = uid;
-  DELETE FROM orgs    WHERE owner_id = uid;
-  DELETE FROM profiles WHERE id = uid;
-  DELETE FROM auth.users WHERE id = uid;
-END $$;
-```
+| Area | Routes |
+|------|--------|
+| Billing | `billing/checkout`, `billing/portal`, `billing/subscribe`, `billing/plan`, `billing/usage`, `billing/bg-removal`, **`billing/webhook`** (Stripe — must be **www**) |
+| Jobs | `jobs`, `jobs/[jobId]`, `jobs/[jobId]/process` (server pipeline), `jobs/[jobId]/session` (cross-device restore), `jobs/history`, `jobs/detect-angles` (Claude) |
+| Clusters/Products | `clusters/[clusterId]`, `products`, `products/[productId]`, `products/[productId]/publish`, `products/match-skus`, `products/import/{shopify,cin7}` |
+| AI | `copy/generate` (Claude Sonnet), `classify-garment` (Claude Haiku), `ai/classify-accessory` (OpenAI) |
+| Export/Brands | `export`, `export/zip`, `brands`, `brands/[brandId]`, `brands/[brandId]/marketplace-rules` |
+| Shopify | `shopify/{connect,callback,install,upload,stage-image}`, `shopify/webhooks/*` (GDPR) |
+| Cin7 | `cin7/test`, `cin7/upload` |
+| Cloud | `integrations/{google,dropbox,s3}/*` |
+| Orgs | `orgs/me`, `orgs/members`, `orgs/invite(/accept)` |
+| Admin/Cron | `admin/*` (broadcast, set-plan, users, re-engagement), `cron/re-engagement` |
+| Extension | `extension/{token,verify,products,listing-payload}` (browser extension) |
 
 ---
 
-## 6. Processing Pipeline (`src/lib/pipeline/`)
+## 5. State — Zustand session store (`src/store/session.ts`)
 
-The pipeline is **10 steps, fully modular** — each step can be replaced independently.
-
-| Step | File | What it does |
-|------|------|-------------|
-| 1 | `step1-store.ts` | Upload images to Supabase Storage (`shoots` bucket) |
-| 2 | `step2-embeddings.ts` | Describe images with GPT-4o-mini → embed with text-embedding-3-small (1536-dim) |
-| 3 | `step3-clustering.ts` | K-means clustering on embeddings (cosine similarity, K-means++ init) |
-| 4 | `step4-clusters.ts` | Create cluster records in DB, link images to clusters |
-| 5 | *(review pause)* | User confirms clusters + assigns SKUs in UI |
-| 6 | `step6-angle-detection.ts` | GPT-4o vision classifies angle per image (front/back/side/detail etc.) |
-| 7 | `step7-missing-shots.ts` | Validates required angles per marketplace, flags missing views |
-| 8 | `step8-naming.ts` | Applies naming templates → `images.renamed_filename` |
-| 9 | `step9-marketplace-format.ts` | Resizes + crops images to marketplace specs using Sharp |
-| 10 | `step10-export.ts` | Builds ZIP per marketplace, uploads to Storage, saves export record |
-
-**Orchestration:**
-- `runPipeline()` — Steps 1–4, then pauses for user review
-- `runExport()` — Steps 6–10, triggered after user confirms clusters
-
----
-
-## 7. Billing & Plans (`src/lib/plans/index.ts`)
-
-| Plan | Price (AUD/mo) | Images/mo | Brands | Seats | Shopify | AI Copy |
-|------|---------------|-----------|--------|-------|---------|---------|
-| Free | $0 | 25 | 1 | 1 | No | No |
-| Starter | $79 | 500 | 1 | 2 | 1 store | No |
-| Brand | $199 | 1,500 | 3 | 5 | 1 store | Yes |
-| Scale | $399 | 5,000 | Unlimited | 10 | 2 stores | Yes |
-| Enterprise | Custom | Unlimited | Unlimited | Unlimited | Unlimited | Yes |
-
-**Stripe Webhook Events handled (`/api/billing/webhook`):**
-- `checkout.session.completed` — New subscription → update `orgs.plan`
-- `customer.subscription.updated` — Plan change
-- `customer.subscription.deleted` — Cancellation
-- `invoice.payment_failed` — Payment failure
-
-**Rate limits:**
-- Upload: 30 requests/min per IP
-- Export: 10 requests/min per IP
-- Copy: 20 requests/min per IP
-
----
-
-## 8. Auth Pattern
-
-**Important:** Server-side `getUser()` from Supabase cookies fails with "Auth session missing!" in API routes. Use the custom `getAuthUser(req)` helper instead.
+In-memory state for the **active job**, persisted to `sessionStorage` + IndexedDB. Both export entry points read from here.
 
 ```ts
-// src/lib/supabase/server.ts
-getAuthUser(req)       // Tries bearer token first, then cookies — use in all API routes
-createClient()         // Browser-safe client (reads/writes session cookies)
-createServiceClient()  // Service role — bypasses RLS, server-side only
-                       // Must pass cache: 'no-store' to avoid Next.js Data Cache stale responses
+{ jobName, clusters: SessionCluster[], marketplaces, styleList, shootType,
+  imagesPerLook, angleSequence, isReady, undoStack }
 ```
+`SessionCluster`: `{ id, images[], sku, productName, color, colourCode, styleNumber, label,
+category, garmentCategory, isBottomwear, confirmed, incomplete, exported,
+copyDescription?, copyBullets?, productId?, listingId? }`
+`SessionImage`: `{ id, file, previewUrl, filename, folder?, seqIndex, viewLabel, viewConfidence }`
 
-**Middleware (`src/middleware.ts`):**
-- Reads `SITE_PASSWORD` env var → enforces cookie gate on all routes
-- Recovers Supabase session from cookie (no network call)
-- Redirects `/` → `/dashboard` if authenticated
-- Redirects `/dashboard/*` → `/login` if unauthenticated
+- **Parked jobs** (`lib/session-store`, IndexedDB) — park/resume multiple in-progress jobs.
+- **Cross-device restore** — after export, cluster metadata is saved to Supabase (`/api/jobs/[jobId]/session`); on reopen it reloads from IDB → cloud → remembered folder handles (`lib/folder-store`).
+- `reset()` must clear in-memory state + `sessionStorage['shotsync:session']` + `['shotsync:reimport']`.
 
 ---
 
-## 9. Third-Party Integrations
+## 6. Processing — two paths
+
+**A) Interactive upload (primary)** — `src/lib/processor/processFiles()`, fully **client-side** (images never leave the browser unless pushed/exported to a cloud target). The upload page (drag-drop or folder picker) calls it. Clustering is **3-tier** (see `project_clustering_skus` logic):
+1. **Sub-folder per SKU** — folder upload → one cluster per sub-folder, SKU = folder name.
+2. **Filename key** — flat files like `WD2451_NAVY_01.jpg` → group by stripped key.
+3. **Fixed chunk** — sequential names → chunk by images-per-look, SKU = first image's full filename.
+Angles are assigned **positionally** from the brand's shoot sequence (not AI). AI copy (Claude) is generated on demand in the review page.
+
+**B) Server pipeline (legacy/secondary)** — `src/lib/pipeline/` `runPipeline()`, invoked by `POST /api/jobs/[jobId]/process`. Uses OpenAI embeddings + ml-kmeans clustering + Sharp formatting (steps `step1`…`step10`). Predates path A; verify whether a given flow still routes through it before relying on it.
+
+**Export** — `src/components/export/ExportView.tsx` is the **single shared export UI** for both the live-session export (Review → Export) and the saved-job export route. Supports ZIP / save-to-folder / cloud (Dropbox/Drive/S3), per-marketplace resize/crop/naming, a rich `product_data.csv`, and direct Shopify + Cin7 push.
+
+---
+
+## 7. Plans & Billing (`src/lib/plans/index.ts`)
+
+Internal plan IDs: **`free` · `launch` · `growth` · `scale` · `enterprise`** (display names Free / Launch / Growth / Scale / Enterprise — note the old "Starter/Brand" names are gone).
+
+| Plan | AUD/mo | SKUs/mo | Brands | Marketplaces | AI Copy | BG Removal* |
+|------|--------|---------|--------|--------------|---------|-------------|
+| free | 0 | 50 | 1 | 1 | ✗ | ✗ |
+| launch | 79 | 200 | 1 | 2 | ✗ | ✗ |
+| growth | 199 | 1,000 | 2 | 4 | ✓ | ✓ |
+| scale | 399 | 2,500 | 5 | 4 | ✓ | ✓ |
+| enterprise | custom | ∞ | ∞ | 4 | ✓ | ✓ |
+
+\* BG removal is gated in the plan matrix but the feature is currently retired (§10).
+
+- Plan lives in `orgs.plan`, updated **only** by the Stripe webhook (`checkout.session.completed`).
+- **Webhook URL must be `https://www.shotsync.ai/api/billing/webhook`** (no-www 307-redirects and Stripe won't follow).
+- Plan gating is enforced via `getOrgForUser()` + `PLANS[planId].limits.*`. Tests in `src/lib/plans/plans.test.ts` + `src/lib/supabase/getOrgForUser.test.ts` guard this.
+
+---
+
+## 8. Auth Pattern (`src/lib/supabase/`)
+
+- `createClient()` — browser/cookie client.
+- `createServiceClient()` — service role, bypasses RLS, **server-only**.
+- `getOrgForUser(supabase, userId)` — resolves a user's org via `owner_id`, then `org_members` fallback. **Use this to resolve org/plan in API routes** — never assume `orgs.id === user.id` (they're different UUIDs; assuming so caused a real plan-gating bug).
+- Standard API auth: read the bearer token from the `Authorization` header and validate with `service.auth.getUser(token)`. Client fetches must send `Authorization: Bearer <session.access_token>`.
+- **New Supabase tables** must include explicit `grant`s + RLS (Supabase is removing auto-exposure of public-schema tables).
+- `middleware.ts`: `SITE_PASSWORD` gate, session recovery, `/`→`/dashboard` when authed, geo-routing (US → `/us`).
+
+---
+
+## 9. Integrations
 
 | Service | Purpose | Credentials |
 |---------|---------|-------------|
-| **Supabase** | DB, Auth, Storage | `.env` |
-| **OpenAI** | Image embeddings + vision detection | `.env` |
-| **Stripe** | Subscription billing | `.env` |
-| **Resend** | Transactional email | `.env` (sender: hello@shotsync.ai) |
-| **Shopify** | Create draft product listings | Per-brand in `brands.shopify_access_token` |
-| **Google Drive** | Import images from Drive | OAuth tokens in `brands.cloud_connections.google_drive` |
-| **Dropbox** | Import images from Dropbox | OAuth tokens in `brands.cloud_connections.dropbox` |
-| **AWS S3** | Import images from S3 | Credentials in `brands.cloud_connections.s3` |
-| **Sentry** | Error tracking | `NEXT_PUBLIC_SENTRY_DSN` env var |
+| Supabase | DB/Auth/Storage (incl. `shopify-temp` bucket for push staging) | env |
+| Anthropic | Product copy + classification | env (`ANTHROPIC_API_KEY`) |
+| OpenAI | Embeddings + accessory classification | env (`OPENAI_API_KEY`) |
+| Stripe | Subscriptions | env |
+| Resend | Transactional email | env |
+| Shopify | OAuth app; create draft products | per-brand token in `brands.shopify_access_token` |
+| Cin7 Core | Push enriched product records | per-brand keys on `brands` |
+| Google Drive / Dropbox / S3 | Import source images | per-brand / OAuth |
+| Sentry | Error tracking | env |
+
+**Marketplaces (5):** the-iconic, myer, david-jones, shopify, joor — specs in `src/lib/marketplace/rules.ts`, overridable per-brand (`marketplace_rules` table).
 
 ---
 
-## 10. Deployment
+## 10. Known State / Deferred Cleanups
 
-- **Platform:** Vercel (project: `shotsync-ai`, org: `team_6t13xEoplLJAfEvYDutx8zIJ`)
-- **Trigger:** Auto-deploy on push to `main` branch
-- **Build:** `next build` / `next start`
-- **Repo:** https://github.com/PaddyPhoto/Shotsync-ai
-
-**Vercel function timeouts (set in `next.config.mjs` or `vercel.json`):**
-- `/api/export` — 300s (ZIP generation is slow)
-- All others — 60s default
-
-**Demo mode:** If `NEXT_PUBLIC_SUPABASE_URL` is a placeholder, the app runs without a real database (mock data returned). Useful for local dev without credentials.
+- **Background removal is retired but inert.** `ExportView` has `const bgRemovalEnabled = false`; the toggle UI is removed but the plumbing + `@imgly/background-removal` + onnxruntime config remain. To **re-add**: restore the toggle that sets `bgRemovalEnabled`. To **fully remove**: delete the dormant code + the `@imgly`/onnxruntime dependency + the `next.config.mjs` webpack block, then drop the `--webpack` pin to adopt Turbopack.
+- **`xlsx`** has an unfixable advisory (prototype pollution / ReDoS) — only used to parse the user's own uploaded style list; no upstream fix.
+- **Sentry config deprecations** — `disableLogger`, `automaticVercelMonitors`, and a missing `onRequestError` hook (warnings only).
+- **`lib/pipeline`** (embeddings/k-means) overlaps with the newer client-side `lib/processor` — candidate for audit/removal if the `/process` route is no longer needed.
 
 ---
 
-## 11. Critical Files for New Developers
+## 11. Ops, Testing & CI
 
-| File | Why it matters |
-|------|---------------|
-| `src/middleware.ts` | Auth gate + session recovery — touch with care |
-| `src/lib/pipeline/index.ts` | Main pipeline orchestrator |
-| `src/lib/plans/index.ts` | All plan limits + feature gates |
-| `src/lib/supabase/server.ts` | Auth client factories — read the auth pattern notes |
-| `src/app/api/billing/webhook/route.ts` | Stripe event handler |
-| `src/types/index.ts` | All shared TypeScript types |
-| `src/app/page.tsx` | Landing page (hero, pricing, Watch Demo modal) |
-| `next.config.mjs` | Build config + Sentry |
-| `public/onboarding.html` | Interactive demo tutorial |
-| `DOCUMENTATION.md` | Extended architecture reference |
+- **Tests:** `npm test` (Vitest). Currently covers plan gating + org resolution. No e2e — export flows are validated manually on a Vercel preview before merge.
+- **Type/build gate before pushing:** `npx tsc --noEmit` && `npm run build`.
+- **Weekly health check:** a GitHub Actions workflow (`.github/workflows/health-check.yml` + `scripts/health-check.mjs`) runs every Monday — `tsc` + `npm test` + `npm audit` — and emails a summary to hello@shotsync.ai via Resend. (Pushing workflow files needs a PAT with the `workflow` scope.)
+- **Deploy:** push to `main` → Vercel production. Feature branches get protected preview URLs (log into Vercel to view). `/api/export` and AI routes run with extended function timeouts.
 
 ---
 
-## 12. Local Development Setup
+## 12. Critical Files
+
+| File | Why |
+|------|-----|
+| `src/components/export/ExportView.tsx` | The entire export flow (both entry points) |
+| `src/lib/processor/index.ts` | Upload → clusters (3-tier clustering, angle assignment) |
+| `src/store/session.ts` | Active-job state shape + actions |
+| `src/lib/plans/index.ts` | Plan matrix + feature gates |
+| `src/lib/supabase/{server.ts,getOrgForUser.ts}` | Auth + org/plan resolution |
+| `src/app/api/billing/webhook/route.ts` | Stripe → plan updates |
+| `src/middleware.ts` | Auth + password gate + geo routing |
+| `next.config.mjs` | Build config, onnxruntime webpack externals, Sentry |
+| `src/types/index.ts` | Shared types |
+
+---
+
+## 13. Local Development
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Copy env file and fill in values
-cp .env.example .env.local
-
-# 3. Run dev server
-npm run dev
-# → http://localhost:3000
-
-# 4. (Optional) Run without Supabase
-# Leave NEXT_PUBLIC_SUPABASE_URL as placeholder — app runs in demo mode
+vercel env pull .env.local        # or: cp .env.example .env.local and fill in
+npm run dev                       # → http://localhost:3000  (Next 16, webpack)
+npm test                          # Vitest
+npx tsc --noEmit && npm run build # pre-push gate
 ```
+Branch off `main`, verify on a Vercel preview, then merge. Never commit secrets; `.env*` is gitignored.
 
 ---
 
-*Last updated: April 2026*
+*Last updated: June 2026 (Next.js 16 + React 19; post export-UI consolidation).*
