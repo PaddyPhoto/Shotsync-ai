@@ -104,7 +104,11 @@ export function ExportView({
   const [exportMode, setExportMode] = useState<'zip' | 'folder' | 'dropbox' | 'google-drive' | 's3'>('folder')
   const [flatExport, setFlatExport] = useState(false)
   const [useOriginalNames, setUseOriginalNames] = useState(false)
-  const [bgRemovalEnabled, setBgRemovalEnabled] = useState(false)
+  // Background removal was retired (model quality). Kept inert here — all the
+  // plumbing below short-circuits on this `false` — so the feature can be
+  // re-enabled in a future build by restoring the toggle. (Full dead-code +
+  // @imgly/onnxruntime dependency removal is a separate deferred cleanup.)
+  const bgRemovalEnabled = false
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
   const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
@@ -1077,29 +1081,6 @@ export function ExportView({
                 label="Flat export" sub="All images in one folder per marketplace" />
               <Toggle on={useOriginalNames} onToggle={() => setUseOriginalNames(v => !v)}
                 label="Keep original filenames" sub="Skip renaming — export crops only" />
-              {hasBgRemoval && (
-                canUseBgRemoval ? (
-                  <Toggle on={bgRemovalEnabled} onToggle={() => setBgRemovalEnabled(v => !v)}
-                    label="Background removal"
-                    sub={bgRemovalEnabled
-                      ? `${bgCount} images · $${bgCostAud} AUD · billed on use`
-                      : 'Off · faster export'} />
-                ) : (
-                  <div className="flex items-center gap-3 opacity-50">
-                    <div className="relative w-[36px] h-[20px] rounded-full flex-shrink-0" style={{ background: 'var(--bg4)' }}>
-                      <span className="absolute top-[2px] left-[2px] w-[16px] h-[16px] rounded-full bg-white shadow" />
-                    </div>
-                    <span className="text-[length:var(--font-sm)] text-[var(--text2)]">
-                      Background removal
-                      <span className="text-[var(--text3)] ml-1">— </span>
-                      <button onClick={() => openUpgrade('Background removal is available on the Growth plan and above')}
-                        className="text-[length:var(--font-base)] text-[var(--accent)] hover:underline">
-                        Growth plan required
-                      </button>
-                    </span>
-                  </div>
-                )
-              )}
             </div>
           </div>
 
@@ -1229,14 +1210,6 @@ export function ExportView({
                       )
                     })}
                   </div>
-                </div>
-              )}
-
-              {/* BG removal estimate */}
-              {hasBgRemoval && bgRemovalEnabled && canUseBgRemoval && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-sm border border-[var(--line2)] bg-[var(--bg3)] w-fit text-[length:var(--font-sm)] text-[var(--text2)] flex-shrink-0">
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" strokeWidth="1.6"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 1.5" strokeLinecap="round"/></svg>
-                  Background removal · {bgCount} images · est. <strong className="text-[var(--text)] mx-1">~{estBgMins} min</strong> · <strong className="text-[var(--text)] ml-1">${bgCostAud} AUD</strong>&nbsp;billed on use
                 </div>
               )}
 
