@@ -10,10 +10,8 @@ const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
 
-export async function POST(
-  _req: NextRequest,
-  { params }: { params: { jobId: string } }
-) {
+export async function POST(_req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   // Demo mode: acknowledge without running pipeline
   if (!SUPABASE_CONFIGURED) {
     return NextResponse.json({ data: { started: true, jobId: params.jobId } })

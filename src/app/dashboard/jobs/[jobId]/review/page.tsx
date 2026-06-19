@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
 import { ClusterGrid } from '@/components/clusters/ClusterGrid'
@@ -44,7 +44,8 @@ function buildDemoClusters(): Cluster[] {
   }))
 }
 
-export default function ReviewPage({ params }: { params: { jobId: string } }) {
+export default function ReviewPage(props: { params: Promise<{ jobId: string }> }) {
+  const params = use(props.params);
   const [job, setJob] = useState<Job | null>(null)
   const [clusters, setClusters] = useState<Cluster[]>([])
   const [loading, setLoading] = useState(true)

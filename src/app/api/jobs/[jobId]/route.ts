@@ -20,10 +20,8 @@ function makeDemoJob(jobId: string) {
   }
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { jobId: string } }
-) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   if (!SUPABASE_CONFIGURED) {
     return NextResponse.json({ data: makeDemoJob(params.jobId) })
   }
@@ -62,10 +60,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { jobId: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   if (!SUPABASE_CONFIGURED) {
     return NextResponse.json({ data: makeDemoJob(params.jobId) })
   }
@@ -98,10 +94,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { jobId: string } }
-) {
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   if (!SUPABASE_CONFIGURED) {
     return NextResponse.json({ data: { deleted: true } })
   }

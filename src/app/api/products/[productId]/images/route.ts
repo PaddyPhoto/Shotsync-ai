@@ -8,10 +8,8 @@ type ImagePayload = {
   data: string  // base64-encoded JPEG
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { productId: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   const user = await getAuthUser(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

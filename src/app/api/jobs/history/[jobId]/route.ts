@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(req: NextRequest, { params }: { params: { jobId: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   try {
     const { createServiceClient, getAuthUser } = await import('@/lib/supabase/server')
     const user = await getAuthUser(req)
@@ -44,7 +45,8 @@ export async function GET(req: NextRequest, { params }: { params: { jobId: strin
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { jobId: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   try {
     const { createServiceClient, getAuthUser } = await import('@/lib/supabase/server')
     const user = await getAuthUser(req)

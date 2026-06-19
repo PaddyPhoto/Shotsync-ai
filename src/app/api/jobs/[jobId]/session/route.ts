@@ -27,10 +27,8 @@ type ClusterPayload = {
 }
 
 // POST /api/jobs/[jobId]/session — save cluster metadata after export
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { jobId: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   if (!SUPABASE_CONFIGURED) return NextResponse.json({ ok: true })
 
   try {
@@ -114,10 +112,8 @@ export async function POST(
 }
 
 // GET /api/jobs/[jobId]/session — load cluster metadata for cross-device reopen
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { jobId: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   if (!SUPABASE_CONFIGURED) return NextResponse.json({ clusters: [] })
 
   try {

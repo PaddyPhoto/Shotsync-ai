@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
@@ -109,7 +109,8 @@ async function processImage(file: File, w: number, h: number, bg = '#ffffff'): P
   return new Blob([buffer], { type: 'image/jpeg' })
 }
 
-export default function ExportPage({ params }: { params: { jobId: string } }) {
+export default function ExportPage(props: { params: Promise<{ jobId: string }> }) {
+  const params = use(props.params);
   const router = useRouter()
   const { clusters: sessionClusters, jobName, isReady, markClustersExported, reset } = useSession()
   const { activeBrand, brands } = useBrand()
@@ -186,7 +187,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
     templateVars: Parameters<typeof applyNamingTemplate>[1]
   ): string => {
     if (keepOriginalFilenames) {
-      return originalFilename.replace(/\.[^.]+$/, '')
+      return originalFilename.replace(/\.[^.]+$/, '');
     }
     const tpl = namingTemplate || '{BRAND}_{SEQ}_{VIEW}'
     return applyNamingTemplate(tpl, templateVars) || `${templateVars.brand}_${String(templateVars.seq).padStart(3, '0')}_${templateVars.view}`
@@ -493,7 +494,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           headers: { 'Content-Type': 'application/json', ...authHeader },
           body: JSON.stringify({ job_id: params.jobId, marketplaces: selectedMarketplaces, job_name: job?.name }),
         })
-        if (!res.ok) throw new Error(await res.text() || 'Export failed')
+        if (!res.ok) throw new Error((await res.text()) || 'Export failed')
         setDownloadProgress(80)
         setDownloadStatus('Saving…')
         await saveBlob(await res.blob())
@@ -608,7 +609,7 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeader },
           body: JSON.stringify({ job_id: params.jobId, marketplaces: selectedMarketplaces, job_name: job?.name }),
         })
-        if (!res.ok) throw new Error(await res.text() || 'Export failed')
+        if (!res.ok) throw new Error((await res.text()) || 'Export failed')
         setFolderProgress(40); setFolderStatus('Parsing package…')
         const JSZip = (await import('jszip')).default
         const zip = await JSZip.loadAsync(await res.blob())
@@ -684,7 +685,6 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
 
   return (
     <div style={{ background: BG, minHeight: '100vh', color: T1 }}>
-
       {/* ── Custom top bar ──────────────────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '12px',
@@ -760,7 +760,6 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           )}
         </div>
       </div>
-
       {/* ── Main layout ─────────────────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
 
@@ -1282,11 +1281,10 @@ export default function ExportPage({ params }: { params: { jobId: string } }) {
           )}
         </div>
       </div>
-
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
         @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.3 } }
       `}</style>
     </div>
-  )
+  );
 }

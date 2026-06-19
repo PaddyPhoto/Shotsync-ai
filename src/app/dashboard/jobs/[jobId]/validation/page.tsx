@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
 import { ValidationPanel } from '@/components/validation/ValidationPanel'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { Cluster, Job, MarketplaceName } from '@/types'
 
-export default function ValidationPage({ params }: { params: { jobId: string } }) {
+export default function ValidationPage(props: { params: Promise<{ jobId: string }> }) {
+  const params = use(props.params);
   const [job, setJob] = useState<Job | null>(null)
   const [clusters, setClusters] = useState<Cluster[]>([])
   const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(['the-iconic'])

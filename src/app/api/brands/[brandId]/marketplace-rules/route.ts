@@ -9,10 +9,8 @@ async function getUserFromRequest(req: NextRequest) {
   return getAuthUser(req)
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { brandId: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ brandId: string }> }) {
+  const params = await props.params;
   if (!SUPABASE_CONFIGURED) return NextResponse.json({ rules: null })
 
   try {
@@ -36,10 +34,8 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { brandId: string } }
-) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ brandId: string }> }) {
+  const params = await props.params;
   if (!SUPABASE_CONFIGURED) return NextResponse.json({ ok: true })
 
   try {

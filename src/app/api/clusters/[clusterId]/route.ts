@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { renameClusterImages } from '@/lib/pipeline/step8-naming'
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { clusterId: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ clusterId: string }> }) {
+  const params = await props.params;
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -61,10 +59,8 @@ export async function PATCH(
 }
 
 // Update individual image view label
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { clusterId: string } }
-) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ clusterId: string }> }) {
+  const params = await props.params;
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

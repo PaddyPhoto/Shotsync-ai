@@ -12,10 +12,8 @@ async function getUserFromRequest(req: NextRequest) {
   return getAuthUser(req)
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { brandId: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ brandId: string }> }) {
+  const params = await props.params;
   const body = await req.json()
 
   if (!SUPABASE_CONFIGURED) {
@@ -92,10 +90,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { brandId: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ brandId: string }> }) {
+  const params = await props.params;
   if (!SUPABASE_CONFIGURED) {
     return NextResponse.json({ data: { deleted: true } })
   }

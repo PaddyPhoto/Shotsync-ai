@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
 import { DownloadCard } from '@/components/download/DownloadCard'
 import { formatBytes } from '@/lib/utils'
 import type { ExportRecord, Job } from '@/types'
 
-export default function DownloadPage({ params }: { params: { jobId: string } }) {
+export default function DownloadPage(props: { params: Promise<{ jobId: string }> }) {
+  const params = use(props.params);
   const [job, setJob] = useState<Job | null>(null)
   const [exports, setExports] = useState<ExportRecord[]>([])
   const [loading, setLoading] = useState(true)

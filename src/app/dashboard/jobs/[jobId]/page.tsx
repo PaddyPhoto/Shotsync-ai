@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
@@ -327,7 +327,8 @@ function CompletedJobView({ job, jobId }: { job: Job; jobId: string }) {
   )
 }
 
-export default function JobProcessingPage({ params }: { params: { jobId: string } }) {
+export default function JobProcessingPage(props: { params: Promise<{ jobId: string }> }) {
+  const params = use(props.params);
   const [job, setJob] = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)

@@ -12,9 +12,7 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.supabase.in' },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['sharp'],
-  },
+  serverExternalPackages: ['sharp'],
   webpack: (config, { isServer }) => {
     if (isServer) {
       // On the server, never bundle onnxruntime packages — they pull in Node.js
