@@ -45,14 +45,13 @@ This document lives **inside the repo** (`HANDOVER.md` at the root), so cloning 
 | Styling | Tailwind CSS | 3.4 |
 | DB / Auth / Storage | Supabase (Postgres + Auth + Storage) | supabase-js 2.43 |
 | AI — copy & classification | Anthropic Claude (`@anthropic-ai/sdk`) | Sonnet 4.6 + Haiku 4.5 |
-| AI — embeddings & accessory class. | OpenAI | — |
+| AI — accessory classification | OpenAI (GPT-4o vision) | — |
 | Billing | Stripe | 21 |
 | Email | Resend (sender: hello@shotsync.ai) | 6 |
 | Image processing | Sharp (server) + Canvas (client) | 0.33 |
 | ZIP / spreadsheet | JSZip / xlsx | — |
 | State | Zustand + TanStack React Query | 4.5 / 5.51 |
 | Monitoring | Sentry | 10 |
-| Clustering (legacy server path) | ml-kmeans + ml-distance | 3.0 / 4.0 |
 | Background removal (inert) | @imgly/background-removal + onnxruntime-web | retired — see §10 |
 | Tests | Vitest | 2 |
 
@@ -89,7 +88,7 @@ src/
 ├── lib/
 │   ├── processor/              # ⭐ Client-side upload→clusters (filename/folder, §6)
 │   ├── export/image-processing.ts  # Canvas resize/crop/compose; @imgly fallback (inert)
-│   ├── pipeline/               # Legacy/server processing path (embeddings + k-means, §6)
+│   ├── pipeline/               # Saved-job export only: runExport + step8/9/10 (§6)
 │   ├── plans/                  # Plan matrix + feature gates (§7)
 │   ├── supabase/               # Client factories + getOrgForUser helper (§8)
 │   ├── marketplace/            # Per-brand marketplace rules + formatting
@@ -117,7 +116,7 @@ SUPABASE_SERVICE_ROLE_KEY=        # server-only; bypasses RLS
 
 # AI
 ANTHROPIC_API_KEY=                # Claude — product copy, angle/garment classification
-OPENAI_API_KEY=                   # embeddings (server pipeline) + accessory classification
+OPENAI_API_KEY=                   # accessory classification (GPT-4o vision)
 REPLICATE_API_TOKEN=              # used by the (now-inert) bg-removal pre-pass
 
 # Stripe (monthly + annual + USD price IDs per paid plan)
@@ -148,7 +147,7 @@ All under `src/app/api/`. **Auth pattern:** most routes authenticate the bearer 
 | Area | Routes |
 |------|--------|
 | Billing | `billing/checkout`, `billing/portal`, `billing/subscribe`, `billing/plan`, `billing/usage`, `billing/bg-removal`, **`billing/webhook`** (Stripe — must be **www**) |
-| Jobs | `jobs`, `jobs/[jobId]`, `jobs/[jobId]/process` (server pipeline), `jobs/[jobId]/session` (cross-device restore), `jobs/history`, `jobs/detect-angles` (Claude) |
+| Jobs | `jobs`, `jobs/[jobId]`, `jobs/[jobId]/session` (cross-device restore), `jobs/history` |
 | Clusters/Products | `clusters/[clusterId]`, `products`, `products/[productId]`, `products/[productId]/publish`, `products/match-skus`, `products/import/{shopify,cin7}` |
 | AI | `copy/generate` (Claude Sonnet), `classify-garment` (Claude Haiku), `ai/classify-accessory` (OpenAI) |
 | Export/Brands | `export`, `export/zip`, `brands`, `brands/[brandId]`, `brands/[brandId]/marketplace-rules` |
@@ -180,15 +179,15 @@ copyDescription?, copyBullets?, productId?, listingId? }`
 
 ---
 
-## 6. Processing — two paths
+## 6. Processing
 
-**A) Interactive upload (primary)** — `src/lib/processor/processFiles()`, fully **client-side** (images never leave the browser unless pushed/exported to a cloud target). The upload page (drag-drop or folder picker) calls it. Clustering is **3-tier** (see `project_clustering_skus` logic):
+**Upload → clusters (client-side)** — `src/lib/processor/processFiles()`, fully **client-side** (images never leave the browser unless pushed/exported to a cloud target). The upload page (drag-drop or folder picker) calls it. Clustering is **3-tier** (see `project_clustering_skus` logic):
 1. **Sub-folder per SKU** — folder upload → one cluster per sub-folder, SKU = folder name.
 2. **Filename key** — flat files like `WD2451_NAVY_01.jpg` → group by stripped key.
 3. **Fixed chunk** — sequential names → chunk by images-per-look, SKU = first image's full filename.
 Angles are assigned **positionally** from the brand's shoot sequence (not AI). AI copy (Claude) is generated on demand in the review page.
 
-**B) Server pipeline (legacy/secondary)** — `src/lib/pipeline/` `runPipeline()`, invoked by `POST /api/jobs/[jobId]/process`. Uses OpenAI embeddings + ml-kmeans clustering + Sharp formatting (steps `step1`…`step10`). Predates path A; verify whether a given flow still routes through it before relying on it.
+> The old server-side pipeline (`runPipeline` + OpenAI/k-means clustering, the `/api/jobs/[jobId]/process` and `/api/upload` routes, and steps 1–7) was **removed** (2026-06-20) — it was unreachable, superseded by the client-side processor. What survives in `src/lib/pipeline/` is **`runExport()`** (`index.ts`) plus `step8-naming` / `step9-marketplace-format` / `step10-export`, used by `/api/export` for the saved-job download path.
 
 **Export** — `src/components/export/ExportView.tsx` is the **single shared export UI** for both the live-session export (Review → Export) and the saved-job export route. Supports ZIP / save-to-folder / cloud (Dropbox/Drive/S3), per-marketplace resize/crop/naming, a rich `product_data.csv`, and direct Shopify + Cin7 push.
 
@@ -248,7 +247,7 @@ Internal plan IDs: **`free` · `launch` · `growth` · `scale` · `enterprise`**
 - **Background removal is retired but inert.** `ExportView` has `const bgRemovalEnabled = false`; the toggle UI is removed but the plumbing + `@imgly/background-removal` + onnxruntime config remain. To **re-add**: restore the toggle that sets `bgRemovalEnabled`. To **fully remove**: delete the dormant code + the `@imgly`/onnxruntime dependency + the `next.config.mjs` webpack block, then drop the `--webpack` pin to adopt Turbopack.
 - **`xlsx`** has an unfixable advisory (prototype pollution / ReDoS) — only used to parse the user's own uploaded style list; no upstream fix.
 - **Sentry config deprecations** — `disableLogger`, `automaticVercelMonitors`, and a missing `onRequestError` hook (warnings only).
-- **`lib/pipeline`** (embeddings/k-means) overlaps with the newer client-side `lib/processor` — candidate for audit/removal if the `/process` route is no longer needed.
+- **Dormant AI routes** — `jobs/detect-angles` and `classify-garment` (both Claude Haiku) are built but have no UI caller (angle detection is positional, not AI); removal candidates.
 
 ---
 
