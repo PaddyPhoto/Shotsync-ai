@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import type { MarketplaceName } from '@/types'
+import type { DimensionOverride } from '@/store/session'
 
 interface MarketplaceSelectorProps {
   selected: MarketplaceName[]
@@ -9,6 +11,10 @@ interface MarketplaceSelectorProps {
   lockedMarketplaces?: MarketplaceName[]
   onLockedClick?: () => void
   columns?: 2 | 3 | 4
+  /** Per-job output-size overrides, keyed by marketplace id. */
+  dimensionOverrides?: Record<string, DimensionOverride>
+  /** When provided, the dimensions line becomes editable (pass null to reset to default). */
+  onDimensionChange?: (id: MarketplaceName, dims: DimensionOverride | null) => void
 }
 
 const MARKETPLACE_DESCRIPTIONS: Record<MarketplaceName, string> = {
@@ -57,7 +63,156 @@ const MARKETPLACE_PALETTE: Record<MarketplaceName, { bgRest: string; bgSelected:
   },
 }
 
-export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [], onLockedClick, columns = 4 }: MarketplaceSelectorProps) {
+// Common output ratios for the "just resize this job" use case. Images are fit-to-contain
+// (scaled + padded) into the target — nothing is cropped.
+const RATIO_PRESETS: { label: string; ratio: string; width: number; height: number }[] = [
+  { label: 'Square',    ratio: '1:1', width: 2048, height: 2048 },
+  { label: 'Portrait',  ratio: '4:5', width: 1600, height: 2000 },
+  { label: 'Portrait',  ratio: '3:4', width: 1536, height: 2048 },
+  { label: 'Portrait',  ratio: '2:3', width: 1600, height: 2400 },
+  { label: 'Landscape', ratio: '3:2', width: 2400, height: 1600 },
+]
+
+function DimensionControl({
+  id, defaultDims, override, accent, onChange,
+}: {
+  id: MarketplaceName
+  defaultDims: DimensionOverride
+  override?: DimensionOverride
+  accent: string
+  onChange: (id: MarketplaceName, dims: DimensionOverride | null) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const effective = override ?? defaultDims
+  const [w, setW] = useState(String(effective.width))
+  const [h, setH] = useState(String(effective.height))
+
+  const openEditor = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setW(String(effective.width)); setH(String(effective.height))
+    setOpen((v) => !v)
+  }
+  const apply = (dims: DimensionOverride | null) => { onChange(id, dims); setOpen(false) }
+  const applyCustom = () => {
+    const nw = Math.round(Number(w)), nh = Math.round(Number(h))
+    if (!nw || !nh || nw < 1 || nh < 1) return
+    // reset to default if it matches, otherwise store the override
+    if (nw === defaultDims.width && nh === defaultDims.height) apply(null)
+    else apply({ width: nw, height: nh })
+  }
+  const stop = (e: React.MouseEvent) => e.stopPropagation()
+
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        type="button"
+        onClick={openEditor}
+        title="Change output size for this job"
+        style={{
+          cursor: 'pointer', font: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '6px',
+          padding: '3px 8px', borderRadius: '7px',
+          background: override ? `${accent}1f` : 'rgba(255,255,255,0.05)',
+          border: `1px solid ${override ? accent : 'var(--line2)'}`,
+          color: override ? accent : '#dcdce0',
+        }}
+      >
+        <span style={{ fontFamily: 'var(--font-dm-mono)' }}>{effective.width}×{effective.height}px</span>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.95 }}>
+          <path d="M9.5 2.5l2 2L5 11l-2.5.5L3 9z" />
+          <path d="M8.5 3.5l2 2" />
+        </svg>
+        {override && <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: '0.85em', opacity: 0.85 }}>· custom</span>}
+      </button>
+
+      {open && (
+        <>
+          {/* outside-click backdrop */}
+          <div onClick={(e) => { stop(e); setOpen(false) }} style={{ position: 'fixed', inset: 0, zIndex: 100 }} />
+          <div
+            onClick={stop}
+            style={{
+              position: 'absolute', bottom: '100%', left: 0, marginBottom: '10px', zIndex: 101,
+              width: '272px', background: 'var(--bg2)', border: '1px solid var(--line)',
+              borderRadius: '12px', boxShadow: '0 18px 50px rgba(0,0,0,0.5)', padding: '12px',
+              cursor: 'default', textAlign: 'left',
+            }}
+          >
+            <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: '8px' }}>
+              Output size · this job
+            </p>
+
+            {/* default / reset */}
+            <button
+              type="button"
+              onClick={() => apply(null)}
+              style={{
+                width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '7px 9px', borderRadius: '8px', cursor: 'pointer', marginBottom: '8px',
+                background: override ? 'var(--bg3)' : 'var(--accent-glow)',
+                border: `1px solid ${override ? 'var(--line)' : 'var(--accent)'}`,
+                color: 'var(--text)', fontSize: 'var(--font-sm)', textAlign: 'left',
+              }}
+            >
+              <span>Marketplace default</span>
+              <span style={{ fontFamily: 'var(--font-dm-mono)', color: 'var(--text3)' }}>{defaultDims.width}×{defaultDims.height}</span>
+            </button>
+
+            {/* presets */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginBottom: '10px' }}>
+              {RATIO_PRESETS.map((p) => {
+                const active = override?.width === p.width && override?.height === p.height
+                return (
+                  <button
+                    key={p.ratio}
+                    type="button"
+                    onClick={() => apply({ width: p.width, height: p.height })}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                      padding: '6px 8px', borderRadius: '8px', cursor: 'pointer',
+                      background: active ? 'var(--accent-glow)' : 'var(--bg3)',
+                      border: `1px solid ${active ? 'var(--accent)' : 'var(--line)'}`,
+                      color: 'var(--text)',
+                    }}
+                  >
+                    <span style={{ fontSize: 'var(--font-sm)', fontWeight: 500 }}>{p.ratio}</span>
+                    <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text3)', fontFamily: 'var(--font-dm-mono)' }}>{p.width}×{p.height}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* custom */}
+            <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text3)', marginBottom: '5px' }}>Custom (px)</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <input
+                type="number" inputMode="numeric" value={w} onChange={(e) => setW(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') applyCustom() }}
+                style={{ width: '78px', padding: '6px 8px', borderRadius: '7px', background: 'var(--bg3)', border: '1px solid var(--line2)', color: 'var(--text)', fontSize: 'var(--font-sm)', fontFamily: 'var(--font-dm-mono)' }}
+              />
+              <span style={{ color: 'var(--text3)' }}>×</span>
+              <input
+                type="number" inputMode="numeric" value={h} onChange={(e) => setH(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') applyCustom() }}
+                style={{ width: '78px', padding: '6px 8px', borderRadius: '7px', background: 'var(--bg3)', border: '1px solid var(--line2)', color: 'var(--text)', fontSize: 'var(--font-sm)', fontFamily: 'var(--font-dm-mono)' }}
+              />
+              <button
+                type="button" onClick={applyCustom}
+                style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: '7px', background: 'var(--accent)', border: 'none', color: '#000', fontSize: 'var(--font-sm)', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Set
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+export function MarketplaceSelector({
+  selected, onChange, lockedMarketplaces = [], onLockedClick, columns = 4,
+  dimensionOverrides, onDimensionChange,
+}: MarketplaceSelectorProps) {
   const toggle = (id: MarketplaceName) => {
     if (selected.includes(id)) {
       onChange(selected.filter((m) => m !== id))
@@ -73,6 +228,7 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
         const isSelected = selected.includes(id)
         const isLocked = lockedMarketplaces.includes(id)
         const palette = MARKETPLACE_PALETTE[id]
+        const override = dimensionOverrides?.[id]
 
         if (isLocked) {
           return (
@@ -114,10 +270,17 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
           )
         }
 
+        const dims = override ?? rule.image_dimensions
+
         return (
-          <button
+          // Rendered as a div (not button) so the editable dimension popover — which
+          // contains its own buttons — is valid markup nested inside it.
+          <div
             key={id}
+            role="button"
+            tabIndex={0}
             onClick={() => toggle(id)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(id) } }}
             style={{
               position: 'relative',
               background: isSelected ? palette.bgSelected : palette.bgRest,
@@ -127,7 +290,6 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'all 0.15s',
-              overflow: 'hidden',
             }}
           >
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: palette.dot, marginBottom: '10px', opacity: isSelected ? 1 : 0.5 }} />
@@ -149,10 +311,14 @@ export function MarketplaceSelector({ selected, onChange, lockedMarketplaces = [
               {MARKETPLACE_DESCRIPTIONS[id]}
             </p>
             <div style={{ fontSize: 'var(--font-sm)', lineHeight: 1.8, fontFamily: 'var(--font-dm-mono)', color: '#c8c8c8' }}>
-              <p>{rule.image_dimensions.width}×{rule.image_dimensions.height}px</p>
+              {onDimensionChange ? (
+                <DimensionControl id={id} defaultDims={rule.image_dimensions} override={override} accent={palette.nameColor} onChange={onDimensionChange} />
+              ) : (
+                <p style={{ color: override ? palette.nameColor : '#c8c8c8' }}>{dims.width}×{dims.height}px{override ? ' · custom' : ''}</p>
+              )}
               <p>{rule.file_format.toUpperCase()} · Q{rule.quality}</p>
             </div>
-          </button>
+          </div>
         )
       })}
     </div>

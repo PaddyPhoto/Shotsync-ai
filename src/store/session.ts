@@ -35,6 +35,10 @@ export interface SessionCluster {
 
 export type ShootType = 'on-model' | 'still-life'
 
+// Per-job output-size override, keyed by marketplace id. When present it wins over the
+// marketplace's default image_dimensions for THIS job only (cleared on reset/new job).
+export interface DimensionOverride { width: number; height: number }
+
 export interface StyleListEntry {
   sku: string
   color?: string
@@ -49,6 +53,7 @@ interface SessionState {
   jobName: string
   clusters: SessionCluster[]
   marketplaces: string[]
+  dimensionOverrides: Record<string, DimensionOverride>
   shootType: ShootType
   accessoryCategory: string | null
   imagesPerLook: number
@@ -59,6 +64,7 @@ interface SessionState {
   styleList: StyleListEntry[]
   setUseStyleList: (val: boolean) => void
   setStyleList: (list: StyleListEntry[]) => void
+  setDimensionOverrides: (overrides: Record<string, DimensionOverride>) => void
   setSession: (jobName: string, clusters: SessionCluster[], marketplaces?: string[], imagesPerLook?: number, angleSequence?: ViewLabel[], brandId?: string | null) => void
   setShootConfig: (shootType: ShootType, accessoryCategory: string | null) => void
   moveImage: (imageId: string, toClusterId: string) => void
@@ -100,6 +106,7 @@ export const useSession = create<SessionState>((set, get) => ({
   jobName: '',
   clusters: [],
   marketplaces: ['the-iconic'],
+  dimensionOverrides: {},
   shootType: 'on-model',
   accessoryCategory: null,
   imagesPerLook: 6,
@@ -110,6 +117,7 @@ export const useSession = create<SessionState>((set, get) => ({
   styleList: [],
   setUseStyleList: (val) => set({ useStyleList: val }),
   setStyleList: (list) => set({ styleList: list }),
+  setDimensionOverrides: (overrides) => set({ dimensionOverrides: overrides }),
   undoStack: [],
 
   setShootConfig: (shootType, accessoryCategory) => set({ shootType, accessoryCategory }),
@@ -459,6 +467,6 @@ export const useSession = create<SessionState>((set, get) => ({
   reset: () => {
     try { sessionStorage.removeItem('shotsync:session') } catch { /* ignore */ }
     try { sessionStorage.removeItem('shotsync:reimport') } catch { /* ignore */ }
-    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], shootType: 'on-model', accessoryCategory: null, imagesPerLook: 6, angleSequence: [], isReady: false, undoStack: [], useStyleList: false, styleList: [], sessionBrandId: null })
+    set({ jobName: '', clusters: [], marketplaces: ['the-iconic'], dimensionOverrides: {}, shootType: 'on-model', accessoryCategory: null, imagesPerLook: 6, angleSequence: [], isReady: false, undoStack: [], useStyleList: false, styleList: [], sessionBrandId: null })
   },
 }))

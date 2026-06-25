@@ -113,6 +113,14 @@ export function ExportView({
 
   const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
   const markClustersExported = useSession((s) => s.markClustersExported)
+  const dimensionOverrides = useSession((s) => s.dimensionOverrides)
+  // Resolve a marketplace's rule, applying any per-job output-size override.
+  // Images are fit-to-contain (scaled + padded) into image_dimensions — never cropped.
+  const resolveRule = (m: MarketplaceName): EditableRules[MarketplaceName] => {
+    const base = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
+    const ov = dimensionOverrides[m]
+    return ov ? { ...base, image_dimensions: { width: ov.width, height: ov.height } } : base
+  }
   const confirmedClusters = clusters
     .filter((c) => c.confirmed)
     .sort((a, b) => parseInt(a.label?.match(/\d+/)?.[0] ?? '0', 10) - parseInt(b.label?.match(/\d+/)?.[0] ?? '0', 10))
@@ -484,7 +492,7 @@ export function ExportView({
     // so the canvas compositing phase never blocks on individual API calls.
     const bgRemovalCache = new Map<string, Blob>() // imageId → transparent PNG
     const anyBgRemovalMarketplace = selectedMarketplaces.some(
-      (m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background
+      (m) => (resolveRule(m)).remove_background
     )
     if (bgRemovalEnabled && anyBgRemovalMarketplace) {
       const bgTasks = confirmedClusters.flatMap((c) =>
@@ -581,7 +589,7 @@ export function ExportView({
       const rootHandle = folderRef.current
 
       for (const marketplace of selectedMarketplaces) {
-        const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
+        const rule = resolveRule(marketplace)
         const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
         // Always create the marketplace folder — flatExport only skips SKU subfolders
         const mpHandle = await rootHandle.getDirectoryHandle(rule.name.replace(/\s+/g, '_'), { create: true })
@@ -685,7 +693,7 @@ export function ExportView({
         const zip = new JSZip()
 
         for (const marketplace of batches[batchIdx]) {
-          const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
+          const rule = resolveRule(marketplace)
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
           const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
           const tasks = buildTasks(template, rule)
@@ -752,7 +760,7 @@ export function ExportView({
         const { data: { session } } = await createClient().auth.getSession()
         const allKeys: string[] = []
         for (const marketplace of selectedMarketplaces) {
-          const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
+          const rule = resolveRule(marketplace)
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
           const tasks = buildTasks(template, rule)
           for (const { cluster, seq, img, imgIdx, viewNum } of tasks) {
@@ -806,7 +814,7 @@ export function ExportView({
       setCloudExportStatus({ done: 0, total: cloudTotal, errors: 0 })
 
       for (const marketplace of selectedMarketplaces) {
-        const rule = marketplaceRules[marketplace] ?? MARKETPLACE_RULES[marketplace]
+        const rule = resolveRule(marketplace)
         const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
         const mpFolderName = rule.name.replace(/\s+/g, '_')
 
@@ -965,7 +973,7 @@ export function ExportView({
   const totalSourceImages = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
   const ANZ_MARKETPLACES: MarketplaceName[] = ['the-iconic', 'myer', 'david-jones']
   const lockedMarketplaces: MarketplaceName[] = plan.limits.marketplaces < 2 ? ANZ_MARKETPLACES : []
-  const hasBgRemoval = shootType === 'still-life' && selectedMarketplaces.some((m) => (marketplaceRules[m] ?? MARKETPLACE_RULES[m]).remove_background)
+  const hasBgRemoval = shootType === 'still-life' && selectedMarketplaces.some((m) => (resolveRule(m)).remove_background)
   const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
   const estBgMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
   const bgCostAud = (bgCount * 0.16).toFixed(2)
@@ -1022,6 +1030,7 @@ export function ExportView({
           <MarketplaceSelector
             selected={selectedMarketplaces}
             columns={2}
+            dimensionOverrides={dimensionOverrides}
             lockedMarketplaces={lockedMarketplaces}
             onLockedClick={() => openUpgrade('ANZ marketplace exports (The Iconic, Myer, David Jones) are available on the Launch plan and above.')}
             onChange={(next) => {
@@ -1195,7 +1204,7 @@ export function ExportView({
                   </div>
                   <div className="flex flex-col gap-1.5">
                     {selectedMarketplaces.map((m) => {
-                      const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
+                      const rule = resolveRule(m)
                       return (
                         <div key={m} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-3 py-2.5">
                           <p className="font-medium text-[var(--text)] text-[length:var(--font-base)] mb-1.5">{rule.name}</p>
@@ -1305,7 +1314,7 @@ export function ExportView({
                   <p className="text-[length:var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide mb-2 flex-shrink-0">Output preview</p>
                   <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-3 text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                     {selectedMarketplaces.slice(0, 3).map((m) => {
-                      const rule = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
+                      const rule = resolveRule(m)
                       const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
                       const mpFolder = rule.name.replace(/\s+/g, '_')
                       return (

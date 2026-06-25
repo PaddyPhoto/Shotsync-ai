@@ -125,6 +125,7 @@ export default function UploadPage() {
   const { activeBrand } = useBrand()
   const { canProcessSkus, plan, usage, openUpgrade } = usePlan()
   const setSession = useSession((s) => s.setSession)
+  const pushDimensionOverrides = useSession((s) => s.setDimensionOverrides)
   const setShootConfig = useSession((s) => s.setShootConfig)
   const resetSession = useSession((s) => s.reset)
   const setUseStyleList = useSession((s) => s.setUseStyleList)
@@ -212,6 +213,7 @@ export default function UploadPage() {
   // Drag state for angle reordering
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  const [addAngleOpen, setAddAngleOpen] = useState(false)
 
   async function handleParkAndStartNew() {
     if (!existingSession.clusters.length) return
@@ -240,6 +242,9 @@ export default function UploadPage() {
       ? activeBrand.default_marketplaces as MarketplaceName[]
       : ['the-iconic' as MarketplaceName]
   )
+  // Per-job output-size overrides set on the marketplace cards below. Local until the job
+  // is processed, then pushed to the session store so the export honours them.
+  const [dimensionOverrides, setDimensionOverrides] = useState<Record<string, { width: number; height: number }>>({})
   const ALL_ON_MODEL_ANGLES = ['full-length', 'front', 'side', 'mood', 'detail', 'back', 'mood-2', 'mood-3', 'full-length-side', 'full-length-back']
   const defaultImagesPerLook = activeBrand?.images_per_look ?? 4
   const [imagesPerLook, setImagesPerLook] = useState<number>(defaultImagesPerLook)
@@ -763,6 +768,7 @@ export default function UploadPage() {
     ).catch(() => { /* non-critical */ })
 
     setSession(name, clusters, marketplaces, imagesPerLook, (effectiveAngleSeq ?? []) as import('@/types').ViewLabel[], activeBrand?.id ?? null)
+    pushDimensionOverrides(dimensionOverrides)
     setUseStyleList(useStyleListLocal)
     setStyleListStore(useStyleListLocal ? styleListData : [])
 
@@ -1333,12 +1339,22 @@ export default function UploadPage() {
                     <p style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', marginBottom: '10px', lineHeight: 1.5 }}>
                       Drives compliance checking during review — ShotSync flags any clusters missing that platform&apos;s required angles. Also pre-selects marketplaces in the export panel, where you can adjust the final selection before exporting.
                     </p>
-                    <MarketplaceSelector selected={marketplaces} onChange={(mps) => setMarketplaces(mps as MarketplaceName[])} />
+                    <MarketplaceSelector
+                      selected={marketplaces}
+                      onChange={(mps) => setMarketplaces(mps as MarketplaceName[])}
+                      dimensionOverrides={dimensionOverrides}
+                      onDimensionChange={(id, dims) => setDimensionOverrides((prev) => {
+                        const next = { ...prev }
+                        if (dims) next[id] = dims; else delete next[id]
+                        return next
+                      })}
+                    />
                   </div>
 
                   {shootType === 'on-model' && (
                     <div style={{ marginBottom: '16px' }}>
-                      <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Images per look</label>
+                      <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Images per look</label>
+                      <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', marginBottom: '8px' }}>How many images the photographer/studio delivered per look.</p>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         {[2, 3, 4, 5, 6, 7, 8].map((n) => (
                           <button
@@ -1368,10 +1384,26 @@ export default function UploadPage() {
                     </div>
                   )}
 
-                  {shootType === 'on-model' && (
+                  {shootType === 'on-model' && (() => {
+                    const availableAngles = Object.keys(ANGLE_STYLE).filter((a) => !angleSequence.includes(a))
+                    const removeAngle = (idx: number) => {
+                      if (angleSequence.length <= 2) return
+                      const next = angleSequence.filter((_, i) => i !== idx)
+                      setAngleSequence(next)
+                      setImagesPerLook(next.length)
+                    }
+                    const addAngle = (angle: string) => {
+                      if (angleSequence.length >= 8) return
+                      const next = [...angleSequence, angle]
+                      setAngleSequence(next)
+                      setImagesPerLook(next.length)
+                      setAddAngleOpen(false)
+                    }
+                    return (
                     <div>
-                      <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Angle sequence</label>
-                      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                      <label style={{ fontSize: 'var(--font-base)', color: 'var(--text3)', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Angle sequence</label>
+                      <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', marginBottom: '8px' }}>Drag to reorder · × to remove · + to add. Sets how many images make up one look.</p>
+                      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
                         {angleSequence.map((angle, idx) => {
                           const st = ANGLE_STYLE[angle] ?? { bg: 'var(--bg3)', color: 'var(--text3)', dot: 'var(--text3)' }
                           return (
@@ -1391,7 +1423,7 @@ export default function UploadPage() {
                               }}
                               onDragEnd={() => { setDragIdx(null); setDragOverIdx(null) }}
                               style={{
-                                display: 'flex', alignItems: 'center', gap: '5px', padding: '3px 8px', borderRadius: '20px',
+                                display: 'flex', alignItems: 'center', gap: '5px', padding: '3px 5px 3px 8px', borderRadius: '20px',
                                 background: st.bg, color: st.color, fontSize: 'var(--font-sm)', fontWeight: 500,
                                 cursor: 'grab', border: dragOverIdx === idx ? `1.5px dashed ${st.dot}` : '1px solid transparent',
                                 opacity: dragIdx === idx ? 0.4 : 1,
@@ -1399,12 +1431,79 @@ export default function UploadPage() {
                             >
                               <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: st.dot, flexShrink: 0 }} />
                               {idx + 1}. {angleDisplayName(angle)}
+                              {angleSequence.length > 2 && (
+                                <button
+                                  type="button"
+                                  draggable={false}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => { e.stopPropagation(); removeAngle(idx) }}
+                                  title="Remove angle"
+                                  style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: '15px', height: '15px', borderRadius: '50%', border: 'none', cursor: 'pointer',
+                                    background: 'transparent', color: st.color, opacity: 0.65, padding: 0, marginLeft: '1px',
+                                  }}
+                                >
+                                  <svg width="9" height="9" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 3l8 8M11 3L3 11" /></svg>
+                                </button>
+                              )}
                             </div>
                           )
                         })}
+
+                        {/* Add angle */}
+                        {angleSequence.length < 8 && availableAngles.length > 0 && (
+                          <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <button
+                              type="button"
+                              onClick={() => setAddAngleOpen((v) => !v)}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 10px', borderRadius: '20px',
+                                background: 'var(--bg3)', color: 'var(--text2)', fontSize: 'var(--font-sm)', fontWeight: 500,
+                                border: '1px dashed var(--line2)', cursor: 'pointer',
+                              }}
+                            >
+                              <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M7 2v10M2 7h10" /></svg>
+                              Add angle
+                            </button>
+                            {addAngleOpen && (
+                              <>
+                                <div onClick={() => setAddAngleOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 100 }} />
+                                <div style={{
+                                  position: 'absolute', top: '100%', left: 0, marginTop: '6px', zIndex: 101,
+                                  background: 'var(--bg2)', border: '1px solid var(--line)', borderRadius: '12px',
+                                  boxShadow: '0 18px 50px rgba(0,0,0,0.5)', padding: '6px', minWidth: '180px',
+                                  display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '260px', overflowY: 'auto',
+                                }}>
+                                  {availableAngles.map((a) => {
+                                    const ast = ANGLE_STYLE[a] ?? { bg: 'var(--bg3)', color: 'var(--text3)', dot: 'var(--text3)' }
+                                    return (
+                                      <button
+                                        key={a}
+                                        type="button"
+                                        onClick={() => addAngle(a)}
+                                        style={{
+                                          display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 9px', borderRadius: '8px',
+                                          background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+                                          color: 'var(--text)', fontSize: 'var(--font-sm)',
+                                        }}
+                                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--bg3)' }}
+                                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                                      >
+                                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: ast.dot, flexShrink: 0 }} />
+                                        {angleDisplayName(a)}
+                                      </button>
+                                    )
+                                  })}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
+                    )
+                  })()}
               </div>
             </div>
 
