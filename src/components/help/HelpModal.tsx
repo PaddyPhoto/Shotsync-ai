@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ScribeEmbed } from '@/components/ui/ScribeEmbed'
 
 let _openModal: (() => void) | null = null
 export function openHelpModal() { _openModal?.() }
@@ -305,6 +306,25 @@ export function HelpModal() {
 
         {/* Scrollable content */}
         <div className="overflow-y-auto flex-1 px-6 py-5">
+          {/* Walkthrough video */}
+          <div className="mb-5">
+            <h3
+              className="text-[length:var(--font-xs)] font-semibold tracking-[0.08em] uppercase mb-1"
+              style={{ color: 'var(--accent)' }}
+            >
+              Walkthrough
+            </h3>
+            <div
+              className="rounded-[10px] overflow-hidden"
+              style={{ background: 'var(--bg3)', border: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <ScribeEmbed
+                title="How to set up a brand and process images in ShotSync"
+                style={{ aspectRatio: '16 / 12', minHeight: 360 }}
+              />
+            </div>
+          </div>
+
           {SECTIONS.map((section) => (
             <SectionBlock key={section.title} section={section} />
           ))}
