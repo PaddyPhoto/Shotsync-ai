@@ -2,9 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { PLANS } from '@/lib/plans'
-import { CheckoutModal } from '@/components/billing/CheckoutModal'
 import { PaymentLogos } from '@/components/billing/PaymentLogos'
+import { AnimatedHeading, Reveal, RevealItem, ScrollTilt, WorkflowGraph } from '@/components/landing/LandingMotion'
 
 // Fixed-position orb — stays in viewport, drifts upward at `speed` rate as you scroll.
 // This creates true parallax: content scrolls at 1× while each orb drifts at a different speed.
@@ -34,13 +33,7 @@ function Orb({ color, size, top, left, speed }: {
 }
 
 export default function LandingPage() {
-  const [annual, setAnnual] = useState(true)
   const [demoOpen, setDemoOpen] = useState(false)
-  const [activePricingCard, setActivePricingCard] = useState(0)
-  const pricingScrollRef = useRef<HTMLDivElement>(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
-  const [checkoutModal, setCheckoutModal] = useState<{ planKey: string; price: number; name: string; features: string[] } | null>(null)
 
   // Supabase may send #access_token=... to the site root when the callback
   // URL isn't matched. Detect and forward to the proper callback handler.
@@ -51,23 +44,6 @@ export default function LandingPage() {
       window.location.replace('/auth/callback' + window.location.hash)
     }
   }, [])
-
-  useEffect(() => {
-    import('@/lib/supabase/client').then(({ createClient }) =>
-      createClient().auth.getSession()
-    ).then(({ data: { session } }) => {
-      if (session) setIsLoggedIn(true)
-    }).catch(() => {})
-  }, [])
-
-  const handlePlanCta = (planKey: string, signupHref: string) => {
-    if (!isLoggedIn) { window.location.href = signupHref; return }
-    if (planKey === 'free') { window.location.href = '/dashboard'; return }
-    const plan = PLANS[planKey as keyof typeof PLANS]
-    if (!plan) return
-    const price = annual && plan.priceAudAnnual ? plan.priceAudAnnual : plan.priceAud
-    setCheckoutModal({ planKey, price, name: plan.name, features: plan.highlights })
-  }
 
   return (
     <>
@@ -80,11 +56,7 @@ export default function LandingPage() {
           0%, 100% { opacity: 1; }
           50%       { opacity: 0.4; }
         }
-        .hero-eyebrow { animation: fadeUp .7s ease both .1s; }
-        .hero-h1      { animation: fadeUp .7s ease both .2s; }
-        .hero-sub     { animation: fadeUp .7s ease both .3s; }
-        .hero-actions { animation: fadeUp .7s ease both .4s; }
-        .hero-stats   { animation: fadeUp .7s ease both .55s; }
+        /* Hero entrance now handled by framer-motion (see LandingMotion). */
         .eyebrow-dot  { animation: eyebrowPulse 2s infinite; }
         .nav-link { font-size:13px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
         .nav-link:hover { color:#1d1d1f; }
@@ -166,7 +138,7 @@ export default function LandingPage() {
           <div className="nav-links-desktop" style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
             <a href="#how-it-works" className="nav-link">How it works</a>
             <a href="#features" className="nav-link">Features</a>
-            <a href="#pricing" className="nav-link">Pricing</a>
+            <Link href="/pricing" className="nav-link">Pricing</Link>
           </div>
           <div className="nav-cta-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link href="/login" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>Sign in</Link>
@@ -178,17 +150,28 @@ export default function LandingPage() {
 
         {/* ── HERO ── */}
         <section className="hero-section" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '80px 40px 60px', position: 'relative' }}>
+          <Reveal immediate delay={0.05} y={12}>
           <div className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '999px', padding: '5px 14px', fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '-.1px', marginBottom: '22px' }}>
             <span className="eyebrow-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158', flexShrink: 0 }} />
             The listing platform for fashion brands
           </div>
-          <h1 className="hero-h1" style={{ fontSize: 'clamp(36px,3.8vw,76px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '1200px', marginBottom: '20px' }}>
-            Raw images to live product listings,<br /><span style={{ color: '#8e8e93' }}>in minutes.</span>
-          </h1>
-          <p className="hero-sub" style={{ fontSize: 'clamp(16px,1.8vw,22px)', color: '#3a3a3c', maxWidth: '640px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '36px' }}>
-            ShotSync builds your complete listing — images, metadata, copy — and delivers it to every marketplace and retailer in their exact required format. No reformatting. No repetition. No delays.
-          </p>
-          <div className="hero-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+          </Reveal>
+          <AnimatedHeading
+            as="h1"
+            immediate
+            className="hero-h1"
+            style={{ fontSize: 'clamp(36px,3.8vw,76px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '1200px', marginBottom: '20px' }}
+            segments={[
+              { text: 'Raw images to live product listings,', breakAfter: true },
+              { text: 'in minutes.', color: '#8e8e93' },
+            ]}
+          />
+          <Reveal immediate delay={0.55} className="hero-sub" style={{ maxWidth: '640px', marginBottom: '36px' }}>
+            <p style={{ fontSize: 'clamp(16px,1.8vw,22px)', color: '#3a3a3c', lineHeight: 1.5, letterSpacing: '-.3px' }}>
+              ShotSync builds your complete listing — images, metadata, copy — and delivers it to every marketplace and retailer in their exact required format. No reformatting. No repetition. No delays.
+            </p>
+          </Reveal>
+          <Reveal immediate delay={0.7} className="hero-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/signup" style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               Get started free
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -197,9 +180,10 @@ export default function LandingPage() {
               <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style={{ color: '#1d1d1f' }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
               Watch demo
             </button>
-          </div>
+          </Reveal>
 
           {/* Stats bar */}
+          <Reveal immediate delay={0.85}>
           <div className="hero-stats" style={{ display: 'flex', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', marginTop: '44px', overflow: 'hidden' }}>
             {[
               { value: '1 listing', label: 'Created once',            color: '#1d1d1f' },
@@ -213,11 +197,13 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          </Reveal>
         </section>
 
         {/* ── APP MOCKUP ── */}
-        <section className="app-mockup-section" style={{ padding: '0 40px 100px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-          <div style={{ width: '100%', maxWidth: 'clamp(1200px,75vw,1440px)', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
+        <section className="app-mockup-section" style={{ padding: '0 28px 100px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <ScrollTilt style={{ width: '100%' }}>
+          <div style={{ width: '100%', maxWidth: 'clamp(1200px,93vw,2160px)', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
             {/* Browser bar */}
             <div style={{ padding: '12px 16px', background: 'rgba(245,245,247,0.8)', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -229,94 +215,136 @@ export default function LandingPage() {
                 <div style={{ display: 'inline-block', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', padding: '4px 12px', fontSize: '11px', color: '#aeaeb2', maxWidth: '260px' }}>app.shotsync.ai</div>
               </div>
             </div>
-            {/* App inner */}
-            <div style={{ display: 'flex', height: '460px' }}>
+            {/* App inner — light-theme recreation of the live dashboard */}
+            <div style={{ display: 'flex', height: 'clamp(520px,32vw,600px)', fontFamily: "-apple-system,'Helvetica Neue',sans-serif" }}>
               {/* Sidebar */}
-              <div style={{ width: '180px', minWidth: '180px', background: 'rgba(248,248,250,0.9)', borderRight: '0.5px solid rgba(0,0,0,0.05)', padding: '16px 10px', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '4px 8px', marginBottom: '16px' }}>
-                  <div style={{ width: '20px', height: '20px', background: '#1d1d1f', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" width="10" height="10"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: 500, letterSpacing: '-.2px', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
+              <div style={{ width: '232px', minWidth: '232px', background: '#fafafb', borderRight: '0.5px solid rgba(0,0,0,0.06)', padding: '18px 12px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '4px 8px', marginBottom: '14px' }}>
+                  <img src="/icon.png" alt="" style={{ width: '26px', height: '26px', borderRadius: '7px' }} />
+                  <span style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '-.3px', color: '#1d1d1f', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
                 </div>
-                <div style={{ fontSize: '9px', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', margin: '12px 0 4px' }}>Workspace</div>
-                {[
-                  { label: 'Overview', active: true, dot: null },
-                  { label: 'All jobs', active: false, dot: 'green' },
-                ].map(({ label, active, dot }) => (
-                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', color: active ? '#1d1d1f' : '#6e6e73', background: active ? 'rgba(0,0,0,0.05)' : 'transparent', fontWeight: active ? 500 : 400, marginBottom: '1px' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="11" height="11" style={{ flexShrink: 0, opacity: active ? 1 : 0.6 }}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                    <span style={{ flex: 1 }}>{label}</span>
-                    {dot === 'green' && <span style={{ marginLeft: 'auto', width: '5px', height: '5px', borderRadius: '50%', background: '#30d158' }} />}
+                {/* Brand switcher */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '8px 10px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', marginBottom: '14px' }}>
+                  <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'linear-gradient(135deg,#0071e3,#5e32f5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 600, color: '#fff' }}>FC</div>
+                  <span style={{ flex: 1, fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Fashion Co</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#aeaeb2" strokeWidth="2" width="13" height="13"><path d="M8 9l4 4 4-4"/></svg>
+                </div>
+                {/* Dashboard (active) */}
+                {[{ label: 'Dashboard', active: true, icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" /> }].map((it) => (
+                  <div key={it.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', fontSize: '13.5px', color: '#1d1d1f', background: 'rgba(0,0,0,0.06)', fontWeight: 500, marginBottom: '2px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" width="15" height="15" strokeLinejoin="round">{it.icon}</svg>
+                    {it.label}
                   </div>
                 ))}
-                <div style={{ fontSize: '9px', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', margin: '12px 0 4px' }}>Pipeline</div>
+                <div style={{ fontSize: '10.5px', fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 10px', margin: '14px 0 5px' }}>Shoots</div>
                 {[
-                  { label: 'Upload', dot: null },
-                  { label: 'Processing', dot: 'green' },
-                  { label: 'Clusters', dot: 'amber' },
-                  { label: 'Export', dot: null },
-                ].map(({ label, dot }) => (
-                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', color: '#6e6e73', marginBottom: '1px' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="11" height="11" style={{ flexShrink: 0, opacity: 0.6 }}><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
+                  { label: 'New Shoot', icon: <><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h2l1-2h5l1 2h2A1.5 1.5 0 0 1 17 7.5v8A1.5 1.5 0 0 1 15.5 17h-11A1.5 1.5 0 0 1 3 15.5v-8z" strokeLinejoin="round"/><circle cx="10" cy="11" r="2.6"/></>, dot: null },
+                  { label: 'All Jobs', icon: <><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M12 4V3a2 2 0 0 0-4 0v1" strokeLinecap="round"/><path d="M6 9h7M6 12h5" strokeLinecap="round"/></>, dot: 'green' },
+                  { label: 'Review', icon: <><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></>, dot: null, badge: '12' },
+                ].map(({ label, icon, dot, badge }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', fontSize: '13.5px', color: '#6e6e73', marginBottom: '2px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" width="15" height="15" style={{ opacity: 0.7 }}>{icon}</svg>
                     <span style={{ flex: 1 }}>{label}</span>
-                    {dot === 'green' && <span style={{ marginLeft: 'auto', width: '5px', height: '5px', borderRadius: '50%', background: '#30d158' }} />}
-                    {dot === 'amber' && <span style={{ marginLeft: 'auto', width: '5px', height: '5px', borderRadius: '50%', background: '#ff9f0a' }} />}
+                    {dot === 'green' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158' }} />}
+                    {badge && <span style={{ fontSize: '10px', fontWeight: 700, color: '#000', background: '#30d158', borderRadius: '8px', padding: '1px 6px' }}>{badge}</span>}
                   </div>
                 ))}
-              </div>
-              {/* Main */}
-              <div style={{ flex: 1, padding: '20px', overflow: 'hidden' }}>
-                <div style={{ fontSize: '16px', fontWeight: 500, letterSpacing: '-.4px', marginBottom: '2px' }}>Good morning.</div>
-                <div style={{ fontSize: '11px', color: '#aeaeb2', marginBottom: '16px', letterSpacing: '-.1px' }}>3 active jobs · 4 clusters need attention · Last sync 2h ago</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginBottom: '14px' }}>
-                  {[
-                    { label: 'Images',    value: '8,412', delta: '↑ 1,204',    deltaColor: '#30d158' },
-                    { label: 'Clusters',  value: '247',   delta: '↑ 38 today', deltaColor: '#30d158' },
-                    { label: 'Ready',     value: '19',    delta: '3 markets',  deltaColor: '#aeaeb2' },
-                    { label: 'SKU match', value: '94%',   delta: '↑ 3%',       deltaColor: '#30d158' },
-                  ].map(({ label, value, delta, deltaColor }) => (
-                    <div key={label} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '8px', padding: '10px 12px' }}>
-                      <div style={{ fontSize: '9px', color: '#aeaeb2', marginBottom: '4px', letterSpacing: '-.1px' }}>{label}</div>
-                      <div style={{ fontSize: '17px', fontWeight: 500, letterSpacing: '-.5px', color: '#1d1d1f' }}>{value}</div>
-                      <div style={{ fontSize: '9px', color: deltaColor, marginTop: '2px' }}>{delta}</div>
+                <div style={{ marginTop: '10px' }}>
+                  {[{ label: 'Products', icon: <><rect x="3" y="3" width="6" height="8" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="13" width="6" height="4" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></> }].map((it) => (
+                    <div key={it.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', fontSize: '13.5px', color: '#6e6e73' }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" width="15" height="15" style={{ opacity: 0.7 }}>{it.icon}</svg>
+                      {it.label}
                     </div>
                   ))}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  {/* Recent jobs */}
-                  <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', overflow: 'hidden' }}>
-                    <div style={{ padding: '10px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 500, color: '#1d1d1f' }}>Recent jobs</div>
-                    {[
-                      { name: 'SS25 Campaign',  meta: '384 images', chip: 'Review',     chipBg: 'rgba(255,159,10,.1)',  chipColor: '#c27800' },
-                      { name: 'Winter Basics',  meta: '128 images', chip: 'Ready',      chipBg: 'rgba(48,209,88,.1)',   chipColor: '#1a8a35' },
-                      { name: 'Accessories 04', meta: '67 images',  chip: 'Processing', chipBg: 'rgba(0,113,227,.08)', chipColor: '#005fc4' },
-                    ].map(({ name, meta, chip, chipBg, chipColor }) => (
-                      <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
-                        <div style={{ width: '22px', height: '22px', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', flexShrink: 0 }} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.1px' }}>{name}</div>
-                          <div style={{ fontSize: '10px', color: '#aeaeb2' }}>{meta}</div>
+                <div style={{ fontSize: '10.5px', fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 10px', margin: '14px 0 5px' }}>Settings</div>
+                {[
+                  { label: 'Brand', icon: <><rect x="3" y="5" width="14" height="11" rx="1.5"/><path d="M7 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" strokeLinecap="round"/></> },
+                  { label: 'Channels', icon: <><circle cx="4.5" cy="10" r="2"/><circle cx="15" cy="5" r="2"/><circle cx="15" cy="15" r="2"/><path d="M6.5 10h3l3.5-5M6.5 10h3l3.5 5" strokeLinecap="round" strokeLinejoin="round"/></> },
+                  { label: 'Settings', icon: <><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M14.4 5.6l1.4-1.4M4.2 15.8l1.4-1.4" strokeLinecap="round"/></> },
+                ].map(({ label, icon }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', fontSize: '13.5px', color: '#6e6e73', marginBottom: '2px' }}>
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="15" height="15" style={{ opacity: 0.7 }}>{icon}</svg>
+                    {label}
+                  </div>
+                ))}
+                {/* Org / plan footer */}
+                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, color: '#1d1d1f' }}>F</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Fashion Co</div>
+                    <div style={{ fontSize: '11px', color: '#aeaeb2' }}>Scale plan</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main */}
+              <div style={{ flex: 1, padding: '26px 28px', overflow: 'hidden', background: '#fff' }}>
+                <div style={{ fontSize: '11.5px', color: '#aeaeb2', letterSpacing: '-.1px', marginBottom: '10px' }}>ShotSync&nbsp; ›&nbsp; Overview</div>
+                <div style={{ fontSize: '27px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '3px' }}>Good morning.</div>
+                <div style={{ fontSize: '13.5px', color: '#8e8e93', marginBottom: '22px', letterSpacing: '-.1px' }}>3 active jobs · 12 clusters in review · Last sync 2h ago</div>
+
+                {/* Stat cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '14px' }}>
+                  {[
+                    { label: 'SKUs exported',        value: '1,840 / 2,500', sub: 'June',     accent: '#30d158', bar: 74 },
+                    { label: 'Exports run',          value: '126',           sub: 'June',     accent: '#0071e3' },
+                    { label: 'Total SKUs processed', value: '8,412',         sub: 'all time', accent: '#ff9f0a' },
+                    { label: 'Plan',                 value: 'Scale',         sub: '660 SKUs remaining', accent: '#af52de' },
+                  ].map(({ label, value, sub, accent, bar }) => (
+                    <div key={label} style={{ background: '#fafafb', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', borderTop: `3px solid ${accent}`, padding: '14px 16px' }}>
+                      <div style={{ fontSize: '12.5px', color: '#8e8e93', letterSpacing: '-.1px', marginBottom: '6px' }}>{label}</div>
+                      <div style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-1px', color: '#1d1d1f', lineHeight: 1, marginBottom: '6px' }}>{value}</div>
+                      {bar !== undefined && (
+                        <div style={{ height: '3px', background: 'rgba(0,0,0,0.07)', borderRadius: '2px', marginBottom: '5px' }}>
+                          <div style={{ height: '100%', width: `${bar}%`, background: accent, borderRadius: '2px' }} />
                         </div>
-                        <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 500, background: chipBg, color: chipColor }}>{chip}</span>
+                      )}
+                      <div style={{ fontSize: '12px', color: accent, fontWeight: 500 }}>{sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Recent jobs + Marketplace coverage */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ background: '#fafafb', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+                    <div style={{ padding: '13px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Recent jobs</span>
+                      <span style={{ fontSize: '12.5px', color: '#0071e3', fontWeight: 500 }}>View all</span>
+                    </div>
+                    {[
+                      { name: 'SS26 October Drop',  meta: '300 images', chip: 'Ready',      chipBg: 'rgba(48,209,88,.12)',  chipColor: '#1a8a35' },
+                      { name: 'Knitwear Capsule',   meta: '168 images', chip: 'Processing', chipBg: 'rgba(0,113,227,.10)',  chipColor: '#005fc4' },
+                      { name: 'Accessories AW26',   meta: '92 images',  chip: 'Review',     chipBg: 'rgba(255,159,10,.12)', chipColor: '#b86e00' },
+                      { name: 'Denim Refresh',      meta: '214 images', chip: 'Ready',      chipBg: 'rgba(48,209,88,.12)',  chipColor: '#1a8a35' },
+                      { name: 'Footwear SS26',      meta: '76 images',  chip: 'Ready',      chipBg: 'rgba(48,209,88,.12)',  chipColor: '#1a8a35' },
+                    ].map(({ name, meta, chip, chipBg, chipColor }) => (
+                      <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '11px', padding: '11px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                        <div style={{ width: '30px', height: '30px', background: 'rgba(0,0,0,0.05)', borderRadius: '7px', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '13.5px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.1px' }}>{name}</div>
+                          <div style={{ fontSize: '12px', color: '#aeaeb2' }}>{meta}</div>
+                        </div>
+                        <span style={{ padding: '3px 9px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600, background: chipBg, color: chipColor }}>{chip}</span>
                       </div>
                     ))}
                   </div>
-                  {/* Marketplace coverage */}
-                  <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', overflow: 'hidden' }}>
-                    <div style={{ padding: '10px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 500, color: '#1d1d1f' }}>Marketplace coverage</div>
+                  <div style={{ background: '#fafafb', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+                    <div style={{ padding: '13px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Channel coverage</div>
                     {[
-                      { name: 'THE ICONIC',  pct: 82 },
-                      { name: 'Myer',        pct: 64 },
-                      { name: 'David Jones', pct: 71 },
-                    ].map(({ name, pct }) => (
-                      <div key={name} style={{ padding: '8px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '5px' }}>
+                      { name: 'Shopify',     pct: 96, color: '#30d158' },
+                      { name: 'THE ICONIC',  pct: 88, color: '#1d1d1f' },
+                      { name: 'David Jones', pct: 81, color: '#1d1d1f' },
+                      { name: 'Myer',        pct: 72, color: '#1d1d1f' },
+                      { name: 'JOOR',        pct: 64, color: '#1d1d1f' },
+                    ].map(({ name, pct, color }) => (
+                      <div key={name} style={{ padding: '11px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginBottom: '7px' }}>
                           <span style={{ fontWeight: 500, color: '#1d1d1f' }}>{name}</span>
                           <span style={{ color: '#aeaeb2' }}>{pct}%</span>
                         </div>
-                        <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '999px', height: '2.5px' }}>
-                          <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: '#1d1d1f' }} />
+                        <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '999px', height: '4px' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: color }} />
                         </div>
                       </div>
                     ))}
@@ -325,47 +353,29 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+          </ScrollTilt>
         </section>
 
-        {/* ── HOW IT WORKS ── */}
+        {/* ── HOW IT WORKS — animated workflow graph ── */}
         <section id="how-it-works" className="section-pad" style={{ padding: '100px 40px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p>
-          <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Three steps. Every channel.</h2>
-          <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '580px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
-            Build your listing once. ShotSync handles the formatting, compliance, and delivery to every marketplace automatically.
-          </p>
-          <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: 'clamp(1050px,75vw,1280px)', margin: '0 auto' }}>
-            {[
-              {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>,
-                title: 'Build your listing',
-                desc: 'Add images, import your style sheet, and generate copy. One complete product record with everything every channel needs.',
-              },
-              {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>,
-                title: 'Select your channels',
-                desc: 'Choose Shopify, The Iconic, Myer, David Jones, JOOR — or all of them. ShotSync knows the exact spec for each.',
-              },
-              {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>,
-                title: 'Publish everywhere at once',
-                desc: 'Each channel receives the listing in their exact required format. No reformatting. No repetition. No manual rework.',
-              },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} style={{ background: '#fff', padding: '40px 36px', textAlign: 'left' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                  {icon}
-                </div>
-                <h3 style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.3px', marginBottom: '8px', color: '#1d1d1f' }}>{title}</h3>
-                <p style={{ fontSize: '17px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>{desc}</p>
-              </div>
-            ))}
-          </div>
+          <Reveal y={14}><p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p></Reveal>
+          <AnimatedHeading
+            as="h2"
+            style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '640px', margin: '0 auto 16px' }}
+            segments={[{ text: 'From shoot to', breakAfter: false }, { text: ' every channel.', color: '#8e8e93' }]}
+          />
+          <Reveal>
+            <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '580px', margin: '0 auto 56px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
+              Drop your shoot folder. ShotSync clusters, labels, writes, formats, and delivers — to every marketplace, automatically.
+            </p>
+          </Reveal>
+          <WorkflowGraph />
         </section>
 
         {/* ── FEATURES ── */}
         <section id="features" className="section-pad" style={{ padding: '0 40px 100px', position: 'relative' }}>
           <div style={{ maxWidth: 'clamp(1200px,75vw,1440px)', margin: '0 auto' }}>
+            <Reveal>
             <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden' }}>
 
               {/* Feature 1: Auto-rename */}
@@ -465,8 +475,10 @@ export default function LandingPage() {
               </div>
 
             </div>
+            </Reveal>
 
             {/* Feature 5: AI Copywriting — full width */}
+            <Reveal>
             <div className="ai-copy-feature" style={{ background: '#f0f0f2', padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'center', borderRadius: '24px', border: '0.5px solid rgba(0,0,0,0.08)', marginTop: '12px', overflow: 'hidden' }}>
               <div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0,0,0,0.06)', borderRadius: '999px', padding: '4px 10px', fontSize: '15px', fontWeight: 500, color: '#6e6e73', marginBottom: '16px' }}>
@@ -499,13 +511,15 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+            </Reveal>
 
           </div>
         </section>
 
         {/* ── MARKETPLACE LOGOS ── */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Publish to the channels you already sell on</p>
+          <Reveal y={14}><p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '32px' }}>Publish to the channels you already sell on</p></Reveal>
+          <Reveal>
           <div className="mp-logos-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '18px', overflow: 'hidden' }}>
             {[
               { name: 'THE ICONIC', sub: "Australia's largest fashion retailer" },
@@ -518,14 +532,17 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          </Reveal>
         </section>
 
         {/* ── WHO IT'S FOR ── */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Who it&apos;s for</p>
-          <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '780px', margin: '0 auto 48px' }}>
-            Built for the person responsible for getting product live.
-          </h2>
+          <Reveal y={14}><p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Who it&apos;s for</p></Reveal>
+          <AnimatedHeading
+            as="h2"
+            style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '780px', margin: '0 auto 48px' }}
+            segments={[{ text: 'Built for the person responsible for getting product live.' }]}
+          />
           <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', maxWidth: 'clamp(860px,65vw,1100px)', margin: '0 auto' }}>
             {[
               {
@@ -543,135 +560,22 @@ export default function LandingPage() {
                 title: 'Mid-tier wholesale brands',
                 body: "Selling into THE ICONIC, Myer, or David Jones? ShotSync builds your listing once and delivers it to every retailer in their exact required format — so what your partners receive is always compliant and ready to go live.",
               },
-            ].map(({ icon, title, body }) => (
-              <div key={title} style={{ background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '16px', padding: '28px 24px', textAlign: 'left' }}>
+            ].map(({ icon, title, body }, i) => (
+              <RevealItem key={title} delay={i * 0.1} style={{ background: 'rgba(0,0,0,0.03)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '16px', padding: '28px 24px', textAlign: 'left' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', border: '0.5px solid rgba(0,0,0,0.07)' }}>
                   {icon}
                 </div>
                 <div style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f', letterSpacing: '-.2px', marginBottom: '10px' }}>{title}</div>
                 <div style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.7, letterSpacing: '-.1px' }}>{body}</div>
-              </div>
+              </RevealItem>
             ))}
           </div>
         </section>
 
-
-        {/* ── PRICING ── */}
-        <section id="pricing" className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>
-          <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Simple, transparent pricing.</h2>
-          <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '560px', margin: '0 auto 36px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Start free. Upgrade as you grow. Cancel anytime.</p>
-
-          {/* Monthly / Annual toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '52px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-.1px', color: annual ? '#aeaeb2' : '#1d1d1f', transition: 'color .2s' }}>Monthly</span>
-            <button
-              onClick={() => setAnnual(a => !a)}
-              style={{ width: '44px', height: '26px', borderRadius: '999px', border: 'none', cursor: 'pointer', background: annual ? '#1d1d1f' : 'rgba(0,0,0,0.14)', position: 'relative', transition: 'background .2s', flexShrink: 0, padding: 0 }}
-            >
-              <div style={{ position: 'absolute', top: '3px', left: annual ? '21px' : '3px', width: '20px', height: '20px', borderRadius: '50%', background: '#fff', transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
-            </button>
-            <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-.1px', color: annual ? '#1d1d1f' : '#aeaeb2', transition: 'color .2s', display: 'flex', alignItems: 'center', gap: '7px' }}>
-              Annual
-              <span style={{ background: 'rgba(48,209,88,0.12)', color: '#1a8a35', fontSize: '12px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px' }}>Save up to 28%</span>
-            </span>
-          </div>
-
-          {/* Plan cards */}
-          <div
-            ref={pricingScrollRef}
-            className="pricing-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: 'clamp(1200px,75vw,1440px)', margin: '0 auto 16px' }}
-            onScroll={(e) => {
-              const el = e.currentTarget
-              const cardWidth = el.scrollWidth / 4
-              setActivePricingCard(Math.round(el.scrollLeft / cardWidth))
-            }}
-          >
-            {([
-              { planKey: 'free'   as const, badge: 'Free',         featured: false, badgeBg: 'rgba(255,59,48,0.10)',     badgeColor: '#c9302a', cta: 'Get started free',  href: '/signup' },
-              { planKey: 'launch' as const, badge: 'Launch',       featured: false, badgeBg: 'rgba(0,122,255,0.10)',     badgeColor: '#0062cc', cta: 'Start with Launch', href: '/signup?plan=launch' },
-              { planKey: 'growth' as const, badge: 'Most popular', featured: true,  badgeBg: 'rgba(48,209,88,0.18)',     badgeColor: '#30d158', cta: 'Start with Growth', href: '/signup?plan=growth' },
-              { planKey: 'scale'  as const, badge: 'Scale',        featured: false, badgeBg: 'rgba(255,159,10,0.12)',    badgeColor: '#b86e00', cta: 'Start with Scale',  href: '/signup?plan=scale' },
-            ]).map(({ planKey, badge, featured, badgeBg, badgeColor, cta, href }) => {
-              const isLoading = checkoutLoading === planKey
-              const p = PLANS[planKey]
-              const price = planKey === 'free' ? '$0' : `$${annual ? p.priceAudAnnual : p.priceAud}`
-              const period = planKey === 'free' ? 'forever' : annual ? 'AUD / mo, billed annually' : 'AUD / month'
-              const saving = planKey !== 'free' && annual ? Math.round((1 - p.priceAudAnnual / p.priceAud) * 100) : 0
-              const cardBg = featured
-                ? 'linear-gradient(155deg, #0d1a2e 0%, #151e30 40%, #1d1d1f 100%)'
-                : '#fff'
-              return (
-                <div key={planKey} className="pricing-card" style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div style={{ display: 'inline-block', background: badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
-                    <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{p.name}</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
-                      <div style={{ fontSize: '36px', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : '#1d1d1f', lineHeight: 1 }}>{price}</div>
-                      {saving > 0 && <span style={{ fontSize: '11px', background: 'rgba(48,209,88,0.18)', color: '#1a8a35', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>-{saving}%</span>}
-                    </div>
-                    <div style={{ fontSize: '13px', color: featured ? 'rgba(255,255,255,0.75)' : '#3a3a3c', marginBottom: '24px', letterSpacing: '-.1px' }}>{period}</div>
-                    <div style={{ height: '0.5px', background: featured ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
-                    {p.highlights.map((f) => (
-                      <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '15px', color: featured ? 'rgba(255,255,255,0.92)' : '#1d1d1f', letterSpacing: '-.1px' }}>
-                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: featured ? 'rgba(48,209,88,0.2)' : 'rgba(48,209,88,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
-                          <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
-                        </div>
-                        {f}
-                      </div>
-                    ))}
-                    <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
-                      <button onClick={() => handlePlanCta(planKey, href)} disabled={!!checkoutLoading} className={`price-cta-btn${featured ? ' featured' : ''}`} style={{ width: '100%', cursor: checkoutLoading ? 'wait' : 'pointer' }}>
-                        {isLoading ? 'Loading…' : cta}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-
-          </div>
-
-          {/* Mobile scroll dots */}
-          <div className="pricing-dots" style={{ display: 'none', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
-            {[0,1,2,3].map((i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  const el = pricingScrollRef.current
-                  if (!el) return
-                  const cardWidth = el.scrollWidth / 4
-                  el.scrollTo({ left: cardWidth * i, behavior: 'smooth' })
-                }}
-                style={{ width: activePricingCard === i ? '18px' : '6px', height: '6px', borderRadius: '999px', border: 'none', padding: 0, cursor: 'pointer', background: activePricingCard === i ? '#1d1d1f' : 'rgba(0,0,0,0.18)', transition: 'all 0.2s' }}
-              />
-            ))}
-          </div>
-
-          {/* Enterprise — full-width strip below plan cards */}
-          <div style={{ maxWidth: '1200px', margin: '12px auto 0', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '12px', background: '#fff', padding: '11px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <div>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Enterprise</span>
-                <span style={{ fontSize: '12px', color: '#6e6e73', marginLeft: '8px' }}>Unlimited brands · unlimited SKUs · custom contract · dedicated support</span>
-              </div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {['Unlimited everything', 'SSO + permissions', 'SLA guarantee', 'Invoiced billing'].map((f) => (
-                  <span key={f} style={{ fontSize: '11px', color: '#6e6e73', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', padding: '2px 7px' }}>{f}</span>
-                ))}
-              </div>
-            </div>
-            <a href="mailto:hello@shotsync.ai" className="price-cta-btn" style={{ whiteSpace: 'nowrap', textDecoration: 'none', flexShrink: 0, fontSize: '13px', padding: '7px 16px', display: 'inline-block', marginTop: 0 }}>
-              Contact us
-            </a>
-          </div>
-
-
-        </section>
 
         {/* ── TESTIMONIAL ── */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
+          <Reveal scale={0.985}>
           <div className="testimonial-pad" style={{ maxWidth: '680px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', padding: '52px 60px' }}>
             <p style={{ fontSize: 'clamp(18px,2.5vw,24px)', fontWeight: 400, letterSpacing: '-.5px', lineHeight: 1.5, color: '#1d1d1f', marginBottom: '32px' }}>
               &ldquo;I used to spend 2–3 days after every shoot building listings for each marketplace separately. ShotSync has automated the entire process&mdash;it&apos;s been a complete game changer for my workflow.&rdquo;
@@ -684,13 +588,19 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+          </Reveal>
         </section>
 
 
         {/* ── CTA ── */}
         <section className="section-pad" style={{ padding: '0 40px 120px', textAlign: 'center', position: 'relative' }}>
+          <Reveal scale={0.98}>
           <div className="cta-pad" style={{ maxWidth: '680px', margin: '0 auto', background: '#1d1d1f', borderRadius: '24px', padding: '72px 60px' }}>
-            <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.5px', color: '#f5f5f7', lineHeight: 1.1, marginBottom: '16px' }}>List once. Sell everywhere.</h2>
+            <AnimatedHeading
+              as="h2"
+              style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 500, letterSpacing: '-1.5px', color: '#f5f5f7', lineHeight: 1.1, marginBottom: '16px' }}
+              segments={[{ text: 'List once.' }, { text: ' Sell everywhere.', color: 'rgba(245,245,247,0.55)' }]}
+            />
             <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.6)', marginBottom: '36px', letterSpacing: '-.2px', lineHeight: 1.5 }}>Start free — no credit card required. Upgrade when you&apos;re ready.</p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/signup" style={{ background: '#fff', color: '#1d1d1f', padding: '13px 28px', borderRadius: '12px', fontSize: '15px', fontWeight: 500, letterSpacing: '-.3px', textDecoration: 'none' }}>
@@ -702,10 +612,12 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
+          </Reveal>
         </section>
 
         {/* ── FOOTER ── */}
         <footer className="section-pad" style={{ padding: 'clamp(36px,4vw,60px) 40px', borderTop: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', position: 'relative' }}>
+          <Reveal y={16}>
           <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1440px', margin: '0 auto' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <img src="/icon.png" alt="ShotSync" style={{ width: '28px', height: '28px', borderRadius: '7px' }} />
@@ -715,7 +627,7 @@ export default function LandingPage() {
               {[
                 { label: 'How it works',     href: '#how-it-works' },
                 { label: 'Features',         href: '#features' },
-                { label: 'Pricing',          href: '#pricing' },
+                { label: 'Pricing',          href: '/pricing' },
                 { label: 'What is ShotSync', href: '/what-is-shotsync' },
                 { label: 'FAQ',              href: '/faq' },
                 { label: 'Contact',          href: 'mailto:hello@shotsync.ai' },
@@ -728,6 +640,7 @@ export default function LandingPage() {
               <PaymentLogos />
             </div>
           </div>
+          </Reveal>
         </footer>
 
       </div>
@@ -774,18 +687,6 @@ export default function LandingPage() {
             </button>
           </div>
         </div>
-      )}
-
-      {checkoutModal && (
-        <CheckoutModal
-          planId={checkoutModal.planKey as any}
-          planName={checkoutModal.name}
-          annual={annual}
-          currency="aud"
-          price={checkoutModal.price}
-          features={checkoutModal.features}
-          onClose={() => setCheckoutModal(null)}
-        />
       )}
     </>
   )
