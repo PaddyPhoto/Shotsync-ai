@@ -380,7 +380,7 @@ function SettingsInner() {
                         { feature: 'Seats',              values: ['1', '2', '5', '10', 'Unlimited'] },
                         { feature: 'AI copywriting',     values: ['—', '—', '✓', '✓', '✓'] },
                         { feature: 'Background removal', values: ['—', '—', '+$0.16/img', '+$0.16/img', '+$0.16/img'] },
-                        { feature: 'Price (AUD/mo)',     values: ['Free', '$79', '$199', '$399', 'Contact us'] },
+                        { feature: 'Price (AUD/mo)',     values: ['Free', '$49', '$89', '$199', 'Contact us'] },
                       ].map((row) => (
                         <tr key={row.feature} className="hover:bg-[var(--bg3)] transition-colors">
                           <td className="px-3 py-[9px] text-[length:var(--font-sm)] text-[var(--text2)] border-b border-[var(--line)]">{row.feature}</td>

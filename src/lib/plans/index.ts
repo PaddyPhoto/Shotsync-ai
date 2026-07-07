@@ -61,8 +61,8 @@ export const PLANS: Record<PlanId, Plan> = {
   launch: {
     id: 'launch',
     name: 'Launch',
-    priceAud: 79,
-    priceAudAnnual: 63,
+    priceAud: 49,
+    priceAudAnnual: 39,
     description: 'For emerging fashion brands starting to structure their eCommerce workflow',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? null,
     stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL_PRICE_ID ?? null,
@@ -91,8 +91,8 @@ export const PLANS: Record<PlanId, Plan> = {
   growth: {
     id: 'growth',
     name: 'Growth',
-    priceAud: 199,
-    priceAudAnnual: 143,
+    priceAud: 89,
+    priceAudAnnual: 69,
     description: 'For growing fashion brands scaling regular drops and online sales',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_BRAND_PRICE_ID ?? null,
     stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_BRAND_ANNUAL_PRICE_ID ?? null,
@@ -122,8 +122,8 @@ export const PLANS: Record<PlanId, Plan> = {
   scale: {
     id: 'scale',
     name: 'Scale',
-    priceAud: 399,
-    priceAudAnnual: 359,
+    priceAud: 199,
+    priceAudAnnual: 159,
     description: 'For high-volume or multi-brand fashion businesses operating at scale',
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_SCALE_PRICE_ID ?? null,
     stripePriceIdAnnual: process.env.NEXT_PUBLIC_STRIPE_SCALE_ANNUAL_PRICE_ID ?? null,

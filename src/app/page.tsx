@@ -162,7 +162,7 @@ export default function LandingPage() {
             className="hero-h1"
             style={{ fontSize: 'clamp(36px,3.8vw,76px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.08, color: '#1d1d1f', maxWidth: '1200px', marginBottom: '20px' }}
             segments={[
-              { text: 'Raw images to live product listings,', breakAfter: true },
+              { text: 'From shoot to live product listings,', breakAfter: true },
               { text: 'in minutes.', color: '#8e8e93' },
             ]}
           />
