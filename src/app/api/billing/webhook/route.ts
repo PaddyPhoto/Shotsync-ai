@@ -166,16 +166,27 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.deleted': {
-        // Only update subscription status — do NOT reset plan to free here.
-        // Plan downgrade is handled explicitly via a cancel endpoint or
-        // when no active subscriptions remain on the next billing cycle.
-        const sub = event.data.object as { metadata?: { org_id?: string } }
+        // A subscription ended. With "cancel at period end" (the default), Stripe
+        // only fires this once the paid term is actually over — so for an annual
+        // plan the customer keeps full access until their paid year runs out, and
+        // we downgrade to free right here at that moment.
+        //
+        // BUT this same event also fires when an OLD subscription is removed during
+        // a plan switch (see the cancel_subs logic above). So only downgrade to free
+        // if the customer has no other live subscription left; if one remains, this
+        // is a switch and the plan is owned by checkout/invoice events — leave it.
+        const sub = event.data.object as { id: string; customer?: string; metadata?: { org_id?: string } }
         const orgId = sub.metadata?.org_id
         console.error('[webhook] subscription.deleted orgId:', orgId)
         if (orgId) {
-          await service.from('orgs').update({
-            stripe_subscription_status: 'canceled',
-          }).eq('id', orgId)
+          const updates: Record<string, string> = { stripe_subscription_status: 'canceled' }
+          if (sub.customer) {
+            const LIVE = ['active', 'trialing', 'past_due', 'unpaid']
+            const list = await stripe.subscriptions.list({ customer: sub.customer, status: 'all', limit: 20 })
+            const stillSubscribed = list.data.some((s) => s.id !== sub.id && LIVE.includes(s.status))
+            if (!stillSubscribed) updates.plan = 'free'
+          }
+          await service.from('orgs').update(updates).eq('id', orgId)
         }
         break
       }
