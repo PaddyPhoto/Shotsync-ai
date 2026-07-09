@@ -9,6 +9,7 @@ import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
 import type { ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
+import { getPica } from '@/lib/image/pica'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { angleDisplayName } from '@/lib/angle-utils'
 import type { MarketplaceName, ViewLabel } from '@/types'
@@ -88,36 +89,38 @@ function fileKey(f: File): string {
 }
 
 // Checks pixel dimensions and resizes only if longest edge exceeds maxPx.
-// Files already within the limit are returned unchanged — no upscaling.
+// Files already within the limit are returned unchanged — original bytes, no
+// re-encode, no upscaling. Over-limit files are downscaled once with a high-quality
+// Lanczos3 resample (pica) and re-encoded at the given JPEG quality. This master is
+// left unsharpened — sharpening is applied once, later, at export.
 // Processed one at a time in acceptFiles to keep peak RAM bounded.
 async function normalizeImage(file: File, maxPx: number, quality: number): Promise<File> {
-  return new Promise((resolve, reject) => {
-    const src = URL.createObjectURL(file)
-    const img = new Image()
-    img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('load')) }
-    img.onload = () => {
-      URL.revokeObjectURL(src)
-      // Already within limits — return as-is, no canvas needed
-      if (img.width <= maxPx && img.height <= maxPx) {
-        resolve(file)
-        return
-      }
-      const scale = maxPx / Math.max(img.width, img.height)
-      const w = Math.round(img.width * scale)
-      const h = Math.round(img.height * scale)
-      const canvas = document.createElement('canvas')
-      canvas.width = w
-      canvas.height = h
-      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
-      canvas.toBlob(
-        (blob) => blob
-          ? resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: file.lastModified }))
-          : reject(new Error('toBlob')),
-        'image/jpeg', quality
-      )
-    }
-    img.src = src
-  })
+  const src = URL.createObjectURL(file)
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image()
+      el.onload = () => resolve(el)
+      el.onerror = () => reject(new Error('load'))
+      el.src = src
+    })
+    // Already within limits — return the original file untouched (best quality).
+    if (img.width <= maxPx && img.height <= maxPx) return file
+
+    const scale = maxPx / Math.max(img.width, img.height)
+    const w = Math.round(img.width * scale)
+    const h = Math.round(img.height * scale)
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    const pica = await getPica()
+    await pica.resize(img, canvas, { filter: 'lanczos3' })
+    const blob = await pica.toBlob(canvas, 'image/jpeg', quality)
+    canvas.width = 0
+    canvas.height = 0
+    return new File([blob], file.name, { type: 'image/jpeg', lastModified: file.lastModified })
+  } finally {
+    URL.revokeObjectURL(src)
+  }
 }
 
 export default function UploadPage() {
@@ -567,11 +570,13 @@ export default function UploadPage() {
         rejected.push({ name: f.name, reason: `Unsupported format (.${ext}) — use JPEG, PNG, WebP or HEIC` })
         continue
       }
-      // Normalise to max 3000px — returns original file unchanged if already within limits.
+      // Normalise to max 3500px (Lanczos3, q0.95) — returns original file unchanged if
+      // already within limits. 3500 clears the largest marketplace target (2953px) with
+      // headroom for a resize-and-rename-only workflow.
       // Carry the relative path forward (resizing creates a new File that would lose it).
       const rel = (f as { relPath?: string }).relPath || f.webkitRelativePath || ''
       let out: File
-      try { out = await normalizeImage(f, 3000, 0.85) } catch { out = f }
+      try { out = await normalizeImage(f, 3500, 0.95) } catch { out = f }
       if (rel && out !== f) { try { (out as { relPath?: string }).relPath = rel } catch { /* ignore */ } }
       accepted.push(out)
       normalizedCount++

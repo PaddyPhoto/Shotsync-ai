@@ -1,5 +1,14 @@
 // Shared image processing for export — used by both the ExportPanel (review page)
 // and the historical-job export page. Keep this file client-only (canvas APIs).
+import { getPica } from '@/lib/image/pica'
+
+// Light unsharp mask applied once, at export, on the final-resolution image —
+// emulates Photoshop's "Bicubic Sharper" crispness on top of the Lanczos3
+// downscale. Tunable: raise unsharpAmount for more bite. Applied here only (the
+// import master stays unsharpened) so images are never double-sharpened.
+const EXPORT_UNSHARP_AMOUNT = 60     // pica: 0–500
+const EXPORT_UNSHARP_RADIUS = 0.6    // pica: 0.5–2.0
+const EXPORT_UNSHARP_THRESHOLD = 2   // pica: 0–255
 
 export const PLAIN_BG_VIEWS = new Set<string>([
   'front', 'back', 'side', 'mood', 'mood-2', 'mood-3',
@@ -62,7 +71,7 @@ export async function processImageOnCanvas(
     const url = URL.createObjectURL(sourceBlob)
     const img = new window.Image()
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image failed to load')) }
-    img.onload = () => {
+    img.onload = async () => {
       const canvas = document.createElement('canvas')
       canvas.width = width
       canvas.height = height
@@ -79,30 +88,21 @@ export async function processImageOnCanvas(
       const drawX = Math.round((width - drawW) / 2)
       const drawY = Math.round((height - drawH) / 2)
 
-      // Multi-step downscaling for sharper results when reducing by more than 50%
-      let currentCanvas = document.createElement('canvas')
-      let currentCtx = currentCanvas.getContext('2d')!
-      currentCtx.imageSmoothingEnabled = true
-      currentCtx.imageSmoothingQuality = 'high'
-      currentCanvas.width = img.width
-      currentCanvas.height = img.height
-      currentCtx.drawImage(img, 0, 0)
-
-      let stepW = img.width
-      let stepH = img.height
-      while (stepW > drawW * 2 || stepH > drawH * 2) {
-        stepW = Math.max(Math.round(stepW / 2), drawW)
-        stepH = Math.max(Math.round(stepH / 2), drawH)
-        const stepCanvas = document.createElement('canvas')
-        stepCanvas.width = stepW
-        stepCanvas.height = stepH
-        const stepCtx = stepCanvas.getContext('2d')!
-        stepCtx.imageSmoothingEnabled = true
-        stepCtx.imageSmoothingQuality = 'high'
-        stepCtx.drawImage(currentCanvas, 0, 0, stepW, stepH)
-        currentCanvas = stepCanvas
-        currentCtx = stepCtx
-      }
+      // Single high-quality Lanczos3 downscale (pica) straight from the source, plus
+      // a light unsharp mask — replaces the old canvas multi-step halving. One clean
+      // resample at the exact draw size; no extra compression generation.
+      const currentCanvas = document.createElement('canvas')
+      currentCanvas.width = drawW
+      currentCanvas.height = drawH
+      try {
+        const pica = await getPica()
+        await pica.resize(img, currentCanvas, {
+          filter: 'lanczos3',
+          unsharpAmount: EXPORT_UNSHARP_AMOUNT,
+          unsharpRadius: EXPORT_UNSHARP_RADIUS,
+          unsharpThreshold: EXPORT_UNSHARP_THRESHOLD,
+        })
+      } catch (err) { URL.revokeObjectURL(url); reject(err); return }
 
       // fit-to-contain guarantees exactly one dimension fills the canvas —
       // only the other axis needs padding, never both.
