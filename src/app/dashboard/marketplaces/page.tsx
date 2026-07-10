@@ -21,6 +21,7 @@ const PLATFORM_CONFIG: Record<string, { initials: string; accentColor: string; m
   'david-jones': { initials: 'DJ', accentColor: '#6a9fd8', monoBg: 'rgba(107,159,216,0.18)', monoColor: '#6a9fd8' },
   myer:          { initials: 'M',  accentColor: '#E31837', monoBg: 'rgba(227,24,55,0.18)',   monoColor: '#E31837' },
   joor:          { initials: 'J',  accentColor: '#aaaaaa', monoBg: 'rgba(255,255,255,0.08)', monoColor: '#aaaaaa' },
+  'erp-pim':     { initials: 'EP', accentColor: '#30b0c7', monoBg: 'rgba(48,176,199,0.18)', monoColor: '#30b0c7' },
 }
 
 const NAMING_TOKENS = [
