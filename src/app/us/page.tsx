@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { PaymentLogos } from '@/components/billing/PaymentLogos'
+import { ScrollTilt, WorkflowGraph, AnimatedHeading, Reveal } from '@/components/landing/LandingMotion'
 
 function Orb({ color, size, top, left, speed }: {
   color: string; size: string; top: string; left: string; speed: number
@@ -209,9 +210,11 @@ export default function USLandingPage() {
           </button>
         </section>
 
-        {/* APP MOCKUP */}
-        <section className="app-mockup-section" style={{ padding: '0 40px 100px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-          <div style={{ width: '100%', maxWidth: 'clamp(1200px,75vw,1440px)', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
+        {/* ── APP MOCKUP ── */}
+        <section className="app-mockup-section" style={{ padding: '0 28px 100px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <ScrollTilt style={{ width: '100%' }}>
+          <div style={{ width: '100%', maxWidth: 'clamp(1200px,93vw,2160px)', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04)' }}>
+            {/* Browser bar */}
             <div style={{ padding: '12px 16px', background: 'rgba(245,245,247,0.8)', borderBottom: '0.5px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ display: 'flex', gap: '6px' }}>
                 {['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.06)'].map((bg, i) => (
@@ -222,81 +225,136 @@ export default function USLandingPage() {
                 <div style={{ display: 'inline-block', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', padding: '4px 12px', fontSize: '11px', color: '#aeaeb2', maxWidth: '260px' }}>app.shotsync.ai</div>
               </div>
             </div>
-            <div style={{ display: 'flex', height: '460px' }}>
-              <div style={{ width: '180px', minWidth: '180px', background: 'rgba(248,248,250,0.9)', borderRight: '0.5px solid rgba(0,0,0,0.05)', padding: '16px 10px', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '4px 8px', marginBottom: '16px' }}>
-                  <div style={{ width: '20px', height: '20px', background: '#1d1d1f', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f7" strokeWidth="2.5" width="10" height="10"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: 500, letterSpacing: '-.2px', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
+            {/* App inner — light-theme recreation of the live dashboard */}
+            <div style={{ display: 'flex', height: 'clamp(520px,32vw,600px)', fontFamily: "-apple-system,'Helvetica Neue',sans-serif" }}>
+              {/* Sidebar */}
+              <div style={{ width: '232px', minWidth: '232px', background: '#fafafb', borderRight: '0.5px solid rgba(0,0,0,0.06)', padding: '18px 12px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '4px 8px', marginBottom: '14px' }}>
+                  <img src="/icon.png" alt="" style={{ width: '26px', height: '26px', borderRadius: '7px' }} />
+                  <span style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '-.3px', color: '#1d1d1f', fontFamily: "'Inter', sans-serif" }}>Shot<span style={{ color: '#aeaeb2' }}>Sync</span></span>
                 </div>
-                <div style={{ fontSize: '9px', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', margin: '12px 0 4px' }}>Workspace</div>
+                {/* Brand switcher */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '8px 10px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', marginBottom: '14px' }}>
+                  <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'linear-gradient(135deg,#0071e3,#5e32f5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 600, color: '#fff' }}>FC</div>
+                  <span style={{ flex: 1, fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Fashion Co</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#aeaeb2" strokeWidth="2" width="13" height="13"><path d="M8 9l4 4 4-4"/></svg>
+                </div>
+                {/* Dashboard (active) */}
+                {[{ label: 'Dashboard', active: true, icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" /> }].map((it) => (
+                  <div key={it.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', fontSize: '13.5px', color: '#1d1d1f', background: 'rgba(0,0,0,0.06)', fontWeight: 500, marginBottom: '2px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" width="15" height="15" strokeLinejoin="round">{it.icon}</svg>
+                    {it.label}
+                  </div>
+                ))}
+                <div style={{ fontSize: '10.5px', fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 10px', margin: '14px 0 5px' }}>Shoots</div>
                 {[
-                  { label: 'Overview', active: true },
-                  { label: 'All jobs', active: false },
-                ].map(({ label, active }) => (
-                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', color: active ? '#1d1d1f' : '#6e6e73', background: active ? 'rgba(0,0,0,0.05)' : 'transparent', fontWeight: active ? 500 : 400, marginBottom: '1px' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="11" height="11" style={{ flexShrink: 0, opacity: active ? 1 : 0.6 }}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                    {label}
+                  { label: 'New Shoot', icon: <><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h2l1-2h5l1 2h2A1.5 1.5 0 0 1 17 7.5v8A1.5 1.5 0 0 1 15.5 17h-11A1.5 1.5 0 0 1 3 15.5v-8z" strokeLinejoin="round"/><circle cx="10" cy="11" r="2.6"/></>, dot: null },
+                  { label: 'All Jobs', icon: <><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M12 4V3a2 2 0 0 0-4 0v1" strokeLinecap="round"/><path d="M6 9h7M6 12h5" strokeLinecap="round"/></>, dot: 'green' },
+                  { label: 'Review', icon: <><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></>, dot: null, badge: '12' },
+                ].map(({ label, icon, dot, badge }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', fontSize: '13.5px', color: '#6e6e73', marginBottom: '2px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" width="15" height="15" style={{ opacity: 0.7 }}>{icon}</svg>
+                    <span style={{ flex: 1 }}>{label}</span>
+                    {dot === 'green' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#30d158' }} />}
+                    {badge && <span style={{ fontSize: '10px', fontWeight: 700, color: '#000', background: '#30d158', borderRadius: '8px', padding: '1px 6px' }}>{badge}</span>}
                   </div>
                 ))}
-                <div style={{ fontSize: '9px', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 8px', margin: '12px 0 4px' }}>Pipeline</div>
-                {['Upload', 'Processing', 'Clusters', 'Export'].map((label) => (
-                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', color: '#6e6e73', marginBottom: '1px' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="11" height="11" style={{ flexShrink: 0, opacity: 0.6 }}><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
-                    {label}
-                  </div>
-                ))}
-              </div>
-              <div style={{ flex: 1, padding: '20px', overflow: 'hidden' }}>
-                <div style={{ fontSize: '16px', fontWeight: 500, letterSpacing: '-.4px', marginBottom: '2px' }}>Good morning.</div>
-                <div style={{ fontSize: '11px', color: '#aeaeb2', marginBottom: '16px', letterSpacing: '-.1px' }}>3 active jobs · 4 clusters need attention · Last sync 2h ago</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginBottom: '14px' }}>
-                  {[
-                    { label: 'Images',    value: '8,412', delta: '↑ 1,204',    deltaColor: '#30d158' },
-                    { label: 'Clusters',  value: '247',   delta: '↑ 38 today', deltaColor: '#30d158' },
-                    { label: 'Ready',     value: '19',    delta: '3 channels',  deltaColor: '#aeaeb2' },
-                    { label: 'SKU match', value: '94%',   delta: '↑ 3%',       deltaColor: '#30d158' },
-                  ].map(({ label, value, delta, deltaColor }) => (
-                    <div key={label} style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '8px', padding: '10px 12px' }}>
-                      <div style={{ fontSize: '9px', color: '#aeaeb2', marginBottom: '4px', letterSpacing: '-.1px' }}>{label}</div>
-                      <div style={{ fontSize: '17px', fontWeight: 500, letterSpacing: '-.5px', color: '#1d1d1f' }}>{value}</div>
-                      <div style={{ fontSize: '9px', color: deltaColor, marginTop: '2px' }}>{delta}</div>
+                <div style={{ marginTop: '10px' }}>
+                  {[{ label: 'Products', icon: <><rect x="3" y="3" width="6" height="8" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="13" width="6" height="4" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></> }].map((it) => (
+                    <div key={it.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', fontSize: '13.5px', color: '#6e6e73' }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" width="15" height="15" style={{ opacity: 0.7 }}>{it.icon}</svg>
+                      {it.label}
                     </div>
                   ))}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', overflow: 'hidden' }}>
-                    <div style={{ padding: '10px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 500, color: '#1d1d1f' }}>Recent jobs</div>
-                    {[
-                      { name: 'SS25 Campaign',  meta: '384 images', chip: 'Review',     chipBg: 'rgba(255,159,10,.1)',  chipColor: '#c27800' },
-                      { name: 'Winter Basics',  meta: '128 images', chip: 'Ready',      chipBg: 'rgba(48,209,88,.1)',   chipColor: '#1a8a35' },
-                      { name: 'Accessories 04', meta: '67 images',  chip: 'Processing', chipBg: 'rgba(0,113,227,.08)', chipColor: '#005fc4' },
-                    ].map(({ name, meta, chip, chipBg, chipColor }) => (
-                      <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
-                        <div style={{ width: '22px', height: '22px', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', flexShrink: 0 }} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.1px' }}>{name}</div>
-                          <div style={{ fontSize: '10px', color: '#aeaeb2' }}>{meta}</div>
+                <div style={{ fontSize: '10.5px', fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: '#aeaeb2', padding: '0 10px', margin: '14px 0 5px' }}>Settings</div>
+                {[
+                  { label: 'Brand', icon: <><rect x="3" y="5" width="14" height="11" rx="1.5"/><path d="M7 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" strokeLinecap="round"/></> },
+                  { label: 'Channels', icon: <><circle cx="4.5" cy="10" r="2"/><circle cx="15" cy="5" r="2"/><circle cx="15" cy="15" r="2"/><path d="M6.5 10h3l3.5-5M6.5 10h3l3.5 5" strokeLinecap="round" strokeLinejoin="round"/></> },
+                  { label: 'Settings', icon: <><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M14.4 5.6l1.4-1.4M4.2 15.8l1.4-1.4" strokeLinecap="round"/></> },
+                ].map(({ label, icon }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', fontSize: '13.5px', color: '#6e6e73', marginBottom: '2px' }}>
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="15" height="15" style={{ opacity: 0.7 }}>{icon}</svg>
+                    {label}
+                  </div>
+                ))}
+                {/* Org / plan footer */}
+                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderTop: '0.5px solid rgba(0,0,0,0.06)' }}>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 600, color: '#1d1d1f' }}>F</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Fashion Co</div>
+                    <div style={{ fontSize: '11px', color: '#aeaeb2' }}>Scale plan</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main */}
+              <div style={{ flex: 1, padding: '26px 28px', overflow: 'hidden', background: '#fff' }}>
+                <div style={{ fontSize: '11.5px', color: '#aeaeb2', letterSpacing: '-.1px', marginBottom: '10px' }}>ShotSync&nbsp; ›&nbsp; Overview</div>
+                <div style={{ fontSize: '27px', fontWeight: 500, letterSpacing: '-.8px', color: '#1d1d1f', marginBottom: '3px' }}>Good morning.</div>
+                <div style={{ fontSize: '13.5px', color: '#8e8e93', marginBottom: '22px', letterSpacing: '-.1px' }}>3 active jobs · 12 clusters in review · Last sync 2h ago</div>
+
+                {/* Stat cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '14px' }}>
+                  {[
+                    { label: 'SKUs exported',        value: '1,840 / 2,500', sub: 'June',     accent: '#30d158', bar: 74 },
+                    { label: 'Exports run',          value: '126',           sub: 'June',     accent: '#0071e3' },
+                    { label: 'Total SKUs processed', value: '8,412',         sub: 'all time', accent: '#ff9f0a' },
+                    { label: 'Plan',                 value: 'Scale',         sub: '660 SKUs remaining', accent: '#af52de' },
+                  ].map(({ label, value, sub, accent, bar }) => (
+                    <div key={label} style={{ background: '#fafafb', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '14px', borderTop: `3px solid ${accent}`, padding: '14px 16px' }}>
+                      <div style={{ fontSize: '12.5px', color: '#8e8e93', letterSpacing: '-.1px', marginBottom: '6px' }}>{label}</div>
+                      <div style={{ fontSize: '26px', fontWeight: 500, letterSpacing: '-1px', color: '#1d1d1f', lineHeight: 1, marginBottom: '6px' }}>{value}</div>
+                      {bar !== undefined && (
+                        <div style={{ height: '3px', background: 'rgba(0,0,0,0.07)', borderRadius: '2px', marginBottom: '5px' }}>
+                          <div style={{ height: '100%', width: `${bar}%`, background: accent, borderRadius: '2px' }} />
                         </div>
-                        <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 500, background: chipBg, color: chipColor }}>{chip}</span>
+                      )}
+                      <div style={{ fontSize: '12px', color: accent, fontWeight: 500 }}>{sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Recent jobs + Marketplace coverage */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ background: '#fafafb', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+                    <div style={{ padding: '13px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Recent jobs</span>
+                      <span style={{ fontSize: '12.5px', color: '#0071e3', fontWeight: 500 }}>View all</span>
+                    </div>
+                    {[
+                      { name: 'SS26 October Drop',  meta: '300 images', chip: 'Ready',      chipBg: 'rgba(48,209,88,.12)',  chipColor: '#1a8a35' },
+                      { name: 'Knitwear Capsule',   meta: '168 images', chip: 'Processing', chipBg: 'rgba(0,113,227,.10)',  chipColor: '#005fc4' },
+                      { name: 'Accessories AW26',   meta: '92 images',  chip: 'Review',     chipBg: 'rgba(255,159,10,.12)', chipColor: '#b86e00' },
+                      { name: 'Denim Refresh',      meta: '214 images', chip: 'Ready',      chipBg: 'rgba(48,209,88,.12)',  chipColor: '#1a8a35' },
+                      { name: 'Footwear SS26',      meta: '76 images',  chip: 'Ready',      chipBg: 'rgba(48,209,88,.12)',  chipColor: '#1a8a35' },
+                    ].map(({ name, meta, chip, chipBg, chipColor }) => (
+                      <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '11px', padding: '11px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                        <div style={{ width: '30px', height: '30px', background: 'rgba(0,0,0,0.05)', borderRadius: '7px', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '13.5px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.1px' }}>{name}</div>
+                          <div style={{ fontSize: '12px', color: '#aeaeb2' }}>{meta}</div>
+                        </div>
+                        <span style={{ padding: '3px 9px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 600, background: chipBg, color: chipColor }}>{chip}</span>
                       </div>
                     ))}
                   </div>
-                  <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', overflow: 'hidden' }}>
-                    <div style={{ padding: '10px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 500, color: '#1d1d1f' }}>Platform coverage</div>
+                  <div style={{ background: '#fafafb', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '16px', overflow: 'hidden' }}>
+                    <div style={{ padding: '13px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.06)', fontSize: '14px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Integrations</div>
                     {[
-                      { name: 'Shopify',  pct: 94 },
-                      { name: 'Cin7 Core', pct: 78 },
-                      { name: 'REVOLVE',  pct: 61 },
-                    ].map(({ name, pct }) => (
-                      <div key={name} style={{ padding: '8px 12px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '5px' }}>
+                      { name: 'Shopify',     pct: 96, color: '#30d158' },
+                      { name: 'Cin7',  pct: 88, color: '#1d1d1f' },
+                      { name: 'NetSuite', pct: 81, color: '#1d1d1f' },
+                      { name: 'AIMS360',        pct: 72, color: '#1d1d1f' },
+                      { name: 'ApparelMagic',        pct: 64, color: '#1d1d1f' },
+                    ].map(({ name, pct, color }) => (
+                      <div key={name} style={{ padding: '11px 16px', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginBottom: '7px' }}>
                           <span style={{ fontWeight: 500, color: '#1d1d1f' }}>{name}</span>
                           <span style={{ color: '#aeaeb2' }}>{pct}%</span>
                         </div>
-                        <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '999px', height: '2.5px' }}>
-                          <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: '#1d1d1f' }} />
+                        <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '999px', height: '4px' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', borderRadius: '999px', background: color }} />
                         </div>
                       </div>
                     ))}
@@ -305,42 +363,23 @@ export default function USLandingPage() {
               </div>
             </div>
           </div>
+          </ScrollTilt>
         </section>
 
-        {/* HOW IT WORKS */}
+        {/* ── HOW IT WORKS — animated workflow graph ── */}
         <section id="how-it-works" className="section-pad" style={{ padding: '100px 40px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p>
-          <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Three steps. Zero manual work.</h2>
-          <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '580px', margin: '0 auto 64px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
-            Drop your shoot. ShotSync handles everything between the photographer&apos;s delivery and your live product listings.
-          </p>
-          <div className="how-it-works-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: 'clamp(1050px,75vw,1280px)', margin: '0 auto' }}>
-            {[
-              {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
-                title: 'Upload your shoot',
-                desc: 'Drop up to 1,000 images. ShotSync ingests, reads your product CSV, and starts the pipeline automatically.',
-              },
-              {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>,
-                title: 'AI enriches every listing',
-                desc: 'Images are clustered by SKU, angles detected, colours matched, files renamed, and product copy generated in your brand voice.',
-              },
-              {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-                title: 'Push to Shopify and your ERP',
-                desc: 'One click pushes enriched listings directly to your Shopify store and ERP — Cin7 Core or AIMS360. No re-entry, no delays.',
-              },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} style={{ background: '#fff', padding: '40px 36px', textAlign: 'left' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                  {icon}
-                </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 500, letterSpacing: '-.3px', marginBottom: '8px', color: '#1d1d1f' }}>{title}</h3>
-                <p style={{ fontSize: '15px', color: '#4a4a4f', lineHeight: 1.6, letterSpacing: '-.1px' }}>{desc}</p>
-              </div>
-            ))}
-          </div>
+          <Reveal y={14}><p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>How it works</p></Reveal>
+          <AnimatedHeading
+            as="h2"
+            style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '640px', margin: '0 auto 16px' }}
+            segments={[{ text: 'From shoot to', breakAfter: false }, { text: ' every channel.', color: '#8e8e93' }]}
+          />
+          <Reveal>
+            <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '580px', margin: '0 auto 56px', lineHeight: 1.5, letterSpacing: '-.2px' }}>
+              Drop your shoot folder. ShotSync clusters, labels, writes, formats, and delivers — to every marketplace, automatically.
+            </p>
+          </Reveal>
+          <WorkflowGraph channels={['Shopify', 'Cin7', 'ERP / PIM']} />
         </section>
 
         {/* FEATURES */}

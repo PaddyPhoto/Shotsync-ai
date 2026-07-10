@@ -283,7 +283,7 @@ const PATH_DRAW: Variants = {
 }
 
 // ── Mobile: vertical stack ───────────────────────────────────────────────────
-function WorkflowVertical() {
+function WorkflowVertical({ channels }: { channels: string[] }) {
   const reduce = useReducedMotion()
   const container: Variants = { hidden: {}, visible: { transition: { staggerChildren: reduce ? 0 : 0.5, delayChildren: 0.12 } } }
   const fadeUp: Variants = {
@@ -307,7 +307,7 @@ function WorkflowVertical() {
         ))}
       </motion.svg>
       <motion.div variants={fadeUp} style={{ display: 'flex', gap: '10px', justifyContent: 'space-between' }}>
-        {CHANNELS.map((c) => (
+        {channels.map((c) => (
           <div key={c} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', background: '#fff', border: `1px solid ${GREEN}`, borderRadius: '12px', padding: '12px 8px', boxShadow: '0 8px 20px rgba(48,209,88,0.10)' }}>
             <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: GREEN, flexShrink: 0 }} />
             <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '-.2px', color: '#1d1d1f', whiteSpace: 'nowrap' }}>{c}</span>
@@ -349,7 +349,7 @@ function WaveNode({ node, x, y }: { node: Node; x: number; y: number }) {
   )
 }
 
-function WorkflowWave() {
+function WorkflowWave({ channels }: { channels: string[] }) {
   const reduce = useReducedMotion()
   const wrapRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
@@ -424,9 +424,9 @@ function WorkflowWave() {
 
             <motion.div variants={fadeUp} style={{ position: 'absolute', inset: 0 }}>
               {chX.map((cx, i) => (
-                <div key={CHANNELS[i]} style={{ position: 'absolute', left: cx, top: chY, transform: 'translate(-50%,-50%)', display: 'flex', alignItems: 'center', gap: 7, background: '#fff', border: `1px solid ${GREEN}`, borderRadius: 12, padding: '11px 18px', boxShadow: '0 10px 24px rgba(48,209,88,0.12)', whiteSpace: 'nowrap' }}>
+                <div key={channels[i]} style={{ position: 'absolute', left: cx, top: chY, transform: 'translate(-50%,-50%)', display: 'flex', alignItems: 'center', gap: 7, background: '#fff', border: `1px solid ${GREEN}`, borderRadius: 12, padding: '11px 18px', boxShadow: '0 10px 24px rgba(48,209,88,0.12)', whiteSpace: 'nowrap' }}>
                   <span style={{ width: 7, height: 7, borderRadius: '50%', background: GREEN, flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '-.2px', color: '#1d1d1f' }}>{CHANNELS[i]}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '-.2px', color: '#1d1d1f' }}>{channels[i]}</span>
                 </div>
               ))}
             </motion.div>
@@ -444,7 +444,7 @@ function WorkflowWave() {
   )
 }
 
-export function WorkflowGraph() {
+export function WorkflowGraph({ channels = CHANNELS }: { channels?: string[] } = {}) {
   return (
     <>
       <style>{`
@@ -455,8 +455,8 @@ export function WorkflowGraph() {
           .wf-mobile { display: none; }
         }
       `}</style>
-      <div className="wf-mobile"><WorkflowVertical /></div>
-      <div className="wf-desktop"><WorkflowWave /></div>
+      <div className="wf-mobile"><WorkflowVertical channels={channels} /></div>
+      <div className="wf-desktop"><WorkflowWave channels={channels} /></div>
     </>
   )
 }
