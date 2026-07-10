@@ -2,8 +2,6 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { PLANS } from '@/lib/plans'
-import { CheckoutModal } from '@/components/billing/CheckoutModal'
 import { PaymentLogos } from '@/components/billing/PaymentLogos'
 
 function Orb({ color, size, top, left, speed }: {
@@ -31,56 +29,9 @@ function Orb({ color, size, top, left, speed }: {
   )
 }
 
-// Only what differs for the US market — USD prices, badge UI, CTA copy
-const US_PLAN_UI = {
-  free:   { priceUsd: 0,   annualUsd: 0,   badge: 'Free',         badgeBg: 'rgba(255,59,48,0.10)',  badgeColor: '#c9302a', featured: false, cta: 'Get started free',  href: '/signup' },
-  launch: { priceUsd: 68,  annualUsd: 49,  badge: 'Launch',       badgeBg: 'rgba(0,122,255,0.10)',  badgeColor: '#0062cc', featured: false, cta: 'Start with Launch', href: '/signup?plan=launch' },
-  growth: { priceUsd: 138, annualUsd: 99,  badge: 'Most popular', badgeBg: 'rgba(48,209,88,0.18)',  badgeColor: '#30d158', featured: true,  cta: 'Start with Growth', href: '/signup?plan=growth' },
-  scale:  { priceUsd: 399, annualUsd: 299, badge: 'Scale',        badgeBg: 'rgba(255,159,10,0.12)', badgeColor: '#b86e00', featured: false, cta: 'Start with Scale',  href: '/signup?plan=scale' },
-} as const
-
-// Substitute or drop AU-specific highlight strings for the US market (null = omit)
-const US_HIGHLIGHT_SUBS: Record<string, string | null> = {
-  'ANZ marketplaces locked — Launch and above':      'US marketplaces locked — Launch and above',
-  'Export to 2 ANZ marketplaces':                    '1 ERP integration',
-  'Export to all ANZ marketplaces':                  'All ERP integrations',
-  'Full ANZ marketplace exports':                    'All ERP integrations',
-  'Product folder export (Shopify-ready structure)': 'Shopify-ready folder export',
-  "AI copy trained on your brand's voice & tone":    'AI copy trained on brand voice',
-  'Background removal add-on ($0.16/image)':         'Background removal add-on',
-  'Priority processing workflow':                    'Priority processing',
-  'Up to 5 Shopify store integrations':              'Up to 5 Shopify stores',
-  'Shopify export (ZIP / folder only)':              'Shopify export (ZIP only)',
-  '30-day free trial':                               null,
-}
-
-function usHighlights(planId: keyof typeof US_PLAN_UI): string[] {
-  return PLANS[planId].highlights
-    .map(h => {
-      const sub = US_HIGHLIGHT_SUBS[h]
-      if (sub === null) return null
-      return (sub ?? h).replace(' processed', '')
-    })
-    .filter((h): h is string => h !== null)
-}
-
-const US_PLANS = (['free', 'launch', 'growth', 'scale'] as const).map(id => ({
-  key: id,
-  name: PLANS[id].name,
-  monthlyPrice: US_PLAN_UI[id].priceUsd,
-  annualPrice: US_PLAN_UI[id].annualUsd,
-  features: usHighlights(id),
-  ...US_PLAN_UI[id],
-}))
-
 export default function USLandingPage() {
-  const [annual, setAnnual] = useState(true)
   const [demoOpen, setDemoOpen] = useState(false)
-  const [activePricingCard, setActivePricingCard] = useState(0)
-  const pricingScrollRef = useRef<HTMLDivElement>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
-  const [checkoutModal, setCheckoutModal] = useState<{ planKey: string; price: number; name: string; features: string[] } | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -97,15 +48,6 @@ export default function USLandingPage() {
       if (session) setIsLoggedIn(true)
     }).catch(() => {})
   }, [])
-
-  const handlePlanCta = (planKey: string, signupHref: string) => {
-    if (!isLoggedIn) { window.location.href = signupHref; return }
-    if (planKey === 'free') { window.location.href = '/dashboard'; return }
-    const ui = US_PLAN_UI[planKey as keyof typeof US_PLAN_UI]
-    if (!ui) return
-    const price = annual ? ui.annualUsd : ui.priceUsd
-    setCheckoutModal({ planKey, price, name: PLANS[planKey as keyof typeof PLANS]?.name ?? planKey, features: usHighlights(planKey as keyof typeof US_PLAN_UI) })
-  }
 
   return (
     <>
@@ -201,7 +143,7 @@ export default function USLandingPage() {
           <div className="nav-links-desktop" style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
             <a href="#how-it-works" className="nav-link">How it works</a>
             <a href="#features" className="nav-link">Features</a>
-            <a href="#pricing" className="nav-link">Pricing</a>
+            <Link href="/us/pricing" className="nav-link">Pricing</Link>
           </div>
           <div className="nav-cta-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link href={isLoggedIn ? '/dashboard' : '/login'} style={{ background: '#1d1d1f', color: '#f5f5f7', padding: '7px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500, letterSpacing: '-.2px', textDecoration: 'none' }}>{isLoggedIn ? 'Go to dashboard' : 'Sign in'}</Link>
@@ -218,9 +160,7 @@ export default function USLandingPage() {
             Now available for US fashion brands
           </div>
           <h1 className="hero-h1" style={{ fontSize: 'clamp(32px,3.2vw,64px)', fontWeight: 500, letterSpacing: '-2px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '900px', marginBottom: '20px' }}>
-            From images to{' '}
-            <span style={{ fontWeight: 700 }}>fully enriched product listings</span>
-            <span style={{ color: '#8e8e93', whiteSpace: 'nowrap' }}> — in minutes</span>
+            From shoot to live product listings,<br /><span style={{ color: '#8e8e93' }}>in minutes.</span>
           </h1>
           <p className="hero-sub" style={{ fontSize: 'clamp(16px,1.8vw,22px)', color: '#3a3a3c', maxWidth: '640px', lineHeight: 1.5, letterSpacing: '-.3px', marginBottom: '36px' }}>
             Upload your shoot images and product CSV. ShotSync builds structured SKU clusters, enriches every listing, and pushes directly to Shopify and your ERP — in minutes, not days.
@@ -649,113 +589,6 @@ export default function USLandingPage() {
           </div>
         </section>
 
-        {/* PRICING */}
-        <section id="pricing" className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
-          <p style={{ fontSize: '13px', fontWeight: 500, color: '#6e6e73', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: '14px' }}>Pricing</p>
-          <h2 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 500, letterSpacing: '-1.5px', lineHeight: 1.1, color: '#1d1d1f', maxWidth: '600px', margin: '0 auto 16px' }}>Simple, transparent pricing.</h2>
-          <p style={{ fontSize: '17px', color: '#4a4a4f', maxWidth: '560px', margin: '0 auto 36px', lineHeight: 1.5, letterSpacing: '-.2px' }}>Start free. Upgrade as you grow. Cancel anytime.</p>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '52px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-.1px', color: annual ? '#aeaeb2' : '#1d1d1f', transition: 'color .2s' }}>Monthly</span>
-            <button
-              onClick={() => setAnnual(a => !a)}
-              style={{ width: '44px', height: '26px', borderRadius: '999px', border: 'none', cursor: 'pointer', background: annual ? '#1d1d1f' : 'rgba(0,0,0,0.14)', position: 'relative', transition: 'background .2s', flexShrink: 0, padding: 0 }}
-            >
-              <div style={{ position: 'absolute', top: '3px', left: annual ? '21px' : '3px', width: '20px', height: '20px', borderRadius: '50%', background: '#fff', transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
-            </button>
-            <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '-.1px', color: annual ? '#1d1d1f' : '#aeaeb2', transition: 'color .2s', display: 'flex', alignItems: 'center', gap: '7px' }}>
-              Annual
-              <span style={{ background: 'rgba(48,209,88,0.12)', color: '#1a8a35', fontSize: '12px', fontWeight: 500, padding: '2px 8px', borderRadius: '999px' }}>Save up to 28%</span>
-            </span>
-          </div>
-
-          <div
-            ref={pricingScrollRef}
-            className="pricing-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden', maxWidth: 'clamp(1200px,75vw,1440px)', margin: '0 auto 16px' }}
-            onScroll={(e) => {
-              const el = e.currentTarget
-              const cardWidth = el.scrollWidth / 4
-              setActivePricingCard(Math.round(el.scrollLeft / cardWidth))
-            }}
-          >
-            {US_PLANS.map(({ key, name, badge, badgeBg, badgeColor, monthlyPrice, annualPrice, featured, cta, href, features }) => {
-              const displayPrice = monthlyPrice === 0 ? '$0' : annual ? `$${annualPrice}` : `$${monthlyPrice}`
-              const period = monthlyPrice === 0 ? 'forever' : annual ? 'USD / mo, billed annually' : 'USD / mo, billed monthly'
-              const saving = monthlyPrice > 0 && annual ? Math.round((1 - annualPrice / monthlyPrice) * 100) : 0
-              const cardBg = featured
-                ? 'linear-gradient(155deg, #0d1a2e 0%, #151e30 40%, #1d1d1f 100%)'
-                : '#fff'
-              return (
-                <div key={key} className="pricing-card" style={{ background: cardBg, textAlign: 'left', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div style={{ display: 'inline-block', background: badgeBg, borderRadius: '999px', padding: '4px 10px', fontSize: '12px', fontWeight: 500, color: badgeColor, marginBottom: '20px', letterSpacing: '-.1px' }}>{badge}</div>
-                    <div style={{ fontSize: '18px', fontWeight: 500, letterSpacing: '-.4px', color: featured ? '#fff' : '#1d1d1f', marginBottom: '8px' }}>{name}</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '4px' }}>
-                      <div style={{ fontSize: '36px', fontWeight: 500, letterSpacing: '-1.5px', color: featured ? '#fff' : '#1d1d1f', lineHeight: 1 }}>{displayPrice}</div>
-                      {saving > 0 && <span style={{ fontSize: '11px', background: 'rgba(48,209,88,0.18)', color: '#1a8a35', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>-{saving}%</span>}
-                    </div>
-                    <div style={{ fontSize: '13px', color: featured ? 'rgba(255,255,255,0.75)' : '#3a3a3c', marginBottom: '24px', letterSpacing: '-.1px' }}>{period}</div>
-                    <div style={{ height: '0.5px', background: featured ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', marginBottom: '20px' }} />
-                    {features.map((f) => (
-                      <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px', fontSize: '13px', color: featured ? 'rgba(255,255,255,0.92)' : '#1d1d1f', letterSpacing: '-.1px' }}>
-                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: featured ? 'rgba(48,209,88,0.2)' : 'rgba(48,209,88,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
-                          <svg viewBox="0 0 24 24" fill="none" stroke="#30d158" strokeWidth="2.5" width="8" height="8"><polyline points="20 6 9 17 4 12"/></svg>
-                        </div>
-                        {f}
-                      </div>
-                    ))}
-                    <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
-                      <button
-                        onClick={() => handlePlanCta(key, href)}
-                        disabled={checkoutLoading === key}
-                        className={`price-cta-btn${featured ? ' featured' : ''}`}
-                        style={{ width: '100%', border: 'none', cursor: checkoutLoading === key ? 'wait' : 'pointer' }}
-                      >
-                        {checkoutLoading === key ? 'Loading…' : cta}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="pricing-dots" style={{ display: 'none', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
-            {[0,1,2,3].map((i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  const el = pricingScrollRef.current
-                  if (!el) return
-                  const cardWidth = el.scrollWidth / 4
-                  el.scrollTo({ left: cardWidth * i, behavior: 'smooth' })
-                }}
-                style={{ width: activePricingCard === i ? '18px' : '6px', height: '6px', borderRadius: '999px', border: 'none', padding: 0, cursor: 'pointer', background: activePricingCard === i ? '#1d1d1f' : 'rgba(0,0,0,0.18)', transition: 'all 0.2s' }}
-              />
-            ))}
-          </div>
-
-          <div style={{ maxWidth: '1200px', margin: '12px auto 0', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '12px', background: '#fff', padding: '11px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <div>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '-.2px' }}>Enterprise</span>
-                <span style={{ fontSize: '12px', color: '#6e6e73', marginLeft: '8px' }}>Unlimited brands · unlimited SKUs · custom contract · dedicated support</span>
-              </div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {['Unlimited everything', 'SSO + permissions', 'SLA guarantee', 'Invoiced billing'].map((f) => (
-                  <span key={f} style={{ fontSize: '11px', color: '#6e6e73', background: 'rgba(0,0,0,0.04)', borderRadius: '5px', padding: '2px 7px' }}>{f}</span>
-                ))}
-              </div>
-            </div>
-            <a href="mailto:hello@shotsync.ai" className="price-cta-btn" style={{ whiteSpace: 'nowrap', textDecoration: 'none', flexShrink: 0, fontSize: '13px', padding: '7px 16px', display: 'inline-block', marginTop: 0 }}>
-              Contact us
-            </a>
-          </div>
-
-
-        </section>
-
         {/* TESTIMONIAL */}
         <section className="section-pad" style={{ padding: '0 40px 100px', textAlign: 'center', position: 'relative' }}>
           <div className="testimonial-pad" style={{ maxWidth: '680px', margin: '0 auto', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', padding: '52px 60px' }}>
@@ -800,7 +633,7 @@ export default function USLandingPage() {
               {[
                 { label: 'How it works',     href: '#how-it-works' },
                 { label: 'Features',         href: '#features' },
-                { label: 'Pricing',          href: '#pricing' },
+                { label: 'Pricing',          href: '/us/pricing' },
                 { label: 'What is ShotSync', href: '/us/what-is-shotsync' },
                 { label: 'FAQ',              href: '/faq' },
                 { label: 'Contact',          href: 'mailto:hello@shotsync.ai' },
@@ -823,18 +656,6 @@ export default function USLandingPage() {
             <button onClick={() => setDemoOpen(false)} style={{ position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: '0.5px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '18px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>×</button>
           </div>
         </div>
-      )}
-
-      {checkoutModal && (
-        <CheckoutModal
-          planId={checkoutModal.planKey as any}
-          planName={checkoutModal.name}
-          annual={annual}
-          currency="usd"
-          price={checkoutModal.price}
-          features={checkoutModal.features}
-          onClose={() => setCheckoutModal(null)}
-        />
       )}
     </>
   )
