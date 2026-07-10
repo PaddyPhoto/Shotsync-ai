@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
+import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
@@ -126,7 +127,7 @@ async function normalizeImage(file: File, maxPx: number, quality: number): Promi
 export default function UploadPage() {
   const router = useRouter()
   const { activeBrand } = useBrand()
-  const { canProcessSkus, plan, usage, openUpgrade } = usePlan()
+  const { canProcessSkus, plan, usage, openUpgrade, region } = usePlan()
   const setSession = useSession((s) => s.setSession)
   const pushDimensionOverrides = useSession((s) => s.setDimensionOverrides)
   const setShootConfig = useSession((s) => s.setShootConfig)
@@ -240,11 +241,14 @@ export default function UploadPage() {
 
 
   const [jobName, setJobName] = useState('')
-  const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(() =>
-    activeBrand?.default_marketplaces?.length
-      ? activeBrand.default_marketplaces as MarketplaceName[]
-      : ['the-iconic' as MarketplaceName]
-  )
+  const [marketplaces, setMarketplaces] = useState<MarketplaceName[]>(() => {
+    // Only offer destinations available in this org's region, so a US org never
+    // starts with (or silently exports) an Australian marketplace.
+    const brandDefaults = (activeBrand?.default_marketplaces as MarketplaceName[] | undefined)
+      ?.filter((m) => MARKETPLACE_RULES[m]?.regions.includes(region))
+    if (brandDefaults?.length) return brandDefaults
+    return [region === 'au' ? 'the-iconic' : 'shopify'] as MarketplaceName[]
+  })
   // Per-job output-size overrides set on the marketplace cards below. Local until the job
   // is processed, then pushed to the session store so the export honours them.
   const [dimensionOverrides, setDimensionOverrides] = useState<Record<string, { width: number; height: number }>>({})

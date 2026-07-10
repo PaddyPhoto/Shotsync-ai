@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import type { MarketplaceName } from '@/types'
 import type { DimensionOverride } from '@/store/session'
+import { usePlan } from '@/context/PlanContext'
 
 interface MarketplaceSelectorProps {
   selected: MarketplaceName[]
@@ -23,6 +24,7 @@ const MARKETPLACE_DESCRIPTIONS: Record<MarketplaceName, string> = {
   'david-jones': 'Luxury department store',
   shopify: 'Your own storefront',
   joor: 'Wholesale B2B platform',
+  'erp-pim': 'Clean product record for any ERP or PIM',
 }
 
 const MARKETPLACE_PALETTE: Record<MarketplaceName, { bgRest: string; bgSelected: string; border: string; dot: string; nameColor: string }> = {
@@ -60,6 +62,13 @@ const MARKETPLACE_PALETTE: Record<MarketplaceName, { bgRest: string; bgSelected:
     border:     '#5856d6',
     dot:        '#5856d6',
     nameColor:  '#7b79f7',
+  },
+  'erp-pim': {
+    bgRest:     'rgba(48,176,199,0.07)',
+    bgSelected: 'rgba(48,176,199,0.16)',
+    border:     '#30b0c7',
+    dot:        '#30b0c7',
+    nameColor:  '#5ac8d8',
   },
 }
 
@@ -213,6 +222,7 @@ export function MarketplaceSelector({
   selected, onChange, lockedMarketplaces = [], onLockedClick, columns = 4,
   dimensionOverrides, onDimensionChange,
 }: MarketplaceSelectorProps) {
+  const { region } = usePlan()
   const toggle = (id: MarketplaceName) => {
     if (selected.includes(id)) {
       onChange(selected.filter((m) => m !== id))
@@ -223,7 +233,9 @@ export function MarketplaceSelector({
 
   return (
     <div className={`grid gap-3 ${columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
-      {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[]).map((id) => {
+      {(Object.keys(MARKETPLACE_RULES) as MarketplaceName[])
+        .filter((id) => MARKETPLACE_RULES[id].regions.includes(region))
+        .map((id) => {
         const rule = MARKETPLACE_RULES[id]
         const isSelected = selected.includes(id)
         const isLocked = lockedMarketplaces.includes(id)

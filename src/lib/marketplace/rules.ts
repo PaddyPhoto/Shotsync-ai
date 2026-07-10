@@ -4,6 +4,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   shopify: {
     id: 'shopify',
     name: 'Shopify',
+    regions: ['au', 'us'],
     required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     angle_order: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     image_dimensions: { width: 2369, height: 2953 },
@@ -17,6 +18,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   'the-iconic': {
     id: 'the-iconic',
     name: 'THE ICONIC',
+    regions: ['au'],
     required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     angle_order: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     image_dimensions: { width: 1600, height: 2000 },
@@ -30,6 +32,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   'david-jones': {
     id: 'david-jones',
     name: 'David Jones',
+    regions: ['au'],
     required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     angle_order: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     image_dimensions: { width: 1600, height: 2000 },
@@ -43,6 +46,7 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   myer: {
     id: 'myer',
     name: 'Myer',
+    regions: ['au'],
     required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     angle_order: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
     image_dimensions: { width: 1551, height: 2000 },
@@ -57,9 +61,24 @@ export const MARKETPLACE_RULES: Record<MarketplaceName, MarketplaceRule> = {
   joor: {
     id: 'joor',
     name: 'JOOR',
+    regions: ['au', 'us'],
     required_views: ['front', 'back', 'side', 'detail'],
     angle_order: ['front', 'back', 'side', 'detail'],
     image_dimensions: { width: 1200, height: 1706 },
+    file_format: 'jpg',
+    quality: 100,
+    max_file_size_kb: 5000,
+    background_color: '#FFFFFF',
+    naming_template: '{SKU}_{VIEW}',
+    naming_locked: false,
+  },
+  'erp-pim': {
+    id: 'erp-pim',
+    name: 'ERP / PIM export',
+    regions: ['au', 'us'],
+    required_views: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
+    angle_order: ['front', 'back', 'side', 'detail', 'mood', 'full-length'],
+    image_dimensions: { width: 2048, height: 2560 },
     file_format: 'jpg',
     quality: 100,
     max_file_size_kb: 5000,

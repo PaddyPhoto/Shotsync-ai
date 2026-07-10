@@ -11,7 +11,7 @@ export type JobStatus =
   | 'complete'
   | 'error'
 export type ClusterStatus = 'pending' | 'confirmed' | 'exported'
-export type MarketplaceName = 'the-iconic' | 'myer' | 'david-jones' | 'shopify' | 'joor'
+export type MarketplaceName = 'the-iconic' | 'myer' | 'david-jones' | 'shopify' | 'joor' | 'erp-pim'
 
 // ─── Image ───────────────────────────────────────────────────────────────────
 
@@ -93,6 +93,7 @@ export interface CategoryOverride {
 export interface MarketplaceRule {
   id: MarketplaceName
   name: string
+  regions: ('au' | 'us')[]   // which org regions this destination is offered to
   required_views: ViewLabel[]
   angle_order: ViewLabel[]   // export sequence — images sorted in this order per marketplace
   category_overrides?: CategoryOverride[]  // per-category overrides on top of the default
