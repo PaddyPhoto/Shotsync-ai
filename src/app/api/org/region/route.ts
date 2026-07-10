@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
       .from('org_members')
       .select('org_id, role')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: true })
       .limit(1)
       .single()
 

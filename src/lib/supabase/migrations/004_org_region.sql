@@ -63,7 +63,7 @@ returns text language sql security definer stable as $$
   from public.orgs o
   join public.org_members m on m.org_id = o.id
   where m.user_id = p_user_id
-  order by m.created_at asc
+  order by o.created_at asc
   limit 1;
 $$;
 
