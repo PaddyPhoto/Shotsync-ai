@@ -3,6 +3,9 @@
 import { useState, useEffect, use, useCallback } from 'react'
 import { Topbar } from '@/components/layout/Topbar'
 import { createClient } from '@/lib/supabase/client'
+import { usePlan } from '@/context/PlanContext'
+
+const AU_ONLY_CHANNELS = ['iconic', 'myer', 'dj']
 
 const CHANNELS = [
   { key: 'shopify', label: 'Shopify',     dot: '#30d158' },
@@ -31,6 +34,8 @@ const ANGLE_SLOTS = ['Front', 'Back', 'Side', 'Detail', 'Mood', 'Full length']
 
 export default function ProductDetailPage({ params }: { params: Promise<{ productId: string }> }) {
   const { productId } = use(params)
+  const { region } = usePlan()
+  const channels = region === 'au' ? CHANNELS : CHANNELS.filter((ch) => !AU_ONLY_CHANNELS.includes(ch.key))
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -325,7 +330,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ produc
             <div>
               <div style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '12px' }}>Channels</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {CHANNELS.map(ch => {
+                {channels.map(ch => {
                   const listing = channelMap[ch.key]
                   const status = listing?.status ?? 'not_listed'
                   const s = STATUS_LABEL[status] ?? STATUS_LABEL.not_listed

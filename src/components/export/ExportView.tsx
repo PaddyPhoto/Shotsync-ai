@@ -111,7 +111,7 @@ export function ExportView({
   const bgRemovalEnabled = false
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
-  const { canExportThisMonth, recordExport, openUpgrade, plan } = usePlan()
+  const { canExportThisMonth, recordExport, openUpgrade, plan, region } = usePlan()
   const markClustersExported = useSession((s) => s.markClustersExported)
   const dimensionOverrides = useSession((s) => s.dimensionOverrides)
   // Resolve a marketplace's rule, applying any per-job output-size override.
@@ -971,7 +971,9 @@ export function ExportView({
 
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0
   const totalSourceImages = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
-  const ANZ_MARKETPLACES: MarketplaceName[] = ['the-iconic', 'myer', 'david-jones']
+  // AU-only upsell: lock the ANZ marketplaces behind Launch+. US orgs don't see
+  // these destinations at all, so there's nothing to lock.
+  const ANZ_MARKETPLACES: MarketplaceName[] = region === 'au' ? ['the-iconic', 'myer', 'david-jones'] : []
   const lockedMarketplaces: MarketplaceName[] = plan.limits.marketplaces < 2 ? ANZ_MARKETPLACES : []
   const hasBgRemoval = shootType === 'still-life' && selectedMarketplaces.some((m) => (resolveRule(m)).remove_background)
   const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)

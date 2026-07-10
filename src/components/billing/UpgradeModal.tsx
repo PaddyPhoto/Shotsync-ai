@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { PLANS, type PlanId } from '@/lib/plans'
+import { planHighlights } from '@/lib/plans/highlights'
 import { usePlan } from '@/context/PlanContext'
 import { CheckoutModal } from '@/components/billing/CheckoutModal'
 import { PaymentLogos } from '@/components/billing/PaymentLogos'
@@ -14,7 +15,7 @@ const STRIPE_CONFIGURED = !!(
 const PLAN_ORDER: PlanId[] = ['free', 'launch', 'growth', 'scale', 'enterprise']
 
 export function UpgradeModal() {
-  const { upgradeReason, closeUpgrade, planId, refreshPlan } = usePlan()
+  const { upgradeReason, closeUpgrade, planId, region, refreshPlan } = usePlan()
   const [loading, setLoading] = useState<PlanId | null>(null)
   const [checkoutPlan, setCheckoutPlan] = useState<PlanId | null>(null)
 
@@ -113,7 +114,7 @@ export function UpgradeModal() {
                 </div>
 
                 <ul className="flex flex-col gap-[6px]">
-                  {p.highlights.map((h) => (
+                  {planHighlights(id, region).map((h) => (
                     <li key={h} className="flex items-center gap-2 text-[length:var(--font-base)] text-[var(--text2)]">
                       <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--accent2)" strokeWidth="1.8">
                         <polyline points="2 6 4.5 8.5 9 3"/>

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
+import { usePlan } from '@/context/PlanContext'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import { useMarketplaceRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
@@ -63,6 +64,8 @@ function MarketplacesInner() {
     if (activeBrand?.id) setSelectedBrandId(activeBrand.id)
   }, [activeBrand?.id])
   const { rules, updateRule, resetRule, saved } = useMarketplaceRules(selectedBrandId || undefined)
+  const { region } = usePlan()
+  const visibleIds = (Object.keys(rules) as MarketplaceName[]).filter((id) => MARKETPLACE_RULES[id].regions.includes(region))
   const [s3Form, setS3Form] = useState({ bucket: '', region: 'ap-southeast-2', access_key_id: '', secret_access_key: '', prefix: '' })
   const [s3Saving, setS3Saving] = useState(false)
   const [s3Saved, setS3Saved] = useState(false)
@@ -204,8 +207,8 @@ function MarketplacesInner() {
             </div>
 
             {/* Marketplace cards */}
-            <div className="grid gap-3 mb-6" style={{ gridTemplateColumns: `repeat(${Object.keys(rules).length}, 1fr)` }}>
-              {(Object.keys(rules) as MarketplaceName[]).map((id) => {
+            <div className="grid gap-3 mb-6" style={{ gridTemplateColumns: `repeat(${visibleIds.length}, 1fr)` }}>
+              {visibleIds.map((id) => {
                 const r = rules[id]
                 const isModified = JSON.stringify(r) !== JSON.stringify(MARKETPLACE_RULES[id])
                 const isActive = activeMarketplace === id

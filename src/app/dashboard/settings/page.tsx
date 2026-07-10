@@ -403,7 +403,7 @@ function SettingsInner() {
                     <tbody>
                       {[
                         { feature: 'Images per month',   values: ['25', '500', '3,000', '6,000', 'Unlimited'] },
-                        { feature: 'ANZ marketplaces',   values: ['—', '2', '4', '4', '4'] },
+                        { feature: region === 'au' ? 'ANZ marketplaces' : 'Export destinations', values: ['—', '2', '4', '4', '4'] },
                         { feature: 'Shopify stores',     values: ['—', '1', '2', '5', 'Unlimited'] },
                         { feature: 'Brands',             values: ['1', '1', '2', '5', 'Unlimited'] },
                         { feature: 'Seats',              values: ['1', '2', '5', '10', 'Unlimited'] },

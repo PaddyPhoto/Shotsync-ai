@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Topbar } from '@/components/layout/Topbar'
 import { createClient } from '@/lib/supabase/client'
 import { useBrand } from '@/context/BrandContext'
+import { usePlan } from '@/context/PlanContext'
 import type { ImportRow } from '@/lib/products/upsert'
 
 const CHANNELS = [
@@ -314,7 +315,11 @@ function ImportModal({ onClose, onDone }: { onClose: () => void; onDone: () => v
 }
 
 // ── Product card ──────────────────────────────────────────────────────────────
+const AU_ONLY_CHANNELS = ['iconic', 'myer', 'dj']
+
 function ProductCard({ product }: { product: Product }) {
+  const { region } = usePlan()
+  const channels = region === 'au' ? CHANNELS : CHANNELS.filter((ch) => !AU_ONLY_CHANNELS.includes(ch.key))
   const heroImage = getHeroImage(product)
   const totalStock = product.product_listings.reduce(
     (sum, cw) => sum + cw.product_variants.reduce((s, v) => s + (v.stock ?? 0), 0), 0
@@ -325,7 +330,7 @@ function ProductCard({ product }: { product: Product }) {
       if (!channelMap[cl.channel] || cl.status === 'live') channelMap[cl.channel] = cl.status
     })
   })
-  const liveChannels = CHANNELS.filter(ch => channelMap[ch.key] === 'live')
+  const liveChannels = channels.filter(ch => channelMap[ch.key] === 'live')
 
   return (
     <Link href={`/dashboard/products/${product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
@@ -392,7 +397,7 @@ function ProductCard({ product }: { product: Product }) {
 
           {/* Channel publish state */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {CHANNELS.map(ch => {
+            {channels.map(ch => {
               const status = channelMap[ch.key]
               return (
                 <div
