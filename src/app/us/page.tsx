@@ -542,9 +542,9 @@ export default function USLandingPage() {
               </div>
 
               <div style={{ padding: '28px 28px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '14px' }}>Retail / Marketplaces</div>
+                <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#aeaeb2', marginBottom: '14px' }}>More ERP / PIM</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {['REVOLVE', 'Shopbop', 'Nordstrom'].map((name) => (
+                  {['NetSuite', 'Brightpearl', 'Uphance'].map((name) => (
                     <div key={name} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.02)', border: '0.5px solid rgba(0,0,0,0.07)', borderRadius: '10px', padding: '8px 14px', fontSize: '13px', fontWeight: 400, color: '#aeaeb2', alignSelf: 'flex-start' }}>
                       <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#d1d1d6', flexShrink: 0 }} />
                       {name}
