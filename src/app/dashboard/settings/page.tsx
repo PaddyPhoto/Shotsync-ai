@@ -108,11 +108,13 @@ function SettingsInner() {
   const [orgName, setOrgName] = useState('')
   const [orgNameSaving, setOrgNameSaving] = useState(false)
   const [orgNameSaved, setOrgNameSaved] = useState(false)
+  const [regionSaving, setRegionSaving] = useState(false)
+  const [regionSaved, setRegionSaved] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [orgRole, setOrgRole] = useState<string | null>(null)
   const canSeeBilling = !orgRole || orgRole === 'owner' || orgRole === 'admin'
 
-  const { plan, planId, usage, openUpgrade, refreshPlan } = usePlan()
+  const { plan, planId, region, usage, openUpgrade, refreshPlan } = usePlan()
   const { brands } = useBrand()
   const [portalLoading, setPortalLoading] = useState(false)
   const [activatingPlan, setActivatingPlan] = useState<string | null>(null)
@@ -202,6 +204,16 @@ function SettingsInner() {
       const res = await fetch('/api/orgs/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) }, body: JSON.stringify({ name: orgName.trim() }) })
       if (res.ok) { setOrgNameSaved(true); setTimeout(() => setOrgNameSaved(false), 2000) }
     } finally { setOrgNameSaving(false) }
+  }
+
+  const saveRegion = async (next: 'au' | 'us') => {
+    setRegionSaving(true)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const { data: { session } } = await createClient().auth.getSession()
+      const res = await fetch('/api/org/region', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) }, body: JSON.stringify({ region: next }) })
+      if (res.ok) { await refreshPlan(); setRegionSaved(true); setTimeout(() => setRegionSaved(false), 2000) }
+    } finally { setRegionSaving(false) }
   }
 
   const handleBillingPortal = async () => {
@@ -303,6 +315,23 @@ function SettingsInner() {
                     <button onClick={saveOrgName} disabled={orgNameSaving || !orgName.trim()} className="btn btn-primary btn-sm">
                       {orgNameSaved ? '✓ Saved' : orgNameSaving ? 'Saving…' : 'Save'}
                     </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-[14px]">
+                  <div>
+                    <p className="text-[1rem] font-medium text-[var(--text)]">Region</p>
+                    <p className="text-[length:var(--font-sm)] text-[var(--text3)] mt-[2px]">Sets which export destinations you see{regionSaved ? ' · ✓ Saved' : ''}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="input w-[220px]"
+                      value={region}
+                      disabled={regionSaving}
+                      onChange={(e) => saveRegion(e.target.value as 'au' | 'us')}
+                    >
+                      <option value="au">Australia &amp; NZ</option>
+                      <option value="us">United States / Rest of world</option>
+                    </select>
                   </div>
                 </div>
               </div>

@@ -5,6 +5,9 @@ import { PLANS, type PlanId, type Plan, type PlanUsage } from '@/lib/plans'
 
 const STORAGE_KEY = 'shotsync:plan'
 const USAGE_KEY = 'shotsync:usage'
+const REGION_KEY = 'shotsync:region'
+
+export type Region = 'au' | 'us'
 
 // Only enforce usage limits when Supabase is connected (real billing mode)
 const SUPABASE_CONFIGURED =
@@ -16,6 +19,7 @@ const SUPABASE_CONFIGURED =
 interface PlanContextValue {
   plan: Plan
   planId: PlanId
+  region: Region
   usage: PlanUsage
   isLoading: boolean
   // Increment usage counters (local mode)
@@ -39,6 +43,7 @@ const defaultUsage: PlanUsage = { exportsThisMonth: 0, skusThisMonth: 0, totalBr
 const PlanContext = createContext<PlanContextValue>({
   plan: PLANS.free,
   planId: 'free',
+  region: 'us',
   usage: defaultUsage,
   isLoading: true,
   recordExport: () => {},
@@ -70,6 +75,11 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(() =>
     typeof window === 'undefined' || !localStorage.getItem(STORAGE_KEY)
   )
+  const [region, setRegion] = useState<Region>(() => {
+    if (typeof window === 'undefined') return 'us'
+    const stored = localStorage.getItem(REGION_KEY)
+    return stored === 'au' ? 'au' : 'us'
+  })
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null)
 
   const plan = PLANS[planId]
@@ -98,10 +108,12 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         if (data?.plan) {
           setPlanId(data.plan as PlanId)
           setUsage(data.usage ?? defaultUsage)
+          if (data.region === 'au' || data.region === 'us') setRegion(data.region)
           setIsLoading(false)
           if (typeof window !== 'undefined') {
             localStorage.setItem(STORAGE_KEY, data.plan)
             if (data.usage) localStorage.setItem(USAGE_KEY, JSON.stringify(data.usage))
+            if (data.region === 'au' || data.region === 'us') localStorage.setItem(REGION_KEY, data.region)
           }
           return
         }
@@ -160,7 +172,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <PlanContext.Provider value={{
-      plan, planId, usage, isLoading,
+      plan, planId, region, usage, isLoading,
       recordExport,
       canProcessSkus, canAddBrand, canSelectMarketplace, canExportThisMonth, hasShopify,
       openUpgrade, upgradeReason, closeUpgrade,

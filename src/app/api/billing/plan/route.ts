@@ -49,9 +49,18 @@ export async function GET(req: NextRequest) {
     const row = rows?.[0]
     if (!row) return NextResponse.json({ data: null })
 
+    // Region (au vs rest-of-world). Resilient: defaults to 'us' if the RPC isn't
+    // present yet (before migration 004 is applied) so this never breaks.
+    let region: 'au' | 'us' = 'us'
+    try {
+      const { data: r } = await supabase.rpc('get_org_region', { p_user_id: user.id })
+      if (r === 'au' || r === 'us') region = r
+    } catch { /* default us */ }
+
     return NextResponse.json({
       data: {
         plan: (row.plan ?? 'free') as PlanId,
+        region,
         usage: {
           exportsThisMonth: row.exports_this_month ?? 0,
           skusThisMonth: row.images_this_month ?? 0,

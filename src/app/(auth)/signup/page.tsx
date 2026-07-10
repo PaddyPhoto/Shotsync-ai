@@ -27,10 +27,18 @@ function SignupForm() {
 
     try {
       const supabase = createClient()
+      // Infer region from the browser timezone: Australia/* → 'au', else 'us'
+      // (rest-of-world). The handle_new_user DB trigger reads this to set the org
+      // region; overridable later in Settings.
+      let region = 'us'
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+        if (tz.startsWith('Australia/')) region = 'au'
+      } catch { /* default us */ }
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { brand_name: brandName } },
+        options: { data: { brand_name: brandName, region } },
       })
 
       if (authError) {
