@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
 import { usePlan } from '@/context/PlanContext'
+import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import type { Brand } from '@/lib/brands'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
@@ -19,11 +20,17 @@ const STILL_LIFE_GROUPS = [
   { label: 'Apparel Accessories',   ids: ['accessories', 'ties', 'caps', 'scarves', 'belts', 'socks'] },
 ]
 
-const COMING_SOON_MARKETS = [
+const COMING_SOON_AU = [
   { id: 'iconic',      name: 'THE ICONIC',  api: 'SellerCenter API' },
   { id: 'myer',        name: 'Myer',        api: 'Supplier Portal API' },
   { id: 'david-jones', name: 'David Jones', api: 'Content API' },
   { id: 'joor',        name: 'JOOR',        api: 'Wholesale B2B API' },
+]
+const COMING_SOON_US = [
+  { id: 'netsuite',    name: 'NetSuite',    api: 'SuiteTalk REST API' },
+  { id: 'aims360',     name: 'AIMS360',     api: 'Apparel ERP API' },
+  { id: 'brightpearl', name: 'Brightpearl', api: 'Retail Ops API' },
+  { id: 'uphance',     name: 'Uphance',     api: 'Apparel ERP API' },
 ]
 
 type BrandForm = {
@@ -510,6 +517,8 @@ interface BrandCardProps {
 }
 
 function BrandCard({ id, brand, form, expanded, saving, justSaved = false, error, expandedStillLife, deletingId, initialStep = 1, onToggle, onFormChange, onSave, onDelete, onDisconnectShopify, onSetStillLife }: BrandCardProps) {
+  const { region } = usePlan()
+  const comingSoonMarkets = region === 'au' ? COMING_SOON_AU : COMING_SOON_US
   const isNew = id === 'new'
   const shopifyConnected = !!brand?.shopify_authenticated
   const [step, setStep] = useState(initialStep)
@@ -681,12 +690,15 @@ function BrandCard({ id, brand, form, expanded, saving, justSaved = false, error
                   <label className="text-[length:var(--font-base)] text-[var(--text3)] mb-2 block">Marketplaces this brand sells on</label>
                   <div className="flex flex-wrap gap-2">
                     {([
-                      { id: 'shopify',     name: 'Shopify',      color: '#30d158' },
-                      { id: 'the-iconic',  name: 'THE ICONIC',   color: '#ff9f0a' },
-                      { id: 'david-jones', name: 'David Jones',  color: '#0071e3' },
-                      { id: 'myer',        name: 'Myer',         color: '#ff3b30' },
-                      { id: 'joor',        name: 'JOOR',         color: '#5856d6' },
-                    ] as { id: MarketplaceName; name: string; color: string }[]).map(({ id, name, color }) => {
+                      { id: 'shopify',     name: 'Shopify',           color: '#30d158' },
+                      { id: 'the-iconic',  name: 'THE ICONIC',        color: '#ff9f0a' },
+                      { id: 'david-jones', name: 'David Jones',       color: '#0071e3' },
+                      { id: 'myer',        name: 'Myer',              color: '#ff3b30' },
+                      { id: 'joor',        name: 'JOOR',              color: '#5856d6' },
+                      { id: 'erp-pim',     name: 'ERP / PIM export',  color: '#30b0c7' },
+                    ] as { id: MarketplaceName; name: string; color: string }[])
+                      .filter(({ id }) => MARKETPLACE_RULES[id].regions.includes(region))
+                      .map(({ id, name, color }) => {
                       const active = form.default_marketplaces.includes(id)
                       return (
                         <button
@@ -1091,10 +1103,11 @@ function BrandCard({ id, brand, form, expanded, saving, justSaved = false, error
 
         {/* ── Section label ── */}
         <div className="px-6 pt-4 pb-1 border-t-2 border-[var(--line2)]">
-          <p className="text-[length:var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text)]">Marketplaces</p>
+          <p className="text-[length:var(--font-sm)] uppercase tracking-[0.06em] text-[var(--text)]">{region === 'au' ? 'Marketplaces' : 'ERP / PIM'}</p>
         </div>
 
-        {/* THE ICONIC */}
+        {/* THE ICONIC — AU marketplace, hidden for US orgs */}
+        {region === 'au' && (
         <div className="px-6 py-3 flex items-center gap-4 border-b border-[var(--line)]">
           <div className="w-8 h-8 rounded-[7px] bg-black flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-[0.73rem] tracking-tight" style={{ fontFamily: 'var(--font-dm-mono)' }}>TI</span>
@@ -1112,9 +1125,10 @@ function BrandCard({ id, brand, form, expanded, saving, justSaved = false, error
             }
           </div>
         </div>
+        )}
 
         {/* Myer + David Jones */}
-        {COMING_SOON_MARKETS.filter((m) => m.id !== 'iconic').map((market, i, arr) => (
+        {comingSoonMarkets.filter((m) => m.id !== 'iconic').map((market, i, arr) => (
           <div key={market.id} className={`px-6 py-3 flex items-center gap-4 opacity-60 ${i < arr.length - 1 ? 'border-b border-[var(--line)]' : ''}`}>
             <div className="w-8 h-8 rounded-[7px] bg-[var(--bg4)] border border-[var(--line2)] flex items-center justify-center flex-shrink-0">
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="var(--text3)" strokeWidth="1.5"><rect x="1.5" y="5" width="8" height="5" rx="0.8"/><path d="M3.5 5V3.5a2 2 0 014 0V5"/></svg>

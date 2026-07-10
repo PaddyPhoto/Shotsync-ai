@@ -2,12 +2,21 @@
 
 import { Topbar } from '@/components/layout/Topbar'
 import { useBrand } from '@/context/BrandContext'
+import { usePlan } from '@/context/PlanContext'
 import type { Brand } from '@/lib/brands'
 
-const COMING_SOON_MARKETS = [
+// Region-aware "coming soon" connections. AU brands sell into ANZ marketplaces
+// directly; everyone else hands off to an ERP/PIM which handles retail downstream.
+const COMING_SOON_AU = [
   { id: 'iconic',      name: 'THE ICONIC',  api: 'SellerCenter API' },
   { id: 'myer',        name: 'Myer',        api: 'Supplier Portal API' },
   { id: 'david-jones', name: 'David Jones', api: 'Content API' },
+]
+const COMING_SOON_US = [
+  { id: 'netsuite',    name: 'NetSuite',    api: 'SuiteTalk REST API' },
+  { id: 'aims360',     name: 'AIMS360',     api: 'Apparel ERP API' },
+  { id: 'brightpearl', name: 'Brightpearl', api: 'Retail Ops API' },
+  { id: 'uphance',     name: 'Uphance',     api: 'Apparel ERP API' },
 ]
 
 export default function IntegrationsPage() {
@@ -42,6 +51,8 @@ export default function IntegrationsPage() {
 }
 
 function BrandIntegrationCard({ brand }: { brand: Brand }) {
+  const { region } = usePlan()
+  const comingSoon = region === 'au' ? COMING_SOON_AU : COMING_SOON_US
   const connected = !!brand.shopify_authenticated
   const urlSaved = !!brand.shopify_store_url
   const connectedCount = connected ? 1 : 0
@@ -90,8 +101,8 @@ function BrandIntegrationCard({ brand }: { brand: Brand }) {
           </a>
         </div>
 
-        {/* Coming-soon marketplaces */}
-        {COMING_SOON_MARKETS.map((market) => (
+        {/* Coming-soon connections (region-aware) */}
+        {comingSoon.map((market) => (
           <div key={market.id} className="flex flex-col gap-3 p-4 opacity-50">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-[5px] bg-[var(--bg3)] border border-[var(--line2)] flex items-center justify-center flex-shrink-0">
