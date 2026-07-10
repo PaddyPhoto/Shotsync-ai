@@ -66,6 +66,15 @@ export default function USLandingPage() {
         .hero-actions { animation: fadeUp .7s ease both .4s; }
         .hero-stats   { animation: fadeUp .7s ease both .55s; }
         .eyebrow-dot  { animation: eyebrowPulse 2s infinite; }
+        @keyframes scrollNudge {
+          0%, 100% { transform: translateY(0); opacity: .5; }
+          50%      { transform: translateY(6px); opacity: 1; }
+        }
+        .scroll-cue { position:absolute; bottom:22px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:none; cursor:pointer; color:#6e6e73; padding:8px; transition:color .15s; }
+        .scroll-cue:hover { color:#1d1d1f; }
+        .scroll-cue span { font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; }
+        .scroll-cue svg { animation: scrollNudge 1.8s ease-in-out infinite; }
+        @media (max-width: 767px) { .scroll-cue { display:none; } }
         .nav-link { font-size:13px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
         .nav-link:hover { color:#1d1d1f; }
         .footer-link { font-size:14px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
@@ -189,6 +198,15 @@ export default function USLandingPage() {
               </div>
             ))}
           </div>
+
+          <button
+            className="scroll-cue"
+            onClick={() => window.scrollTo({ top: window.innerHeight * 0.92, behavior: 'smooth' })}
+            aria-label="Scroll down to see more"
+          >
+            <span>Scroll</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
         </section>
 
         {/* APP MOCKUP */}
