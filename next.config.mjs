@@ -13,6 +13,22 @@ const nextConfig = {
     ],
   },
   serverExternalPackages: ['sharp'],
+  async headers() {
+    // Baseline security headers applied site-wide. Safe set (won't break the app).
+    // TODO: add Content-Security-Policy + X-Frame-Options after per-route testing
+    // (inline scripts, Stripe, and any Shopify embedding need care).
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+    ]
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       // On the server, never bundle onnxruntime packages — they pull in Node.js
