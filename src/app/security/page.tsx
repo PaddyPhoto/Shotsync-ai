@@ -23,10 +23,6 @@ const CONTROLS: { name: string; desc: string; status: 'live' | 'road' }[] = [
   { name: 'Authentication & MFA', desc: 'Managed authentication via Supabase, with multi-factor authentication available to accounts.', status: 'live' },
   { name: 'Hardened HTTP headers', desc: 'HSTS, MIME-sniffing protection, and referrer & permissions policies applied across the site.', status: 'live' },
   { name: 'Managed backups & monitoring', desc: 'Automated database backups via Supabase; application error monitoring with sensitive-data scrubbing.', status: 'live' },
-  { name: 'SOC 2 Type II report', desc: 'Independent audit of our own controls, pursued on top of our already-audited stack.', status: 'road' },
-  { name: 'Third-party penetration test', desc: 'Annual external assessment, with a summary letter available under NDA.', status: 'road' },
-  { name: 'Single Sign-On (SAML)', desc: 'SSO and directory-based provisioning for enterprise plans.', status: 'road' },
-  { name: 'Rate limiting & WAF', desc: 'Expanded abuse protection and a managed web-application firewall at the edge.', status: 'road' },
 ]
 
 const SUBPROCESSORS = [
@@ -83,13 +79,7 @@ export default function SecurityPage() {
           <div style={{ height: '3px', width: '54px', borderRadius: '3px', background: 'linear-gradient(90deg,#30d158,#007aff 50%,#af52de)', marginBottom: '26px' }} />
           <p style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#6e6e73', marginBottom: '14px' }}>Security &amp; Compliance</p>
           <h1 style={{ fontSize: 'clamp(32px,5vw,52px)', fontWeight: 600, letterSpacing: '-1.5px', lineHeight: 1.05, margin: '0 0 18px', maxWidth: '15ch' }}>How we protect your data and your unreleased imagery.</h1>
-          <p style={{ fontSize: '18px', color: '#4a4a4f', lineHeight: 1.5, maxWidth: '58ch', margin: 0 }}>ShotSync turns raw fashion shoots into channel-ready product listings. Here are the security controls we operate today and the compliance work on our roadmap.</p>
-
-          {/* Legend */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 22px', marginTop: '32px', padding: '14px 18px', background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '12px', fontSize: '13px', color: '#6e6e73' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#30d158' }} /> <b style={{ color: '#1d1d1f', fontWeight: 600 }}>Live</b> — in place today</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff9f0a' }} /> <b style={{ color: '#1d1d1f', fontWeight: 600 }}>On roadmap</b> — planned, not yet in place</span>
-          </div>
+          <p style={{ fontSize: '18px', color: '#4a4a4f', lineHeight: 1.5, maxWidth: '58ch', margin: 0 }}>ShotSync turns raw fashion shoots into channel-ready product listings. Here are the security controls and data-handling practices we operate today.</p>
 
           {/* Highlights */}
           <div className="sec-highlights" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '44px' }}>
