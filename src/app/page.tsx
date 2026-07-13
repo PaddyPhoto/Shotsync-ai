@@ -648,6 +648,7 @@ export default function LandingPage() {
                 { label: 'Pricing',          href: '/pricing' },
                 { label: 'What is ShotSync', href: '/what-is-shotsync' },
                 { label: 'FAQ',              href: '/faq' },
+                { label: 'Security',         href: '/security' },
                 { label: 'Contact',          href: 'mailto:hello@shotsync.ai' },
                 { label: 'Privacy',          href: '/privacy' },
               ].map(({ label, href }) => (

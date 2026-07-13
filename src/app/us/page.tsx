@@ -693,6 +693,7 @@ export default function USLandingPage() {
                 { label: 'Pricing',          href: '/us/pricing' },
                 { label: 'What is ShotSync', href: '/us/what-is-shotsync' },
                 { label: 'FAQ',              href: '/faq' },
+                { label: 'Security',         href: '/security' },
                 { label: 'Contact',          href: 'mailto:hello@shotsync.ai' },
                 { label: 'Privacy',          href: '/privacy' },
               ].map(({ label, href }) => (
