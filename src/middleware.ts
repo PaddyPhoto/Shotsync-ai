@@ -4,6 +4,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 const DASHBOARD_PREFIX = '/dashboard'
 const AUTH_PATHS = ['/login', '/signup']
 
+// Search-engine / social crawlers are never geo-redirected, so both / and /us
+// stay crawlable and indexable (hreflang tells Google which to serve per region).
+function isCrawler(ua: string): boolean {
+  return /bot|crawl|spider|slurp|mediapartners|googlebot|bingbot|duckduckbot|baiduspider|yandex|applebot|facebookexternalhit|embedly|whatsapp|slackbot|twitterbot|telegram|discordbot|linkedinbot|pinterest/i.test(ua)
+}
+
 // ── Site-wide password gate (Early Access) ────────────────────────────────────
 const SITE_PASSWORD = process.env.SITE_PASSWORD
 const GATE_COOKIE = 'ss_gate'
@@ -91,10 +97,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(DASHBOARD_PREFIX, request.url))
   }
 
-  // Geo-routing: US visitors see the US landing page
+  // Geo-routing: non-AU visitors see the US / rest-of-world landing page.
+  // Crawlers are NOT redirected (so / and /us both stay indexable — hreflang
+  // handles which one Google serves per region). Unknown country → no redirect.
   if (pathname === '/' && !isAuthenticated) {
     const country = request.headers.get('x-vercel-ip-country') ?? ''
-    if (country === 'US') {
+    const ua = request.headers.get('user-agent') ?? ''
+    if (country && country !== 'AU' && !isCrawler(ua)) {
       return NextResponse.redirect(new URL('/us', request.url))
     }
   }

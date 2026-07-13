@@ -5,7 +5,14 @@ import { UsPricingBlock } from '@/components/landing/UsPricingBlock'
 export const metadata: Metadata = {
   title: 'Pricing — ShotSync',
   description: 'Simple, transparent USD pricing for ShotSync. Start free, upgrade as you grow, cancel anytime.',
-  alternates: { canonical: '/us/pricing' },
+  alternates: {
+    canonical: '/us/pricing',
+    languages: {
+      'en-AU': 'https://www.shotsync.ai/pricing',
+      'en-US': 'https://www.shotsync.ai/us/pricing',
+      'x-default': 'https://www.shotsync.ai/pricing',
+    },
+  },
 }
 
 export default function UsPricingPage() {

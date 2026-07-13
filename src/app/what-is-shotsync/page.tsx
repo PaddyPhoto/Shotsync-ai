@@ -4,7 +4,14 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'What is ShotSync?',
   description: 'ShotSync is product enrichment workflow automation software for fashion brands. It turns photographer image delivery and a product CSV into fully enriched listings in Shopify, Cin7, and Australian marketplaces — in minutes, not days.',
-  alternates: { canonical: 'https://www.shotsync.ai/what-is-shotsync' },
+  alternates: {
+    canonical: 'https://www.shotsync.ai/what-is-shotsync',
+    languages: {
+      'en-AU': 'https://www.shotsync.ai/what-is-shotsync',
+      'en-US': 'https://www.shotsync.ai/us/what-is-shotsync',
+      'x-default': 'https://www.shotsync.ai/what-is-shotsync',
+    },
+  },
   openGraph: {
     title: 'What is ShotSync? — Product Enrichment Workflow Automation',
     description: 'ShotSync turns photographer image delivery and a product CSV into fully enriched product listings in Shopify, Cin7, and Australian marketplaces — in minutes, not days.',

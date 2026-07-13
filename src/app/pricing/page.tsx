@@ -5,7 +5,14 @@ import { PricingBlock } from '@/components/landing/PricingBlock'
 export const metadata: Metadata = {
   title: 'Pricing — ShotSync',
   description: 'Simple, transparent pricing for ShotSync. Start free, upgrade as you grow, cancel anytime.',
-  alternates: { canonical: '/pricing' },
+  alternates: {
+    canonical: '/pricing',
+    languages: {
+      'en-AU': 'https://www.shotsync.ai/pricing',
+      'en-US': 'https://www.shotsync.ai/us/pricing',
+      'x-default': 'https://www.shotsync.ai/pricing',
+    },
+  },
 }
 
 export default function PricingPage() {

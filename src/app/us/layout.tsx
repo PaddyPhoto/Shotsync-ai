@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://www.shotsync.ai/us',
+    languages: {
+      'en-AU': 'https://www.shotsync.ai',
+      'en-US': 'https://www.shotsync.ai/us',
+      'x-default': 'https://www.shotsync.ai',
+    },
   },
   openGraph: {
     type: 'website',
