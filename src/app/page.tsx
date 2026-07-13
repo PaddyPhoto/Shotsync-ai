@@ -634,8 +634,10 @@ export default function LandingPage() {
         </section>
 
         {/* ── FOOTER ── */}
+        {/* Not wrapped in <Reveal>: as the last element, its whileInView trigger can
+            sit permanently in the negative-margin dead zone and never fire, leaving
+            the footer stuck at opacity 0. The footer must always be visible. */}
         <footer className="section-pad" style={{ padding: 'clamp(36px,4vw,60px) 40px', borderTop: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', position: 'relative' }}>
-          <Reveal y={16}>
           <div className="footer-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1440px', margin: '0 auto' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <img src="/icon.png" alt="ShotSync" style={{ width: '28px', height: '28px', borderRadius: '7px' }} />
@@ -659,7 +661,6 @@ export default function LandingPage() {
               <PaymentLogos />
             </div>
           </div>
-          </Reveal>
         </footer>
 
       </div>
