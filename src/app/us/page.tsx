@@ -86,6 +86,12 @@ export default function USLandingPage() {
         .mp-logo-cell:last-child { border-right: none !important; }
         .hero-stat-cell:last-child { border-right: none !important; }
 
+        /* Footer: stack before the links + payment logos collide on tablet. */
+        @media (max-width: 1024px) {
+          .footer-inner { flex-direction: column !important; align-items: flex-start !important; gap: 24px !important; }
+          .footer-links { flex-wrap: wrap !important; gap: 12px 22px !important; }
+        }
+
         @media (max-width: 767px) {
           .nav-links-desktop { display: none !important; }
           .nav-cta-desktop { display: none !important; }
