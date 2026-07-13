@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ScribeEmbed } from '@/components/ui/ScribeEmbed'
+import { usePlan } from '@/context/PlanContext'
 
 let _openModal: (() => void) | null = null
 export function openHelpModal() { _openModal?.() }
@@ -9,13 +10,17 @@ export function openHelpModal() { _openModal?.() }
 type QA = { q: string; a: string }
 type Section = { title: string; items: QA[] }
 
-const SECTIONS: Section[] = [
+function getSections(region: 'au' | 'us'): Section[] {
+  const isAu = region === 'au'
+  return [
   {
     title: 'Getting Started',
     items: [
       {
         q: 'What is ShotSync?',
-        a: 'ShotSync automates post-production for fashion brands. Upload your shoot images and ShotSync AI groups them into product clusters with correct angles, SKUs, and colours — ready to export directly to your ERP (Cin7, Apparel21) or marketplace (Shopify, THE ICONIC).',
+        a: isAu
+          ? 'ShotSync automates post-production for fashion brands. Upload your shoot images and ShotSync AI groups them into product clusters with correct angles, SKUs, and colours — ready to export directly to your ERP (Cin7, Apparel21) or marketplace (Shopify, THE ICONIC).'
+          : 'ShotSync automates post-production for fashion brands. Upload your shoot images and ShotSync AI groups them into product clusters with correct angles, SKUs, and colours — ready to export directly to Shopify, your ERP or PIM (Cin7, Apparel21), or a clean product record for any downstream system.',
       },
       {
         q: 'How does a typical fashion ecommerce shoot translate into ShotSync sessions?',
@@ -133,17 +138,19 @@ const SECTIONS: Section[] = [
         q: 'Where do GM images appear on an existing Shopify product when pushed?',
         a: 'That\'s controlled by the Ghost Mannequin Position setting in Brand Settings → Still Life. Set to Image 1 (Hero) and ShotSync places the GM images at the front of the listing — your on-model images shift back. Set to Last Image and the GM images are appended after the existing on-model images. The same setting controls the GM position in ZIP exports.',
       },
-      {
+      ...(isAu ? [{
         q: 'What is THE ICONIC integration for?',
         a: 'THE ICONIC is a premium Australian fashion marketplace. Add your User ID and API Key in Brand Settings → Platforms to export product listings directly in THE ICONIC\'s required format, including correct image sequencing and metadata fields.',
-      },
+      }] : []),
       {
         q: 'What data actually gets pushed into Cin7?',
         a: 'Everything. The AI-generated title becomes the Cin7 product name. The description and bullet points become the product description in HTML. RRP maps to price. All CSV metadata (Fabric, Care, Fit, Size Range, Season, Gender, Occasion, Origin, Sub-Category) maps to custom attributes. The garment category maps to Cin7\'s Category field. Images are processed (cropped, background-removed to your spec) and attached directly. One dependency: the custom attributes only appear in Cin7 if you\'ve created the "ShotSync Apparel" attribute set in your Cin7 account with matching field names. Without it, the product still creates but the attribute fields are silently dropped.',
       },
       {
         q: 'Why does ShotSync integrate with ERPs rather than marketplaces directly?',
-        a: 'Most brands already have an ERP (like Cin7 or Apparel21) that distributes products to all their marketplaces — Shopify, THE ICONIC, ASOS, and others. By pushing enriched product clusters into the ERP, ShotSync becomes part of the brand\'s existing workflow rather than a parallel system.',
+        a: isAu
+          ? 'Most brands already have an ERP (like Cin7 or Apparel21) that distributes products to all their marketplaces — Shopify, THE ICONIC, ASOS, and others. By pushing enriched product clusters into the ERP, ShotSync becomes part of the brand\'s existing workflow rather than a parallel system.'
+          : 'Most brands already have an ERP or PIM (like Cin7 or Apparel21) that distributes products to all their sales channels. By pushing enriched product clusters into the ERP, ShotSync becomes part of the brand\'s existing workflow rather than a parallel system.',
       },
     ],
   },
@@ -152,7 +159,7 @@ const SECTIONS: Section[] = [
     items: [
       {
         q: 'What export options are available?',
-        a: 'ZIP download (images named and organised per marketplace rules), direct push to Shopify, direct push to Cin7 Core, and THE ICONIC export. Select which confirmed clusters to include before exporting. Two toggles control folder and naming behaviour: Flat export puts all images into one folder per marketplace instead of a subfolder per SKU — useful when your downstream system expects a flat file drop. Keep original filenames skips renaming entirely and exports the cropped images using their original filenames — useful when your files are already named correctly and you just need the crops.',
+        a: `ZIP download (images named and organised per marketplace rules), direct push to Shopify, direct push to Cin7 Core${isAu ? ', and THE ICONIC export' : ', and a clean product_data.csv for any ERP or PIM'}. Select which confirmed clusters to include before exporting. Two toggles control folder and naming behaviour: Flat export puts all images into one folder per marketplace instead of a subfolder per SKU — useful when your downstream system expects a flat file drop. Keep original filenames skips renaming entirely and exports the cropped images using their original filenames — useful when your files are already named correctly and you just need the crops.`,
       },
       {
         q: 'How are images named in the ZIP?',
@@ -185,7 +192,8 @@ const SECTIONS: Section[] = [
       },
     ],
   },
-]
+  ]
+}
 
 function ChevronIcon({ open }: { open: boolean }) {
   return (
@@ -252,6 +260,8 @@ function SectionBlock({ section }: { section: Section }) {
 
 export function HelpModal() {
   const [visible, setVisible] = useState(false)
+  const { region } = usePlan()
+  const SECTIONS = getSections(region)
 
   useEffect(() => {
     _openModal = () => setVisible(true)
