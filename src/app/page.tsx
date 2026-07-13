@@ -69,8 +69,9 @@ export default function LandingPage() {
         @media (max-width: 767px) { .scroll-cue { display:none; } }
         .nav-link { font-size:13px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
         .nav-link:hover { color:#1d1d1f; }
-        .footer-link { font-size:14px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s; }
+        .footer-link { font-size:14px;color:#6e6e73;text-decoration:none;letter-spacing:-.1px;transition:color .15s;white-space:nowrap; }
         .footer-link:hover { color:#1d1d1f; }
+        .footer-links { flex-wrap:wrap; }
         .price-cta-btn { display:block;text-align:center;margin-top:24px;padding:10px;border-radius:8px;font-size:13px;font-weight:500;letter-spacing:-.2px;text-decoration:none;transition:opacity .15s;background:rgba(0,0,0,0.06);color:#1d1d1f; }
         .price-cta-btn:hover { opacity:.8; }
         .price-cta-btn.featured { background:#fff;color:#1d1d1f; }
@@ -78,7 +79,7 @@ export default function LandingPage() {
         .hero-stat-cell:last-child { border-right: none !important; }
 
         /* Footer: 8 links + payment logos need room — stack before they collide. */
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
           .footer-inner { flex-direction: column !important; align-items: flex-start !important; gap: 24px !important; }
           .footer-links { flex-wrap: wrap !important; gap: 12px 22px !important; }
         }
