@@ -101,6 +101,15 @@ export default function SecurityPage() {
             ))}
           </div>
 
+          {/* Data handling callout */}
+          <h2 style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-.5px', margin: '56px 0 20px', paddingBottom: '12px', borderBottom: '0.5px solid rgba(0,0,0,0.1)' }}>How we handle your data</h2>
+          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: 'clamp(22px,4vw,34px)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '3px', background: 'linear-gradient(#30d158,#007aff,#af52de)' }} />
+            <p style={{ fontSize: 'clamp(19px,2.6vw,25px)', fontWeight: 600, letterSpacing: '-.5px', lineHeight: 1.25, margin: '0 0 14px', maxWidth: '24ch' }}>Your unreleased imagery never leaves your device by default.</p>
+            <p style={{ fontSize: '14.5px', color: '#4a4a4f', lineHeight: 1.6, margin: '0 0 10px', maxWidth: '64ch' }}>ShotSync was built for brands working with product imagery that hasn&apos;t launched yet. The workflow — grouping images into products, labelling angles, renaming, resizing and formatting for each destination — runs entirely in your browser.</p>
+            <p style={{ fontSize: '14.5px', color: '#4a4a4f', lineHeight: 1.6, margin: 0, maxWidth: '64ch' }}>The only images that leave your device are the final, formatted listings you explicitly choose to publish to a platform you&apos;ve connected. Raw and pre-launch shoots are never uploaded to ShotSync&apos;s servers as part of processing.</p>
+          </div>
+
           {/* Controls */}
           <h2 style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-.5px', margin: '56px 0 20px', paddingBottom: '12px', borderBottom: '0.5px solid rgba(0,0,0,0.1)' }}>Security controls</h2>
           <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '14px', overflow: 'hidden' }}>
@@ -113,15 +122,6 @@ export default function SecurityPage() {
                 <span className={`sec-pill ${c.status}`}><span className="d" />{c.status === 'live' ? 'Live' : 'On roadmap'}</span>
               </div>
             ))}
-          </div>
-
-          {/* Data handling callout */}
-          <h2 style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-.5px', margin: '56px 0 20px', paddingBottom: '12px', borderBottom: '0.5px solid rgba(0,0,0,0.1)' }}>How we handle your data</h2>
-          <div style={{ background: '#fff', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '16px', padding: 'clamp(22px,4vw,34px)', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '3px', background: 'linear-gradient(#30d158,#007aff,#af52de)' }} />
-            <p style={{ fontSize: 'clamp(19px,2.6vw,25px)', fontWeight: 600, letterSpacing: '-.5px', lineHeight: 1.25, margin: '0 0 14px', maxWidth: '24ch' }}>Your unreleased imagery never leaves your device by default.</p>
-            <p style={{ fontSize: '14.5px', color: '#4a4a4f', lineHeight: 1.6, margin: '0 0 10px', maxWidth: '64ch' }}>ShotSync was built for brands working with product imagery that hasn&apos;t launched yet. The workflow — grouping images into products, labelling angles, renaming, resizing and formatting for each destination — runs entirely in your browser.</p>
-            <p style={{ fontSize: '14.5px', color: '#4a4a4f', lineHeight: 1.6, margin: 0, maxWidth: '64ch' }}>The only images that leave your device are the final, formatted listings you explicitly choose to publish to a platform you&apos;ve connected. Raw and pre-launch shoots are never uploaded to ShotSync&apos;s servers as part of processing.</p>
           </div>
 
           {/* Sub-processors */}
