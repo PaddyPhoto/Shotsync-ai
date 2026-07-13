@@ -94,7 +94,8 @@ export default function LandingPage() {
           .app-mockup-section { display: none !important; }
           .section-pad { padding-left: 20px !important; padding-right: 20px !important; }
           .how-it-works-grid { grid-template-columns: 1fr !important; }
-          .features-grid { grid-template-columns: 1fr !important; }
+          .features-grid { grid-template-columns: minmax(0,1fr) !important; }
+          .features-grid > div { padding: 22px !important; }
           .ai-copy-feature { grid-template-columns: 1fr !important; }
           .mp-logos-row { flex-direction: column !important; }
           .mp-logo-cell { border-right: none !important; border-bottom: 0.5px solid rgba(0,0,0,0.08) !important; }
@@ -401,7 +402,7 @@ export default function LandingPage() {
         <section id="features" className="section-pad" style={{ padding: '0 40px 100px', position: 'relative' }}>
           <div style={{ maxWidth: 'clamp(1200px,75vw,1440px)', margin: '0 auto' }}>
             <Reveal>
-            <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden' }}>
+            <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '1px', background: 'rgba(0,0,0,0.08)', border: '0.5px solid rgba(0,0,0,0.08)', borderRadius: '24px', overflow: 'hidden' }}>
 
               {/* Feature 1: Auto-rename */}
               <div style={{ background: '#fff', padding: '40px' }}>
@@ -419,9 +420,9 @@ export default function LandingPage() {
                     { old: 'DSC_0020.jpg',  neo: 'PR06001.034_SIDE.jpg' },
                   ].map(({ old, neo }) => (
                     <div key={old} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
-                      <span style={{ fontSize: '14px', color: '#aeaeb2', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{old}</span>
+                      <span style={{ fontSize: '14px', color: '#aeaeb2', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{old}</span>
                       <span style={{ fontSize: '14px', color: '#aeaeb2', flexShrink: 0 }}>→</span>
-                      <span style={{ fontSize: '14px', color: '#1d1d1f', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{neo}</span>
+                      <span style={{ fontSize: '14px', color: '#1d1d1f', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{neo}</span>
                     </div>
                   ))}
                 </div>
@@ -492,7 +493,7 @@ export default function LandingPage() {
                   ].map((row, i) => (
                     <div key={i} style={{ display: 'flex', gap: '10px', padding: '6px 0', borderBottom: '0.5px solid rgba(0,0,0,0.05)' }}>
                       {[row.style, row.colour, row.code, row.name].map((cell, j) => (
-                        <span key={j} style={{ fontSize: '14px', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, color: row.isHeader ? '#aeaeb2' : '#1d1d1f', fontWeight: row.isHeader ? 400 : 500 }}>{cell}</span>
+                        <span key={j} style={{ fontSize: '14px', fontFamily: "'SF Mono','Fira Code',monospace", flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: row.isHeader ? '#aeaeb2' : '#1d1d1f', fontWeight: row.isHeader ? 400 : 500 }}>{cell}</span>
                       ))}
                     </div>
                   ))}
