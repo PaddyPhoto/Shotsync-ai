@@ -7,7 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:scoping": "node scripts/check-tenant-scoping.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",

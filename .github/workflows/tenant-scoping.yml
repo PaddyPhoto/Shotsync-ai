@@ -1,0 +1,21 @@
+name: Tenant scoping guard
+
+# Fails the build if new code accesses an org-scoped table via a raw
+# `.from('<table>')` instead of the tenantDb() helper — the check that would
+# have caught the /api/products/[productId] cross-tenant IDOR.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tenant-scoping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check tenant scoping
+        run: node scripts/check-tenant-scoping.mjs

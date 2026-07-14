@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser, createServiceClient } from '@/lib/supabase/server'
+import { tenantDb } from '@/lib/supabase/tenant'
 
-// Resolve the caller's org. Products are scoped by org_id, so every query must
-// filter by it — the service client bypasses RLS, so this is the only guard.
+// Resolve the caller's org (identity lookup — org_members is queried by user_id).
 async function callerOrgId(service: ReturnType<typeof createServiceClient>, userId: string) {
   const { data } = await service
     .from('org_members')
@@ -23,9 +23,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
   const orgId = await callerOrgId(service, user.id)
   if (!orgId) return NextResponse.json({ error: 'No org' }, { status: 400 })
 
-  const { data, error } = await service
-    .from('products')
-    .select(`
+  // tenantDb guarantees the org_id filter — you cannot query products without it.
+  const { data, error } = await tenantDb(service, orgId)
+    .select('products', `
       id, sku, title, category, gender, season, status,
       product_attributes ( key, value ),
       product_listings (
@@ -36,7 +36,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
       )
     `)
     .eq('id', productId)
-    .eq('org_id', orgId)
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -66,11 +65,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pr
     return NextResponse.json({ error: 'No editable fields provided' }, { status: 400 })
   }
 
-  const { data, error } = await service
-    .from('products')
-    .update(updates)
+  const { data, error } = await tenantDb(service, orgId)
+    .update('products', updates)
     .eq('id', productId)
-    .eq('org_id', orgId)
     .select('id')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
