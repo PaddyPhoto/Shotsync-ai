@@ -134,10 +134,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
   const { data: member } = await service.from('org_members').select('org_id').eq('user_id', user.id).limit(1).single()
   if (!member) return NextResponse.json({ error: 'No org' }, { status: 400 })
 
+  // Scope to the caller's org — the service client bypasses RLS, so this is the
+  // only tenant guard. The listing must belong to the org-verified product.
   const { data: product } = await service
     .from('products')
     .select('id, sku, title, category, product_attributes(key, value)')
     .eq('id', productId)
+    .eq('org_id', member.org_id)
     .single() as { data: ProductRow | null }
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 })
 
@@ -145,6 +148,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
     .from('product_listings')
     .select('id, colour_name, rrp, listing_title, listing_description, product_images(id, storage_url, angle, sort_order)')
     .eq('id', listingId)
+    .eq('product_id', productId)
     .single() as { data: ListingRow | null }
   if (!colourway) return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
 
