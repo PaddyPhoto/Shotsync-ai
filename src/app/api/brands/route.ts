@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
 import { getOrgForUser } from '@/lib/supabase/getOrgForUser'
+import { maskBrandSecrets } from '@/lib/brands/secrets'
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -25,10 +26,7 @@ export async function GET(req: NextRequest) {
       .order('created_at')
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    const mapped = (data ?? []).map(({ shopify_access_token, ...b }: { shopify_access_token: string | null; [key: string]: unknown }) => ({
-      ...b,
-      shopify_authenticated: !!shopify_access_token,
-    }))
+    const mapped = (data ?? []).map(maskBrandSecrets)
     return NextResponse.json({ data: mapped })
   } catch (err) {
     console.error('GET /api/brands error:', err)

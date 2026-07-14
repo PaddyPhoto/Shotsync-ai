@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
 import { getOrgForUser } from '@/lib/supabase/getOrgForUser'
+import { maskBrandSecrets, preserveBrandSecretsOnWrite } from '@/lib/brands/secrets'
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -36,6 +37,18 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ brandId
 
     if ('naming_template' in updates && !updates.naming_template) {
       updates.naming_template = '{BRAND}_{SEQ}_{VIEW}'
+    }
+
+    // Never let a masked/empty secret round-tripped from the client overwrite a
+    // stored credential. Restore real values from the stored record first.
+    if ('cin7_application_key' in updates || 'cloud_connections' in updates) {
+      const { data: stored } = await service
+        .from('brands')
+        .select('cin7_application_key, cloud_connections')
+        .eq('id', params.brandId)
+        .eq('org_id', user.id)
+        .single()
+      preserveBrandSecretsOnWrite(updates, stored)
     }
 
     // Enforce Shopify store limit when adding a new connection to an existing brand
@@ -83,7 +96,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ brandId
       .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ data })
+    return NextResponse.json({ data: data ? maskBrandSecrets(data) : data })
   } catch (err) {
     console.error('PATCH /api/brands/[brandId] error:', err)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })

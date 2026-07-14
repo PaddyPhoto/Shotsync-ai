@@ -540,7 +540,7 @@ function BrandCard({ id, brand, form, expanded, saving, justSaved = false, error
       const res = await fetch('/api/cin7/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
-        body: JSON.stringify({ account_id: form.cin7_account_id, application_key: form.cin7_application_key }),
+        body: JSON.stringify({ account_id: form.cin7_account_id, application_key: form.cin7_application_key, brand_id: isNew ? undefined : id }),
       })
       const json = await res.json().catch(() => ({}))
       if (json.ok) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthUser } from '@/lib/supabase/server'
+import { getAuthUser, createServiceClient } from '@/lib/supabase/server'
+import { isMasked } from '@/lib/brands/secrets'
 
 const CIN7_BASE = 'https://inventory.dearsystems.com/ExternalApi/v2'
 const REQUIRED_ATTRIBUTE_SET = 'ShotSync Apparel'
@@ -18,8 +19,28 @@ export async function POST(req: NextRequest) {
   const user = await getAuthUser(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { account_id, application_key } = await req.json()
-  if (!account_id || !application_key) {
+  const body = await req.json()
+  let account_id: string = body.account_id
+  let application_key: string = body.application_key
+  const brand_id: string | undefined = body.brand_id
+
+  // Already-connected brands render the key masked (the real one never reaches
+  // the browser). When testing such a brand, resolve the stored credentials.
+  if (brand_id && (isMasked(application_key) || !application_key)) {
+    const service = createServiceClient()
+    const { data: b } = await service
+      .from('brands')
+      .select('cin7_account_id, cin7_application_key')
+      .eq('id', brand_id)
+      .eq('org_id', user.id)
+      .single()
+    if (b?.cin7_application_key) {
+      application_key = b.cin7_application_key
+      if (!account_id || isMasked(account_id)) account_id = b.cin7_account_id
+    }
+  }
+
+  if (!account_id || !application_key || isMasked(application_key)) {
     return NextResponse.json({ error: 'account_id and application_key are required' }, { status: 400 })
   }
 
