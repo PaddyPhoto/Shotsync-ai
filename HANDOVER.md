@@ -153,7 +153,7 @@ All under `src/app/api/`. **Auth pattern:** most routes authenticate the bearer 
 | Billing | `billing/checkout`, `billing/portal`, `billing/subscribe`, `billing/plan`, `billing/usage`, `billing/bg-removal`, **`billing/webhook`** (Stripe — must be **www**) |
 | Jobs | `jobs`, `jobs/[jobId]`, `jobs/[jobId]/session` (cross-device restore), `jobs/history` |
 | Clusters/Products | `clusters/[clusterId]`, `products`, `products/[productId]`, `products/[productId]/publish`, `products/match-skus`, `products/import/{shopify,cin7}` |
-| AI | `copy/generate` (Claude Sonnet), `classify-garment` (Claude Haiku), `ai/classify-accessory` (OpenAI) |
+| AI | `copy/generate` (Claude Sonnet), `ai/classify-accessory` (OpenAI) |
 | Export/Brands | `export`, `export/zip`, `brands`, `brands/[brandId]`, `brands/[brandId]/marketplace-rules` |
 | Shopify | `shopify/{connect,callback,install,upload,stage-image}`, `shopify/webhooks/*` (GDPR) |
 | Cin7 | `cin7/test`, `cin7/upload` |
@@ -265,7 +265,6 @@ Orgs carry a binary `region` (`'au'` | `'us'`), detected from **browser timezone
 - **Background removal is retired but inert.** `ExportView` has `const bgRemovalEnabled = false`; the toggle UI is removed but the plumbing + `@imgly/background-removal` + onnxruntime config remain. To **re-add**: restore the toggle that sets `bgRemovalEnabled`. To **fully remove**: delete the dormant code + the `@imgly`/onnxruntime dependency + the `next.config.mjs` webpack block, then drop the `--webpack` pin to adopt Turbopack.
 - **`xlsx`** has an unfixable advisory (prototype pollution / ReDoS) — only used to parse the user's own uploaded style list; no upstream fix.
 - **Sentry config deprecations** — `disableLogger`, `automaticVercelMonitors`, and a missing `onRequestError` hook (warnings only).
-- **Dormant AI routes** — `jobs/detect-angles` and `classify-garment` (both Claude Haiku) are built but have no UI caller (angle detection is positional, not AI); removal candidates.
 - **Tenant isolation is app-level, not DB-enforced** — see §8. Enabled RLS is bypassed by the service-role client; the real fix (user-JWT client + versioned policies) is deferred. This is the top security item to schedule as the customer base grows.
 
 ---
