@@ -1,14 +1,15 @@
 /**
  * POST /api/remove-background
  *
- * Server-side background removal. Uses PhotoRoom Segment API when
- * PHOTOROOM_API_KEY is set (preferred — better quality for on-model fashion).
- * Falls back to Replicate BRIA RMBG 2.0 when REPLICATE_API_TOKEN is set.
+ * Server-side background removal. Default provider is Replicate 851-labs
+ * (InSPyReNet) — true pay-as-you-go (~$0.0005/img, $0 when idle), good full-res
+ * quality. If PHOTOROOM_API_KEY is set it takes over (better on hard fashion
+ * cases; graduate to it once volume justifies the monthly subscription).
  *
  * Accepts a JPEG image as multipart form data, returns a transparent PNG.
  * Callers should catch non-200 and use the browser-based @imgly fallback.
  *
- * Env: PHOTOROOM_API_KEY (preferred), REPLICATE_API_TOKEN (fallback)
+ * Env: REPLICATE_API_TOKEN (default), PHOTOROOM_API_KEY (optional, preferred if set)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -18,7 +19,7 @@ import type { PlanId } from '@/lib/plans'
 export const maxDuration = 60
 
 const PHOTOROOM_URL = 'https://sdk.photoroom.com/v1/segment'
-const REPLICATE_MODEL = 'https://api.replicate.com/v1/models/bria-ai/rmbg-2.0/predictions'
+const REPLICATE_BG_MODEL = '851-labs/background-remover'
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -105,15 +106,31 @@ async function removeWithReplicate(imageFile: File): Promise<NextResponse> {
   const buffer = Buffer.from(await imageFile.arrayBuffer())
   const base64 = buffer.toString('base64')
   const dataUri = `data:image/jpeg;base64,${base64}`
+  const token = process.env.REPLICATE_API_TOKEN
 
-  const createRes = await fetch(REPLICATE_MODEL, {
+  // 851-labs is a community model, so resolve its latest version and use the
+  // versioned /v1/predictions endpoint (the model-slug shortcut is official-only).
+  const modelRes = await fetch(`https://api.replicate.com/v1/models/${REPLICATE_BG_MODEL}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!modelRes.ok) {
+    console.error('[remove-bg] Replicate model lookup failed:', modelRes.status)
+    return NextResponse.json({ error: `Replicate: ${modelRes.status}` }, { status: 502 })
+  }
+  const version = (await modelRes.json())?.latest_version?.id
+  if (!version) {
+    return NextResponse.json({ error: 'Replicate: no model version' }, { status: 502 })
+  }
+
+  const createRes = await fetch('https://api.replicate.com/v1/predictions', {
     method: 'POST',
     headers: {
-      Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
       Prefer: 'wait=55',
     },
-    body: JSON.stringify({ input: { image: dataUri } }),
+    body: JSON.stringify({ version, input: { image: dataUri } }),
   })
 
   if (!createRes.ok) {
@@ -130,7 +147,7 @@ async function removeWithReplicate(imageFile: File): Promise<NextResponse> {
     while (Date.now() < deadline) {
       await new Promise((r) => setTimeout(r, 1500))
       const pollRes = await fetch(pollUrl, {
-        headers: { Authorization: `Token ${process.env.REPLICATE_API_TOKEN}` },
+        headers: { Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}` },
         cache: 'no-store',
       })
       prediction = await pollRes.json()

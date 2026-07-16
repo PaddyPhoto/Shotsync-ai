@@ -15,12 +15,16 @@ export interface ImageEdit {
   temperature: number  // white balance: − cooler/blue … + warmer/amber
   tint: number         // white balance: − green … + magenta
   saturation: number
+  bgRemove: boolean    // one-click background removal (cutout cached separately)
 }
 
 export const DEFAULT_EDIT: ImageEdit = {
   exposure: 0, contrast: 0, highlights: 0, shadows: 0, temperature: 0, tint: 0, saturation: 0,
+  bgRemove: false,
 }
 
+// True when there are no *pixel* adjustments (bgRemove is handled separately, so
+// it is intentionally not part of this check — used to skip the per-pixel pass).
 export function isDefaultEdit(e?: ImageEdit | null): boolean {
   return !e || (
     e.exposure === 0 && e.contrast === 0 && e.highlights === 0 && e.shadows === 0 &&

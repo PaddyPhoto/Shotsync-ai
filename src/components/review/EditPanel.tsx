@@ -2,7 +2,9 @@
 
 import type { ImageEdit } from '@/lib/image/adjustments'
 
-const SLIDERS: { key: keyof ImageEdit; label: string }[] = [
+type SliderKey = 'exposure' | 'contrast' | 'highlights' | 'shadows' | 'temperature' | 'tint' | 'saturation'
+
+const SLIDERS: { key: SliderKey; label: string }[] = [
   { key: 'exposure', label: 'Exposure' },
   { key: 'contrast', label: 'Contrast' },
   { key: 'highlights', label: 'Highlights' },
@@ -20,12 +22,20 @@ export function EditPanel({
   onReset,
   onApplyToAll,
   isDefault,
+  bgLoading,
+  bgError,
+  onToggleBg,
+  onRemoveBgAll,
 }: {
   edit: ImageEdit
   onChange: (patch: Partial<ImageEdit>) => void
   onReset: () => void
   onApplyToAll: () => void
   isDefault: boolean
+  bgLoading: boolean
+  bgError: string | null
+  onToggleBg: () => void
+  onRemoveBgAll: () => void
 }) {
   return (
     <div
@@ -70,18 +80,47 @@ export function EditPanel({
         )
       })}
 
+      {/* ── Background removal ── */}
+      <div className="mt-1 pt-3" style={{ borderTop: '0.5px solid rgba(255,255,255,0.12)' }}>
+        <button
+          onClick={onToggleBg}
+          disabled={bgLoading}
+          className="w-full py-2 rounded-[8px] text-[12px] font-medium transition-colors flex items-center justify-center gap-2"
+          style={{
+            background: edit.bgRemove ? '#30d158' : 'rgba(255,255,255,0.10)',
+            color: '#fff',
+            cursor: bgLoading ? 'wait' : 'pointer',
+          }}
+          title="Remove the background (Growth plan and above)"
+        >
+          {bgLoading ? (
+            <><span className="inline-block w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Removing…</>
+          ) : edit.bgRemove ? (
+            <>✓ Background removed</>
+          ) : (
+            <>Remove background</>
+          )}
+        </button>
+        {bgError && <p className="text-[#ff8f8f] text-[11px] mt-1.5 leading-snug">{bgError}</p>}
+        {edit.bgRemove && (
+          <button onClick={onRemoveBgAll} className="w-full mt-1.5 py-1.5 text-[11px] text-white/60 hover:text-white/90 transition-colors">
+            Remove background on all images
+          </button>
+        )}
+      </div>
+
       <button
         onClick={onApplyToAll}
         disabled={isDefault}
-        className="mt-1 py-2 rounded-[8px] text-[12px] font-medium transition-colors"
+        className="py-2 rounded-[8px] text-[12px] font-medium transition-colors"
         style={{
           background: isDefault ? 'rgba(255,255,255,0.06)' : '#4a9eff',
           color: isDefault ? 'rgba(255,255,255,0.3)' : '#fff',
           cursor: isDefault ? 'default' : 'pointer',
         }}
-        title="Copy these settings to every image in the session"
+        title="Copy these adjustment settings to every image in the session"
       >
-        Apply to all images
+        Apply settings to all
       </button>
       <p className="text-white/35 text-[11px] leading-snug">
         Edits are non-destructive — applied to your full-resolution image only at export.

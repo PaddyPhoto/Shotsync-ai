@@ -10,11 +10,13 @@ import { createAdjustmentRenderer, type AdjustmentRenderer, type ImageEdit } fro
 export function EditCanvas({
   src,
   edit,
+  onWhite,
   className,
   style,
 }: {
   src: string
   edit: ImageEdit
+  onWhite?: boolean       // fill white behind a transparent cutout (bg-removed preview)
   className?: string
   style?: CSSProperties
 }) {
@@ -62,9 +64,11 @@ export function EditCanvas({
   // Release the GL context on unmount.
   useEffect(() => () => { rendererRef.current?.destroy(); rendererRef.current = null }, [])
 
+  const mergedStyle: CSSProperties = onWhite ? { ...style, background: '#fff' } : (style ?? {})
+
   if (failed) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt="" className={className} style={style} />
+    return <img src={src} alt="" className={className} style={mergedStyle} />
   }
-  return <canvas ref={canvasRef} className={className} style={style} />
+  return <canvas ref={canvasRef} className={className} style={mergedStyle} />
 }

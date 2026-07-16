@@ -42,10 +42,12 @@ export async function processImageOnCanvas(
   quality = 1.0, maxFileSizeKb = 0, removeBg = false,
   preRemovedBgBlob?: Blob, edit?: ImageEdit,
 ): Promise<ArrayBuffer> {
+  // The editor's per-image bgRemove flag also triggers removal at export.
+  const wantRemove = removeBg || (edit?.bgRemove ?? false)
   let sourceBlob: Blob = file
   if (preRemovedBgBlob) {
     sourceBlob = preRemovedBgBlob
-  } else if (removeBg) {
+  } else if (wantRemove) {
     try {
       const compressed = await preCompressImage(file)
       const fd = new FormData()
