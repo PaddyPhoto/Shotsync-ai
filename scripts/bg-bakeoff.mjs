@@ -60,17 +60,20 @@ async function photoroom(buf, ext) {
 }
 
 // Generic Replicate runner — any model that takes { image } and returns a PNG URL.
+// Resolves the model's latest version and uses the versioned /v1/predictions
+// endpoint, which works for both official and community models.
 function makeReplicate(model) {
+  const auth = { Authorization: `Bearer ${env.REPLICATE_API_TOKEN}` }
   return async (buf, ext) => {
     const dataUri = `data:${mime(ext)};base64,${buf.toString('base64')}`
-    const res = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
+    const mRes = await fetch(`https://api.replicate.com/v1/models/${model}`, { headers: auth })
+    if (!mRes.ok) throw new Error(`Replicate model ${model} ${mRes.status}: ${(await mRes.text()).slice(0, 120)}`)
+    const version = (await mRes.json()).latest_version?.id
+    if (!version) throw new Error(`${model}: no latest version`)
+    const res = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${env.REPLICATE_API_TOKEN}`,
-        'Content-Type': 'application/json',
-        Prefer: 'wait',
-      },
-      body: JSON.stringify({ input: { image: dataUri } }),
+      headers: { ...auth, 'Content-Type': 'application/json', Prefer: 'wait' },
+      body: JSON.stringify({ version, input: { image: dataUri } }),
     })
     let pred = await res.json()
     if (!res.ok) throw new Error(`Replicate ${res.status}: ${JSON.stringify(pred).slice(0, 140)}`)
