@@ -5,7 +5,10 @@ import type { ImageEdit } from '@/lib/image/adjustments'
 const SLIDERS: { key: keyof ImageEdit; label: string }[] = [
   { key: 'exposure', label: 'Exposure' },
   { key: 'contrast', label: 'Contrast' },
+  { key: 'highlights', label: 'Highlights' },
+  { key: 'shadows', label: 'Shadows' },
   { key: 'temperature', label: 'Temperature' },
+  { key: 'tint', label: 'Tint' },
   { key: 'saturation', label: 'Saturation' },
 ]
 

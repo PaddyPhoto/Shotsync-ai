@@ -32,8 +32,12 @@ export function EditCanvas({
     img.crossOrigin = 'anonymous'
     img.onload = () => {
       if (cancelled) return
-      canvas.width = img.naturalWidth
-      canvas.height = img.naturalHeight
+      // Cap the on-screen preview so the per-pixel adjustment pass stays smooth
+      // while dragging sliders. It's displayed even smaller; export uses full res.
+      const MAX_PREVIEW = 1400
+      const scale = Math.min(1, MAX_PREVIEW / Math.max(img.naturalWidth, img.naturalHeight))
+      canvas.width = Math.round(img.naturalWidth * scale)
+      canvas.height = Math.round(img.naturalHeight * scale)
       try {
         rendererRef.current?.destroy()
         rendererRef.current = createAdjustmentRenderer(canvas)
