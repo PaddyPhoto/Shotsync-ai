@@ -21,3 +21,6 @@ npm-debug.log*
 
 # TypeScript incremental build cache (generated)
 *.tsbuildinfo
+
+# Background-removal bake-off working dir (sample images + cutouts)
+bg-bakeoff/

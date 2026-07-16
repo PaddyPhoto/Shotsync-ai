@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "check:scoping": "node scripts/check-tenant-scoping.mjs"
+    "check:scoping": "node scripts/check-tenant-scoping.mjs",
+    "bg:bakeoff": "node scripts/bg-bakeoff.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",

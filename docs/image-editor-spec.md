@@ -170,6 +170,12 @@ The billing, plan gating, provider integration, and usage table are **already bu
 - **ghost-mannequin** interiors (neckline holes),
 - fine straps, fringe, jewellery.
 
-Candidate providers to test (route is env-swappable, so A/B is cheap): **PhotoRoom** (apparel-tuned), **Bria RMBG 2.0**, **remove.bg**, plus current premium options. Pick on *quality on the hard set first*, cost second.
+Candidate providers to test (route is env-swappable, so A/B is cheap):
 
-**Pricing implication:** best-in-market removal costs more per call than the cheap models. Confirm the provider's per-image cost still leaves margin at **$0.16 AUD charged** — if the best provider is dearer, raise the metered rate (e.g. $0.20–0.30 AUD/img) rather than ship a worse cutout. Predictable-quantity option: bundle a small monthly removal quota into Growth/Scale + per-image overage, instead of pure metering.
+| Provider | ~Cost/image (USD) | Margin at $0.16 AUD (~$0.10 USD) | Edge quality (2026 research) |
+|---|---|---|---|
+| **Bria RMBG 2.0** | ~$0.018 | ~5.5× ✅ | **Best on hair edges + semi-transparent/sheer** (BiRefNet architecture); licensed data = commercial-safe. **Recommended default.** |
+| **PhotoRoom** | ~$0.02 | ~5× ✅ | Commerce-native, on-model at scale; also offers Ghost-Mannequin + Virtual-Model APIs (relevant to the GM workflow). Keep as alternate. |
+| **remove.bg** | ~$0.20 | **negative** ❌ | Strong hair matting but breaks margin at the current charge; only if it decisively wins the bake-off *and* the rate is raised. |
+
+**Recommendation (2026-07 research):** default to **Bria RMBG 2.0**, PhotoRoom as alternate. The quality that killed v1 (hair/sheer/GM edges) is exactly where Bria improved most, and it's cheap — so **keep the $0.16 AUD charge**; margin holds. There is *no universal winner* — quality varies by image class — so validate on ShotSync's hard set (above) before flipping the switch (harness: `scripts/bg-bakeoff.mjs`). remove.bg would require raising the metered rate to ~$0.30 AUD.
