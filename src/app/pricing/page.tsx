@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PricingBlock } from '@/components/landing/PricingBlock'
+import { PlanComparison } from '@/components/landing/PlanComparison'
 
 export const metadata: Metadata = {
   title: 'Pricing — ShotSync',
@@ -50,6 +51,7 @@ export default function PricingPage() {
         {/* Pricing */}
         <main className="pricing-pad" style={{ padding: '72px 40px 100px' }}>
           <PricingBlock />
+          <PlanComparison currency="AUD" />
         </main>
 
         {/* Footer */}
