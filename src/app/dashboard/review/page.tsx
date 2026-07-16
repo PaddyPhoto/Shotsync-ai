@@ -1353,6 +1353,7 @@ function ReviewPage() {
                               : 'border-transparent hover:border-white/20'
                             }`}
                             onClick={(e) => handleImageClick(e, img.id, cluster.id)}
+                            onDoubleClick={(e) => { e.stopPropagation(); setLightboxImageId(img.id) }}
                           >
                             <img
                               src={img.previewUrl}
