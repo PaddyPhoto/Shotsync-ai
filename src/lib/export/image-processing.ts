@@ -2,6 +2,7 @@
 // and the historical-job export page. Keep this file client-only (canvas APIs).
 import { getPica } from '@/lib/image/pica'
 import { renderAdjustmentsForExport, type ImageEdit } from '@/lib/image/adjustments'
+import { buildColorPreservedCutout } from '@/lib/image/composite'
 
 // Light unsharp mask applied once, at export, on the final-resolution image —
 // emulates Photoshop's "Bicubic Sharper" crispness on top of the Lanczos3
@@ -46,15 +47,19 @@ export async function processImageOnCanvas(
   const wantRemove = removeBg || (edit?.bgRemove ?? false)
   let sourceBlob: Blob = file
   if (preRemovedBgBlob) {
+    // A colour-preserved cutout from the editor — use it directly.
     sourceBlob = preRemovedBgBlob
   } else if (wantRemove) {
+    // No cached cutout — remove now, then apply the mask to the ORIGINAL pixels
+    // so the subject's colours are preserved exactly (the remover's own RGB can shift).
+    let rawCutout: Blob
     try {
       const compressed = await preCompressImage(file)
       const fd = new FormData()
       fd.append('image', compressed, 'image.jpg')
       const apiRes = await fetch('/api/remove-background', { method: 'POST', body: fd })
       if (apiRes.ok) {
-        sourceBlob = await apiRes.blob()
+        rawCutout = await apiRes.blob()
       } else if (apiRes.status === 403) {
         throw new Error('plan_upgrade_required')
       } else if (apiRes.status === 503) {
@@ -66,8 +71,9 @@ export async function processImageOnCanvas(
       if (err instanceof Error && err.message === 'plan_upgrade_required') throw err
       console.warn('[remove-bg] server API failed, falling back to @imgly:', err)
       const { removeBackground } = await import('@imgly/background-removal')
-      sourceBlob = await removeBackground(file, { output: { format: 'image/png', quality: 1 } })
+      rawCutout = await removeBackground(file, { output: { format: 'image/png', quality: 1 } })
     }
+    sourceBlob = await buildColorPreservedCutout(file, rawCutout)
   }
 
   return new Promise((resolve, reject) => {

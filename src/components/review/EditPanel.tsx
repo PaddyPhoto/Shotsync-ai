@@ -24,6 +24,7 @@ export function EditPanel({
   isDefault,
   bgLoading,
   bgError,
+  bgAll,
   onToggleBg,
   onRemoveBgAll,
 }: {
@@ -34,6 +35,7 @@ export function EditPanel({
   isDefault: boolean
   bgLoading: boolean
   bgError: string | null
+  bgAll: { done: number; total: number } | null
   onToggleBg: () => void
   onRemoveBgAll: () => void
 }) {
@@ -103,8 +105,13 @@ export function EditPanel({
         </button>
         {bgError && <p className="text-[#ff8f8f] text-[11px] mt-1.5 leading-snug">{bgError}</p>}
         {edit.bgRemove && (
-          <button onClick={onRemoveBgAll} className="w-full mt-1.5 py-1.5 text-[11px] text-white/60 hover:text-white/90 transition-colors">
-            Remove background on all images
+          <button
+            onClick={onRemoveBgAll}
+            disabled={!!bgAll}
+            className="w-full mt-1.5 py-1.5 text-[11px] text-white/60 hover:text-white/90 transition-colors"
+            style={{ cursor: bgAll ? 'wait' : 'pointer' }}
+          >
+            {bgAll ? `Removing on all… ${bgAll.done}/${bgAll.total}` : 'Remove background on all images'}
           </button>
         )}
       </div>
@@ -118,9 +125,9 @@ export function EditPanel({
           color: isDefault ? 'rgba(255,255,255,0.3)' : '#fff',
           cursor: isDefault ? 'default' : 'pointer',
         }}
-        title="Copy these adjustment settings to every image in the session"
+        title="Copy the slider adjustments to every image (background removal has its own button above)"
       >
-        Apply settings to all
+        Copy adjustments to all
       </button>
       <p className="text-white/35 text-[11px] leading-snug">
         Edits are non-destructive — applied to your full-resolution image only at export.
