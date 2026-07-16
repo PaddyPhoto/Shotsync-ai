@@ -876,8 +876,13 @@ export function ExportView({
 
     recordExport()
 
-    // Bill for background removal (fire-and-forget)
-    if (bgRemovalEnabled && anyBgRemovalMarketplace && bgRemovalCache.size > 0) {
+    // Bill for background removal — $0.16 AUD per source image the user removed
+    // the background on (once per image, regardless of how many marketplaces it
+    // was exported to). Fire-and-forget.
+    const bgRemovedCount = confirmedClusters.reduce(
+      (n, c) => n + c.images.filter((img) => img.edit?.bgRemove).length, 0,
+    )
+    if (bgRemovedCount > 0) {
       import('@/lib/supabase/client').then(({ createClient }) =>
         createClient().auth.getSession()
       ).then(({ data: { session } }) => {
@@ -888,7 +893,7 @@ export function ExportView({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({ count: bgRemovalCache.size, jobName }),
+          body: JSON.stringify({ count: bgRemovedCount, jobName }),
         }).catch(() => { /* non-critical */ })
       }).catch(() => { /* non-critical */ })
     }
