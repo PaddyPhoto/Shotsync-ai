@@ -59,27 +59,29 @@ async function photoroom(buf, ext) {
   return Buffer.from(await res.arrayBuffer())
 }
 
-async function bria(buf, ext) {
-  const dataUri = `data:${mime(ext)};base64,${buf.toString('base64')}`
-  // Official Replicate model (see model page): bria/remove-background, $0.018/output image.
-  const res = await fetch('https://api.replicate.com/v1/models/bria/remove-background/predictions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.REPLICATE_API_TOKEN}`,
-      'Content-Type': 'application/json',
-      Prefer: 'wait',
-    },
-    body: JSON.stringify({ input: { image: dataUri } }),
-  })
-  let pred = await res.json()
-  if (!res.ok) throw new Error(`Replicate ${res.status}: ${JSON.stringify(pred).slice(0, 140)}`)
-  for (let i = 0; i < 60 && !['succeeded', 'failed', 'canceled'].includes(pred.status); i++) {
-    await new Promise((r) => setTimeout(r, 1000))
-    pred = await (await fetch(pred.urls.get, { headers: { Authorization: `Bearer ${env.REPLICATE_API_TOKEN}` } })).json()
+// Generic Replicate runner — any model that takes { image } and returns a PNG URL.
+function makeReplicate(model) {
+  return async (buf, ext) => {
+    const dataUri = `data:${mime(ext)};base64,${buf.toString('base64')}`
+    const res = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.REPLICATE_API_TOKEN}`,
+        'Content-Type': 'application/json',
+        Prefer: 'wait',
+      },
+      body: JSON.stringify({ input: { image: dataUri } }),
+    })
+    let pred = await res.json()
+    if (!res.ok) throw new Error(`Replicate ${res.status}: ${JSON.stringify(pred).slice(0, 140)}`)
+    for (let i = 0; i < 60 && !['succeeded', 'failed', 'canceled'].includes(pred.status); i++) {
+      await new Promise((r) => setTimeout(r, 1000))
+      pred = await (await fetch(pred.urls.get, { headers: { Authorization: `Bearer ${env.REPLICATE_API_TOKEN}` } })).json()
+    }
+    if (pred.status !== 'succeeded') throw new Error(`${model} ${pred.status}: ${pred.error ?? ''}`)
+    const url = Array.isArray(pred.output) ? pred.output[0] : pred.output
+    return Buffer.from(await (await fetch(url)).arrayBuffer())
   }
-  if (pred.status !== 'succeeded') throw new Error(`Bria ${pred.status}: ${pred.error ?? ''}`)
-  const url = Array.isArray(pred.output) ? pred.output[0] : pred.output
-  return Buffer.from(await (await fetch(url)).arrayBuffer())
 }
 
 async function removebg(buf, ext) {
@@ -96,7 +98,11 @@ async function removebg(buf, ext) {
 }
 
 const PROVIDERS = [
-  { id: 'bria', label: 'Bria RMBG 2.0', key: 'REPLICATE_API_TOKEN', run: bria },
+  // Replicate models (all gated on one REPLICATE_API_TOKEN). Costs per run:
+  // 851-labs ~$0.0005 · lucataco ~cheap · bria ~$0.018.
+  { id: 'labs851', label: '851-labs (InSPyReNet)', key: 'REPLICATE_API_TOKEN', run: makeReplicate('851-labs/background-remover') },
+  { id: 'lucataco', label: 'lucataco remove-bg', key: 'REPLICATE_API_TOKEN', run: makeReplicate('lucataco/remove-bg') },
+  { id: 'bria', label: 'Bria RMBG 2.0', key: 'REPLICATE_API_TOKEN', run: makeReplicate('bria/remove-background') },
   { id: 'photoroom', label: 'PhotoRoom', key: 'PHOTOROOM_API_KEY', run: photoroom },
   { id: 'removebg', label: 'remove.bg', key: 'REMOVE_BG_API_KEY', run: removebg },
 ].filter((p) => env[p.key])
@@ -107,13 +113,20 @@ async function applyMaskToOriginal(original, cutout) {
   if (!sharpMod) sharpMod = (await import('sharp')).default
   const sharp = sharpMod
   const meta = await sharp(original).metadata()
+  // Extract the provider's alpha as a RAW single channel sized to the original,
+  // then join it onto the original RGB. Passing explicit raw dims is what makes
+  // joinChannel reliably produce RGBA (a PNG-encoded buffer silently no-ops).
   const alpha = await sharp(cutout)
     .ensureAlpha()
-    .extractChannel('alpha')
+    .extractChannel(3)
     .resize(meta.width, meta.height, { fit: 'fill' })
-    .toColourspace('b-w')
+    .raw()
     .toBuffer()
-  return sharp(original).removeAlpha().joinChannel(alpha).png().toBuffer()
+  return sharp(original)
+    .removeAlpha()
+    .joinChannel(alpha, { raw: { width: meta.width, height: meta.height, channels: 1 } })
+    .png()
+    .toBuffer()
 }
 
 // ── run ──────────────────────────────────────────────────────────────────────
