@@ -55,7 +55,8 @@ async function photoroom(buf, ext) {
 
 async function bria(buf, ext) {
   const dataUri = `data:${mime(ext)};base64,${buf.toString('base64')}`
-  const res = await fetch('https://api.replicate.com/v1/models/bria-ai/rmbg-2.0/predictions', {
+  // Official Replicate model (see model page): bria/remove-background, $0.018/output image.
+  const res = await fetch('https://api.replicate.com/v1/models/bria/remove-background/predictions', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${env.REPLICATE_API_TOKEN}`,
