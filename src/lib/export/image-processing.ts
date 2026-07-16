@@ -1,6 +1,7 @@
 // Shared image processing for export — used by both the ExportPanel (review page)
 // and the historical-job export page. Keep this file client-only (canvas APIs).
 import { getPica } from '@/lib/image/pica'
+import { renderAdjustmentsForExport, type ImageEdit } from '@/lib/image/adjustments'
 
 // Light unsharp mask applied once, at export, on the final-resolution image —
 // emulates Photoshop's "Bicubic Sharper" crispness on top of the Lanczos3
@@ -39,7 +40,7 @@ export async function preCompressImage(file: File): Promise<Blob> {
 export async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,
   quality = 1.0, maxFileSizeKb = 0, removeBg = false,
-  preRemovedBgBlob?: Blob,
+  preRemovedBgBlob?: Blob, edit?: ImageEdit,
 ): Promise<ArrayBuffer> {
   let sourceBlob: Blob = file
   if (preRemovedBgBlob) {
@@ -88,6 +89,11 @@ export async function processImageOnCanvas(
       const drawX = Math.round((width - drawW) / 2)
       const drawY = Math.round((height - drawH) / 2)
 
+      // Apply the non-destructive adjustment recipe to the full-res source first
+      // (same shader as the lightbox preview → WYSIWYG). No-op edits return null.
+      const adjusted = renderAdjustmentsForExport(img, edit)
+      const resizeSource = adjusted ?? img
+
       // Single high-quality Lanczos3 downscale (pica) straight from the source, plus
       // a light unsharp mask — replaces the old canvas multi-step halving. One clean
       // resample at the exact draw size; no extra compression generation.
@@ -96,7 +102,7 @@ export async function processImageOnCanvas(
       currentCanvas.height = drawH
       try {
         const pica = await getPica()
-        await pica.resize(img, currentCanvas, {
+        await pica.resize(resizeSource, currentCanvas, {
           filter: 'lanczos3',
           unsharpAmount: EXPORT_UNSHARP_AMOUNT,
           unsharpRadius: EXPORT_UNSHARP_RADIUS,

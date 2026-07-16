@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Topbar } from '@/components/layout/Topbar'
+import { ImageEditor } from '@/components/review/ImageEditor'
 import { useSession } from '@/store/session'
 import { usePlan } from '@/context/PlanContext'
 import { useBrand } from '@/context/BrandContext'
@@ -1936,13 +1937,8 @@ function ReviewPage() {
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M11 4L6 9l5 5"/></svg>
               </button>
             )}
-            <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
-              <img
-                src={lightboxUrl ?? current.previewUrl}
-                alt={current.filename}
-                className="max-w-full max-h-[82vh] object-contain rounded-[6px] shadow-2xl"
-                style={{ userSelect: 'none' }}
-              />
+            <div className="relative max-w-[95vw] max-h-[90vh] flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+              <ImageEditor image={current} src={lightboxUrl ?? current.previewUrl} />
               <div className="flex items-center gap-3 text-[length:var(--font-base)]">
                 <span className="px-2 py-0.5 rounded-[4px] bg-white/10 text-white/80 uppercase tracking-wide font-medium">{angleDisplayName(current.viewLabel)}</span>
                 <span className="text-white/50 font-mono truncate max-w-[300px]">{current.filename}</span>

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { ViewLabel } from '@/types'
+import { DEFAULT_EDIT, type ImageEdit } from '@/lib/image/adjustments'
 
 export interface SessionImage {
   id: string
@@ -10,6 +11,7 @@ export interface SessionImage {
   seqIndex: number
   viewLabel: ViewLabel
   viewConfidence: number
+  edit?: ImageEdit       // non-destructive adjustment recipe (absent = no edits); applied at export
 }
 
 export interface SessionCluster {
@@ -82,6 +84,9 @@ interface SessionState {
   setClusterGarmentCategory: (clusterId: string, garmentCategory: string | null) => void
   setClusterBottomwear: (clusterId: string, isBottomwear: boolean) => void
   setImageViewLabel: (imageId: string, clusterId: string, label: ViewLabel) => void
+  updateImageEdit: (imageId: string, patch: Partial<ImageEdit>) => void
+  resetImageEdit: (imageId: string) => void
+  applyEditToAll: (sourceImageId: string) => void
   confirmCluster: (clusterId: string) => void
   unconfirmCluster: (clusterId: string) => void
   setClusterIncomplete: (clusterId: string, incomplete: boolean) => void
@@ -308,6 +313,33 @@ export const useSession = create<SessionState>((set, get) => ({
         : c
     ),
   })),
+
+  // ── Non-destructive image adjustments ──────────────────────────────────────
+  updateImageEdit: (imageId, patch) => set((state) => ({
+    clusters: state.clusters.map((c) => ({
+      ...c,
+      images: c.images.map((img) =>
+        img.id === imageId ? { ...img, edit: { ...DEFAULT_EDIT, ...img.edit, ...patch } } : img
+      ),
+    })),
+  })),
+  resetImageEdit: (imageId) => set((state) => ({
+    clusters: state.clusters.map((c) => ({
+      ...c,
+      images: c.images.map((img) => img.id === imageId ? { ...img, edit: undefined } : img),
+    })),
+  })),
+  // Copy one image's recipe onto every image in the session (whole-shoot look).
+  applyEditToAll: (sourceImageId) => set((state) => {
+    const src = state.clusters.flatMap((c) => c.images).find((i) => i.id === sourceImageId)
+    const edit = src?.edit
+    return {
+      clusters: state.clusters.map((c) => ({
+        ...c,
+        images: c.images.map((img) => ({ ...img, edit: edit ? { ...edit } : undefined })),
+      })),
+    }
+  }),
 
   confirmCluster: (clusterId) => set((state) => ({
     clusters: state.clusters.map((c) =>
