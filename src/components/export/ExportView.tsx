@@ -105,10 +105,10 @@ export function ExportView({
   const [exportMode, setExportMode] = useState<'zip' | 'folder' | 'dropbox' | 'google-drive' | 's3'>('folder')
   const [flatExport, setFlatExport] = useState(false)
   const [useOriginalNames, setUseOriginalNames] = useState(false)
-  // Background removal was retired (model quality). Kept inert here — all the
-  // plumbing below short-circuits on this `false` — so the feature can be
-  // re-enabled in a future build by restoring the toggle. (Full dead-code +
-  // @imgly/onnxruntime dependency removal is a separate deferred cleanup.)
+  // "Remove background" export toggle → drives the pre-pass below, which removes
+  // every image's background server-side (Replicate 851-labs) and caches a
+  // colour-preserved cutout. No @imgly fallback: it fails loudly if the server
+  // remover is unavailable (e.g. a bad REPLICATE_API_TOKEN).
   const [removeBgOnExport, setRemoveBgOnExport] = useState(false)
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
@@ -504,20 +504,23 @@ export function ExportView({
         const BG_CONCURRENCY = 8
         let bgDone = 0
         let bgPlanBlocked = false
+        let bgFail: string | null = null
         setProgress({ done: 0, total: bgTasks.length, phase: `Removing backgrounds 0/${bgTasks.length}…` })
         for (let i = 0; i < bgTasks.length; i += BG_CONCURRENCY) {
-          if (bgPlanBlocked) break
+          if (bgPlanBlocked || bgFail) break
           await Promise.all(bgTasks.slice(i, i + BG_CONCURRENCY).map(async (img) => {
-            if (bgPlanBlocked) return
+            if (bgPlanBlocked || bgFail) return
             try {
               const compressed = await preCompressImage(img.file)
               const fd = new FormData()
               fd.append('image', compressed, 'image.jpg')
               const res = await fetch('/api/remove-background', { method: 'POST', headers: bgAuth, body: fd })
               if (res.status === 403) { bgPlanBlocked = true; return }
+              // No @imgly fallback — fail loudly so a bad Replicate token is obvious.
+              if (!res.ok) { bgFail = `Background removal failed (${res.status}) — check the Replicate token in Vercel, then redeploy.`; return }
               // Keep the subject's colours: apply the mask to the ORIGINAL pixels.
-              if (res.ok) bgRemovalCache.set(img.id, await buildColorPreservedCutout(img.file, await res.blob()))
-            } catch { /* cache miss — processImageOnCanvas falls back to @imgly */ }
+              bgRemovalCache.set(img.id, await buildColorPreservedCutout(img.file, await res.blob()))
+            } catch (e) { bgFail = e instanceof Error ? `Background removal failed: ${e.message}` : 'Background removal request failed.' }
             bgDone++
             setProgress({ done: bgDone, total: bgTasks.length, phase: `Removing backgrounds ${bgDone}/${bgTasks.length}…` })
           }))
@@ -526,6 +529,12 @@ export function ExportView({
           setIsExporting(false)
           setProgress({ done: 0, total: 0, phase: '' })
           openUpgrade('Background removal is available on the Growth plan and above.')
+          return
+        }
+        if (bgFail) {
+          setIsExporting(false)
+          setProgress({ done: 0, total: 0, phase: '' })
+          setExportError(bgFail)
           return
         }
         // Reset progress counter for the export phase

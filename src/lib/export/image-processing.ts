@@ -49,29 +49,18 @@ export async function processImageOnCanvas(
     // A colour-preserved cutout from the editor — use it directly.
     sourceBlob = preRemovedBgBlob
   } else if (wantRemove) {
-    // No cached cutout — remove now, then apply the mask to the ORIGINAL pixels
-    // so the subject's colours are preserved exactly (the remover's own RGB can shift).
-    let rawCutout: Blob
-    try {
-      const compressed = await preCompressImage(file)
-      const fd = new FormData()
-      fd.append('image', compressed, 'image.jpg')
-      const apiRes = await fetch('/api/remove-background', { method: 'POST', body: fd })
-      if (apiRes.ok) {
-        rawCutout = await apiRes.blob()
-      } else if (apiRes.status === 403) {
-        throw new Error('plan_upgrade_required')
-      } else if (apiRes.status === 503) {
-        throw new Error('not configured')
-      } else {
-        throw new Error(`API ${apiRes.status}`)
-      }
-    } catch (err) {
-      if (err instanceof Error && err.message === 'plan_upgrade_required') throw err
-      console.warn('[remove-bg] server API failed, falling back to @imgly:', err)
-      const { removeBackground } = await import('@imgly/background-removal')
-      rawCutout = await removeBackground(file, { output: { format: 'image/png', quality: 1 } })
+    // No cached cutout — remove now via the server (851-labs), then apply the mask
+    // to the ORIGINAL pixels to preserve colour. No @imgly fallback: fail loudly
+    // so a mis-configured Replicate token is obvious, not silently degraded.
+    const compressed = await preCompressImage(file)
+    const fd = new FormData()
+    fd.append('image', compressed, 'image.jpg')
+    const apiRes = await fetch('/api/remove-background', { method: 'POST', body: fd })
+    if (!apiRes.ok) {
+      if (apiRes.status === 403) throw new Error('plan_upgrade_required')
+      throw new Error(`Background removal failed (${apiRes.status}) — check the Replicate token / server config.`)
     }
+    const rawCutout = await apiRes.blob()
     sourceBlob = await buildColorPreservedCutout(file, rawCutout)
   }
 
