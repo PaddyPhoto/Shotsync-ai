@@ -19,10 +19,30 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
 
-export const maxDuration = 60
+export const maxDuration = 120
 
 const PHOTOROOM_URL = 'https://sdk.photoroom.com/v1/segment'
 const REPLICATE_BG_MODEL = '851-labs/background-remover'
+
+// Cache the resolved model version across warm invocations so we don't do a model
+// lookup on every request (halves the Replicate calls → fewer 429s).
+let cachedVersion: { id: string; at: number } | null = null
+const VERSION_TTL = 10 * 60 * 1000 // 10 min
+
+// Replicate throttles bursts (esp. new/low-spend accounts) with 429. Retry with
+// backoff, honouring the Retry-After header when present. The create call fails
+// fast on 429 (no wait), so retrying stays well within maxDuration.
+async function replicateFetch(url: string, init: RequestInit, tries = 5): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, init)
+    if ((res.status !== 429 && res.status !== 503) || attempt >= tries) return res
+    const retryAfter = Number(res.headers.get('retry-after'))
+    const waitMs = retryAfter > 0
+      ? retryAfter * 1000
+      : Math.min(8000, 400 * 2 ** attempt) + Math.floor(Math.random() * 400)
+    await new Promise((r) => setTimeout(r, waitMs))
+  }
+}
 
 const SUPABASE_CONFIGURED =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -113,22 +133,27 @@ async function removeWithReplicate(imageFile: File): Promise<NextResponse> {
 
   // 851-labs is a community model, so resolve its latest version and use the
   // versioned /v1/predictions endpoint (the model-slug shortcut is official-only).
-  const modelRes = await fetch(`https://api.replicate.com/v1/models/${REPLICATE_BG_MODEL}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: 'no-store',
-  })
-  if (!modelRes.ok) {
-    const detail = (await modelRes.text().catch(() => '')).slice(0, 120)
-    console.error('[remove-bg] Replicate model lookup failed:', modelRes.status, detail)
-    // 401 = bad/missing token · 402 = no billing credit · 404 = wrong model
-    return NextResponse.json({ error: `Replicate ${modelRes.status}${detail ? `: ${detail}` : ''}` }, { status: 502 })
-  }
-  const version = (await modelRes.json())?.latest_version?.id
+  // Version is cached across warm invocations to cut Replicate calls in half.
+  let version = cachedVersion && Date.now() - cachedVersion.at < VERSION_TTL ? cachedVersion.id : undefined
   if (!version) {
-    return NextResponse.json({ error: 'Replicate: no model version' }, { status: 502 })
+    const modelRes = await replicateFetch(`https://api.replicate.com/v1/models/${REPLICATE_BG_MODEL}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    })
+    if (!modelRes.ok) {
+      const detail = (await modelRes.text().catch(() => '')).slice(0, 120)
+      console.error('[remove-bg] Replicate model lookup failed:', modelRes.status, detail)
+      // 401 = bad/missing token · 402 = no billing credit · 404 = wrong model · 429 = throttled
+      return NextResponse.json({ error: `Replicate ${modelRes.status}${detail ? `: ${detail}` : ''}` }, { status: 502 })
+    }
+    version = (await modelRes.json())?.latest_version?.id
+    if (!version) {
+      return NextResponse.json({ error: 'Replicate: no model version' }, { status: 502 })
+    }
+    cachedVersion = { id: version, at: Date.now() }
   }
 
-  const createRes = await fetch('https://api.replicate.com/v1/predictions', {
+  const createRes = await replicateFetch('https://api.replicate.com/v1/predictions', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,

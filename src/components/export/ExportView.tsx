@@ -501,7 +501,10 @@ export function ExportView({
         ? { Authorization: `Bearer ${bgSession.access_token}` } : {}
       const bgTasks = confirmedClusters.flatMap((c) => c.images)
       if (bgTasks.length > 0) {
-        const BG_CONCURRENCY = 8
+        // Keep this modest — Replicate throttles concurrent predictions (429),
+        // especially on new/low-spend accounts. The server retries with backoff,
+        // but a smaller burst avoids the throttle in the first place.
+        const BG_CONCURRENCY = 3
         let bgDone = 0
         let bgPlanBlocked = false
         let bgFail: string | null = null
