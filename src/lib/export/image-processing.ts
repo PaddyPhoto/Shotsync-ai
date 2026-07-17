@@ -87,6 +87,12 @@ export async function processImageOnCanvas(
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = 'high'
 
+      // Fill the marketplace background first. For opaque images this is hidden;
+      // for a transparent cutout (bg removed) it becomes the clean backdrop —
+      // otherwise JPEG renders the transparent areas as black.
+      ctx.fillStyle = bgColor || '#FFFFFF'
+      ctx.fillRect(0, 0, width, height)
+
       // Fit-to-contain: scale the entire source to fit within the target canvas,
       // centred, with background filling any remaining space on the edges.
       // This preserves full-length models — no head or foot clipping.

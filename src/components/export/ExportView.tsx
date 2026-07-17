@@ -493,6 +493,12 @@ export function ExportView({
     // so the canvas compositing phase never blocks on individual API calls.
     const bgRemovalCache = new Map<string, Blob>() // imageId → transparent PNG
     if (removeBgOnExport) {
+      // Auth is required — without it the route 401s and export falls back to the
+      // slow client-side @imgly remover.
+      const { createClient: bgClient } = await import('@/lib/supabase/client')
+      const { data: { session: bgSession } } = await bgClient().auth.getSession()
+      const bgAuth: Record<string, string> = bgSession?.access_token
+        ? { Authorization: `Bearer ${bgSession.access_token}` } : {}
       const bgTasks = confirmedClusters.flatMap((c) => c.images)
       if (bgTasks.length > 0) {
         const BG_CONCURRENCY = 8
@@ -507,7 +513,7 @@ export function ExportView({
               const compressed = await preCompressImage(img.file)
               const fd = new FormData()
               fd.append('image', compressed, 'image.jpg')
-              const res = await fetch('/api/remove-background', { method: 'POST', body: fd })
+              const res = await fetch('/api/remove-background', { method: 'POST', headers: bgAuth, body: fd })
               if (res.status === 403) { bgPlanBlocked = true; return }
               // Keep the subject's colours: apply the mask to the ORIGINAL pixels.
               if (res.ok) bgRemovalCache.set(img.id, await buildColorPreservedCutout(img.file, await res.blob()))
