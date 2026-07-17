@@ -43,9 +43,8 @@ export async function processImageOnCanvas(
   quality = 1.0, maxFileSizeKb = 0, removeBg = false,
   preRemovedBgBlob?: Blob, edit?: ImageEdit,
 ): Promise<ArrayBuffer> {
-  // The editor's per-image bgRemove flag also triggers removal at export.
-  const wantRemove = removeBg || (edit?.bgRemove ?? false)
   let sourceBlob: Blob = file
+  const wantRemove = removeBg
   if (preRemovedBgBlob) {
     // A colour-preserved cutout from the editor — use it directly.
     sourceBlob = preRemovedBgBlob

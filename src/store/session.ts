@@ -87,7 +87,6 @@ interface SessionState {
   updateImageEdit: (imageId: string, patch: Partial<ImageEdit>) => void
   resetImageEdit: (imageId: string) => void
   applyEditToAll: (sourceImageId: string) => void
-  setBgRemoveAll: (on: boolean) => void
   confirmCluster: (clusterId: string) => void
   unconfirmCluster: (clusterId: string) => void
   setClusterIncomplete: (clusterId: string, incomplete: boolean) => void
@@ -330,8 +329,7 @@ export const useSession = create<SessionState>((set, get) => ({
       images: c.images.map((img) => img.id === imageId ? { ...img, edit: undefined } : img),
     })),
   })),
-  // Copy one image's slider values onto every image (whole-shoot look). Each
-  // image keeps its own bgRemove — background removal is applied via setBgRemoveAll.
+  // Copy one image's slider values onto every image (whole-shoot look).
   applyEditToAll: (sourceImageId) => set((state) => {
     const e = state.clusters.flatMap((c) => c.images).find((i) => i.id === sourceImageId)?.edit ?? DEFAULT_EDIT
     const sliders = {
@@ -345,13 +343,6 @@ export const useSession = create<SessionState>((set, get) => ({
       })),
     }
   }),
-  // Turn background removal on/off for every image in the session.
-  setBgRemoveAll: (on) => set((state) => ({
-    clusters: state.clusters.map((c) => ({
-      ...c,
-      images: c.images.map((img) => ({ ...img, edit: { ...DEFAULT_EDIT, ...img.edit, bgRemove: on } })),
-    })),
-  })),
 
   confirmCluster: (clusterId) => set((state) => ({
     clusters: state.clusters.map((c) =>

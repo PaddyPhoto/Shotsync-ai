@@ -8,16 +8,11 @@ import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { processImageOnCanvas, preCompressImage, PLAIN_BG_VIEWS } from '@/lib/export/image-processing'
-import { getCutout } from '@/lib/image/cutoutCache'
+import { buildColorPreservedCutout } from '@/lib/image/composite'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { ViewLabel, MarketplaceName } from '@/types'
 import type { SessionCluster } from '@/store/session'
 import type { Brand } from '@/lib/brands'
-
-// The editor's colour-preserved cutout for an image the user removed the bg on.
-// Reused at export so it matches the preview (and avoids re-removing).
-const bgCutout = (img: { id: string; edit?: { bgRemove?: boolean } }): Blob | undefined =>
-  img.edit?.bgRemove ? getCutout(img.id)?.blob : undefined
 
 const CSV_ANGLE_COLUMNS = ['front', 'back', 'side', 'detail', 'mood', 'full-length'] as const
 
@@ -114,7 +109,7 @@ export function ExportView({
   // plumbing below short-circuits on this `false` — so the feature can be
   // re-enabled in a future build by restoring the toggle. (Full dead-code +
   // @imgly/onnxruntime dependency removal is a separate deferred cleanup.)
-  const bgRemovalEnabled = false
+  const [removeBgOnExport, setRemoveBgOnExport] = useState(false)
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
   const { canExportThisMonth, recordExport, openUpgrade, plan, region } = usePlan()
@@ -201,7 +196,7 @@ export function ExportView({
           // Step 1: canvas resize
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), bgCutout(img), img.edit)
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit)
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -370,7 +365,7 @@ export function ExportView({
 
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), bgCutout(img), img.edit)
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit)
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -497,13 +492,8 @@ export function ExportView({
     // Runs all Replicate calls at up to 8 concurrent BEFORE the export loops,
     // so the canvas compositing phase never blocks on individual API calls.
     const bgRemovalCache = new Map<string, Blob>() // imageId → transparent PNG
-    const anyBgRemovalMarketplace = selectedMarketplaces.some(
-      (m) => (resolveRule(m)).remove_background
-    )
-    if (bgRemovalEnabled && anyBgRemovalMarketplace) {
-      const bgTasks = confirmedClusters.flatMap((c) =>
-        c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).map((img) => img)
-      )
+    if (removeBgOnExport) {
+      const bgTasks = confirmedClusters.flatMap((c) => c.images)
       if (bgTasks.length > 0) {
         const BG_CONCURRENCY = 8
         let bgDone = 0
@@ -519,7 +509,8 @@ export function ExportView({
               fd.append('image', compressed, 'image.jpg')
               const res = await fetch('/api/remove-background', { method: 'POST', body: fd })
               if (res.status === 403) { bgPlanBlocked = true; return }
-              if (res.ok) bgRemovalCache.set(img.id, await res.blob())
+              // Keep the subject's colours: apply the mask to the ORIGINAL pixels.
+              if (res.ok) bgRemovalCache.set(img.id, await buildColorPreservedCutout(img.file, await res.blob()))
             } catch { /* cache miss — processImageOnCanvas falls back to @imgly */ }
             bgDone++
             setProgress({ done: bgDone, total: bgTasks.length, phase: `Removing backgrounds ${bgDone}/${bgTasks.length}…` })
@@ -611,14 +602,14 @@ export function ExportView({
               setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
               continue
             }
-            const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+            const useBgRemoval = removeBgOnExport
             const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
             let buffer: ArrayBuffer | undefined
             try {
               buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                 rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                useBgRemoval && !preRemovedBlob, preRemovedBlob ?? bgCutout(img), img.edit,
+                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit,
               )
             } catch (err) {
               if (useBgRemoval) {
@@ -629,7 +620,7 @@ export function ExportView({
                 try {
                   buffer = await processImageOnCanvas(
                     img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                    rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false, bgCutout(img), img.edit,
+                    rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit,
                   )
                 } catch (retryErr) {
                   const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr)
@@ -707,12 +698,12 @@ export function ExportView({
           for (let i = 0; i < tasks.length; i += CONCURRENCY) {
             await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName, viewNum }) => {
               try {
-                const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+                const useBgRemoval = removeBgOnExport
                 const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
                 const buffer = await processImageOnCanvas(
                   img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                   rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                  useBgRemoval && !preRemovedBlob, preRemovedBlob ?? bgCutout(img), img.edit,
+                  useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit,
                 )
                 const filename = useOriginalNames
                   ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
@@ -836,12 +827,12 @@ export function ExportView({
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
           await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, viewNum }) => {
             try {
-              const useBgRemoval = bgRemovalEnabled && (rule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+              const useBgRemoval = removeBgOnExport
               const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
               const buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                 rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                useBgRemoval && !preRemovedBlob, preRemovedBlob ?? bgCutout(img), img.edit,
+                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit,
               )
               const filename = useOriginalNames
                 ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
@@ -885,9 +876,7 @@ export function ExportView({
     // Bill for background removal — $0.16 AUD per source image the user removed
     // the background on (once per image, regardless of how many marketplaces it
     // was exported to). Fire-and-forget.
-    const bgRemovedCount = confirmedClusters.reduce(
-      (n, c) => n + c.images.filter((img) => img.edit?.bgRemove).length, 0,
-    )
+    const bgRemovedCount = removeBgOnExport ? sourceImageCount : 0
     if (bgRemovedCount > 0) {
       import('@/lib/supabase/client').then(({ createClient }) =>
         createClient().auth.getSession()
@@ -1103,6 +1092,15 @@ export function ExportView({
                 label="Flat export" sub="All images in one folder per marketplace" />
               <Toggle on={useOriginalNames} onToggle={() => setUseOriginalNames(v => !v)}
                 label="Keep original filenames" sub="Skip renaming — export crops only" />
+              <Toggle
+                on={removeBgOnExport}
+                onToggle={() => {
+                  if (!removeBgOnExport && !plan.limits.bgRemoval) { openUpgrade('Background removal is available on the Growth plan and above.'); return }
+                  setRemoveBgOnExport(v => !v)
+                }}
+                label="Remove background"
+                sub="Every exported image on a clean background · $0.16/image"
+              />
             </div>
           </div>
 
