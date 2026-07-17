@@ -479,6 +479,16 @@ export function ExportView({
 
     const sourceImageCount = confirmedClusters.reduce((s, c) => s + c.images.length, 0)
     const totalImages = sourceImageCount * selectedMarketplaces.length
+
+    // Only remove backgrounds on views that actually have a plain, removable
+    // backdrop (front/back/side/full-length/etc). Detail & flat-lay macros fill
+    // the whole frame with fabric — the salient-object model has no subject to
+    // isolate and eats into the garment — so they're skipped automatically.
+    const bgEligible = (img: { viewLabel?: string | null }) =>
+      PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+    const bgEligibleCount = removeBgOnExport
+      ? confirmedClusters.reduce((s, c) => s + c.images.filter(bgEligible).length, 0)
+      : 0
     let doneCount = 0
     setProgress({ done: 0, total: totalImages, phase: 'Processing images…' })
 
@@ -499,7 +509,7 @@ export function ExportView({
       const { data: { session: bgSession } } = await bgClient().auth.getSession()
       const bgAuth: Record<string, string> = bgSession?.access_token
         ? { Authorization: `Bearer ${bgSession.access_token}` } : {}
-      const bgTasks = confirmedClusters.flatMap((c) => c.images)
+      const bgTasks = confirmedClusters.flatMap((c) => c.images).filter(bgEligible)
       if (bgTasks.length > 0) {
         // Tuned for throughput on large sessions (100-500 imgs). Above $5 credit
         // Replicate lifts its low-credit throttle to the standard ~600/min; with
@@ -631,7 +641,7 @@ export function ExportView({
               setProgress({ done: doneCount, total: totalImages, phase: `${rule.name} · ${doneCount}/${totalImages}` })
               continue
             }
-            const useBgRemoval = removeBgOnExport
+            const useBgRemoval = removeBgOnExport && bgEligible(img)
             const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
             let buffer: ArrayBuffer | undefined
             try {
@@ -727,7 +737,7 @@ export function ExportView({
           for (let i = 0; i < tasks.length; i += CONCURRENCY) {
             await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName, viewNum }) => {
               try {
-                const useBgRemoval = removeBgOnExport
+                const useBgRemoval = removeBgOnExport && bgEligible(img)
                 const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
                 const buffer = await processImageOnCanvas(
                   img.file, rule.image_dimensions.width, rule.image_dimensions.height,
@@ -856,7 +866,7 @@ export function ExportView({
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
           await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, viewNum }) => {
             try {
-              const useBgRemoval = removeBgOnExport
+              const useBgRemoval = removeBgOnExport && bgEligible(img)
               const preRemovedBlob = useBgRemoval ? bgRemovalCache.get(img.id) : undefined
               const buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
@@ -905,7 +915,7 @@ export function ExportView({
     // Bill for background removal — $0.16 AUD per source image the user removed
     // the background on (once per image, regardless of how many marketplaces it
     // was exported to). Fire-and-forget.
-    const bgRemovedCount = removeBgOnExport ? sourceImageCount : 0
+    const bgRemovedCount = bgEligibleCount
     if (bgRemovedCount > 0) {
       import('@/lib/supabase/client').then(({ createClient }) =>
         createClient().auth.getSession()
