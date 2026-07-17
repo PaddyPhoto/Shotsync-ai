@@ -110,6 +110,7 @@ export function ExportView({
   // colour-preserved cutout. No @imgly fallback: it fails loudly if the server
   // remover is unavailable (e.g. a bad REPLICATE_API_TOKEN).
   const [removeBgOnExport, setRemoveBgOnExport] = useState(false)
+  const [showBgSkipped, setShowBgSkipped] = useState(false)
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
   const { canExportThisMonth, recordExport, openUpgrade, plan, region } = usePlan()
@@ -1016,6 +1017,10 @@ export function ExportView({
   const lockedMarketplaces: MarketplaceName[] = plan.limits.marketplaces < 2 ? ANZ_MARKETPLACES : []
   const hasBgRemoval = shootType === 'still-life' && selectedMarketplaces.some((m) => (resolveRule(m)).remove_background)
   const bgCount = confirmedClusters.reduce((n, c) => n + c.images.filter((img) => PLAIN_BG_VIEWS.has(img.viewLabel ?? '')).length, 0)
+  // Images the bg-removal pre-pass will SKIP (detail/flat-lay/top-down/inside/unknown) —
+  // shown under the toggle as a pre-export sanity check so a mislabelled crop is caught
+  // before any file is written. Reads the exact same PLAIN_BG_VIEWS gate as the export.
+  const bgSkippedImages = confirmedClusters.flatMap((c) => c.images).filter((img) => !PLAIN_BG_VIEWS.has(img.viewLabel ?? ''))
   const estBgMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
   const bgCostAud = (bgCount * 0.16).toFixed(2)
   const brandCode = activeBrand?.brand_code ?? 'BRAND'
@@ -1140,6 +1145,55 @@ export function ExportView({
                 label="Remove background"
                 sub="Every exported image on a clean background · $0.16/image"
               />
+
+              {/* Pre-export sanity check: which images get bg removed vs skipped. */}
+              {removeBgOnExport && (
+                <div className="rounded-[6px] border border-[var(--line)] overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => bgSkippedImages.length > 0 && setShowBgSkipped(v => !v)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-[length:var(--font-sm)] transition-colors"
+                    style={{ cursor: bgSkippedImages.length > 0 ? 'pointer' : 'default' }}
+                  >
+                    <span style={{ color: '#c8c8c8' }}>
+                      <span className="text-[var(--text)] font-semibold">{bgCount}</span> of {totalSourceImages} images
+                      {bgSkippedImages.length > 0
+                        ? <> · <span className="text-[var(--accent3)]">{bgSkippedImages.length} skipped</span></>
+                        : <> · all included</>}
+                    </span>
+                    {bgSkippedImages.length > 0 && (
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6"
+                        style={{ color: '#c8c8c8', transform: showBgSkipped ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                        <path d="M4 2l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                  {showBgSkipped && bgSkippedImages.length > 0 && (
+                    <div className="px-3 pb-3 pt-2 border-t border-[var(--line)]">
+                      <p className="text-[length:var(--font-2xs)] uppercase tracking-wide mb-2" style={{ color: '#c8c8c8' }}>
+                        Skipped — background kept as-is
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 max-h-[168px] overflow-y-auto">
+                        {bgSkippedImages.map((img) => (
+                          <div key={img.id}
+                            className="relative w-[48px] h-[48px] rounded-[3px] overflow-hidden flex-shrink-0 border border-[var(--line)]"
+                            title={`${img.filename} · ${img.viewLabel}`}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
+                            <span className="absolute inset-x-0 bottom-0 bg-black/75 text-white text-center uppercase font-semibold"
+                              style={{ fontSize: '8px', lineHeight: '12px' }}>
+                              {img.viewLabel}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[length:var(--font-2xs)] mt-2" style={{ color: '#8a8a8a' }}>
+                        Wrong one here? Go back to review and change its angle.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
