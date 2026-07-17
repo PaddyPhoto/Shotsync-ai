@@ -501,10 +501,13 @@ export function ExportView({
         ? { Authorization: `Bearer ${bgSession.access_token}` } : {}
       const bgTasks = confirmedClusters.flatMap((c) => c.images)
       if (bgTasks.length > 0) {
-        // Keep this modest — Replicate throttles concurrent predictions (429),
-        // especially on new/low-spend accounts. The server retries with backoff,
-        // but a smaller burst avoids the throttle in the first place.
-        const BG_CONCURRENCY = 3
+        // Tuned for throughput on large sessions (100-500 imgs). Above $5 credit
+        // Replicate lifts its low-credit throttle to the standard ~600/min; with
+        // Prefer:wait each call holds a few seconds, so ~10 in flight saturates the
+        // pipeline without exceeding that rate or Vercel's function concurrency.
+        // The server's replicateFetch retries 429/503 with backoff as a safety net.
+        // NOTE: requires >$5 Replicate credit; under $5 the limit is 6/min burst 1.
+        const BG_CONCURRENCY = 10
         let bgDone = 0
         let bgPlanBlocked = false
         let bgFail: string | null = null
