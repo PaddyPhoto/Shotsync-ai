@@ -115,8 +115,10 @@ async function removeWithReplicate(imageFile: File): Promise<NextResponse> {
     cache: 'no-store',
   })
   if (!modelRes.ok) {
-    console.error('[remove-bg] Replicate model lookup failed:', modelRes.status)
-    return NextResponse.json({ error: `Replicate: ${modelRes.status}` }, { status: 502 })
+    const detail = (await modelRes.text().catch(() => '')).slice(0, 120)
+    console.error('[remove-bg] Replicate model lookup failed:', modelRes.status, detail)
+    // 401 = bad/missing token · 402 = no billing credit · 404 = wrong model
+    return NextResponse.json({ error: `Replicate ${modelRes.status}${detail ? `: ${detail}` : ''}` }, { status: 502 })
   }
   const version = (await modelRes.json())?.latest_version?.id
   if (!version) {

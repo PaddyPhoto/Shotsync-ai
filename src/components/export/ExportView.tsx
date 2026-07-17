@@ -517,7 +517,11 @@ export function ExportView({
               const res = await fetch('/api/remove-background', { method: 'POST', headers: bgAuth, body: fd })
               if (res.status === 403) { bgPlanBlocked = true; return }
               // No @imgly fallback — fail loudly so a bad Replicate token is obvious.
-              if (!res.ok) { bgFail = `Background removal failed (${res.status}) — check the Replicate token in Vercel, then redeploy.`; return }
+              if (!res.ok) {
+                const detail = await res.json().catch(() => null)
+                bgFail = `Background removal failed (${res.status}${detail?.error ? ` · ${detail.error}` : ''}) — check the Replicate token in Vercel, then redeploy.`
+                return
+              }
               // Keep the subject's colours: apply the mask to the ORIGINAL pixels.
               bgRemovalCache.set(img.id, await buildColorPreservedCutout(img.file, await res.blob()))
             } catch (e) { bgFail = e instanceof Error ? `Background removal failed: ${e.message}` : 'Background removal request failed.' }
