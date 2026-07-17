@@ -7,7 +7,7 @@ import { usePlan } from '@/context/PlanContext'
 import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
-import { processImageOnCanvas, preCompressImage, PLAIN_BG_VIEWS } from '@/lib/export/image-processing'
+import { processImageOnCanvas, preCompressImage, readCutoutBlob, PLAIN_BG_VIEWS } from '@/lib/export/image-processing'
 import { buildColorPreservedCutout } from '@/lib/image/composite'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { ViewLabel, MarketplaceName } from '@/types'
@@ -518,12 +518,16 @@ export function ExportView({
               if (res.status === 403) { bgPlanBlocked = true; return }
               // No @imgly fallback — fail loudly so a bad Replicate token is obvious.
               if (!res.ok) {
+                // A JSON body carries our specific reason; a bodyless/HTML 502 is a
+                // Vercel function-level failure (timeout / payload size), not our code.
                 const detail = await res.json().catch(() => null)
-                bgFail = `Background removal failed (${res.status}${detail?.error ? ` · ${detail.error}` : ''}) — check the Replicate token in Vercel, then redeploy.`
+                bgFail = detail?.error
+                  ? `Background removal failed (${res.status}) · ${detail.error}`
+                  : `Background removal failed (${res.status}) · server error (no detail — likely a function timeout or size limit).`
                 return
               }
               // Keep the subject's colours: apply the mask to the ORIGINAL pixels.
-              bgRemovalCache.set(img.id, await buildColorPreservedCutout(img.file, await res.blob()))
+              bgRemovalCache.set(img.id, await buildColorPreservedCutout(img.file, await readCutoutBlob(res)))
             } catch (e) { bgFail = e instanceof Error ? `Background removal failed: ${e.message}` : 'Background removal request failed.' }
             bgDone++
             setProgress({ done: bgDone, total: bgTasks.length, phase: `Removing backgrounds ${bgDone}/${bgTasks.length}…` })

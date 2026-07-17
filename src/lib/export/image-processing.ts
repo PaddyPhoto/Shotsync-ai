@@ -38,6 +38,20 @@ export async function preCompressImage(file: File): Promise<Blob> {
   })
 }
 
+// The /api/remove-background route returns EITHER a JSON `{ url }` (Replicate —
+// the browser fetches the PNG directly from replicate.delivery, CORS-open) OR a
+// raw image body (PhotoRoom). Normalise both to a Blob of the cutout PNG.
+export async function readCutoutBlob(res: Response): Promise<Blob> {
+  const ct = res.headers.get('content-type') || ''
+  if (ct.includes('application/json')) {
+    const { url } = await res.json()
+    const imgRes = await fetch(url)
+    if (!imgRes.ok) throw new Error(`Fetch cutout ${imgRes.status}`)
+    return imgRes.blob()
+  }
+  return res.blob()
+}
+
 export async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,
   quality = 1.0, maxFileSizeKb = 0, removeBg = false,
@@ -58,9 +72,12 @@ export async function processImageOnCanvas(
     const apiRes = await fetch('/api/remove-background', { method: 'POST', body: fd })
     if (!apiRes.ok) {
       if (apiRes.status === 403) throw new Error('plan_upgrade_required')
-      throw new Error(`Background removal failed (${apiRes.status}) — check the Replicate token / server config.`)
+      // Surface the server's actual reason (Replicate status, prediction error,
+      // output-fetch failure, …) instead of guessing — makes the real cause visible.
+      const detail = await apiRes.json().then((d) => d?.error).catch(() => '')
+      throw new Error(`Background removal failed (${apiRes.status})${detail ? ` — ${detail}` : ''}`)
     }
-    const rawCutout = await apiRes.blob()
+    const rawCutout = await readCutoutBlob(apiRes)
     sourceBlob = await buildColorPreservedCutout(file, rawCutout)
   }
 

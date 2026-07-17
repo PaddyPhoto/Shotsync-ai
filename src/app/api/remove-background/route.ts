@@ -6,8 +6,11 @@
  * quality. If PHOTOROOM_API_KEY is set it takes over (better on hard fashion
  * cases; graduate to it once volume justifies the monthly subscription).
  *
- * Accepts a JPEG image as multipart form data, returns a transparent PNG.
- * Callers should catch non-200 and use the browser-based @imgly fallback.
+ * Accepts a JPEG image as multipart form data. Replicate path returns JSON
+ * `{ url }` (browser fetches the PNG from replicate.delivery directly — avoids
+ * streaming multi-MB PNGs back through the function); PhotoRoom path returns the
+ * PNG bytes. Callers normalise both via `readCutoutBlob`. No client fallback:
+ * non-200 surfaces the server's reason so misconfig is obvious, not silently hidden.
  *
  * Env: REPLICATE_API_TOKEN (default), PHOTOROOM_API_KEY (optional, preferred if set)
  */
@@ -159,20 +162,18 @@ async function removeWithReplicate(imageFile: File): Promise<NextResponse> {
 
   if (prediction.status !== 'succeeded' || !prediction.output) {
     console.error('[remove-bg] Replicate prediction did not succeed:', prediction.status, prediction.error)
-    return NextResponse.json({ error: 'Background removal failed' }, { status: 500 })
+    const reason = prediction.error ? String(prediction.error).slice(0, 120) : prediction.status
+    return NextResponse.json({ error: `Prediction ${reason || 'did not succeed'}` }, { status: 502 })
   }
 
   const outputUrl: string = Array.isArray(prediction.output) ? prediction.output[0] : prediction.output
-  const outputRes = await fetch(outputUrl)
-  if (!outputRes.ok) {
-    return NextResponse.json({ error: 'Failed to fetch result image' }, { status: 502 })
+  if (typeof outputUrl !== 'string' || !outputUrl.startsWith('http')) {
+    console.error('[remove-bg] Unexpected output format:', JSON.stringify(prediction.output).slice(0, 200))
+    return NextResponse.json({ error: `Bad output format: ${JSON.stringify(prediction.output).slice(0, 80)}` }, { status: 502 })
   }
-
-  const outputBuffer = await outputRes.arrayBuffer()
-  return new NextResponse(outputBuffer, {
-    headers: {
-      'Content-Type': 'image/png',
-      'Cache-Control': 'no-store',
-    },
-  })
+  // Return the Replicate CDN URL, not the image bytes. replicate.delivery serves
+  // outputs with `access-control-allow-origin: *`, so the browser fetches the PNG
+  // directly — avoids streaming a multi-MB transparent PNG back through the Vercel
+  // function (which trips the function response-size limit → a bodyless 502).
+  return NextResponse.json({ url: outputUrl }, { headers: { 'Cache-Control': 'no-store' } })
 }
