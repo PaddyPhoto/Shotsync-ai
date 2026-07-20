@@ -1456,26 +1456,37 @@ export function ExportView({
                       <span className="text-[length:var(--font-xs)] text-[var(--text3)]">{rows.length} file{rows.length !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm">
+                      {/* Column header */}
+                      <div className="sticky top-0 z-20 flex items-center gap-3 px-3 py-1.5 bg-[var(--bg3)] border-b border-[var(--line)] text-[length:var(--font-2xs)] uppercase tracking-wide" style={{ color: '#8a8a8a' }}>
+                        <span className="w-9 flex-shrink-0" />
+                        <span className="flex-1 min-w-0">File name</span>
+                        <span className="w-32 flex-shrink-0">View</span>
+                        <span className="w-24 flex-shrink-0">Size</span>
+                        <span className="w-10 flex-shrink-0">Fmt</span>
+                        {removeBgOnExport && <span className="w-24 flex-shrink-0 text-right">Background</span>}
+                      </div>
                       {shown.map((r) => {
                         const showHeader = multiMp && r.mp !== lastMp
                         lastMp = r.mp
                         return (
                           <div key={r.key}>
                             {showHeader && (
-                              <div className="sticky top-0 z-10 px-3 py-1.5 bg-[var(--bg4)] border-b border-[var(--line)] text-[length:var(--font-2xs)] uppercase tracking-wide font-semibold" style={{ color: 'var(--accent)' }}>{r.mp}</div>
+                              <div className="px-3 py-1.5 bg-[var(--bg4)] border-b border-[var(--line)] text-[length:var(--font-2xs)] uppercase tracking-wide font-semibold" style={{ color: 'var(--accent)' }}>{r.mp}</div>
                             )}
-                            <div className="flex items-center gap-2.5 px-3 py-1.5 border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--bg4)] transition-colors">
+                            <div className="flex items-center gap-3 px-3 py-1.5 border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--bg4)] transition-colors">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={r.src} alt="" className="w-9 h-9 rounded-[3px] object-cover border border-[var(--line)] flex-shrink-0 bg-white" />
-                              <div className="min-w-0 flex-1">
-                                <div className="truncate text-[var(--text2)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.filename}</div>
-                                <div className="text-[length:var(--font-2xs)] text-[var(--text3)] uppercase tracking-wide mt-0.5">{r.view} · {r.dims} · JPG</div>
-                              </div>
+                              <div className="flex-1 min-w-0 truncate text-[var(--text2)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.filename}</div>
+                              <div className="w-32 flex-shrink-0 truncate text-[length:var(--font-2xs)] uppercase tracking-wide text-[var(--text3)]">{r.view}</div>
+                              <div className="w-24 flex-shrink-0 text-[length:var(--font-2xs)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.dims}</div>
+                              <div className="w-10 flex-shrink-0 text-[length:var(--font-2xs)] text-[var(--text3)]">JPG</div>
                               {removeBgOnExport && (
-                                <span className="text-[length:var(--font-2xs)] px-1.5 py-[2px] rounded-[4px] flex-shrink-0 whitespace-nowrap"
-                                  style={r.removed ? { color: 'var(--accent2)', background: 'rgba(62,207,142,0.1)' } : { color: '#8a8a8a', background: 'var(--bg3)' }}>
-                                  {r.removed ? 'bg removed' : 'bg kept'}
-                                </span>
+                                <div className="w-24 flex-shrink-0 text-right">
+                                  <span className="text-[length:var(--font-2xs)] px-1.5 py-[2px] rounded-[4px] whitespace-nowrap"
+                                    style={r.removed ? { color: 'var(--accent2)', background: 'rgba(62,207,142,0.1)' } : { color: '#8a8a8a', background: 'var(--bg4)' }}>
+                                    {r.removed ? 'bg removed' : 'bg kept'}
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </div>
