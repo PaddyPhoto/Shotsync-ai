@@ -8,6 +8,7 @@ import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { processImageOnCanvas, preCompressImage, readCutoutBlob, PLAIN_BG_VIEWS } from '@/lib/export/image-processing'
+import { ComposedPreview } from '@/components/export/ComposedPreview'
 import { buildColorPreservedCutout } from '@/lib/image/composite'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { ViewLabel, MarketplaceName } from '@/types'
@@ -1021,7 +1022,9 @@ export function ExportView({
   // shown under the toggle as a pre-export sanity check so a mislabelled crop is caught
   // before any file is written. Reads the exact same PLAIN_BG_VIEWS gate as the export.
   const bgSkippedImages = confirmedClusters.flatMap((c) => c.images).filter((img) => !PLAIN_BG_VIEWS.has(img.viewLabel ?? ''))
-  const estBgMins = Math.max(1, Math.ceil(bgCount / 8 * 10 / 60))
+  // ~4s/image at 10 concurrent (see BG_CONCURRENCY). Shown as a rough ETA.
+  const bgEtaSec = Math.ceil(bgCount / 10) * 4
+  const bgEtaLabel = bgEtaSec < 60 ? `~${Math.max(5, Math.ceil(bgEtaSec / 5) * 5)}s` : `~${Math.ceil(bgEtaSec / 60)} min`
   const bgCostAud = (bgCount * 0.16).toFixed(2)
   const brandCode = activeBrand?.brand_code ?? 'BRAND'
   const canUseBgRemoval = plan.limits.bgRemoval
@@ -1054,7 +1057,7 @@ export function ExportView({
         </h1>
         {confirmedClusters.length > 0 && (
           <span className="text-[length:var(--font-sm)] text-[var(--text3)]">
-            {confirmedClusters.length} cluster{confirmedClusters.length !== 1 ? 's' : ''} · {totalSourceImages} images
+            {confirmedClusters.length} product{confirmedClusters.length !== 1 ? 's' : ''} · {totalSourceImages} image{totalSourceImages !== 1 ? 's' : ''}
           </span>
         )}
       </div>
@@ -1168,6 +1171,11 @@ export function ExportView({
                       </svg>
                     )}
                   </button>
+                  {bgCount > 0 && (
+                    <div className="px-3 pb-2 -mt-1 text-[length:var(--font-xs)]" style={{ color: '#8a8a8a' }}>
+                      ≈ <span className="text-[var(--text2)]">${bgCostAud}</span> · {bgEtaLabel}
+                    </div>
+                  )}
                   {showBgSkipped && bgSkippedImages.length > 0 && (
                     <div className="px-3 pb-3 pt-2 border-t border-[var(--line)]">
                       <p className="text-[length:var(--font-2xs)] uppercase tracking-wide mb-2" style={{ color: '#c8c8c8' }}>
@@ -1285,13 +1293,13 @@ export function ExportView({
               {/* Stat cards */}
               <div className="grid grid-cols-3 gap-3 flex-shrink-0">
                 {[
-                  { label: 'Clusters', value: confirmedClusters.length },
-                  { label: 'Images', value: totalSourceImages },
-                  { label: 'Marketplaces', value: selectedMarketplaces.length },
-                ].map(({ label, value }) => (
-                  <div key={label} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-4">
+                  { singular: 'Product', plural: 'Products', value: confirmedClusters.length },
+                  { singular: 'Image', plural: 'Images', value: totalSourceImages },
+                  { singular: 'Marketplace', plural: 'Marketplaces', value: selectedMarketplaces.length },
+                ].map(({ singular, plural, value }) => (
+                  <div key={plural} className="bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-4">
                     <p className="text-[length:var(--font-3xl)] font-semibold text-[var(--text)] leading-none" style={{ fontFamily: 'var(--font-syne)' }}>{value}</p>
-                    <p className="text-[length:var(--font-base)] text-[var(--text3)] mt-1.5">{label}</p>
+                    <p className="text-[length:var(--font-base)] text-[var(--text3)] mt-1.5">{value === 1 ? singular : plural}</p>
                   </div>
                 ))}
               </div>
@@ -1340,7 +1348,7 @@ export function ExportView({
                   <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-3 leading-relaxed">
                     {shopifyConnected ? (
                       <>
-                        Creates a draft product in Shopify for each cluster — images, SKU, colour and AI copy included.
+                        Creates a Shopify draft listing for each product — images, SKU, colour and AI copy included.
                         {(() => { const n = confirmedClusters.filter(c => clusterCopy[c.id]?.title).length; return n > 0 ? <> <span className="text-[var(--accent2)] font-medium">AI copy ready for {n} listing{n !== 1 ? 's' : ''}.</span></> : null })()}
                       </>
                     ) : (
@@ -1389,7 +1397,7 @@ export function ExportView({
                     <span className="text-[length:var(--font-base)] text-[var(--accent2)] bg-[rgba(62,207,142,0.1)] px-2 py-[2px] rounded-[6px]">Connected</span>
                   </div>
                   <p className="text-[length:var(--font-sm)] text-[var(--text3)] mb-3 leading-relaxed">
-                    Creates a new product in Cin7 for each cluster — all metadata, AI copy and images included. New SKUs only; existing SKUs are skipped.
+                    Creates a Cin7 product record for each product — all metadata, AI copy and images included. New SKUs only; existing SKUs are skipped.
                   </p>
                   {cin7Results && (
                     <div className="bg-[var(--bg3)] rounded-sm p-2.5 mb-3 flex flex-col gap-1 max-h-[100px] overflow-y-auto">
@@ -1416,6 +1424,26 @@ export function ExportView({
               {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (
                 <div className="flex-1 min-h-0 flex flex-col">
                   <p className="text-[length:var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide mb-2 flex-shrink-0">Output preview</p>
+                  {/* Visual composed preview of the first shot in the first marketplace's frame */}
+                  {(() => {
+                    const pImg = confirmedClusters[0]?.images[0]
+                    const pRule = resolveRule(selectedMarketplaces[0])
+                    if (!pImg?.previewUrl) return null
+                    return (
+                      <div className="flex-shrink-0 mb-3 bg-[var(--bg3)] border border-[var(--line)] rounded-sm p-3">
+                        <ComposedPreview
+                          src={pImg.previewUrl}
+                          width={pRule.image_dimensions.width}
+                          height={pRule.image_dimensions.height}
+                          bgColor={pRule.background_color || '#FFFFFF'}
+                        />
+                        <p className="text-[length:var(--font-xs)] text-center mt-2" style={{ color: '#8a8a8a' }}>
+                          {pRule.name} · {pRule.image_dimensions.width}×{pRule.image_dimensions.height}
+                          {removeBgOnExport && PLAIN_BG_VIEWS.has(pImg.viewLabel ?? '') && ' · cutout applied at export'}
+                        </p>
+                      </div>
+                    )
+                  })()}
                   <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-3 text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                     {selectedMarketplaces.slice(0, 3).map((m) => {
                       const rule = resolveRule(m)
@@ -1467,7 +1495,7 @@ export function ExportView({
         <div className="border-t border-[var(--line)] px-6 h-[60px] flex items-center justify-between flex-shrink-0">
           <p className="text-[length:var(--font-sm)] text-[var(--text3)]">
             {confirmedClusters.length === 0
-              ? 'Confirm at least one cluster to export'
+              ? 'Confirm at least one product to export'
               : selectedMarketplaces.length === 0
               ? 'Select at least one marketplace to continue'
               : `${totalSourceImages} image${totalSourceImages !== 1 ? 's' : ''} × ${selectedMarketplaces.length} marketplace${selectedMarketplaces.length !== 1 ? 's' : ''}`
