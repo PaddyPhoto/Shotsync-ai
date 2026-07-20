@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/store/session'
 import { usePlan } from '@/context/PlanContext'
@@ -126,6 +126,26 @@ export function ExportView({
   const confirmedClusters = clusters
     .filter((c) => c.confirmed)
     .sort((a, b) => parseInt(a.label?.match(/\d+/)?.[0] ?? '0', 10) - parseInt(b.label?.match(/\d+/)?.[0] ?? '0', 10))
+
+  // Calibrate a real bytes-per-pixel by encoding the first shot once at the first
+  // marketplace's dims/quality (no bg removal → no Replicate cost). Scaled by pixel
+  // count, it gives grounded per-file size estimates instead of a blind formula.
+  const [calibBpp, setCalibBpp] = useState<{ bpp: number; quality: number } | null>(null)
+  const firstImgId = confirmedClusters[0]?.images[0]?.id
+  const firstMp = selectedMarketplaces[0]
+  useEffect(() => {
+    const img = confirmedClusters[0]?.images[0]
+    if (!img?.file || !firstMp) { setCalibBpp(null); return }
+    const rule = resolveRule(firstMp)
+    const { width, height } = rule.image_dimensions
+    const quality = rule.quality ?? 100
+    let cancelled = false
+    processImageOnCanvas(img.file, width, height, rule.background_color, quality / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit)
+      .then((buf) => { if (!cancelled) setCalibBpp({ bpp: buf.byteLength / (width * height), quality }) })
+      .catch(() => { if (!cancelled) setCalibBpp(null) })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstImgId, firstMp])
 
   const pickFolder = async () => {
     try {
@@ -1025,6 +1045,19 @@ export function ExportView({
   const bgEtaSec = Math.ceil(bgCount / 10) * 4
   const bgEtaLabel = bgEtaSec < 60 ? `~${Math.max(5, Math.ceil(bgEtaSec / 5) * 5)}s` : `~${Math.ceil(bgEtaSec / 60)} min`
   const bgCostAud = (bgCount * 0.16).toFixed(2)
+
+  // Estimated export file size. Uses the calibrated bytes-per-pixel (measured from
+  // a real encode of the first shot) when available, scaled to each row by pixels
+  // and quality; falls back to a rough per-quality curve until calibration lands.
+  const fallbackBpp = (q: number) => q >= 100 ? 0.42 : q >= 95 ? 0.26 : q >= 90 ? 0.17 : q >= 85 ? 0.12 : 0.09
+  const estFileKb = (w: number, h: number, quality: number, capKb: number) => {
+    const bpp = calibBpp
+      ? calibBpp.bpp * (fallbackBpp(quality) / fallbackBpp(calibBpp.quality)) // scale for quality diffs
+      : fallbackBpp(quality)
+    const kb = (w * h * bpp) / 1024
+    return capKb > 0 ? Math.min(kb, capKb) : kb
+  }
+  const fmtSize = (kb: number) => kb >= 1024 ? `~${(kb / 1024).toFixed(1)} MB` : `~${Math.round(kb)} KB`
   const brandCode = activeBrand?.brand_code ?? 'BRAND'
   const canUseBgRemoval = plan.limits.bgRemoval
 
@@ -1426,12 +1459,15 @@ export function ExportView({
                   Capture One. Fills the space with something actually useful. */}
               {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (() => {
                 const MAX_ROWS = 250
-                type Row = { key: string; mp: string; filename: string; view: string; dims: string; src: string; removed: boolean }
+                type Row = { key: string; mp: string; filename: string; view: string; dims: string; size: string; src: string; removed: boolean }
                 const rows: Row[] = []
+                let totalKb = 0
                 for (const m of selectedMarketplaces) {
                   const rule = resolveRule(m)
                   const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
-                  const dims = `${rule.image_dimensions.width}×${rule.image_dimensions.height}`
+                  const { width, height } = rule.image_dimensions
+                  const dims = `${width}×${height}`
+                  const kb = estFileKb(width, height, rule.quality ?? 100, rule.max_file_size_kb ?? 0)
                   confirmedClusters.forEach((c, ci) => {
                     c.images.forEach((img, ii) => {
                       const filename = useOriginalNames
@@ -1442,18 +1478,20 @@ export function ExportView({
                             styleNumber: c.styleNumber, colourCode: c.colourCode, isBottomwear: c.isBottomwear ?? false,
                           }) + '.jpg'
                       const removed = removeBgOnExport && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
-                      rows.push({ key: `${m}-${c.id}-${img.id}`, mp: rule.name, filename, view: img.viewLabel ?? 'unknown', dims, src: img.previewUrl, removed })
+                      totalKb += kb
+                      rows.push({ key: `${m}-${c.id}-${img.id}`, mp: rule.name, filename, view: img.viewLabel ?? 'unknown', dims, size: fmtSize(kb), src: img.previewUrl, removed })
                     })
                   })
                 }
                 const shown = rows.slice(0, MAX_ROWS)
+                const totalSize = totalKb >= 1024 ? `~${(totalKb / 1024).toFixed(totalKb >= 10240 ? 0 : 1)} MB` : `~${Math.round(totalKb)} KB`
                 const multiMp = selectedMarketplaces.length > 1
                 let lastMp = ''
                 return (
                   <div className="flex-1 min-h-0 flex flex-col">
                     <div className="flex items-center justify-between mb-2 flex-shrink-0">
                       <p className="text-[length:var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide">Output preview</p>
-                      <span className="text-[length:var(--font-xs)] text-[var(--text3)]">{rows.length} file{rows.length !== 1 ? 's' : ''}</span>
+                      <span className="text-[length:var(--font-xs)] text-[var(--text3)]">{rows.length} file{rows.length !== 1 ? 's' : ''} · {totalSize}</span>
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm">
                       {/* Column header */}
@@ -1461,8 +1499,8 @@ export function ExportView({
                         <span className="w-9 flex-shrink-0" />
                         <span className="flex-1 min-w-0">File name</span>
                         <span className="w-32 flex-shrink-0">View</span>
-                        <span className="w-24 flex-shrink-0">Size</span>
-                        <span className="w-10 flex-shrink-0">Fmt</span>
+                        <span className="w-24 flex-shrink-0">Dimensions</span>
+                        <span className="w-20 flex-shrink-0 text-right">Est. size</span>
                         {removeBgOnExport && <span className="w-24 flex-shrink-0 text-right">Background</span>}
                       </div>
                       {shown.map((r) => {
@@ -1479,7 +1517,7 @@ export function ExportView({
                               <div className="flex-1 min-w-0 truncate text-[var(--text2)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.filename}</div>
                               <div className="w-32 flex-shrink-0 truncate text-[length:var(--font-2xs)] uppercase tracking-wide text-[var(--text3)]">{r.view}</div>
                               <div className="w-24 flex-shrink-0 text-[length:var(--font-2xs)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.dims}</div>
-                              <div className="w-10 flex-shrink-0 text-[length:var(--font-2xs)] text-[var(--text3)]">JPG</div>
+                              <div className="w-20 flex-shrink-0 text-right text-[length:var(--font-2xs)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.size}</div>
                               {removeBgOnExport && (
                                 <div className="w-24 flex-shrink-0 text-right">
                                   <span className="text-[length:var(--font-2xs)] px-1.5 py-[2px] rounded-[4px] whitespace-nowrap"
