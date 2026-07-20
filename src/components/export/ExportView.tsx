@@ -147,6 +147,20 @@ export function ExportView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstImgId, firstMp])
 
+  // After a completed export, changing any export setting (marketplace, options,
+  // naming, folder) re-arms the page to export the SAME products again — no need
+  // to round-trip back to Review. The done screen only persists until you touch a
+  // control. (Runs on mount too, but no-ops while not done.)
+  useEffect(() => {
+    if (!done) return
+    setDone(false)
+    setProgress({ done: 0, total: 0, phase: '' })
+    setHistorySaved(false)
+    setHistorySaveError(null)
+    setExportError(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMarketplaces, exportMode, flatExport, useOriginalNames, removeBgOnExport, localTemplate, folderName])
+
   const pickFolder = async () => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1058,6 +1072,10 @@ export function ExportView({
     return capKb > 0 ? Math.min(kb, capKb) : kb
   }
   const fmtSize = (kb: number) => kb >= 1024 ? `~${(kb / 1024).toFixed(1)} MB` : `~${Math.round(kb)} KB`
+  // Background-removed exports composite the subject on flat #FFFFFF (+ white
+  // fit-to-contain padding) → large uniform areas JPEG crushes to almost nothing,
+  // so files land ~0.4× the non-removed size. Measured: 1.6 MB → 0.59 MB. Tunable.
+  const BG_REMOVED_SIZE_FACTOR = 0.4
   const brandCode = activeBrand?.brand_code ?? 'BRAND'
   const canUseBgRemoval = plan.limits.bgRemoval
 
@@ -1467,7 +1485,7 @@ export function ExportView({
                   const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
                   const { width, height } = rule.image_dimensions
                   const dims = `${width}×${height}`
-                  const kb = estFileKb(width, height, rule.quality ?? 100, rule.max_file_size_kb ?? 0)
+                  const baseKb = estFileKb(width, height, rule.quality ?? 100, rule.max_file_size_kb ?? 0)
                   confirmedClusters.forEach((c, ci) => {
                     c.images.forEach((img, ii) => {
                       const filename = useOriginalNames
@@ -1478,6 +1496,7 @@ export function ExportView({
                             styleNumber: c.styleNumber, colourCode: c.colourCode, isBottomwear: c.isBottomwear ?? false,
                           }) + '.jpg'
                       const removed = removeBgOnExport && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+                      const kb = removed ? baseKb * BG_REMOVED_SIZE_FACTOR : baseKb
                       totalKb += kb
                       rows.push({ key: `${m}-${c.id}-${img.id}`, mp: rule.name, filename, view: img.viewLabel ?? 'unknown', dims, size: fmtSize(kb), src: img.previewUrl, removed })
                     })
