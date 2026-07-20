@@ -80,6 +80,10 @@ export async function processImageOnCanvas(
     const rawCutout = await readCutoutBlob(apiRes)
     sourceBlob = await buildColorPreservedCutout(file, rawCutout)
   }
+  // True once the source is a transparent cutout (bg removed). Used below to skip
+  // edge-extension padding — the clean bgColor fill is the correct backdrop, and
+  // stretching the subject's edge row would smear streaks into the padding.
+  const bgRemoved = wantRemove || !!preRemovedBgBlob
 
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(sourceBlob)
@@ -131,16 +135,21 @@ export async function processImageOnCanvas(
 
       // fit-to-contain guarantees exactly one dimension fills the canvas —
       // only the other axis needs padding, never both.
+      // Edge-extension padding is ONLY for opaque plain-backdrop shots (it stretches
+      // the studio backdrop to fill the gap seamlessly). Skip it entirely when the
+      // background was removed — the bgColor fill is already the correct clean
+      // padding, and stretching the subject's edge row (hair at top, boot/shadow at
+      // bottom) would smear faint horizontal streaks above the head / below the feet.
       const edgeFrac = 0.08
       const cw = currentCanvas.width
       const ch = currentCanvas.height
-      if (drawX > 0) {
+      if (!bgRemoved && drawX > 0) {
         // Image is narrower than target → pad left and right only.
         // Stretch an 8% strip from each vertical edge to fill the gap.
         const srcW = Math.max(1, Math.round(cw * edgeFrac))
         ctx.drawImage(currentCanvas, 0, 0, srcW, ch, 0, 0, drawX, height)
         ctx.drawImage(currentCanvas, cw - srcW, 0, srcW, ch, drawX + drawW, 0, drawX, height)
-      } else if (drawY > 0) {
+      } else if (!bgRemoved && drawY > 0) {
         // Image is shorter than target → pad top and bottom only.
         // Stretch an 8% strip from each horizontal edge to fill the gap.
         const srcH = Math.max(1, Math.round(ch * edgeFrac))
