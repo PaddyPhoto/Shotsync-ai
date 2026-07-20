@@ -8,7 +8,6 @@ import { MARKETPLACE_RULES } from '@/lib/marketplace/rules'
 import type { EditableRules } from '@/lib/marketplace/useMarketplaceRules'
 import { applyNamingTemplate } from '@/lib/brands'
 import { processImageOnCanvas, preCompressImage, readCutoutBlob, PLAIN_BG_VIEWS } from '@/lib/export/image-processing'
-import { ComposedPreview } from '@/components/export/ComposedPreview'
 import { buildColorPreservedCutout } from '@/lib/image/composite'
 import { MarketplaceSelector } from '@/components/export/MarketplaceSelector'
 import type { ViewLabel, MarketplaceName } from '@/types'
@@ -1063,7 +1062,7 @@ export function ExportView({
       </div>
 
       {/* ── Body: 3-column grid, no scroll ─────────────────────────────────── */}
-      <div className="flex-1 min-h-0 grid grid-cols-[420px_260px_1fr] divide-x divide-[var(--line)] overflow-hidden">
+      <div className="flex-1 min-h-0 grid grid-cols-[400px_300px_1fr] divide-x divide-[var(--line)] overflow-hidden">
 
         {/* ── LEFT: Marketplaces ─────────────────────────────────────────── */}
         <div
@@ -1422,67 +1421,73 @@ export function ExportView({
                 </div>
               )}
 
-              {/* Output preview — takes remaining vertical space */}
-              {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (
-                <div className="flex-1 min-h-0 flex flex-col">
-                  <p className="text-[length:var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide mb-2 flex-shrink-0">Output preview</p>
-                  {/* Visual composed preview of the first shot in the first marketplace's frame */}
-                  {(() => {
-                    const pImg = confirmedClusters[0]?.images[0]
-                    const pRule = resolveRule(selectedMarketplaces[0])
-                    if (!pImg?.previewUrl) return null
-                    return (
-                      <div className="flex-1 min-h-0 mb-3 flex flex-col bg-[var(--bg3)] border border-[var(--line)] rounded-sm p-3">
-                        <div className="flex-1 min-h-0 flex items-center justify-center">
-                          <ComposedPreview
-                            src={pImg.previewUrl}
-                            width={pRule.image_dimensions.width}
-                            height={pRule.image_dimensions.height}
-                            bgColor={pRule.background_color || '#FFFFFF'}
-                          />
-                        </div>
-                        <p className="text-[length:var(--font-xs)] text-center mt-2 flex-shrink-0" style={{ color: '#8a8a8a' }}>
-                          {pRule.name} · {pRule.image_dimensions.width}×{pRule.image_dimensions.height}
-                          {removeBgOnExport && PLAIN_BG_VIEWS.has(pImg.viewLabel ?? '') && ' · cutout applied at export'}
-                        </p>
-                      </div>
-                    )
-                  })()}
-                  <div className="flex-shrink-0 max-h-[150px] overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-3 text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
-                    {selectedMarketplaces.slice(0, 3).map((m) => {
-                      const rule = resolveRule(m)
-                      const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
-                      const mpFolder = rule.name.replace(/\s+/g, '_')
-                      return (
-                        <div key={m} className="mb-3 last:mb-0">
-                          <div className="text-[var(--accent)] font-medium">{mpFolder}/</div>
-                          {flatExport ? (
-                            <>
-                              {confirmedClusters.slice(0, 2).map((c, ci) => (
-                                <div key={c.id} className="pl-4" style={{ color: '#c8c8c8' }}>└─ {applyNamingTemplate(template, { brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color, view: c.images[0]?.viewLabel ?? 'front', index: 1, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode, isBottomwear: c.isBottomwear }) + '.jpg'}</div>
-                              ))}
-                              {confirmedClusters.length > 2 && <div className="pl-4 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more…)</div>}
-                            </>
-                          ) : (
-                            <>
-                              {confirmedClusters.slice(0, 2).map((c, ci) => {
-                                const fName = applyNamingTemplate(
-                                  template.replace(/_{VIEW}/g,'').replace(/_{INDEX}/g,'').replace(/_{ANGLE}/g,'').replace(/_{ANGLE_NUMBER}/g,''),
-                                  { brand: brandCode, seq: ci+1, sku: c.sku, color: c.color, view: '', index: 0, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode }
-                                ).replace(/_+$/, '') || `${brandCode}_${String(ci+1).padStart(3,'0')}`
-                                const firstFile = applyNamingTemplate(template, { brand: brandCode, seq: ci+1, sku: c.sku, color: c.color, view: c.images[0]?.viewLabel ?? 'front', index: 1, supplierCode: '', season: '', styleNumber: c.styleNumber, colourCode: c.colourCode, isBottomwear: c.isBottomwear }) + '.jpg'
-                                return <div key={c.id} className="pl-4 text-[var(--text3)]">└─ <span className="text-[var(--text2)]">{fName}/</span>{firstFile} …</div>
-                              })}
-                              {confirmedClusters.length > 2 && <div className="pl-4 text-[var(--text3)]">└─ ({confirmedClusters.length - 2} more folders…)</div>}
-                            </>
-                          )}
-                        </div>
-                      )
-                    })}
-                    {selectedMarketplaces.length > 3 && <p className="text-[var(--text3)] mt-2">+ {selectedMarketplaces.length - 3} more marketplace{selectedMarketplaces.length - 3 !== 1 ? 's' : ''}</p>}
+              {/* Output preview — a scrollable list of every export-ready file
+                  (thumbnail · filename · view · dimensions · bg status), à la
+                  Capture One. Fills the space with something actually useful. */}
+              {confirmedClusters.length > 0 && selectedMarketplaces.length > 0 && (() => {
+                const MAX_ROWS = 250
+                type Row = { key: string; mp: string; filename: string; view: string; dims: string; src: string; removed: boolean }
+                const rows: Row[] = []
+                for (const m of selectedMarketplaces) {
+                  const rule = resolveRule(m)
+                  const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
+                  const dims = `${rule.image_dimensions.width}×${rule.image_dimensions.height}`
+                  confirmedClusters.forEach((c, ci) => {
+                    c.images.forEach((img, ii) => {
+                      const filename = useOriginalNames
+                        ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
+                        : applyNamingTemplate(template, {
+                            brand: brandCode, seq: ci + 1, sku: c.sku, color: c.color,
+                            view: img.viewLabel, index: ii + 1, supplierCode: '', season: '',
+                            styleNumber: c.styleNumber, colourCode: c.colourCode, isBottomwear: c.isBottomwear ?? false,
+                          }) + '.jpg'
+                      const removed = removeBgOnExport && PLAIN_BG_VIEWS.has(img.viewLabel ?? '')
+                      rows.push({ key: `${m}-${c.id}-${img.id}`, mp: rule.name, filename, view: img.viewLabel ?? 'unknown', dims, src: img.previewUrl, removed })
+                    })
+                  })
+                }
+                const shown = rows.slice(0, MAX_ROWS)
+                const multiMp = selectedMarketplaces.length > 1
+                let lastMp = ''
+                return (
+                  <div className="flex-1 min-h-0 flex flex-col">
+                    <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                      <p className="text-[length:var(--font-base)] font-semibold text-[var(--text3)] uppercase tracking-wide">Output preview</p>
+                      <span className="text-[length:var(--font-xs)] text-[var(--text3)]">{rows.length} file{rows.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm">
+                      {shown.map((r) => {
+                        const showHeader = multiMp && r.mp !== lastMp
+                        lastMp = r.mp
+                        return (
+                          <div key={r.key}>
+                            {showHeader && (
+                              <div className="sticky top-0 z-10 px-3 py-1.5 bg-[var(--bg4)] border-b border-[var(--line)] text-[length:var(--font-2xs)] uppercase tracking-wide font-semibold" style={{ color: 'var(--accent)' }}>{r.mp}</div>
+                            )}
+                            <div className="flex items-center gap-2.5 px-3 py-1.5 border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--bg4)] transition-colors">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={r.src} alt="" className="w-9 h-9 rounded-[3px] object-cover border border-[var(--line)] flex-shrink-0 bg-white" />
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate text-[var(--text2)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.filename}</div>
+                                <div className="text-[length:var(--font-2xs)] text-[var(--text3)] uppercase tracking-wide mt-0.5">{r.view} · {r.dims} · JPG</div>
+                              </div>
+                              {removeBgOnExport && (
+                                <span className="text-[length:var(--font-2xs)] px-1.5 py-[2px] rounded-[4px] flex-shrink-0 whitespace-nowrap"
+                                  style={r.removed ? { color: 'var(--accent2)', background: 'rgba(62,207,142,0.1)' } : { color: '#8a8a8a', background: 'var(--bg3)' }}>
+                                  {r.removed ? 'bg removed' : 'bg kept'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                      {rows.length > MAX_ROWS && (
+                        <div className="px-3 py-2 text-[length:var(--font-xs)] text-[var(--text3)] text-center">+ {rows.length - MAX_ROWS} more files…</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
 
               {exportError && (
                 <div className="text-[length:var(--font-sm)] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex-shrink-0">
