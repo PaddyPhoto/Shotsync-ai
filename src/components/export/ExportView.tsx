@@ -1155,27 +1155,29 @@ export function ExportView({
                   <button
                     type="button"
                     onClick={() => bgSkippedImages.length > 0 && setShowBgSkipped(v => !v)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-[length:var(--font-sm)] transition-colors"
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-[length:var(--font-sm)] transition-colors"
                     style={{ cursor: bgSkippedImages.length > 0 ? 'pointer' : 'default' }}
                   >
-                    <span style={{ color: '#c8c8c8' }}>
-                      <span className="text-[var(--text)] font-semibold">{bgCount}</span> of {totalSourceImages} images
-                      {bgSkippedImages.length > 0
-                        ? <> · <span className="text-[var(--accent3)]">{bgSkippedImages.length} skipped</span></>
-                        : <> · all included</>}
+                    <span className="text-left" style={{ color: '#c8c8c8' }}>
+                      <span className="block">
+                        <span className="text-[var(--text)] font-semibold">{bgCount}</span> of {totalSourceImages} images
+                        {bgSkippedImages.length > 0
+                          ? <> · <span className="text-[var(--accent3)]">{bgSkippedImages.length} skipped</span></>
+                          : <> · all included</>}
+                      </span>
+                      {bgCount > 0 && (
+                        <span className="block text-[length:var(--font-xs)] mt-0.5" style={{ color: '#8a8a8a' }}>
+                          ≈ <span className="text-[var(--text2)]">${bgCostAud}</span> · {bgEtaLabel}
+                        </span>
+                      )}
                     </span>
                     {bgSkippedImages.length > 0 && (
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6"
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" className="flex-shrink-0"
                         style={{ color: '#c8c8c8', transform: showBgSkipped ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
                         <path d="M4 2l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                   </button>
-                  {bgCount > 0 && (
-                    <div className="px-3 pb-2 -mt-1 text-[length:var(--font-xs)]" style={{ color: '#8a8a8a' }}>
-                      ≈ <span className="text-[var(--text2)]">${bgCostAud}</span> · {bgEtaLabel}
-                    </div>
-                  )}
                   {showBgSkipped && bgSkippedImages.length > 0 && (
                     <div className="px-3 pb-3 pt-2 border-t border-[var(--line)]">
                       <p className="text-[length:var(--font-2xs)] uppercase tracking-wide mb-2" style={{ color: '#c8c8c8' }}>
@@ -1430,21 +1432,23 @@ export function ExportView({
                     const pRule = resolveRule(selectedMarketplaces[0])
                     if (!pImg?.previewUrl) return null
                     return (
-                      <div className="flex-shrink-0 mb-3 bg-[var(--bg3)] border border-[var(--line)] rounded-sm p-3">
-                        <ComposedPreview
-                          src={pImg.previewUrl}
-                          width={pRule.image_dimensions.width}
-                          height={pRule.image_dimensions.height}
-                          bgColor={pRule.background_color || '#FFFFFF'}
-                        />
-                        <p className="text-[length:var(--font-xs)] text-center mt-2" style={{ color: '#8a8a8a' }}>
+                      <div className="flex-1 min-h-0 mb-3 flex flex-col bg-[var(--bg3)] border border-[var(--line)] rounded-sm p-3">
+                        <div className="flex-1 min-h-0 flex items-center justify-center">
+                          <ComposedPreview
+                            src={pImg.previewUrl}
+                            width={pRule.image_dimensions.width}
+                            height={pRule.image_dimensions.height}
+                            bgColor={pRule.background_color || '#FFFFFF'}
+                          />
+                        </div>
+                        <p className="text-[length:var(--font-xs)] text-center mt-2 flex-shrink-0" style={{ color: '#8a8a8a' }}>
                           {pRule.name} · {pRule.image_dimensions.width}×{pRule.image_dimensions.height}
                           {removeBgOnExport && PLAIN_BG_VIEWS.has(pImg.viewLabel ?? '') && ' · cutout applied at export'}
                         </p>
                       </div>
                     )
                   })()}
-                  <div className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-3 text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                  <div className="flex-shrink-0 max-h-[150px] overflow-y-auto bg-[var(--bg3)] border border-[var(--line)] rounded-sm px-4 py-3 text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                     {selectedMarketplaces.slice(0, 3).map((m) => {
                       const rule = resolveRule(m)
                       const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'

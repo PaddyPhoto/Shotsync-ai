@@ -44,7 +44,7 @@ export function ComposedPreview({
   return (
     <canvas
       ref={ref}
-      className="block max-h-[200px] w-auto mx-auto rounded-[3px] border border-[var(--line)]"
+      className="block max-h-full max-w-full w-auto mx-auto rounded-[3px] border border-[var(--line)]"
       style={{ aspectRatio: `${width} / ${height}` }}
     />
   )
