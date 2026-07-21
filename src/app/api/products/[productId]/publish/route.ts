@@ -84,15 +84,6 @@ async function publishToCin7(
   const client = new Cin7Client(brand.cin7_account_id, brand.cin7_application_key)
 
   try {
-    if (existing?.external_id) {
-      return { channel: 'cin7', status: 'live', externalId: existing.external_id }
-    }
-
-    const found = await client.findProductBySku(product.sku)
-    if (found) {
-      return { channel: 'cin7', status: 'live', externalId: found.id }
-    }
-
     const cin7Images: Cin7Image[] = images
       .filter(img => img.storage_url)
       .map((img, i) => ({
@@ -103,14 +94,28 @@ async function publishToCin7(
       }))
 
     const attrs = Object.fromEntries((product.product_attributes ?? []).map(a => [a.key, a.value]))
-    const result = await client.createProduct({
+    const productInput = {
       sku: product.sku,
       name: colourway.listing_title || product.title,
+      description: colourway.listing_description ?? undefined,
       category: product.category ?? undefined,
       price: colourway.rrp ? parseFloat(String(colourway.rrp)) : undefined,
       attributes: attrs,
       images: cin7Images,
-    })
+    }
+
+    // Upsert, mirroring publishToShopify above: enrich the product if it already
+    // exists — either a prior ShotSync publish (external_id) or a SKU created in
+    // Cin7 at the PO stage (findProductBySku) — otherwise create it. Enriching
+    // (updateProduct) is non-destructive: appends images, fills only empty fields.
+    // Previously both existing-cases returned 'live' while pushing NOTHING.
+    const existingId = existing?.external_id ?? (await client.findProductBySku(product.sku))?.id
+    if (existingId) {
+      await client.updateProduct(existingId, productInput)
+      return { channel: 'cin7', status: 'live', externalId: existingId }
+    }
+
+    const result = await client.createProduct(productInput)
     return { channel: 'cin7', status: 'live', externalId: result.id }
   } catch (e) {
     return { channel: 'cin7', status: 'error', error: (e as Error).message.slice(0, 300) }

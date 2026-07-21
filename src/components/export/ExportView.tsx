@@ -1545,8 +1545,8 @@ export function ExportView({
                       {cin7Results.map((r) => (
                         <div key={r.sku} className="flex items-center justify-between text-[length:var(--font-base)]">
                           <span className="text-[var(--text2)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.sku}</span>
-                          <span className={r.status === 'created' ? 'text-[var(--accent2)]' : r.status === 'skipped' ? 'text-[var(--text3)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
-                            {r.status === 'created' ? '✓ Created' : r.status === 'skipped' ? '— Already exists' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
+                          <span className={r.status === 'created' || r.status === 'updated' ? 'text-[var(--accent2)]' : r.status === 'skipped' ? 'text-[var(--text3)]' : r.status === 'uploading' ? 'text-[var(--text3)]' : 'text-[#ff3b30]'}>
+                            {r.status === 'created' ? '✓ Created' : r.status === 'updated' ? '✓ Enriched' : r.status === 'skipped' ? '— Already exists' : r.status === 'uploading' ? '↑ Uploading…' : `✗ ${r.message ?? 'Failed'}`}
                           </span>
                         </div>
                       ))}

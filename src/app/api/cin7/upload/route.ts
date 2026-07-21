@@ -7,9 +7,10 @@ export const maxDuration = 60
 /**
  * POST /api/cin7/upload
  *
- * Creates products in Cin7 Core from confirmed clusters.
- * Images are passed as public Supabase Storage URLs — Cin7 fetches them directly.
- * Temp storage files are deleted after each successful product creation.
+ * Upserts products in Cin7 Core from confirmed clusters: enriches the product if
+ * the SKU already exists (adds images + copy + attributes, non-destructively),
+ * otherwise creates it. Images are passed as public Supabase Storage URLs — Cin7
+ * fetches them directly. Temp storage files are deleted after each product.
  *
  * Body:
  * {
@@ -89,17 +90,13 @@ export async function POST(req: NextRequest) {
 
   const results: {
     sku: string
-    status: 'created' | 'skipped' | 'error'
+    status: 'created' | 'updated' | 'skipped' | 'error'
     message?: string
   }[] = []
 
   for (const cluster of clusters) {
     try {
       const existing = await client.findProductBySku(cluster.sku)
-      if (existing) {
-        results.push({ sku: cluster.sku, status: 'skipped', message: 'Already exists in Cin7' })
-        continue
-      }
 
       const se = cluster.styleEntry ?? {}
 
@@ -130,7 +127,7 @@ export async function POST(req: NextRequest) {
 
       const price = se.rrp ? parseFloat(se.rrp.replace(/[^0-9.]/g, '')) || 0 : 0
 
-      await client.createProduct({
+      const productInput = {
         sku: cluster.sku,
         name: cluster.copy?.title || cluster.productName || cluster.sku,
         description,
@@ -144,9 +141,17 @@ export async function POST(req: NextRequest) {
           MimeType: 'image/jpeg',
           IsDefault: i === 0,
         })),
-      })
+      }
 
-      results.push({ sku: cluster.sku, status: 'created' })
+      // Upsert: enrich the product if the SKU already exists in Cin7 (common — SKUs
+      // are created at the buying/PO stage before the shoot), otherwise create it.
+      if (existing) {
+        await client.updateProduct(existing.id, productInput)
+        results.push({ sku: cluster.sku, status: 'updated' })
+      } else {
+        await client.createProduct(productInput)
+        results.push({ sku: cluster.sku, status: 'created' })
+      }
     } catch (err) {
       results.push({ sku: cluster.sku, status: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
     }
@@ -158,7 +163,8 @@ export async function POST(req: NextRequest) {
   }
 
   const created = results.filter((r) => r.status === 'created').length
+  const updated = results.filter((r) => r.status === 'updated').length
   const failed = results.filter((r) => r.status === 'error').length
 
-  return NextResponse.json({ data: { results, created, failed } })
+  return NextResponse.json({ data: { results, created, updated, failed } })
 }
