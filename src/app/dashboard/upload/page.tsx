@@ -1182,6 +1182,14 @@ export default function UploadPage() {
                         <span key={fmt} style={{ fontSize: 'var(--font-sm)', fontWeight: 500, padding: '2px 7px', borderRadius: '20px', background: 'var(--bg3)', color: 'var(--text3)' }}>{fmt}</span>
                       ))}
                     </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px', maxWidth: '380px', textAlign: 'center' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(48,209,88,0.9)" strokeWidth="2" style={{ flexShrink: 0 }}>
+                        <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text3)', lineHeight: 1.4 }}>
+                        Tip: filenames that share a SKU/style are grouped automatically — any number of shots per style, no folders needed.
+                      </p>
+                    </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); folderInputRef.current?.click() }}
                       style={{ fontSize: 'var(--font-base)', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', marginTop: '2px' }}
