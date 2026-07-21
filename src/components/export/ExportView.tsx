@@ -89,6 +89,10 @@ export function ExportView({
   )
   const [localTemplate, setLocalTemplate] = useState(() => namingTemplate || '{SKU}_{VIEW}')
   const [isExporting, setIsExporting] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  // Cooperative cancel flag, read at every export loop boundary. A ref (not state)
+  // so the running async loops see the change immediately without a re-render.
+  const cancelRef = useRef(false)
   const [progress, setProgress] = useState({ done: 0, total: 0, phase: '' })
   const [exportError, setExportError] = useState<string | null>(null)
   const [historySaveError, setHistorySaveError] = useState<string | null>(null)
@@ -495,6 +499,8 @@ export function ExportView({
       openUpgrade(`You've used all ${plan.limits.exportsPerMonth} exports this month on the Free plan. Upgrade for unlimited exports.`)
       return
     }
+    cancelRef.current = false
+    setIsCancelling(false)
     setIsExporting(true)
     setDone(false)
     setExportError(null)
@@ -507,7 +513,17 @@ export function ExportView({
       setExportError(`Export failed: ${msg}`)
     } finally {
       setIsExporting(false)
+      setIsCancelling(false)
     }
+  }
+
+  // Cooperative cancel: flip the ref so the in-flight export loops break at their
+  // next boundary. In-flight canvas/API calls already dispatched finish, then the
+  // export bails before finalizing (no history, no billing, no download).
+  const handleCancelExport = () => {
+    cancelRef.current = true
+    setIsCancelling(true)
+    setProgress((p) => ({ ...p, phase: 'Cancelling…' }))
   }
 
   const handleExportInner = async () => {
@@ -558,9 +574,9 @@ export function ExportView({
         let bgFail: string | null = null
         setProgress({ done: 0, total: bgTasks.length, phase: `Removing backgrounds 0/${bgTasks.length}…` })
         for (let i = 0; i < bgTasks.length; i += BG_CONCURRENCY) {
-          if (bgPlanBlocked || bgFail) break
+          if (bgPlanBlocked || bgFail || cancelRef.current) break
           await Promise.all(bgTasks.slice(i, i + BG_CONCURRENCY).map(async (img) => {
-            if (bgPlanBlocked || bgFail) return
+            if (bgPlanBlocked || bgFail || cancelRef.current) return
             try {
               const compressed = await preCompressImage(img.file)
               const fd = new FormData()
@@ -660,6 +676,7 @@ export function ExportView({
       const rootHandle = folderRef.current
 
       for (const marketplace of selectedMarketplaces) {
+        if (cancelRef.current) break
         const rule = resolveRule(marketplace)
         const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
         // Always create the marketplace folder — flatExport only skips SKU subfolders
@@ -669,6 +686,7 @@ export function ExportView({
         // Sequential writes — FSA API holds swap files open until close(), so concurrent
         // writes stack up in memory. One-at-a-time lets each file flush to disk before the next.
         for (const { cluster, seq, img, imgIdx, folderName, viewNum } of tasks) {
+            if (cancelRef.current) break
             if (!img.file) {
               console.warn(`[export] skipping ${img.filename} — file reference missing`)
               setExportError(`${img.filename}: file not available (try re-uploading)`)
@@ -738,8 +756,9 @@ export function ExportView({
         }
       }
 
-      // Write the rich product data CSV to the folder root
-      if (confirmedClusters.length > 0) {
+      // Write the rich product data CSV to the folder root (skip if cancelled —
+      // a stray CSV would make a half-written folder look complete).
+      if (confirmedClusters.length > 0 && !cancelRef.current) {
         setProgress((p) => ({ ...p, phase: 'Writing CSV…' }))
         const csv = buildProductDataCsv(confirmedClusters, clusterCopy, brandCode, localTemplate || '{BRAND}_{SEQ}_{VIEW}', useOriginalNames)
         const csvFh = await rootHandle.getFileHandle('product_data.csv', { create: true })
@@ -760,16 +779,19 @@ export function ExportView({
       }
 
       for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+        if (cancelRef.current) break
         const JSZip = (await import('jszip')).default
         const zip = new JSZip()
 
         for (const marketplace of batches[batchIdx]) {
+          if (cancelRef.current) break
           const rule = resolveRule(marketplace)
           const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
           const marketplaceFolder = zip.folder(rule.name.replace(/\s+/g, '_'))!
           const tasks = buildTasks(template, rule)
 
           for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+            if (cancelRef.current) break
             await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, folderName, viewNum }) => {
               try {
                 const useBgRemoval = removeBgOnExport && bgEligible(img)
@@ -803,6 +825,8 @@ export function ExportView({
           zip.file('product_data.csv', buildProductDataCsv(confirmedClusters, clusterCopy, brandCode, localTemplate || '{BRAND}_{SEQ}_{VIEW}', useOriginalNames))
         }
 
+        // Don't build/download a partial ZIP if the user cancelled mid-collection.
+        if (cancelRef.current) break
         const batchSuffix = batches.length > 1 ? `_part${batchIdx + 1}of${batches.length}` : ''
         setProgress((p) => ({ ...p, phase: batches.length > 1 ? `Building ZIP ${batchIdx + 1} of ${batches.length}…` : 'Building ZIP…' }))
         const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } })
@@ -885,6 +909,7 @@ export function ExportView({
       setCloudExportStatus({ done: 0, total: cloudTotal, errors: 0 })
 
       for (const marketplace of selectedMarketplaces) {
+        if (cancelRef.current) break
         const rule = resolveRule(marketplace)
         const template = rule.naming_template || localTemplate || '{BRAND}_{SEQ}_{VIEW}'
         const mpFolderName = rule.name.replace(/\s+/g, '_')
@@ -899,6 +924,7 @@ export function ExportView({
 
         const tasks = buildTasks(template, rule)
         for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+          if (cancelRef.current) break
           await Promise.all(tasks.slice(i, i + CONCURRENCY).map(async ({ cluster, seq, img, imgIdx, viewNum }) => {
             try {
               const useBgRemoval = removeBgOnExport && bgEligible(img)
@@ -943,6 +969,18 @@ export function ExportView({
           }))
         }
       }
+    }
+
+    // Cancelled mid-run: bail before finalizing. Don't count the export against the
+    // monthly limit, bill BG removal, save history, or mark clusters exported — the
+    // job wasn't completed. Any files already written to a picked folder remain.
+    if (cancelRef.current) {
+      setProgress({ done: 0, total: 0, phase: '' })
+      setCloudExportStatus(null)
+      setExportError(exportMode === 'folder'
+        ? 'Export cancelled. Any files already written to the folder were kept.'
+        : 'Export cancelled. No file was downloaded.')
+      return
     }
 
     recordExport()
@@ -1336,6 +1374,18 @@ export function ExportView({
                   <span className="font-medium">Warning:</span> {exportError}
                 </div>
               )}
+              <div>
+                <button
+                  onClick={handleCancelExport}
+                  disabled={isCancelling}
+                  className="btn btn-ghost"
+                >
+                  {isCancelling ? 'Cancelling…' : 'Cancel export'}
+                </button>
+                <p className="text-[length:var(--font-xs)] text-[var(--text3)] mt-2">
+                  Images already being processed will finish first.
+                </p>
+              </div>
             </div>
 
           /* ── IDLE STATE ────────────────────────────────────────────── */
@@ -1557,11 +1607,14 @@ export function ExportView({
                 )
               })()}
 
-              {exportError && (
-                <div className="text-[length:var(--font-sm)] text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex-shrink-0">
-                  <span className="font-medium">Export error:</span> {exportError}
-                </div>
-              )}
+              {exportError && (() => {
+                const cancelled = exportError.startsWith('Export cancelled')
+                return (
+                  <div className={`text-[length:var(--font-sm)] rounded-lg px-4 py-3 flex-shrink-0 ${cancelled ? 'text-[var(--text2)] bg-[var(--bg3)] border border-[var(--line)]' : 'text-red-600 bg-red-50 border border-red-200'}`}>
+                    <span className="font-medium">{cancelled ? 'Cancelled:' : 'Export error:'}</span> {cancelled ? exportError.replace(/^Export cancelled\.\s*/, '') : exportError}
+                  </div>
+                )
+              })()}
             </div>
           )}
         </div>
