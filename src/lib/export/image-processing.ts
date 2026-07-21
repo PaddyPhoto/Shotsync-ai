@@ -18,6 +18,20 @@ export const PLAIN_BG_VIEWS = new Set<string>([
   'ghost-mannequin', 'front-3/4', 'back-3/4',
 ])
 
+// Views where edge-extension (cloning an 8% edge strip to fill the crop's
+// aspect-ratio gap) is SAFE: studio packshots / full-length where the subject
+// sits inside a plain backdrop margin, so the stretched strip is pure backdrop.
+// Deliberately EXCLUDES mood (lifestyle/editorial — model often bleeds to the
+// frame edge) and detail (macro crops — fabric fills the frame), where cloning
+// the edge smears the subject. Narrower than PLAIN_BG_VIEWS on purpose (that set
+// governs bg-removal eligibility, a different question). Unknown/missing view →
+// not in the set → we fall back to a clean bgColor bar (never smears).
+export const EDGE_EXTEND_VIEWS = new Set<string>([
+  'front', 'back', 'side',
+  'full-length', 'full-length-side', 'full-length-back',
+  'ghost-mannequin', 'front-3/4', 'back-3/4',
+])
+
 // Resize a File to max 1500 px JPEG — keeps Replicate payloads small
 export async function preCompressImage(file: File): Promise<Blob> {
   return new Promise((res, rej) => {
@@ -55,7 +69,7 @@ export async function readCutoutBlob(res: Response): Promise<Blob> {
 export async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,
   quality = 1.0, maxFileSizeKb = 0, removeBg = false,
-  preRemovedBgBlob?: Blob, edit?: ImageEdit,
+  preRemovedBgBlob?: Blob, edit?: ImageEdit, viewLabel?: string,
 ): Promise<ArrayBuffer> {
   let sourceBlob: Blob = file
   const wantRemove = removeBg
@@ -136,20 +150,23 @@ export async function processImageOnCanvas(
       // fit-to-contain guarantees exactly one dimension fills the canvas —
       // only the other axis needs padding, never both.
       // Edge-extension padding is ONLY for opaque plain-backdrop shots (it stretches
-      // the studio backdrop to fill the gap seamlessly). Skip it entirely when the
-      // background was removed — the bgColor fill is already the correct clean
-      // padding, and stretching the subject's edge row (hair at top, boot/shadow at
-      // bottom) would smear faint horizontal streaks above the head / below the feet.
+      // the studio backdrop to fill the gap seamlessly). Skip it when:
+      //  - the background was removed — the bgColor fill is already the correct clean
+      //    padding, and stretching the subject's edge row (hair, boot) would streak; or
+      //  - the view isn't edge-extend-eligible (mood/detail/unknown) — the subject
+      //    bleeds to the frame edge, so cloning the strip clones the model/fabric.
+      // In those cases the plain bgColor bar is used instead (never smears).
+      const canEdgeExtend = !bgRemoved && EDGE_EXTEND_VIEWS.has(viewLabel ?? '')
       const edgeFrac = 0.08
       const cw = currentCanvas.width
       const ch = currentCanvas.height
-      if (!bgRemoved && drawX > 0) {
+      if (canEdgeExtend && drawX > 0) {
         // Image is narrower than target → pad left and right only.
         // Stretch an 8% strip from each vertical edge to fill the gap.
         const srcW = Math.max(1, Math.round(cw * edgeFrac))
         ctx.drawImage(currentCanvas, 0, 0, srcW, ch, 0, 0, drawX, height)
         ctx.drawImage(currentCanvas, cw - srcW, 0, srcW, ch, drawX + drawW, 0, drawX, height)
-      } else if (!bgRemoved && drawY > 0) {
+      } else if (canEdgeExtend && drawY > 0) {
         // Image is shorter than target → pad top and bottom only.
         // Stretch an 8% strip from each horizontal edge to fill the gap.
         const srcH = Math.max(1, Math.round(ch * edgeFrac))

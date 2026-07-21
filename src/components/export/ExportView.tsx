@@ -140,7 +140,7 @@ export function ExportView({
     const { width, height } = rule.image_dimensions
     const quality = rule.quality ?? 100
     let cancelled = false
-    processImageOnCanvas(img.file, width, height, rule.background_color, quality / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit)
+    processImageOnCanvas(img.file, width, height, rule.background_color, quality / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit, img.viewLabel)
       .then((buf) => { if (!cancelled) setCalibBpp({ bpp: buf.byteLength / (width * height), quality }) })
       .catch(() => { if (!cancelled) setCalibBpp(null) })
     return () => { cancelled = true }
@@ -231,7 +231,7 @@ export function ExportView({
           // Step 1: canvas resize
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit)
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit, img.viewLabel)
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -400,7 +400,7 @@ export function ExportView({
 
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit)
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit, img.viewLabel)
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -683,7 +683,7 @@ export function ExportView({
               buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                 rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit,
+                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel,
               )
             } catch (err) {
               if (useBgRemoval) {
@@ -694,7 +694,7 @@ export function ExportView({
                 try {
                   buffer = await processImageOnCanvas(
                     img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                    rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit,
+                    rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit, img.viewLabel,
                   )
                 } catch (retryErr) {
                   const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr)
@@ -777,7 +777,7 @@ export function ExportView({
                 const buffer = await processImageOnCanvas(
                   img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                   rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                  useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit,
+                  useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel,
                 )
                 const filename = useOriginalNames
                   ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
@@ -906,7 +906,7 @@ export function ExportView({
               const buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                 rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit,
+                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel,
               )
               const filename = useOriginalNames
                 ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
