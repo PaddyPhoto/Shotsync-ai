@@ -70,6 +70,7 @@ export async function processImageOnCanvas(
   file: File, width: number, height: number, bgColor: string,
   quality = 1.0, maxFileSizeKb = 0, removeBg = false,
   preRemovedBgBlob?: Blob, edit?: ImageEdit, viewLabel?: string,
+  coverCrop = false,
 ): Promise<ArrayBuffer> {
   let sourceBlob: Blob = file
   const wantRemove = removeBg
@@ -117,10 +118,18 @@ export async function processImageOnCanvas(
       ctx.fillStyle = bgColor || '#FFFFFF'
       ctx.fillRect(0, 0, width, height)
 
-      // Fit-to-contain: scale the entire source to fit within the target canvas,
-      // centred, with background filling any remaining space on the edges.
-      // This preserves full-length models — no head or foot clipping.
-      const scale = Math.min(width / img.width, height / img.height)
+      // Two ways to reconcile the source aspect with the target crop:
+      //  • cover  (coverCrop=true): scale so the source FILLS the frame, centred,
+      //    with the overflow on one axis cropped off by the canvas bounds. Clean
+      //    edge-to-edge result, no padding/cloning — but a subject shot tight to
+      //    head/feet can be clipped. This is the default.
+      //  • contain (coverCrop=false): scale so the whole source fits inside the
+      //    canvas, centred, padding the gap (edge-extension or bgColor bar below).
+      //    Preserves full-length models with no clipping, at the cost of fabricated
+      //    backdrop. Best when the subject is tight to the frame.
+      const scale = coverCrop
+        ? Math.max(width / img.width, height / img.height)
+        : Math.min(width / img.width, height / img.height)
       const drawW = Math.round(img.width * scale)
       const drawH = Math.round(img.height * scale)
       const drawX = Math.round((width - drawW) / 2)

@@ -114,6 +114,12 @@ export function ExportView({
   // colour-preserved cutout. No @imgly fallback: it fails loudly if the server
   // remover is unavailable (e.g. a bad REPLICATE_API_TOKEN).
   const [removeBgOnExport, setRemoveBgOnExport] = useState(false)
+  // How the source aspect is reconciled with the marketplace crop:
+  //  'fill'   → cover-crop into the frame (clean edges, may clip tight subjects)
+  //  'extend' → fit whole image + pad the gap (edge-extension / bar; keeps subject)
+  // Default 'fill' — clean edges suit most shoots; switch to 'extend' when a shoot
+  // is framed tight to head/feet and cropping would clip.
+  const [cropMode, setCropMode] = useState<'fill' | 'extend'>('fill')
   const [showBgSkipped, setShowBgSkipped] = useState(false)
   const [cloudExportStatus, setCloudExportStatus] = useState<{ done: number; total: number; errors: number } | null>(null)
 
@@ -121,7 +127,8 @@ export function ExportView({
   const markClustersExported = useSession((s) => s.markClustersExported)
   const dimensionOverrides = useSession((s) => s.dimensionOverrides)
   // Resolve a marketplace's rule, applying any per-job output-size override.
-  // Images are fit-to-contain (scaled + padded) into image_dimensions — never cropped.
+  // Images are fitted into image_dimensions per cropMode: 'fill' cover-crops,
+  // 'extend' fits-to-contain and pads the gap.
   const resolveRule = (m: MarketplaceName): EditableRules[MarketplaceName] => {
     const base = marketplaceRules[m] ?? MARKETPLACE_RULES[m]
     const ov = dimensionOverrides[m]
@@ -144,12 +151,12 @@ export function ExportView({
     const { width, height } = rule.image_dimensions
     const quality = rule.quality ?? 100
     let cancelled = false
-    processImageOnCanvas(img.file, width, height, rule.background_color, quality / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit, img.viewLabel)
+    processImageOnCanvas(img.file, width, height, rule.background_color, quality / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit, img.viewLabel, cropMode === 'fill')
       .then((buf) => { if (!cancelled) setCalibBpp({ bpp: buf.byteLength / (width * height), quality }) })
       .catch(() => { if (!cancelled) setCalibBpp(null) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [firstImgId, firstMp])
+  }, [firstImgId, firstMp, cropMode])
 
   // After a completed export, changing any export setting (marketplace, options,
   // naming, folder) re-arms the page to export the SAME products again — no need
@@ -163,7 +170,7 @@ export function ExportView({
     setHistorySaveError(null)
     setExportError(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMarketplaces, exportMode, flatExport, useOriginalNames, removeBgOnExport, localTemplate, folderName])
+  }, [selectedMarketplaces, exportMode, flatExport, useOriginalNames, removeBgOnExport, cropMode, localTemplate, folderName])
 
   const pickFolder = async () => {
     try {
@@ -235,7 +242,7 @@ export function ExportView({
           // Step 1: canvas resize
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit, img.viewLabel)
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit, img.viewLabel, cropMode === 'fill')
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -404,7 +411,7 @@ export function ExportView({
 
           let buffer: ArrayBuffer
           try {
-            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit, img.viewLabel)
+            buffer = await processImageOnCanvas(img.file, width, height, bgColor, quality, 0, shootType === 'still-life' && (firstRule.remove_background ?? false) && PLAIN_BG_VIEWS.has(img.viewLabel ?? ''), undefined, img.edit, img.viewLabel, cropMode === 'fill')
           } catch (e) {
             throw new Error(`Canvas: ${e instanceof Error ? e.message : e}`)
           }
@@ -701,7 +708,7 @@ export function ExportView({
               buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                 rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel,
+                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel, cropMode === 'fill',
               )
             } catch (err) {
               if (useBgRemoval) {
@@ -712,7 +719,7 @@ export function ExportView({
                 try {
                   buffer = await processImageOnCanvas(
                     img.file, rule.image_dimensions.width, rule.image_dimensions.height,
-                    rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit, img.viewLabel,
+                    rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0, false, undefined, img.edit, img.viewLabel, cropMode === 'fill',
                   )
                 } catch (retryErr) {
                   const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr)
@@ -799,7 +806,7 @@ export function ExportView({
                 const buffer = await processImageOnCanvas(
                   img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                   rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                  useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel,
+                  useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel, cropMode === 'fill',
                 )
                 const filename = useOriginalNames
                   ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
@@ -932,7 +939,7 @@ export function ExportView({
               const buffer = await processImageOnCanvas(
                 img.file, rule.image_dimensions.width, rule.image_dimensions.height,
                 rule.background_color, (rule.quality ?? 100) / 100, rule.max_file_size_kb ?? 0,
-                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel,
+                useBgRemoval && !preRemovedBlob, preRemovedBlob, img.edit, img.viewLabel, cropMode === 'fill',
               )
               const filename = useOriginalNames
                 ? img.filename.replace(/\.(jpg|jpeg|png|webp)$/i, '.jpg')
@@ -1223,6 +1230,38 @@ export function ExportView({
           <div className="flex-shrink-0 py-5 border-b border-[var(--line)]">
             <p className="text-[length:var(--font-base)] font-semibold uppercase tracking-wide mb-4" style={{ color: '#c8c8c8' }}>Options</p>
             <div className="flex flex-col gap-4">
+              {/* Fit-to-crop mode — how the source aspect meets the marketplace crop. */}
+              <div>
+                <p className="text-[length:var(--font-base)] text-[var(--text)] font-medium mb-1.5">Fit to crop</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { id: 'fill', label: 'Crop to fill', sub: 'Fills the frame, crops overflow' },
+                    { id: 'extend', label: 'Extend background', sub: 'Fits whole shot, pads the edges' },
+                  ] as const).map(({ id, label, sub }) => {
+                    const active = cropMode === id
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setCropMode(id)}
+                        className="rounded-[6px] border px-3 py-2 text-left transition-colors"
+                        style={{
+                          borderColor: active ? 'var(--accent)' : 'var(--line)',
+                          background: active ? 'rgba(0,122,255,0.1)' : 'transparent',
+                        }}
+                      >
+                        <span className="block text-[length:var(--font-sm)] font-semibold" style={{ color: active ? 'var(--text)' : '#c8c8c8' }}>{label}</span>
+                        <span className="block text-[length:var(--font-xs)] mt-0.5" style={{ color: '#8a8a8a' }}>{sub}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="text-[length:var(--font-xs)] mt-1.5" style={{ color: '#8a8a8a' }}>
+                  {cropMode === 'fill'
+                    ? 'Clean edges. May clip shots framed tight to head/feet — switch to Extend for those.'
+                    : 'Keeps the whole shot. Full-length/front/side extend the backdrop; mood & detail get a plain bar.'}
+                </p>
+              </div>
               <Toggle on={flatExport} onToggle={() => setFlatExport(v => !v)}
                 label="Flat export" sub="All images in one folder per marketplace" />
               <Toggle on={useOriginalNames} onToggle={() => setUseOriginalNames(v => !v)}
