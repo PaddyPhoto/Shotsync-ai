@@ -1606,7 +1606,7 @@ export function ExportView({
                       <div className="sticky top-0 z-20 flex items-center gap-3 px-3 py-1.5 bg-[var(--bg3)] border-b border-[var(--line)] text-[length:var(--font-2xs)] uppercase tracking-wide" style={{ color: '#8a8a8a' }}>
                         <span className="w-9 flex-shrink-0" />
                         <span className="flex-1 min-w-0">File name</span>
-                        <span className="w-32 flex-shrink-0">View</span>
+                        <span className="w-32 flex-shrink-0 hidden 2xl:block">View</span>
                         <span className="w-24 flex-shrink-0">Dimensions</span>
                         <span className="w-20 flex-shrink-0 text-right">Est. size</span>
                         {removeBgOnExport && <span className="w-24 flex-shrink-0 text-right">Background</span>}
@@ -1622,8 +1622,8 @@ export function ExportView({
                             <div className="flex items-center gap-3 px-3 py-1.5 border-b border-[var(--line)] last:border-b-0 hover:bg-[var(--bg4)] transition-colors">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={r.src} alt="" className="w-9 h-9 rounded-[3px] object-cover border border-[var(--line)] flex-shrink-0 bg-white" />
-                              <div className="flex-1 min-w-0 truncate text-[var(--text2)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.filename}</div>
-                              <div className="w-32 flex-shrink-0 truncate text-[length:var(--font-2xs)] uppercase tracking-wide text-[var(--text3)]">{r.view}</div>
+                              <div title={r.filename} className="flex-1 min-w-0 overflow-x-auto whitespace-nowrap text-[var(--text2)] text-[length:var(--font-sm)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.filename}</div>
+                              <div className="w-32 flex-shrink-0 hidden 2xl:block truncate text-[length:var(--font-2xs)] uppercase tracking-wide text-[var(--text3)]">{r.view}</div>
                               <div className="w-24 flex-shrink-0 text-[length:var(--font-2xs)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.dims}</div>
                               <div className="w-20 flex-shrink-0 text-right text-[length:var(--font-2xs)] text-[var(--text3)]" style={{ fontFamily: 'var(--font-dm-mono)' }}>{r.size}</div>
                               {removeBgOnExport && (
