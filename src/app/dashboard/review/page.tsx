@@ -441,6 +441,13 @@ function ReviewPage() {
     }
   }, [isReady, searchParams])
 
+  // Tell the sidebar whether the export panel is open. On the export view its
+  // Output Preview already lists every file, so the sidebar's cluster list is
+  // redundant there and just crowds a laptop screen — hide it while exporting.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('shotsync:export-view', { detail: { open: showExportPanel } }))
+  }, [showExportPanel])
+
   // Fetch product matches for all cluster SKUs from the DB once the session is ready.
   // Populates productMatchMap with attributes, colourways, gender, season etc.
   // On load: match cluster SKUs against product data and back-fill fields.

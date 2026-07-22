@@ -222,6 +222,16 @@ export function Sidebar() {
 
   const onReviewPage = pathname === '/dashboard/review'
 
+  // The review page's export panel opens in-place (same route), so listen for its
+  // signal to hide the cluster list while exporting — the export Output Preview
+  // already lists every file, and the list just crowds the sidebar on a laptop.
+  const [exporting, setExporting] = useState(false)
+  useEffect(() => {
+    const onExportView = (e: Event) => setExporting(!!(e as CustomEvent).detail?.open)
+    window.addEventListener('shotsync:export-view', onExportView)
+    return () => window.removeEventListener('shotsync:export-view', onExportView)
+  }, [])
+
   const reloadParked = useCallback(async () => {
     try {
       const { listParkedJobs } = await import('@/lib/session-store')
@@ -394,8 +404,8 @@ export function Sidebar() {
           </div>
         </Suspense>
 
-        {/* Cluster list — visible on review page when session has clusters */}
-        {onReviewPage && hasSession && (() => {
+        {/* Cluster list — visible on the review page (not its export panel) when session has clusters */}
+        {onReviewPage && hasSession && !exporting && (() => {
           const sorted = [...clusters].sort((a, b) => {
             const numA = parseInt((a.label || '').match(/\d+/)?.[0] ?? '0', 10)
             const numB = parseInt((b.label || '').match(/\d+/)?.[0] ?? '0', 10)
