@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser, createServiceClient } from '@/lib/supabase/server'
+import { tenantDb } from '@/lib/supabase/tenant'
 import { isMasked } from '@/lib/brands/secrets'
 import { Cin7OmniClient } from '@/lib/cin7/omni-client'
 
@@ -27,19 +28,21 @@ export async function POST(req: NextRequest) {
   const brand_id: string | undefined = body.brand_id
 
   // Already-connected brands render the key masked; resolve the stored value.
-  // Guarded by a column check so this no-ops until the Omni columns exist.
+  // Inert until the Omni columns exist, but scoped correctly now to satisfy the
+  // tenant-scoping guard: resolve the caller's org (org_members is the identity
+  // table, queried by user_id), then read the brand through tenantDb().
   if (brand_id && (isMasked(apiKey) || !apiKey)) {
     const service = createServiceClient()
-    const { data: b } = await service
-      .from('brands')
-      .select('*')
-      .eq('id', brand_id)
-      .eq('org_id', user.id)
-      .single()
-    const stored = b as Record<string, unknown> | null
-    if (stored?.cin7_omni_api_key) {
-      apiKey = stored.cin7_omni_api_key as string
-      if (!username || isMasked(username)) username = (stored.cin7_omni_username as string) ?? username
+    const { data: member } = await service
+      .from('org_members').select('org_id').eq('user_id', user.id).limit(1).single()
+    if (member?.org_id) {
+      const { data: b } = await tenantDb(service, member.org_id)
+        .select('brands').eq('id', brand_id).single()
+      const stored = b as Record<string, unknown> | null
+      if (stored?.cin7_omni_api_key) {
+        apiKey = stored.cin7_omni_api_key as string
+        if (!username || isMasked(username)) username = (stored.cin7_omni_username as string) ?? username
+      }
     }
   }
 
