@@ -1,7 +1,7 @@
 /**
  * POST /api/copy/generate
  *
- * Generates AI product listing copy for a confirmed cluster using Claude Sonnet 4.6.
+ * Generates AI product listing copy for a confirmed cluster using Claude Sonnet 5.
  * Optionally accepts a hero image (base64 JPEG) for vision-assisted copy.
  *
  * Body: { sku, productName, color, brandName, angles, heroImage?, composition, care,
@@ -137,8 +137,16 @@ Return ONLY valid JSON with no markdown or code fences:
       : userText
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 700,
+      model: 'claude-sonnet-5',
+      // Sonnet 5 runs adaptive thinking by DEFAULT (Sonnet 4.6 didn't), and
+      // max_tokens caps thinking + answer combined — so left on, thinking could
+      // eat the budget and truncate the JSON. This is templated copy, not a
+      // reasoning task: disable thinking so the whole budget goes to the output
+      // and latency/cost stay low on the batch "generate all copy" path.
+      thinking: { type: 'disabled' },
+      // Headroom for Sonnet 5's tokenizer (~30% more tokens for the same text)
+      // so a slightly longer description never truncates the JSON.
+      max_tokens: 1000,
       system: systemPrompt,
       messages: [{ role: 'user', content }],
     })
