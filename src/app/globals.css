@@ -87,6 +87,15 @@ body:has([data-theme="dark"]) {
 
 ::-webkit-scrollbar { width: 0; height: 0; }
 
+/* Opt-in thin horizontal scrollbar — overrides the global hide above so an
+   overflowing cell (e.g. a long file name in the export preview) visibly shows
+   it can be scrolled. Higher specificity (class + pseudo) beats the global rule. */
+.scroll-x-visible { scrollbar-width: thin; scrollbar-color: rgba(128,128,128,0.5) transparent; }
+.scroll-x-visible::-webkit-scrollbar { height: 6px; }
+.scroll-x-visible::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.45); border-radius: 3px; }
+.scroll-x-visible::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.75); }
+.scroll-x-visible::-webkit-scrollbar-track { background: transparent; }
+
 ::selection {
   background: rgba(0,122,255,0.12);
   color: var(--text);
