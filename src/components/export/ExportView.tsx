@@ -430,6 +430,9 @@ export function ExportView({
 
         const { data: { session: freshSession } } = await supabase.auth.getSession()
         const copy = clusterCopy[cluster.id]
+        // Cin7 is an ERP → prefer the concise "feed" channel variant; fall back to
+        // the master copy (or the persisted session copy) when no variant exists.
+        const feedCopy = cluster.copyVariants?.feed
         const prodDataCin7 = cluster.productId ? cin7ProductAttrMap[cluster.productId] : null
         const pAttrCin7 = prodDataCin7?.attributes ?? {}
         const matchedCwCin7 = prodDataCin7?.listings.find((c: { id: string }) => c.id === cluster.listingId) ?? prodDataCin7?.listings[0]
@@ -450,10 +453,10 @@ export function ExportView({
               styleNumber: cluster.styleNumber || '',
               garmentCategory: cluster.garmentCategory || null,
               images,
-              ...(copy?.title || cluster.productName ? { copy: {
-                title: copy?.title || cluster.productName || '',
-                description: copy?.description || cluster.copyDescription || '',
-                bullets: copy?.bullets?.length ? copy.bullets : (cluster.copyBullets ?? []),
+              ...((feedCopy || copy?.title || cluster.productName) ? { copy: {
+                title: feedCopy?.title || copy?.title || cluster.productName || '',
+                description: feedCopy?.description || copy?.description || cluster.copyDescription || '',
+                bullets: feedCopy?.bullets?.length ? feedCopy.bullets : (copy?.bullets?.length ? copy.bullets : (cluster.copyBullets ?? [])),
               } } : {}),
               ...(prodDataCin7 ? { styleEntry: {
                 composition: pAttrCin7.composition,
@@ -1068,6 +1071,10 @@ export function ExportView({
                   category: c.category ?? null,
                   is_bottomwear: c.isBottomwear ?? false,
                   confirmed: c.confirmed ?? false,
+                  copy_title: clusterCopy[c.id]?.title ?? c.productName ?? '',
+                  copy_description: c.copyDescription ?? '',
+                  copy_bullets: c.copyBullets ?? [],
+                  copy_variants: c.copyVariants ?? null,
                   images: c.images.map((img, j) => ({
                     image_id: img.id,
                     image_order: j,

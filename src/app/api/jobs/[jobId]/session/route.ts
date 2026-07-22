@@ -16,6 +16,10 @@ type ClusterPayload = {
   category: string | null
   is_bottomwear: boolean
   confirmed?: boolean
+  copy_title?: string
+  copy_description?: string
+  copy_bullets?: string[]
+  copy_variants?: unknown
   images: Array<{
     image_id: string
     image_order: number
@@ -82,6 +86,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ jobId: s
           category: c.category,
           is_bottomwear: c.is_bottomwear,
           confirmed: c.confirmed ?? false,
+          copy_title: c.copy_title ?? null,
+          copy_description: c.copy_description ?? null,
+          copy_bullets: c.copy_bullets ?? null,
+          copy_variants: c.copy_variants ?? null,
         })
         .select('id')
         .single()
@@ -140,6 +148,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ jobId: st
         id, cluster_id, cluster_order,
         sku, product_name, color, colour_code, style_number,
         label, category, is_bottomwear, confirmed, exported,
+        copy_title, copy_description, copy_bullets, copy_variants,
         job_cluster_images (
           image_id, image_order, filename,
           seq_index, view_label, view_confidence, storage_path

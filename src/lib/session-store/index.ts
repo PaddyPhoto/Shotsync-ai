@@ -67,6 +67,7 @@ interface StoredCluster {
   exported: boolean
   copyDescription?: string
   copyBullets?: string[]
+  copyVariants?: import('@/lib/copy/variants').CopyVariants
   images: StoredClusterImage[]
 }
 
@@ -243,6 +244,7 @@ export async function saveSession(
       exported: cluster.exported ?? false,
       copyDescription: cluster.copyDescription ?? '',
       copyBullets: cluster.copyBullets ?? [],
+      ...(cluster.copyVariants ? { copyVariants: cluster.copyVariants } : {}),
       images: cluster.images.map((img) => ({
         id: img.id,
         filename: img.filename,
@@ -318,6 +320,7 @@ export async function loadSession(jobId: string): Promise<{
     exported: sc.exported ?? false,
     copyDescription: sc.copyDescription ?? '',
     copyBullets: sc.copyBullets ?? [],
+    ...(sc.copyVariants ? { copyVariants: sc.copyVariants } : {}),
     images: sc.images.map((imgMeta) => {
       const stored = fileMap.get(imgMeta.id)
       if (!stored) {

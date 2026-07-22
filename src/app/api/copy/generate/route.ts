@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PLANS } from '@/lib/plans'
 import type { PlanId } from '@/lib/plans'
 import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rateLimit'
+import { toCopyVariants } from '@/lib/copy/variants'
 
 export const maxDuration = 60
 
@@ -76,7 +77,12 @@ DESCRIPTION STRUCTURE — follow this exactly, 4–5 sentences:
 5. Styling close: One specific, garment-appropriate styling suggestion. NOT a generic "from business to casual" or "day to night" line — make it concrete and relevant to this exact garment.
 
 TONE: Confident, precise, editorial. No filler. No vague superlatives.
-ACCURACY: Never invent details not provided or visible. State fabric composition verbatim when provided.${voiceBriefTrimmed ? `\n\nBRAND VOICE: ${voiceBriefTrimmed}` : ''}${examplesList.length ? `\n\nEXAMPLE DESCRIPTIONS IN THIS BRAND'S VOICE — mirror their tone, sentence structure, and vocabulary:\n${examplesList.map((ex, i) => `Example ${i + 1}:\n${ex.trim()}`).join('\n\n')}` : ''}`
+ACCURACY: Never invent details not provided or visible. State fabric composition verbatim when provided.
+
+CHANNEL VERSIONS — besides the main Shopify/long description, produce two shorter versions of the SAME product in the SAME brand voice, differing only in length and format:
+- marketplace: a keyword-front-loaded title (garment type + key attributes + colour first), max 60 characters, plus a 1–2 sentence description. Optimised for marketplace search; no filler.
+- feed: a concise, factual title and a 1–2 sentence plain description, attribute-dense (for an ERP/PIM import). Facts, not editorial flourish.
+Keep all three consistent in facts and voice.${voiceBriefTrimmed ? `\n\nBRAND VOICE: ${voiceBriefTrimmed}` : ''}${examplesList.length ? `\n\nEXAMPLE DESCRIPTIONS IN THIS BRAND'S VOICE — mirror their tone, sentence structure, and vocabulary:\n${examplesList.map((ex, i) => `Example ${i + 1}:\n${ex.trim()}`).join('\n\n')}` : ''}`
 
   const specLines = [
     sku          && `- SKU: ${sku}`,
@@ -125,7 +131,17 @@ Return ONLY valid JSON with no markdown or code fences:
     "${composition ? `${composition}` : 'Fabric composition'}",
     "Key design details (collar, closure, pockets, lining, etc.)",
     "${care ? `Care: ${care}` : 'Care or finishing detail'}"
-  ]
+  ],
+  "marketplace": {
+    "title": "Keyword-first title, max 60 chars — garment type + key attributes + colour",
+    "description": "1–2 search-optimised sentences in the same voice",
+    "bullets": ["Short attribute bullet", "Short attribute bullet", "Short attribute bullet"]
+  },
+  "feed": {
+    "title": "Concise factual title",
+    "description": "1–2 plain, attribute-dense sentences for an ERP/PIM import",
+    "bullets": ["Attribute", "Attribute", "Attribute"]
+  }
 }`
 
   try {
@@ -144,9 +160,9 @@ Return ONLY valid JSON with no markdown or code fences:
       // reasoning task: disable thinking so the whole budget goes to the output
       // and latency/cost stay low on the batch "generate all copy" path.
       thinking: { type: 'disabled' },
-      // Headroom for Sonnet 5's tokenizer (~30% more tokens for the same text)
-      // so a slightly longer description never truncates the JSON.
-      max_tokens: 1000,
+      // Room for the master copy + two channel variants (Sonnet 5's tokenizer
+      // also runs ~30% higher), so the JSON never truncates.
+      max_tokens: 1500,
       system: systemPrompt,
       messages: [{ role: 'user', content }],
     })
@@ -155,11 +171,13 @@ Return ONLY valid JSON with no markdown or code fences:
     // Strip any accidental markdown fences Claude might add
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
     const parsed = JSON.parse(cleaned)
+    const variants = toCopyVariants(parsed)
 
     return NextResponse.json({
       title: parsed.title ?? '',
       description: parsed.description ?? '',
       bullets: Array.isArray(parsed.bullets) ? parsed.bullets.slice(0, 5) : [],
+      ...(variants ? { variants } : {}),
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Copy generation failed'

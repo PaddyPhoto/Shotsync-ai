@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { ViewLabel } from '@/types'
 import { DEFAULT_EDIT, type ImageEdit } from '@/lib/image/adjustments'
+import type { CopyVariants } from '@/lib/copy/variants'
 
 export interface SessionImage {
   id: string
@@ -31,6 +32,7 @@ export interface SessionCluster {
   exported: boolean
   copyDescription?: string
   copyBullets?: string[]
+  copyVariants?: CopyVariants  // per-channel copy (marketplace, feed); master copy above = Shopify/long
   productId?: string      // linked PIM product (matched by SKU)
   listingId?: string    // linked PIM colourway (matched by colour name)
 }
@@ -76,6 +78,7 @@ interface SessionState {
   splitAndReflow: (clusterId: string, atImageId: string) => void
   updateClusterSku: (clusterId: string, sku: string, productName?: string) => void
   setClusterCopyText: (clusterId: string, description: string, bullets: string[]) => void
+  setClusterCopyVariants: (clusterId: string, variants: CopyVariants) => void
   updateClusterColor: (clusterId: string, color: string) => void
   updateClusterColourCode: (clusterId: string, colourCode: string) => void
   updateClusterStyleNumber: (clusterId: string, styleNumber: string) => void
@@ -259,6 +262,12 @@ export const useSession = create<SessionState>((set, get) => ({
   setClusterCopyText: (clusterId, description, bullets) => set((state) => ({
     clusters: state.clusters.map((c) =>
       c.id === clusterId ? { ...c, copyDescription: description, copyBullets: bullets } : c
+    ),
+  })),
+
+  setClusterCopyVariants: (clusterId, variants) => set((state) => ({
+    clusters: state.clusters.map((c) =>
+      c.id === clusterId ? { ...c, copyVariants: variants } : c
     ),
   })),
 

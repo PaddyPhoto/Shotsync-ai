@@ -10,6 +10,7 @@ import { usePlan } from '@/context/PlanContext'
 import { useSession } from '@/store/session'
 import type { ShootType } from '@/store/session'
 import { processFiles } from '@/lib/processor'
+import { toCopyVariants } from '@/lib/copy/variants'
 import { getPica } from '@/lib/image/pica'
 import { ACCESSORY_CATEGORIES } from '@/lib/accessories/categories'
 import { angleDisplayName } from '@/lib/angle-utils'
@@ -24,6 +25,8 @@ type ReimportCluster = {
   sku: string; product_name: string; color: string; colour_code: string
   style_number: string; label: string; category: string | null; is_bottomwear: boolean
   confirmed: boolean
+  copy_title?: string | null; copy_description?: string | null
+  copy_bullets?: string[] | null; copy_variants?: unknown
   job_cluster_images: ReimportImage[]
 }
 type ReimportMeta = { clusters: ReimportCluster[]; jobName: string; marketplaces: string[] }
@@ -675,6 +678,10 @@ export default function UploadPage() {
         confirmed: sc.confirmed,
         incomplete: false,
         exported: false,
+        // Restore AI copy so a reopened job keeps its listings (master + variants).
+        ...(sc.copy_description ? { copyDescription: sc.copy_description } : {}),
+        ...(Array.isArray(sc.copy_bullets) && sc.copy_bullets.length ? { copyBullets: sc.copy_bullets } : {}),
+        ...((() => { const v = toCopyVariants(sc.copy_variants); return v ? { copyVariants: v } : {} })()),
         images: items
           .sort((a, b) => a.img.image_order - b.img.image_order)
           .map(({ file, img }) => ({

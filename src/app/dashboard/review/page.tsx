@@ -17,6 +17,7 @@ import { ACCESSORY_CATEGORIES, getCategoryById, getAngleDisplayName } from '@/li
 import { GARMENT_CATEGORIES } from '@/lib/garment-categories'
 import { angleDisplayName } from '@/lib/angle-utils'
 import { processImageOnCanvas, preCompressImage, PLAIN_BG_VIEWS } from '@/lib/export/image-processing'
+import { toCopyVariants } from '@/lib/copy/variants'
 
 const BOTTOMWEAR_CATEGORY_LABELS = new Set([
   'Mens Pants', 'Mens Shorts', 'Mens Swimwear',
@@ -105,7 +106,7 @@ function ReviewPage() {
     useStyleList, styleList,
     setSession,
     moveImage, copyImageToCluster, mergeCluster, splitImages, splitAndReflow, reorderImages, relabelCluster, setClusterGarmentCategory,
-    updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber, setClusterCopyText,
+    updateClusterSku, updateClusterColor, updateClusterColourCode, updateClusterStyleNumber, setClusterCopyText, setClusterCopyVariants,
     setClusterCategory, setClusterBottomwear, setImageViewLabel, confirmCluster, unconfirmCluster, setClusterIncomplete, setAllConfirmed, deleteCluster, deleteConfirmedClusters, deleteImages, undo, reset,
     setClusterProduct,
   } = useSession()
@@ -294,6 +295,10 @@ function ReviewPage() {
       const aiDescription = (data.description as string) ?? ''
       const aiBullets = Array.isArray(data.bullets) ? data.bullets as string[] : []
       if (aiDescription || aiBullets.length) setClusterCopyText(cluster.id, aiDescription, aiBullets)
+      // Store the channel variants (marketplace, feed) so exports/pushes can route
+      // the right version per destination, and they persist with the session.
+      const variants = toCopyVariants(data.variants)
+      if (variants) setClusterCopyVariants(cluster.id, variants)
 
       // Write copy back to the product colourway record in Supabase
       if (cluster.productId && cluster.listingId && (aiTitle || aiDescription)) {
@@ -1839,6 +1844,29 @@ function ReviewPage() {
                                     ))}
                                   </div>
                                 </div>
+                                {cluster.copyVariants && (
+                                  <div className="flex flex-col gap-[6px] pt-[8px] mt-[2px] border-t border-[var(--line)]">
+                                    <p className="text-[length:var(--font-base)] font-medium text-[var(--text3)] uppercase tracking-wide">Channel versions</p>
+                                    {(['marketplace', 'feed'] as const).map((ch) => {
+                                      const v = cluster.copyVariants?.[ch]
+                                      if (!v) return null
+                                      return (
+                                        <div key={ch} className="rounded-[6px] border border-[var(--line)] bg-[var(--bg3)] px-[8px] py-[6px]">
+                                          <div className="flex items-center justify-between mb-[3px]">
+                                            <span className="text-[length:var(--font-sm)] font-semibold text-[var(--text2)] uppercase tracking-wide">{ch === 'marketplace' ? 'Marketplace' : 'ERP / feed'}</span>
+                                            <button
+                                              type="button"
+                                              onClick={() => { try { navigator.clipboard?.writeText(`${v.title}\n\n${v.description}${v.bullets.length ? '\n\n' + v.bullets.map((b) => `• ${b}`).join('\n') : ''}`) } catch { /* clipboard blocked */ } }}
+                                              className="text-[length:var(--font-sm)] text-[var(--accent)] hover:opacity-70 transition-opacity"
+                                            >Copy</button>
+                                          </div>
+                                          <p className="text-[length:var(--font-sm)] text-[var(--text)] font-medium leading-snug">{v.title}</p>
+                                          <p className="text-[length:var(--font-sm)] text-[var(--text3)] leading-snug mt-[2px]">{v.description}</p>
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                )}
                                 <button
                                   onClick={() => generateCopy(cluster)}
                                   className="flex items-center gap-1 text-[length:var(--font-base)] text-[var(--text3)] hover:text-[var(--text2)] transition-colors self-start"
