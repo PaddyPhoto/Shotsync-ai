@@ -10,24 +10,39 @@ layer nobody upstream owns.**
 
 ---
 
-## The spine — Option B (where we already are)
+## The spine — create once, deliver to every channel (where we already are)
 
 ```
-RAW SHOOT  →  ShotSync              →  SHOPIFY            →  [the brand's existing stack]
-              cluster by SKU           (ecommerce master)     ERP→Shopify inventory sync
-              spec/crop/bg images                             syndication tool / ERP EDI → marketplaces
-              generate on-brand copy
+RAW SHOOT  →  ShotSync (enriched record)  →  MULTIPLE CHANNELS, one shoot:
+              cluster by SKU                  • Shopify        — direct API push
+              spec/crop/bg images             • Marketplaces   — Chrome extension one-click portal fill
+              generate on-brand copy          • Export packages— spec'd files → manual/bulk upload
               fill visual attributes
 ```
 
-Shoot in → ShotSync produces the enriched listing → pushes it into **Shopify** (where listings
-actually live) → the brand's *existing* plumbing takes it the rest of the way. **ShotSync owns
-the shoot→Shopify content step. Nothing more, nothing less.**
+Shoot in → ShotSync produces ONE enriched listing → **delivers it to multiple channels in one
+pass.** This is the core attraction — "one enriched listing → multiple marketplaces, created
+once" — and it is REAL today. **Three built delivery modes:**
 
-**We are already at Option B's core today:** content creation ✅ and the Shopify push ✅ both
-exist and work (`handleShopifyUpload` / `publishToShopify` create content-rich Shopify drafts:
-images, SKU, colour, title/description/bullets, attributes, metafields). We're standing on
-Option B, not heading toward it.
+1. **Shopify** — direct API push (`handleShopifyUpload` / `publishToShopify`: images, SKU, colour,
+   title/description/bullets, attributes, metafields). ✅
+2. **Marketplaces via the Chrome extension (v0.1.0, built)** — `extension/listing-payload`
+   assembles the COMPLETE record (content + commercial: size/**barcode**/price/RRP) and the
+   extension **auto-fills the marketplace portal form** (THE ICONIC, Myer, DJ) in one click. **No
+   marketplace API integration needed** — it drives the portal UI. This is the differentiated
+   "direct to marketplace WITHOUT the syndication/inventory-sync burden" path. ✅
+3. **Export packages** — per-marketplace spec'd images + data file → the brand uploads/bulk-imports.
+   This is what the per-marketplace resize is FOR. Strongest for the manual-upload segment (small/
+   medium brands without a syndication tool). ✅
+
+**Honest boundary:** the extension *creates* a complete, live-able listing (one-click, includes
+commercial data) — it does NOT do ongoing real-time stock sync afterward (that's the ERP EDI /
+the marketplace's tools / future Option A). Listing CREATION from a shoot is the killer use case,
+and it's covered without building syndication.
+
+**"Read commercial data" purpose:** the extension (and export data file) need barcode/size/price
+in the product record — populated by import from the ERP/Shopify or the Products/CRM. That's why
+holding that data matters (the Cin7 barcode question resolves here).
 
 ---
 
@@ -109,13 +124,14 @@ the ERP). "Create from scratch" is the fallback (DTC/emerging, no ERP) — a thi
 ---
 
 ## What's PARKED — Option A (future, optional)
-Becoming a **fashion-native syndication layer**: read inventory from ERPs, push complete listings
-to marketplaces (**Marketplacer** → Myer/DJ; **THE ICONIC SellerCenter** — these are ~2 platform
-integrations, not many), real-time stock sync + orders. **This IS what Omnivore does** — the
-"read → assemble → push to marketplace + inventory" loop. Bigger, later, optional; competes
-head-on and carries the operational (oversell/orders) burden. **Not required for a complete
-product.** Revisit only when a design-partner brand *demands* direct marketplace push and will be
-the test account.
+NOTE: marketplace *delivery* is NOT parked — the **Chrome extension** already pushes complete
+listings to marketplace portals (one-click, no API). What's parked is the **full-API real-time
+syndication**: read inventory from ERPs, push via **Marketplacer** (→ Myer/DJ) + **THE ICONIC
+SellerCenter** APIs, with **ongoing real-time stock sync + order routing**. That's the
+always-on operational layer — **this IS what Omnivore does** — and it carries the oversell/orders
+burden. The extension covers listing CREATION now; Option A is the *ongoing-automation* premium
+for brands that outgrow the one-click flow. Revisit only when a design-partner brand *demands*
+real-time automated sync and will be the test account.
 
 **If/when Option A: the ERP-read scope is region-aware** (matches the au/us region model), and it
 is READ-only (pull price/stock/size/barcode) — content is never pushed into the ERP:
